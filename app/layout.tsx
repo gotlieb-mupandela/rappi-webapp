@@ -18,6 +18,9 @@ import "./tokens.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+  adjustFontFallback: false,
 });
 
 const geistMono = Geist_Mono({
@@ -68,7 +71,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} ${oswald.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-bg text-ink">
+      <body className={`${inter.className} flex min-h-full flex-col bg-bg text-ink`}>
         <Script id="rappi-theme" strategy="beforeInteractive">
           {THEME_BOOTSTRAP}
         </Script>

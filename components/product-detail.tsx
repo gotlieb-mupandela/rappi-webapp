@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
@@ -73,18 +74,20 @@ export function ProductDetail({ product }: { product: Product }) {
   );
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start lg:gap-16">
-      <ProductGallery product={product} />
-      <div className="lg:sticky lg:top-28 lg:pt-2">
-        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--accent)]">
+    <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start lg:gap-16">
+      <div className="min-w-0">
+        <ProductGallery product={product} />
+      </div>
+      <div className="pdp-type min-w-0 max-w-full lg:sticky lg:top-28 lg:pt-2">
+        <p className="text-[11px] font-medium uppercase tracking-normal text-[var(--accent)] sm:tracking-[0.14em]">
           {catName}
           <span className="text-ink/25"> / </span>
           {subName(product.subcategory, t)}
         </p>
-        <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl uppercase leading-[0.95] tracking-wide text-ink sm:text-4xl">
+        <h1 className="mt-4 break-words font-[family-name:var(--font-oswald)] text-3xl uppercase leading-tight tracking-normal text-ink sm:text-4xl">
           {title}
         </h1>
-        <p className="mt-3 font-mono text-[11px] tracking-[0.18em] text-[var(--muted-2)]">
+        <p className="mt-3 font-mono text-[11px] tracking-normal text-[var(--muted-2)]">
           {product.code}
         </p>
         <div className="mt-6">
@@ -107,7 +110,7 @@ export function ProductDetail({ product }: { product: Product }) {
 
         {showPicker ? (
           <div className="mt-8">
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-normal text-[var(--muted)]">
               {t("product.size")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -121,7 +124,7 @@ export function ProductDetail({ product }: { product: Product }) {
                     setQty(1);
                   }}
                   className={cn(
-                    "min-h-11 min-w-11 rounded-full border px-4 text-sm font-medium uppercase tracking-wide transition-[border-color,background-color,color] duration-200",
+                    "min-h-11 min-w-[2.75rem] rounded-full border px-3 text-[13px] font-medium tracking-normal transition-[border-color,background-color,color] duration-200 sm:min-w-11 sm:px-4 sm:text-sm sm:tracking-wide",
                     size === row.size
                       ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--on-accent)]"
                       : "border-[var(--border-strong)] text-ink hover:border-[var(--text)]",
@@ -155,43 +158,45 @@ export function ProductDetail({ product }: { product: Product }) {
         )}
 
         <div className="mt-8 max-w-xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+          <p className="text-[11px] font-medium uppercase tracking-normal text-[var(--muted)]">
             {t("product.details")}
           </p>
           <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{details}</p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">{actions}</div>
-        <p className="mt-8 max-w-md text-sm leading-7 text-[var(--muted)]">
+        <div className="mt-8 hidden gap-3 md:flex md:flex-row md:items-center">{actions}</div>
+        <p className="mt-8 hidden max-w-md text-sm leading-7 text-[var(--muted)] md:block">
           {market === "eu" ? t("product.pricedEur") : t("product.pricedNad")}
         </p>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border)] bg-[var(--header-bg-scrolled)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-3">
-          <div className="min-w-0">
-            <p className="price text-sm font-semibold">{format(product.price)}</p>
-            <p className="truncate text-[11px] uppercase tracking-wider text-[var(--muted)]">
+      <MobileBuyBar>
+        <div className="pdp-type mx-auto flex max-w-[1440px] flex-col gap-2.5">
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+            <p className="price text-base font-semibold">{format(product.price)}</p>
+            <p className="text-[12px] font-medium text-[var(--muted)]">
               {soldOut ? t("product.soldOut") : unitLabel}
             </p>
           </div>
-          <QtyStepper
-            value={qty}
-            max={Math.max(stock, 1)}
-            onChange={setQty}
-            className="h-11 shrink-0 [&_button]:h-11 [&_button]:w-10"
-          />
-          <Button
-            size="lg"
-            onClick={addToBag}
-            disabled={soldOut || stock === 0}
-            className="min-w-0 flex-1"
-          >
-            {soldOut ? t("product.soldOut") : t("common.addToBag")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <QtyStepper
+              value={qty}
+              max={Math.max(stock, 1)}
+              onChange={setQty}
+              className="h-11 shrink-0 [&_button]:h-11 [&_button]:w-10"
+            />
+            <Button
+              size="lg"
+              onClick={addToBag}
+              disabled={soldOut || stock === 0}
+              className="h-11 min-w-0 flex-1 px-4 normal-case tracking-[normal]"
+            >
+              {soldOut ? t("product.soldOut") : t("common.addToBag")}
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className="h-[6.5rem] md:hidden" />
+      </MobileBuyBar>
+      <div className="h-32 md:hidden" />
     </div>
   );
 }

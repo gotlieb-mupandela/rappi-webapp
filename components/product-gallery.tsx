@@ -26,7 +26,7 @@ export function ProductGallery({ product }: { product: Product }) {
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="media-frame overflow-hidden rounded-lg border border-[var(--border)]">
         <ProductImage
           product={product}
