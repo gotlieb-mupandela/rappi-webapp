@@ -1,9 +1,3 @@
-export {
-  DPO_TEST_AMOUNT,
-  DPO_TEST_PRODUCT_CODE,
-  DPO_TEST_PRODUCT_NAME,
-} from "@/lib/dpo-constants";
-
 const DEFAULT_API_URL = "https://secure.3gdirectpay.com/API/v6/";
 const DEFAULT_PAY_URL = "https://secure.3gdirectpay.com/payv3.php";
 const DEFAULT_SITE_URL = "https://www.rappisportshub.com";
@@ -126,8 +120,8 @@ export async function createToken(input: {
     <PaymentAmount>${input.amount.toFixed(2)}</PaymentAmount>
     <PaymentCurrency>${escapeXml(input.currency)}</PaymentCurrency>
     <CompanyRef>${escapeXml(input.companyRef)}</CompanyRef>
-    <RedirectURL>${escapeXml(`${site}/dpo-test/return`)}</RedirectURL>
-    <BackURL>${escapeXml(`${site}/dpo-test/cancel`)}</BackURL>
+    <RedirectURL>${escapeXml(`${site}/checkout/return`)}</RedirectURL>
+    <BackURL>${escapeXml(`${site}/checkout/cancel`)}</BackURL>
     <CompanyRefUnique>1</CompanyRefUnique>
     <PTL>60</PTL>
     <PTLtype>minutes</PTLtype>

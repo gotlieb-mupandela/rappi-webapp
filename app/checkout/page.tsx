@@ -9,15 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocale } from "@/components/locale-provider";
-import { placeOrder } from "@/lib/place-order";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { shippingName } from "@/lib/i18n/labels";
-import { cartHasDpoTest, cartIsDpoTestOnly } from "@/lib/dpo-constants";
 import { sizeDisplayLabel } from "@/lib/product-stock";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
 import { useCart } from "@/lib/stores/cart";
-import { useOrders } from "@/lib/stores/orders";
 import type { Order } from "@/lib/types";
 
 type ShippingRow = { id: string; name: string; cost: number };
@@ -27,9 +24,7 @@ const FALLBACK_SHIPPING: ShippingRow[] = shippingMethodsSnapshot();
 export default function CheckoutPage() {
   const router = useRouter();
   const lines = useCart((s) => s.lines);
-  const clear = useCart((s) => s.clear);
   const user = useAuth((s) => s.user);
-  const addOrder = useOrders((s) => s.add);
   const { t, format, market } = useLocale();
   const [shippingOptions, setShippingOptions] = useState<ShippingRow[]>(FALLBACK_SHIPPING);
   const [submitting, setSubmitting] = useState(false);
@@ -88,14 +83,8 @@ export default function CheckoutPage() {
   const subtotal = rows.reduce((s, r) => s + r.price * r.qty, 0);
   const shipping = shippingOptions.find((s) => s.id === method) ?? shippingOptions[0];
   const total = subtotal + (shipping?.cost ?? 0);
-  const dpoOnly = cartIsDpoTestOnly(lines);
-  const dpoMixed = cartHasDpoTest(lines) && !dpoOnly;
   const pickup = method === "pickup";
-  const addressRequired = !dpoOnly || !pickup;
-
-  useEffect(() => {
-    if (dpoOnly) setMethod("pickup");
-  }, [dpoOnly]);
+  const addressRequired = !pickup;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -103,76 +92,55 @@ export default function CheckoutPage() {
       toast.error(t("checkout.cartEmpty"));
       return;
     }
-    if (dpoMixed) {
-      toast.error(t("checkout.dpoMixed"));
-      return;
-    }
-    if (dpoOnly) {
-      if (!name || !email) {
-        toast.error(t("checkout.completeNameEmail"));
-        return;
-      }
-      if (addressRequired && (!address || !city || !country)) {
-        toast.error(t("checkout.completeDetails"));
-        return;
-      }
-      setSubmitting(true);
-      try {
-        const qty = rows.reduce((n, r) => n + r.qty, 0);
-        const res = await fetch("/api/payments/dpo/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            qty,
-            shippingMethod: shipping.id,
-          }),
-        });
-        const data = (await res.json()) as { paymentUrl?: string; error?: string };
-        if (!res.ok || !data.paymentUrl) {
-          toast.error(data.error ?? t("checkout.failed"));
-          return;
-        }
-        window.location.href = data.paymentUrl;
-      } catch {
-        toast.error(t("checkout.failed"));
-      } finally {
-        setSubmitting(false);
-      }
-      return;
-    }
     if (!user) {
       toast.error(t("checkout.signInRequired"));
       router.push("/login?next=/checkout");
       return;
     }
-    if (!name || !email || !address || !city || !country) {
+    if (!name || !email) {
+      toast.error(t("checkout.completeNameEmail"));
+      return;
+    }
+    if (addressRequired && (!address || !city || !country)) {
       toast.error(t("checkout.completeDetails"));
       return;
     }
     setSubmitting(true);
-    const result = await placeOrder({
-      email,
-      name,
-      address,
-      city,
-      country,
-      shippingMethod: shipping.id,
-      shippingCost: shipping.cost,
-      shippingLabel: shipping.name,
-      notes,
-      lines,
-    });
-    setSubmitting(false);
-    if (!result.ok) {
-      toast.error(t(result.messageKey, result.values));
-      return;
+    try {
+      const res = await fetch("/api/payments/dpo/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          address,
+          city,
+          country,
+          notes,
+          shippingMethod: shipping.id,
+          lines: lines.map((line) => ({
+            code: line.code,
+            size: line.size,
+            qty: line.qty,
+          })),
+        }),
+      });
+      const data = (await res.json()) as { paymentUrl?: string; error?: string };
+      if (res.status === 401) {
+        toast.error(t("checkout.signInRequired"));
+        router.push("/login?next=/checkout");
+        return;
+      }
+      if (!res.ok || !data.paymentUrl) {
+        toast.error(data.error ?? t("checkout.failed"));
+        return;
+      }
+      window.location.href = data.paymentUrl;
+    } catch {
+      toast.error(t("checkout.failed"));
+    } finally {
+      setSubmitting(false);
     }
-    addOrder(result.order);
-    clear();
-    toast.success(t("checkout.placed"));
-    router.push(`/checkout/confirmation?id=${result.order.id}`);
   }
 
   if (!rows.length) {
@@ -220,33 +188,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (dpoMixed) {
-    return (
-      <div className="page-shell py-8">
-        <Breadcrumbs
-          items={[
-            { href: "/", label: t("common.home") },
-            { href: "/cart", label: t("cart.crumb") },
-            { label: t("checkout.crumb") },
-          ]}
-        />
-        <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-4xl">
-          {t("checkout.title")}
-        </h1>
-        <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{t("checkout.dpoMixed")}</p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button asChild>
-            <Link href="/cart">{t("checkout.backToCart")}</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/product/DPO-TEST">DPO Test</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (authReady && !user && !dpoOnly) {
+  if (authReady && !user) {
     return (
       <div className="page-shell py-8">
         <Breadcrumbs
@@ -314,13 +256,7 @@ export default function CheckoutPage() {
             {t("checkout.title")}
           </h1>
           <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
-            {dpoOnly
-              ? market === "eu"
-                ? t("checkout.introDpoEur")
-                : t("checkout.introDpo")
-              : market === "eu"
-                ? t("checkout.introEur")
-                : t("checkout.introNad")}
+            {market === "eu" ? t("checkout.introEur") : t("checkout.introNad")}
           </p>
         </div>
       </div>
@@ -426,22 +362,12 @@ export default function CheckoutPage() {
             type="submit"
             size="lg"
             className="mt-6 hidden w-full md:inline-flex"
-            disabled={submitting || (!dpoOnly && !user)}
+            disabled={submitting || !user}
           >
-            {submitting
-              ? dpoOnly
-                ? t("checkout.payingDpo")
-                : t("checkout.placing")
-              : dpoOnly
-                ? t("checkout.payDpo")
-                : t("checkout.placeOrder")}
+            {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
           </Button>
           <p className="mt-3 hidden text-center text-xs text-[var(--muted-2)] md:block">
-            {dpoOnly
-              ? t("checkout.totalsDpo")
-              : market === "eu"
-                ? t("checkout.totalsEur")
-                : t("checkout.totalsNad")}
+            {market === "eu" ? t("checkout.totalsEur") : t("checkout.totalsNad")}
           </p>
         </aside>
       </form>
@@ -456,15 +382,9 @@ export default function CheckoutPage() {
             form="checkout-form"
             size="lg"
             className="min-w-0 flex-1"
-            disabled={submitting || (!dpoOnly && !user)}
+            disabled={submitting || !user}
           >
-            {submitting
-              ? dpoOnly
-                ? t("checkout.payingDpo")
-                : t("checkout.placing")
-              : dpoOnly
-                ? t("checkout.payDpo")
-                : t("checkout.placeOrder")}
+            {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
           </Button>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
 import { getAssortment } from "@/lib/assortment";
-import { isDpoTestCode } from "@/lib/dpo-constants";
 import type { Product } from "@/lib/types";
 import { currencySymbol } from "@/lib/i18n/currency";
 import type { Market } from "@/lib/i18n/config";
@@ -64,12 +63,6 @@ export function productDescription(
 ): string {
   const t = opts?.t;
   const market = opts?.market ?? "na";
-  if (isDpoTestCode(product.code)) {
-    return t
-      ? t(market === "eu" ? "product.descDpoEur" : "product.descDpoNad")
-      : product.description ||
-          "DPO Pay sandbox test product. N$10. Do not use a live card. Test card expiry 01/26.";
-  }
   const symbol = currencySymbol(market);
   const pack = getAssortment(product);
   const joma = jomaDescription(product.code, market);

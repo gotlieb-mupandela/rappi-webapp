@@ -30,7 +30,7 @@ export function inStockSizes(product: Pick<Product, "sizes">) {
 
 /**
  * Sizes that can go in the bag. Empty `sizes` with SKU stock still sells
- * as a one-unit item (ONE/SKU) so sandbox / accessory SKUs are purchasable.
+ * as a one-unit item (ONE/SKU) so accessory SKUs are purchasable.
  */
 export function buyableSizes(
   product: Pick<Product, "sizes" | "stockQty" | "totalQty">,

@@ -1,7 +1,6 @@
 import source from "@/data/products-source.json";
 import sizeMaster from "@/data/size-master.json";
 import { getAssortment } from "@/lib/assortment";
-import { isDpoTestCode } from "@/lib/dpo-constants";
 import type { Product, SizeStock } from "@/lib/types";
 
 export {
@@ -86,16 +85,6 @@ function rowsFromSizes(
  * is not treated as a real size.
  */
 export function withCatalogSizes<T extends Product>(product: T): T {
-  if (isDpoTestCode(product.code)) {
-    return {
-      ...product,
-      sizeOptions: ["ONE"],
-      sizes: [{ size: "ONE", stock: product.stockQty || 999 }],
-      stockQty: product.stockQty || 999,
-      totalQty: product.totalQty || product.stockQty || 999,
-    };
-  }
-
   const master = MASTER_BY_CODE.get(product.code);
   const sheet = SOURCE_BY_CODE.get(product.code);
   const recorded = hasRecordedSizeRun(product);

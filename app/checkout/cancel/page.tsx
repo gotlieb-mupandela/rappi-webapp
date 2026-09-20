@@ -7,11 +7,11 @@ import { cancelDpoPayment } from "@/lib/dpo-payments";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "DPO Test cancelled",
+  title: "Payment cancelled",
   robots: { index: false, follow: false },
 };
 
-export default async function DpoTestCancelPage({
+export default async function CheckoutCancelPage({
   searchParams,
 }: {
   searchParams: Promise<{
@@ -24,12 +24,12 @@ export default async function DpoTestCancelPage({
   const transToken = params.TransactionToken || params.TransToken || null;
   const companyRef = params.CompanyRef || null;
 
-  let body = "The DPO checkout was closed before payment.";
+  let body = "Checkout was closed before payment. Your bag is still saved.";
   if (transToken || companyRef) {
     try {
       const result = await cancelDpoPayment({ transToken, companyRef });
       if (result.status === "paid") {
-        body = "This test payment was already verified as paid.";
+        body = "This payment was already verified as paid.";
       } else if (result.payment) {
         body = `Payment ${result.payment.company_ref} is ${result.status}.`;
       }
@@ -43,17 +43,17 @@ export default async function DpoTestCancelPage({
       <Breadcrumbs
         items={[
           { href: "/", label: "Home" },
-          { href: "/product/DPO-TEST", label: "DPO Test" },
+          { href: "/checkout", label: "Checkout" },
           { label: "Cancelled" },
         ]}
       />
-      <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Sandbox</p>
+      <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Payment</p>
       <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-4xl">
         Payment cancelled
       </h1>
       <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{body}</p>
       <Button asChild className="mt-8">
-        <Link href="/product/DPO-TEST">Back to DPO Test</Link>
+        <Link href="/checkout">Back to checkout</Link>
       </Button>
     </div>
   );

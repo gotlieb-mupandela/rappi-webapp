@@ -1,12 +1,5 @@
-import { DPO_TEST_PRODUCT_CODE } from "@/lib/dpo-constants";
-import { dpoTestListingItem } from "@/lib/dpo-test-product";
 import type { ListingItem } from "@/lib/listing-types";
 import { listingHay } from "@/lib/listing-core";
-
-function withDpoTestProduct(rows: ListingItem[]): ListingItem[] {
-  if (rows.some((row) => row.code === DPO_TEST_PRODUCT_CODE)) return rows;
-  return [dpoTestListingItem(), ...rows];
-}
 
 let cached: ListingItem[] | null = null;
 let pending: Promise<ListingItem[]> | null = null;
@@ -23,7 +16,7 @@ async function fetchListingIndex(): Promise<ListingItem[]> {
     res = await fetch("/listing-index.json", { cache: "no-store" });
   }
   if (!res.ok) throw new Error(`listing index ${res.status}`);
-  const rows = withDpoTestProduct((await res.json()) as ListingItem[]);
+  const rows = (await res.json()) as ListingItem[];
   for (const row of rows) {
     if (!row.images) row.images = row.imageUrl ? [row.imageUrl] : [];
     if (!row.currency) row.currency = "NAD";

@@ -1,4 +1,5 @@
 import { verifyToken } from "@/lib/dpo";
+import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 
@@ -9,6 +10,7 @@ export type DpoFulfillResult = {
   status: Payment["status"];
   message: string;
   payment: Payment | null;
+  orderId: string | null;
 };
 
 function amountsMatch(expected: number, actual: string | null) {
@@ -34,6 +36,18 @@ function statusForResult(result: string | null): Payment["status"] {
     default:
       return "error";
   }
+}
+
+async function withOrder(payment: Payment | null, message: string, extra: Omit<DpoFulfillResult, "message" | "payment" | "orderId">): Promise<DpoFulfillResult> {
+  let orderId = payment?.order_id ?? null;
+  if (payment && extra.ok && extra.status === "paid") {
+    try {
+      orderId = (await createOrderFromPayment(payment)) ?? orderId;
+    } catch {
+      orderId = payment.order_id;
+    }
+  }
+  return { ...extra, message, payment, orderId };
 }
 
 async function loadPayment(transToken?: string | null, companyRef?: string | null) {
@@ -63,15 +77,27 @@ export async function fulfillDpoPayment(input: {
 }): Promise<DpoFulfillResult> {
   const payment = await loadPayment(input.transToken, input.companyRef);
   if (!payment) {
-    return { ok: false, status: "error", message: "Payment not found.", payment: null };
+    return {
+      ok: false,
+      status: "error",
+      message: "Payment not found.",
+      payment: null,
+      orderId: null,
+    };
   }
   if (payment.status === "paid") {
-    return { ok: true, status: "paid", message: "Already paid.", payment };
+    return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
   }
 
   const token = input.transToken || payment.trans_token;
   if (!token) {
-    return { ok: false, status: "error", message: "Missing transaction token.", payment };
+    return {
+      ok: false,
+      status: "error",
+      message: "Missing transaction token.",
+      payment,
+      orderId: payment.order_id,
+    };
   }
 
   const verified = await verifyToken(token);
@@ -98,6 +124,7 @@ export async function fulfillDpoPayment(input: {
         status: "error",
         message: "Paid amount or currency did not match.",
         payment,
+        orderId: null,
       };
     }
 
@@ -115,12 +142,11 @@ export async function fulfillDpoPayment(input: {
       .select("*")
       .single();
 
-    return {
-      ok: true,
-      status: "paid",
-      message: verified.explanation ?? "Transaction Paid",
-      payment: updated ?? payment,
-    };
+    return withOrder(
+      updated ?? { ...payment, status: "paid" },
+      verified.explanation ?? "Transaction Paid",
+      { ok: true, status: "paid" },
+    );
   }
 
   await admin
@@ -139,6 +165,7 @@ export async function fulfillDpoPayment(input: {
     status: nextStatus,
     message: verified.explanation ?? `DPO result ${verified.result ?? "unknown"}`,
     payment,
+    orderId: payment.order_id,
   };
 }
 
@@ -148,13 +175,25 @@ export async function cancelDpoPayment(input: {
 }): Promise<DpoFulfillResult> {
   const payment = await loadPayment(input.transToken, input.companyRef);
   if (!payment) {
-    return { ok: false, status: "error", message: "Payment not found.", payment: null };
+    return {
+      ok: false,
+      status: "error",
+      message: "Payment not found.",
+      payment: null,
+      orderId: null,
+    };
   }
   if (payment.status === "paid") {
-    return { ok: true, status: "paid", message: "Already paid.", payment };
+    return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
   }
   if (payment.status !== "pending") {
-    return { ok: true, status: payment.status, message: `Payment is ${payment.status}.`, payment };
+    return {
+      ok: true,
+      status: payment.status,
+      message: `Payment is ${payment.status}.`,
+      payment,
+      orderId: payment.order_id,
+    };
   }
 
   const admin = createAdminClient();
@@ -171,5 +210,6 @@ export async function cancelDpoPayment(input: {
     status: "cancelled",
     message: "Payment cancelled.",
     payment: updated ?? { ...payment, status: "cancelled" },
+    orderId: payment.order_id,
   };
 }

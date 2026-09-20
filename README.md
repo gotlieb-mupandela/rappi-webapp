@@ -2,7 +2,7 @@
 
 Consumer sports catalog for **RAPPI SPORTS HUB**. Tagline: **EQUIP | PERFORM | INSPIRE**.
 
-Dark storefront with neon lime CTAs. Opening-shop stock — **184 SKUs**. Unit prices are retail Namibian dollars (**N$**). France / EU visitors can switch the storefront to **French + euros** (converted from NAD). Guest browse and cart are enabled. Checkout is a stub (no real payments).
+Dark storefront with neon lime CTAs. Opening-shop stock — **184 SKUs**. Unit prices are retail Namibian dollars (**N$**). France / EU visitors can switch the storefront to **French + euros** (converted from NAD). Guest browse and cart are enabled. Checkout charges via DPO after sign-in.
 
 When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, the storefront reads catalog, shipping, and site settings from Supabase (with `/data/products.json` as offline fallback). Orders go through the `place_order` RPC.
 

@@ -243,7 +243,9 @@ export type Database = {
           customer_email: string | null
           customer_name: string | null
           id: string
+          order_id: string | null
           paid_at: string | null
+          payload: Json | null
           product_code: string
           provider: string
           raw_verify: string | null
@@ -251,6 +253,7 @@ export type Database = {
           trans_ref: string | null
           trans_token: string | null
           updated_at: string
+          user_id: string | null
           verify_result: string | null
         }
         Insert: {
@@ -261,7 +264,9 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           id?: string
+          order_id?: string | null
           paid_at?: string | null
+          payload?: Json | null
           product_code: string
           provider?: string
           raw_verify?: string | null
@@ -269,6 +274,7 @@ export type Database = {
           trans_ref?: string | null
           trans_token?: string | null
           updated_at?: string
+          user_id?: string | null
           verify_result?: string | null
         }
         Update: {
@@ -279,7 +285,9 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           id?: string
+          order_id?: string | null
           paid_at?: string | null
+          payload?: Json | null
           product_code?: string
           provider?: string
           raw_verify?: string | null
@@ -287,6 +295,7 @@ export type Database = {
           trans_ref?: string | null
           trans_token?: string | null
           updated_at?: string
+          user_id?: string | null
           verify_result?: string | null
         }
         Relationships: []

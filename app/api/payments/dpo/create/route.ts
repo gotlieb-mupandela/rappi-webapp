@@ -1,41 +1,48 @@
 import { NextResponse } from "next/server";
 import {
-  DPO_TEST_AMOUNT,
-  DPO_TEST_PRODUCT_CODE,
-  DPO_TEST_PRODUCT_NAME,
+  cartDescription,
+  cartShippingCost,
+  cartSubtotal,
+  CartResolveError,
+  parseShippingMethod,
+  resolveCheckoutLines,
+} from "@/lib/dpo-cart";
+import type { DpoPaymentPayload } from "@/lib/dpo-payload";
+import {
   createToken,
   dpoCurrency,
   dpoPaymentUrl,
   requestSiteUrl,
   splitName,
 } from "@/lib/dpo";
-import { shippingCostById, SHIPPING_METHODS } from "@/lib/shipping";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-
-function parseQty(value: unknown) {
-  const qty = typeof value === "number" ? value : Number(value);
-  if (!Number.isInteger(qty) || qty < 1 || qty > 99) return null;
-  return qty;
-}
-
-function parseShippingMethod(value: unknown) {
-  const id = String(value ?? "pickup");
-  return SHIPPING_METHODS.some((method) => method.id === id) ? id : null;
-}
 
 export async function POST(req: Request) {
   let body: {
     name?: string;
     email?: string;
-    qty?: number;
+    address?: string;
+    city?: string;
+    country?: string;
+    notes?: string;
     shippingMethod?: string;
+    lines?: unknown;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in to place an order." }, { status: 401 });
   }
 
   const name = String(body.name ?? "").trim();
@@ -44,15 +51,51 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Enter a name and a valid email." }, { status: 400 });
   }
 
-  const qty = parseQty(body.qty) ?? 1;
-  const shippingMethod = parseShippingMethod(body.shippingMethod) ?? "pickup";
-  const shippingCost = shippingCostById(shippingMethod);
-  const amount = DPO_TEST_AMOUNT * qty + shippingCost;
+  const shippingMethod = parseShippingMethod(body.shippingMethod);
+  if (!shippingMethod) {
+    return NextResponse.json({ error: "Choose a shipping method." }, { status: 400 });
+  }
 
-  const companyRef = `DPO-TEST-${crypto.randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
+  const pickup = shippingMethod === "pickup";
+  const address = String(body.address ?? "").trim() || (pickup ? "Hub pickup" : "");
+  const city = String(body.city ?? "").trim() || (pickup ? "—" : "");
+  const country = String(body.country ?? "").trim() || (pickup ? "NA" : "");
+  if (!address || !city || !country) {
+    return NextResponse.json({ error: "Complete shipping details." }, { status: 400 });
+  }
+
+  let lines;
+  try {
+    lines = resolveCheckoutLines(body.lines);
+  } catch (err) {
+    if (err instanceof CartResolveError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    return NextResponse.json({ error: "Could not price the cart." }, { status: 400 });
+  }
+
+  const shippingCost = cartShippingCost(shippingMethod);
+  const amount = cartSubtotal(lines) + shippingCost;
+  if (amount <= 0) {
+    return NextResponse.json({ error: "Cart total must be greater than zero." }, { status: 400 });
+  }
+
+  const companyRef = `RSH-${crypto.randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
   const { firstName, lastName } = splitName(name);
   const currency = dpoCurrency();
-  const description = `${DPO_TEST_PRODUCT_NAME} ×${qty} ${companyRef}`;
+  const description = cartDescription(lines, companyRef);
+  const payload: DpoPaymentPayload = {
+    userId: user.id,
+    email,
+    name,
+    address,
+    city,
+    country,
+    shippingMethod,
+    shippingCost,
+    notes: String(body.notes ?? "").trim(),
+    lines,
+  };
 
   let created;
   try {
@@ -89,12 +132,14 @@ export async function POST(req: Request) {
       company_ref: companyRef,
       trans_token: created.transToken,
       trans_ref: created.transRef,
-      product_code: DPO_TEST_PRODUCT_CODE,
+      product_code: lines[0]?.code ?? "CART",
       amount,
       currency,
       status: "pending",
       customer_email: email,
       customer_name: name,
+      user_id: user.id,
+      payload,
     });
     if (error) {
       return NextResponse.json({ error: "Could not record payment." }, { status: 500 });

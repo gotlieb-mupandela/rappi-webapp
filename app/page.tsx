@@ -23,7 +23,8 @@ export default async function HomePage() {
     : ["104409.484", "TOJS2604TF", "RR300W2680", "C448S2715"];
   const spotlight = spotlightCodes
     .map((code) => byCode(code))
-    .filter((p): p is Product => Boolean(p) && hasUsableProductImage(p));
+    .filter((p): p is Product => p != null)
+    .filter(hasUsableProductImage);
   const collections = collectionTiles(catalog);
   const audiences = audienceTiles(catalog);
   const football = productsInHub("football").filter(hasUsableProductImage);

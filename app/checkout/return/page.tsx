@@ -9,11 +9,11 @@ import { formatPrice } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "DPO Test return",
+  title: "Payment confirmation",
   robots: { index: false, follow: false },
 };
 
-export default async function DpoTestReturnPage({
+export default async function CheckoutReturnPage({
   searchParams,
 }: {
   searchParams: Promise<{
@@ -27,24 +27,26 @@ export default async function DpoTestReturnPage({
   const companyRef = params.CompanyRef || null;
 
   let heading = "Payment not verified";
-  let body = "Missing transaction token. Start again from the DPO Test product.";
+  let body = "Missing transaction token. Return to checkout and try again.";
   let paid = false;
   let ref: string | null = companyRef;
+  let orderId: string | null = null;
   let amount: string | null = null;
 
   if (transToken || companyRef) {
     try {
       const result = await fulfillDpoPayment({ transToken, companyRef });
       paid = result.ok && result.status === "paid";
-      heading = paid ? "DPO Test paid" : "Payment not complete";
+      heading = paid ? "Payment received" : "Payment not complete";
       body = result.message;
       ref = result.payment?.company_ref ?? companyRef;
+      orderId = result.orderId;
       if (result.payment) {
         amount = formatPrice(Number(result.payment.amount));
       }
     } catch (err) {
       heading = "Payment not verified";
-      body = err instanceof Error ? err.message : "Could not verify the DPO token.";
+      body = err instanceof Error ? err.message : "Could not verify the payment.";
     }
   }
 
@@ -53,22 +55,28 @@ export default async function DpoTestReturnPage({
       <Breadcrumbs
         items={[
           { href: "/", label: "Home" },
-          { href: "/product/DPO-TEST", label: "DPO Test" },
+          { href: "/checkout", label: "Checkout" },
           { label: "Return" },
         ]}
       />
       <ClearCartOnPaid paid={paid} />
       <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
-        {paid ? "Verified" : "Sandbox"}
+        {paid ? "Verified" : "Pending"}
       </p>
       <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-4xl">
         {heading}
       </h1>
       <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{body}</p>
-      {(ref || amount) && (
+      {(ref || amount || orderId) && (
         <section className="mt-8 max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 text-sm">
-          {ref && (
+          {orderId && (
             <p className="flex justify-between gap-4">
+              <span>Order</span>
+              <span className="break-all font-medium">{orderId}</span>
+            </p>
+          )}
+          {ref && (
+            <p className="mt-2 flex justify-between gap-4">
               <span>Reference</span>
               <span className="break-all font-medium">{ref}</span>
             </p>
@@ -81,9 +89,22 @@ export default async function DpoTestReturnPage({
           )}
         </section>
       )}
-      <Button asChild className="mt-8">
-        <Link href="/product/DPO-TEST">{paid ? "Buy again" : "Back to DPO Test"}</Link>
-      </Button>
+      <div className="mt-8 flex flex-wrap gap-3">
+        {paid ? (
+          <>
+            <Button asChild>
+              <Link href="/account/orders">View orders</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/">Continue shopping</Link>
+            </Button>
+          </>
+        ) : (
+          <Button asChild>
+            <Link href="/checkout">Back to checkout</Link>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
