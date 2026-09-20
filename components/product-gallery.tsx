@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "@/components/product-image";
-import { ProductVisual } from "@/components/product-visual";
 import { productImageAlt } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +18,7 @@ export function ProductGallery({ product }: { product: Product }) {
 
   if (!current) {
     return (
-      <div className="media-frame overflow-hidden rounded-xl border border-[var(--border)]">
-        <ProductVisual product={product} className="aspect-square w-full sm:aspect-[4/5]" />
-      </div>
+      <div className="media-frame aspect-square w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] sm:aspect-[4/5]" />
     );
   }
 

@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 import type { Product } from "@/lib/types";
-import { ProductVisual } from "@/components/product-visual";
 import { productImageAlt } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+
+/** Empty media plate — never silhouette shapes. */
+function ImagePlate({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn("bg-[var(--bg-elevated)]", className)}
+      aria-hidden
+    />
+  );
+}
 
 export function ProductImage({
   product,
@@ -25,9 +34,7 @@ export function ProductImage({
   const failed = Boolean(src) && failedSrc === src;
 
   if (!src || failed) {
-    return (
-      <ProductVisual product={product} className={fallbackClassName ?? className} />
-    );
+    return <ImagePlate className={fallbackClassName ?? className} />;
   }
 
   return (

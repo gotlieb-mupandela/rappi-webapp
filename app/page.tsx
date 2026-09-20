@@ -3,7 +3,7 @@ import { HubTile } from "@/components/hub-tile";
 import { ProductCard } from "@/components/product-card";
 import { SectionHeading } from "@/components/section-heading";
 import { CATEGORIES } from "@/lib/catalog";
-import { sampleForCategory } from "@/lib/classify";
+import { sampleForCategory, hasUsableProductImage } from "@/lib/classify";
 import { audienceTiles, collectionTiles, HUB_COVERS } from "@/lib/hubs";
 import { categoryCountsFrom } from "@/lib/products";
 import { getProductByCode, productsInHub } from "@/lib/offline-catalog";
@@ -23,10 +23,10 @@ export default async function HomePage() {
     : ["104409.484", "TOJS2604TF", "RR300W2680", "C448S2715"];
   const spotlight = spotlightCodes
     .map((code) => byCode(code))
-    .filter((p): p is Product => Boolean(p));
+    .filter((p): p is Product => Boolean(p) && hasUsableProductImage(p));
   const collections = collectionTiles(catalog);
   const audiences = audienceTiles(catalog);
-  const football = productsInHub("football");
+  const football = productsInHub("football").filter(hasUsableProductImage);
 
   return (
     <div>

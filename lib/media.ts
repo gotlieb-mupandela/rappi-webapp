@@ -109,13 +109,12 @@ export function withProductImages<
     };
   }
 
-  const local =
-    process.env.NODE_ENV !== "production" || !STORAGE_ROOT
-      ? productPublicUrls(product.id)
-      : productStorageUrls(product.id);
+  // No remote CDN shot and no real local asset — leave empty rather than inventing
+  // `/products/{id}/01.webp` paths that 404 into silhouette placeholders.
   return {
     ...product,
-    ...mergeGallery(product, local.imageUrl, local.images, false),
+    imageUrl: "",
+    images: [],
   };
 }
 

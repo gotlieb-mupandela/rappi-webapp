@@ -587,8 +587,14 @@ export function classifyExtraHubs(product: Product, category = product.category)
 }
 
 export function hasUsableProductImage(product: Product) {
-  const url = product.imageUrl || product.images?.[0];
-  return Boolean(url && (/^https?:\/\//i.test(url) || url.startsWith("/")));
+  const urls = [product.imageUrl, ...(product.images ?? [])].filter(Boolean);
+  return urls.some((url) => {
+    if (/^https?:\/\//i.test(url)) return true;
+    // Real local assets only — ignore invented `/products/{id}/…` placeholders
+    // that 404 and used to surface silhouette fallbacks.
+    if (url.startsWith("/products/")) return false;
+    return url.startsWith("/");
+  });
 }
 
 export function withStorefrontCategory<T extends Product>(product: T): T {
@@ -713,8 +719,7 @@ function sampleScore(product: Product, slug?: string) {
 }
 
 export function sampleFromList(list: Product[], slug?: string): Product | undefined {
-  const imaged = list.filter(hasUsableProductImage);
-  const pool = imaged.length ? imaged : list;
+  const pool = list.filter(hasUsableProductImage);
   if (!pool.length) return undefined;
   return [...pool].sort((a, b) => sampleScore(b, slug) - sampleScore(a, slug))[0];
 }
@@ -728,15 +733,12 @@ export function sampleForCategory(
   if (slug === "shoes") {
     inHub = inHub.filter(isStorefrontFootwear);
   }
-  if (!inHub.length) {
-    const fallback = catalog.filter((p) => productInHub(p, slug));
-    return slug === "shoes" ? fallback.find(isStorefrontFootwear) : fallback[0];
-  }
+  if (!inHub.length) return undefined;
   return sampleFromList(inHub, slug);
 }
 
 export function firstImagedProduct(list: Product[]) {
-  return list.find(hasUsableProductImage) ?? list[0];
+  return list.find(hasUsableProductImage);
 }
 
 export type TaxonomySub = { slug: string; name: string; count: number };

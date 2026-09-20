@@ -1,5 +1,6 @@
 import { matchesAudience, productAudience } from "@/lib/audience";
 import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { hasUsableProductImage } from "@/lib/classify";
 import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
@@ -8,6 +9,7 @@ import {
   type ListingQuery,
   type ListingResult,
 } from "@/lib/listing-types";
+import type { Product } from "@/lib/types";
 
 export { LISTING_PAGE_SIZE } from "@/lib/listing-types";
 export type {
@@ -103,7 +105,7 @@ export function searchListing(
   category?: string,
 ): ListingItem[] {
   const q = query.trim().toLowerCase();
-  let list = catalog;
+  let list = catalog.filter((p) => hasUsableProductImage(p as Product));
   if (category && category !== "all") {
     list = list.filter((p) => listingInHub(p, category));
   }
@@ -120,7 +122,7 @@ export function filterListing(
   if (opts?.requireQuery && !q) return [];
 
   const scopedCat = opts?.categorySlug || query.cat;
-  let list = q ? searchListing(catalog, q, scopedCat) : catalog;
+  let list = q ? searchListing(catalog, q, scopedCat) : catalog.filter((p) => hasUsableProductImage(p as Product));
   if (!q && scopedCat && scopedCat !== "all") {
     list = list.filter((p) => listingInHub(p, scopedCat));
   }

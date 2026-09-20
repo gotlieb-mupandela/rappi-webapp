@@ -74,6 +74,10 @@ export function HubTile({
         ? groupName(nameGroup.kind, nameGroup.key, t)
         : (name ?? slug);
   const contain = imageFit === "contain";
+  const productSrc = product ? productCardImageUrl(product) : "";
+  const coverSrc = imageSrc || productSrc || "";
+  const useProductPhoto = Boolean(product && coverSrc && !imageSrc);
+  const hasCover = Boolean(coverSrc);
   const imageClassName = cn(
     // max-w-none: global `img { max-width:100% }` breaks object-fit on absolute fill images
     "absolute inset-0 h-full w-full max-w-none object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
@@ -95,7 +99,7 @@ export function HubTile({
               : "aspect-[3/4]",
         )}
         style={
-          product || imageSrc
+          hasCover
             ? contain
               ? { backgroundColor: "#fff" }
               : undefined
@@ -104,11 +108,11 @@ export function HubTile({
               }
         }
       >
-        {product ? (
+        {useProductPhoto && product ? (
           <ProductImage
             product={product}
-            src={imageSrc ?? productCardImageUrl(product)}
-            alt={imageSrc ? label : productImageAlt(product)}
+            src={coverSrc}
+            alt={productImageAlt(product)}
             priority={priority}
             className={imageClassName}
             fallbackClassName="absolute inset-0 h-full w-full"
