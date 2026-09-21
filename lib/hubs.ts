@@ -4,7 +4,13 @@ import {
   sampleForCategory,
   sampleFromList,
 } from "@/lib/classify";
-import { AUDIENCES, CAMPAIGN_COLLECTIONS, categoryBySlug, type AudienceSlug } from "@/lib/catalog";
+import {
+  AUDIENCES,
+  CAMPAIGN_COLLECTIONS,
+  SUBCATEGORY_LABELS,
+  categoryBySlug,
+  type AudienceSlug,
+} from "@/lib/catalog";
 import type { Product } from "@/lib/types";
 import { products as bundled, productsByCategory } from "@/lib/products";
 import {
@@ -216,6 +222,9 @@ export const HOME_SPORTS = [
   "swimming",
   "cricket",
   "hockey",
+  "boxing",
+  "hiking",
+  "netball",
 ] as const;
 
 export const HOME_CATEGORY_HUBS = ["shoes", "balls-bags", "lifestyle"] as const;
@@ -236,6 +245,26 @@ function audienceSample(items: Product[], slug: AudienceSlug) {
   const pool = preferred.length ? preferred : items;
   const hub = slug === "kids" ? "shoes" : slug === "men" || slug === "women" ? undefined : undefined;
   return sampleFromList(pool, hub) ?? firstImagedProduct(pool);
+}
+
+export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundled) {
+  const items = productsByCategory(hubSlug, catalog);
+  const bySub = new Map<string, Product[]>();
+  for (const p of items) {
+    const list = bySub.get(p.subcategory);
+    if (list) list.push(p);
+    else bySub.set(p.subcategory, [p]);
+  }
+  return [...bySub.entries()]
+    .filter(([sub, list]) => list.length > 0 && Boolean(SUBCATEGORY_LABELS[sub]))
+    .map(([sub, list]) => ({
+      key: sub,
+      name: SUBCATEGORY_LABELS[sub],
+      count: list.length,
+      href: `/shop/${hubSlug}?sub=${encodeURIComponent(sub)}`,
+      sample: sampleFromList(list, hubSlug) ?? firstImagedProduct(list),
+    }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 export function audienceTiles(

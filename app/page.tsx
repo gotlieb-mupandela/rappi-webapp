@@ -35,6 +35,7 @@ export default async function HomePage() {
     product: sampleForCategory(catalog, slug),
     imageSrc: HUB_COVERS[slug],
   }));
+  const sports = HOME_SPORTS.filter((slug) => sampleForCategory(catalog, slug));
 
   return (
     <div>
@@ -52,7 +53,7 @@ export default async function HomePage() {
           linkLabelKey="home.browseAll"
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
-          {HOME_SPORTS.map((slug, i) => (
+          {sports.map((slug, i) => (
             <HomeSportTile
               key={slug}
               slug={slug}

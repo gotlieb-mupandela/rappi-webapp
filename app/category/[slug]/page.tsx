@@ -11,7 +11,12 @@ import { TLink } from "@/components/t-link";
 import { Translated } from "@/components/translated";
 import { CATEGORIES, CATEGORY_ALIASES, categoryBySlug, resolveCategorySlug } from "@/lib/catalog";
 import { sampleForCategory } from "@/lib/classify";
-import { audienceTiles, bramaHubGroups, rugbyHubGroups, shoeHubGroups } from "@/lib/hubs";
+import {
+  audienceTiles,
+  bramaHubGroups,
+  shoeHubGroups,
+  subcategoryHubGroups,
+} from "@/lib/hubs";
 import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
 import { productPath } from "@/lib/utils";
@@ -52,8 +57,9 @@ export default async function CategoryHubPage({
           .slice(0, 12)
       : items.slice(0, 12);
   const shoeGroups = hubSlug === "shoes" ? shoeHubGroups(catalog) : [];
-  const rugbyGroups = hubSlug === "rugby" ? rugbyHubGroups(catalog) : [];
   const bramaGroups = hubSlug === "brama" ? bramaHubGroups(catalog) : [];
+  const hasCustomGroups = shoeGroups.length > 0 || bramaGroups.length > 0;
+  const typeGroups = hasCustomGroups ? [] : subcategoryHubGroups(hubSlug, catalog);
   const audiences = audienceTiles(catalog, { categorySlug: hubSlug });
   const otherHubs = CATEGORIES.filter(
     (c) => c.slug !== hubSlug && sampleForCategory(catalog, c.slug),
@@ -121,6 +127,29 @@ export default async function CategoryHubPage({
         }
       />
       <div className="page-shell py-10 lg:py-14">
+        {typeGroups.length > 0 ? (
+          <section className="mb-12 lg:mb-16">
+            <SectionHeading
+              titleKey="shop.shopByType"
+              href={`/shop/${hubSlug}`}
+              linkLabelKey="common.shopAll"
+            />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+              {typeGroups.map((g) => (
+                <HubTile
+                  key={g.key}
+                  slug={hubSlug}
+                  nameSubcategory={g.key}
+                  count={g.count}
+                  href={g.href}
+                  product={g.sample}
+                  shape="square"
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {audiences.length > 1 ? (
           <section className="mb-12 lg:mb-16">
             <SectionHeading
@@ -164,25 +193,6 @@ export default async function CategoryHubPage({
                   href={g.href}
                   product={g.sample}
                   bannerKey={g.banner ? "group.shoes.offersBanner" : undefined}
-                  shape="square"
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {rugbyGroups.length > 0 ? (
-          <section className="mb-12 lg:mb-16">
-            <SectionHeading titleKey="shop.shopRugby" href="/shop/rugby" linkLabelKey="shop.allRugby" />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-              {rugbyGroups.map((g) => (
-                <HubTile
-                  key={g.key}
-                  slug={hubSlug}
-                  nameGroup={{ kind: "rugby", key: g.key }}
-                  count={g.count}
-                  href={g.href}
-                  product={g.sample}
                   shape="square"
                 />
               ))}

@@ -21,7 +21,7 @@ export function HomeSportTile({
     <HubTile
       slug={slug}
       name={hubNav(slug, t)}
-      href={`/shop/${slug}`}
+      href={`/category/${slug}`}
       product={product}
       imageSrc={imageSrc}
       shape="square"

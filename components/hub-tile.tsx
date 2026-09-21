@@ -5,7 +5,7 @@ import { CATEGORIES } from "@/lib/catalog";
 import { ProductImage } from "@/components/product-image";
 import { useT } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
-import { audienceName, groupName, hubName } from "@/lib/i18n/labels";
+import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import { productCardImageUrl } from "@/lib/media";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ export function HubTile({
   name,
   nameHub,
   nameAudience,
+  nameSubcategory,
   nameGroup,
   nameKey,
   count,
@@ -44,6 +45,7 @@ export function HubTile({
   name?: string;
   nameHub?: string;
   nameAudience?: string;
+  nameSubcategory?: string;
   nameGroup?: { kind: "shoes" | "kids" | "rugby" | "brama"; key: string };
   nameKey?: string;
   count?: number;
@@ -72,11 +74,13 @@ export function HubTile({
     ? t(nameKey)
     : nameAudience
       ? audienceName(nameAudience, t)
-      : nameHub
-        ? hubName(nameHub, t)
-        : nameGroup
-          ? groupName(nameGroup.kind, nameGroup.key, t)
-          : (name ?? slug);
+      : nameSubcategory
+        ? subName(nameSubcategory, t)
+        : nameHub
+          ? hubName(nameHub, t)
+          : nameGroup
+            ? groupName(nameGroup.kind, nameGroup.key, t)
+            : (name ?? slug);
   const contain = imageFit === "contain";
   const productSrc = product ? productCardImageUrl(product) : "";
   const coverSrc = imageSrc || productSrc || "";
