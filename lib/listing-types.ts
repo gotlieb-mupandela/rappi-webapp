@@ -20,6 +20,7 @@ export type ListingQuery = {
   q?: string;
   cat?: string;
   sub?: string;
+  group?: string;
   size?: string;
   max?: string;
   audience?: string;

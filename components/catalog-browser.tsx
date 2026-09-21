@@ -106,6 +106,7 @@ export function CatalogBrowser({
     listingQuery.q,
     listingQuery.cat,
     listingQuery.sub,
+    listingQuery.group,
     listingQuery.size,
     listingQuery.max,
     listingQuery.audience,

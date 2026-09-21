@@ -51,6 +51,7 @@ export default async function ShopListingPage({
     q: firstSearchParam(sp.q),
     cat: firstSearchParam(sp.cat),
     sub: firstSearchParam(sp.sub),
+    group: firstSearchParam(sp.group),
     size: firstSearchParam(sp.size),
     max: firstSearchParam(sp.max),
     audience: activeAudience?.slug,

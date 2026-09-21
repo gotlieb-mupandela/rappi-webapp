@@ -156,6 +156,47 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   general: "More",
 };
 
+/**
+ * Merchandising families for audience / category folder tiles.
+ * Unmapped labeled subcategories stay as their own folder.
+ */
+export const TYPE_FOLDERS: Record<string, readonly string[]> = {
+  shoes: [
+    "sneakers",
+    "running-shoes",
+    "court-shoes",
+    "boots",
+    "sandals",
+    "barefoot",
+    "kids-shoes",
+    "training-shoes",
+    "shoes",
+  ],
+  tees: ["tees", "tees-men", "tees-women", "tees-kids"],
+  jackets: ["jackets", "jackets-kids"],
+  shorts: ["shorts"],
+  socks: ["socks"],
+  balls: ["balls"],
+  bags: ["bags", "equipment-bags", "ball-bags"],
+  pants: ["pants", "sweatpants"],
+  protection: ["protection", "shin-guards", "scrum-caps"],
+};
+
+const SUB_TO_TYPE_FOLDER: Record<string, string> = Object.fromEntries(
+  Object.entries(TYPE_FOLDERS).flatMap(([folder, slugs]) =>
+    slugs.map((slug) => [slug, folder]),
+  ),
+);
+
+export function typeFolderForSubcategory(sub: string) {
+  return SUB_TO_TYPE_FOLDER[sub] ?? sub;
+}
+
+export function matchesTypeFolder(subcategory: string, group: string) {
+  const slugs = TYPE_FOLDERS[group];
+  return slugs ? slugs.includes(subcategory) : subcategory === group;
+}
+
 /** Legacy / short hub paths that should resolve to a live category slug. */
 export const CATEGORY_ALIASES: Record<string, string> = {
   teampro: "teampro-2026",

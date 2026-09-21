@@ -1,5 +1,5 @@
 import { matchesAudience, productAudience } from "@/lib/audience";
-import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS, matchesTypeFolder } from "@/lib/catalog";
 import { hasUsableProductImage } from "@/lib/classify";
 import {
   LISTING_PAGE_SIZE,
@@ -48,6 +48,7 @@ export function parseListingQuery(sp: ListingQuery): ListingQuery {
     q: (sp.q ?? "").trim(),
     cat: sp.cat || undefined,
     sub: sp.sub || undefined,
+    group: sp.group || undefined,
     size: sp.size || undefined,
     max: sp.max || undefined,
     audience: sp.audience || undefined,
@@ -60,6 +61,7 @@ export function listingQueryFromSearchParams(sp: URLSearchParams): ListingQuery 
     q: sp.get("q") ?? undefined,
     cat: sp.get("cat") ?? undefined,
     sub: sp.get("sub") ?? undefined,
+    group: sp.get("group") ?? undefined,
     size: sp.get("size") ?? undefined,
     max: sp.get("max") ?? undefined,
     audience: sp.get("audience") ?? undefined,
@@ -73,6 +75,7 @@ export function listingHref(basePath: string, query: ListingQuery, categorySlug?
   if (q) next.set("q", q);
   if (query.cat && query.cat !== "all" && query.cat !== categorySlug) next.set("cat", query.cat);
   if (query.sub && query.sub !== "all") next.set("sub", query.sub);
+  if (query.group && query.group !== "all") next.set("group", query.group);
   if (query.size && query.size !== "all") next.set("size", query.size);
   if (query.max) next.set("max", query.max);
   if (query.audience && query.audience !== "all") next.set("audience", query.audience);
@@ -90,6 +93,7 @@ export function listingQueryIsActive(
   if (q) return true;
   if (query.cat && query.cat !== "all" && query.cat !== opts?.categorySlug) return true;
   if (query.sub && query.sub !== "all") return true;
+  if (query.group && query.group !== "all") return true;
   if (query.size && query.size !== "all") return true;
   if (query.max) return true;
   if (query.audience && query.audience !== "all" && query.audience !== opts?.audienceSlug) {
@@ -132,12 +136,14 @@ export function filterListing(
   }
 
   const sub = query.sub && query.sub !== "all" ? query.sub : "";
+  const group = query.group && query.group !== "all" ? query.group : "";
   const size = query.size && query.size !== "all" ? query.size : "";
   const audience = query.audience && query.audience !== "all" ? query.audience : "";
   const max = query.max ? Number(query.max) : NaN;
 
   return list.filter((p) => {
     if (sub && p.subcategory !== sub) return false;
+    if (group && !matchesTypeFolder(p.subcategory, group)) return false;
     if (audience && !matchesAudience(p, audience)) return false;
     if (size && !p.sizes.some((s) => s.size === size && s.stock > 0)) return false;
     if (Number.isFinite(max) && p.price > max) return false;

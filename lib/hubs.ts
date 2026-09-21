@@ -8,7 +8,9 @@ import {
   AUDIENCES,
   CAMPAIGN_COLLECTIONS,
   SUBCATEGORY_LABELS,
+  TYPE_FOLDERS,
   categoryBySlug,
+  typeFolderForSubcategory,
   type AudienceSlug,
 } from "@/lib/catalog";
 import type { Product } from "@/lib/types";
@@ -247,24 +249,30 @@ function audienceSample(items: Product[], slug: AudienceSlug) {
   return sampleFromList(pool, hub) ?? firstImagedProduct(pool);
 }
 
+function folderQueryParam(key: string) {
+  return TYPE_FOLDERS[key] ? "group" : "sub";
+}
+
 function labeledSubcategoryGroups(
   items: Product[],
-  hrefFor: (sub: string) => string,
+  hrefFor: (key: string) => string,
   sampleHub?: string,
 ) {
-  const bySub = new Map<string, Product[]>();
+  const byFolder = new Map<string, Product[]>();
   for (const p of items) {
-    const list = bySub.get(p.subcategory);
+    if (!SUBCATEGORY_LABELS[p.subcategory]) continue;
+    const folder = typeFolderForSubcategory(p.subcategory);
+    const list = byFolder.get(folder);
     if (list) list.push(p);
-    else bySub.set(p.subcategory, [p]);
+    else byFolder.set(folder, [p]);
   }
-  return [...bySub.entries()]
-    .filter(([sub, list]) => list.length > 0 && Boolean(SUBCATEGORY_LABELS[sub]))
-    .map(([sub, list]) => ({
-      key: sub,
-      name: SUBCATEGORY_LABELS[sub],
+  return [...byFolder.entries()]
+    .filter(([, list]) => list.length > 0)
+    .map(([key, list]) => ({
+      key,
+      name: SUBCATEGORY_LABELS[key] ?? SUBCATEGORY_LABELS[list[0]?.subcategory] ?? key,
       count: list.length,
-      href: hrefFor(sub),
+      href: hrefFor(key),
       sample: sampleFromList(list, sampleHub) ?? firstImagedProduct(list),
     }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -273,7 +281,7 @@ function labeledSubcategoryGroups(
 export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundled) {
   return labeledSubcategoryGroups(
     productsByCategory(hubSlug, catalog),
-    (sub) => `/shop/${hubSlug}?sub=${encodeURIComponent(sub)}`,
+    (key) => `/shop/${hubSlug}?${folderQueryParam(key)}=${encodeURIComponent(key)}`,
     hubSlug,
   );
 }
@@ -288,10 +296,12 @@ export function audienceHubGroups(
   const items = scoped.filter((p) => matchesAudience(p, audience));
   return labeledSubcategoryGroups(
     items,
-    (sub) =>
-      hubSlug
-        ? `/shop/${hubSlug}?audience=${audience}&sub=${encodeURIComponent(sub)}`
-        : `/shop/${audience}?sub=${encodeURIComponent(sub)}`,
+    (key) => {
+      const param = `${folderQueryParam(key)}=${encodeURIComponent(key)}`;
+      return hubSlug
+        ? `/shop/${hubSlug}?audience=${audience}&${param}`
+        : `/shop/${audience}?${param}`;
+    },
     hubSlug,
   );
 }

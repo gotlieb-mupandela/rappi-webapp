@@ -50,6 +50,7 @@ export function CatalogFilters({
   const { t, market } = useLocale();
   const parsed = parseListingQuery(query ?? {});
   const sub = asAll(parsed.sub);
+  const group = asAll(parsed.group);
   const size = asAll(parsed.size);
   const maxPrice = parsed.max ?? "";
   const q = parsed.q ?? "";
@@ -70,6 +71,7 @@ export function CatalogFilters({
       q,
       cat: cat !== "all" && cat !== categorySlug ? cat : undefined,
       sub: sub !== "all" ? sub : undefined,
+      group: group !== "all" ? group : undefined,
       size: size !== "all" ? size : undefined,
       max: maxPrice || undefined,
       audience: audience !== "all" ? audience : undefined,

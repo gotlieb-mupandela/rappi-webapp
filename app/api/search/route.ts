@@ -14,6 +14,7 @@ export async function GET(request: Request) {
       q,
       cat: url.searchParams.get("cat") ?? undefined,
       sub: url.searchParams.get("sub") ?? undefined,
+      group: url.searchParams.get("group") ?? undefined,
       size: url.searchParams.get("size") ?? undefined,
       max: url.searchParams.get("max") ?? undefined,
       audience: url.searchParams.get("audience") ?? undefined,
