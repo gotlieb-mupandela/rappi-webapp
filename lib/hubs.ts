@@ -247,8 +247,11 @@ function audienceSample(items: Product[], slug: AudienceSlug) {
   return sampleFromList(pool, hub) ?? firstImagedProduct(pool);
 }
 
-export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundled) {
-  const items = productsByCategory(hubSlug, catalog);
+function labeledSubcategoryGroups(
+  items: Product[],
+  hrefFor: (sub: string) => string,
+  sampleHub?: string,
+) {
   const bySub = new Map<string, Product[]>();
   for (const p of items) {
     const list = bySub.get(p.subcategory);
@@ -261,10 +264,36 @@ export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundl
       key: sub,
       name: SUBCATEGORY_LABELS[sub],
       count: list.length,
-      href: `/shop/${hubSlug}?sub=${encodeURIComponent(sub)}`,
-      sample: sampleFromList(list, hubSlug) ?? firstImagedProduct(list),
+      href: hrefFor(sub),
+      sample: sampleFromList(list, sampleHub) ?? firstImagedProduct(list),
     }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundled) {
+  return labeledSubcategoryGroups(
+    productsByCategory(hubSlug, catalog),
+    (sub) => `/shop/${hubSlug}?sub=${encodeURIComponent(sub)}`,
+    hubSlug,
+  );
+}
+
+export function audienceHubGroups(
+  audience: AudienceSlug,
+  catalog: Product[] = bundled,
+  opts?: { categorySlug?: string },
+) {
+  const hubSlug = opts?.categorySlug;
+  const scoped = hubSlug ? productsByCategory(hubSlug, catalog) : catalog;
+  const items = scoped.filter((p) => matchesAudience(p, audience));
+  return labeledSubcategoryGroups(
+    items,
+    (sub) =>
+      hubSlug
+        ? `/shop/${hubSlug}?audience=${audience}&sub=${encodeURIComponent(sub)}`
+        : `/shop/${audience}?sub=${encodeURIComponent(sub)}`,
+    hubSlug,
+  );
 }
 
 export function audienceTiles(
