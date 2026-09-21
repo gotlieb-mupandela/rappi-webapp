@@ -25,6 +25,7 @@ export function HubTile({
   nameHub,
   nameAudience,
   nameGroup,
+  nameKey,
   count,
   href,
   compact = false,
@@ -44,6 +45,7 @@ export function HubTile({
   nameHub?: string;
   nameAudience?: string;
   nameGroup?: { kind: "shoes" | "kids" | "rugby" | "brama"; key: string };
+  nameKey?: string;
   count?: number;
   href?: string;
   compact?: boolean;
@@ -66,13 +68,15 @@ export function HubTile({
   const n = count ?? 0;
   const to = href ?? `/category/${slug}`;
   const t = useT();
-  const label = nameAudience
-    ? audienceName(nameAudience, t)
-    : nameHub
-      ? hubName(nameHub, t)
-      : nameGroup
-        ? groupName(nameGroup.kind, nameGroup.key, t)
-        : (name ?? slug);
+  const label = nameKey
+    ? t(nameKey)
+    : nameAudience
+      ? audienceName(nameAudience, t)
+      : nameHub
+        ? hubName(nameHub, t)
+        : nameGroup
+          ? groupName(nameGroup.kind, nameGroup.key, t)
+          : (name ?? slug);
   const contain = imageFit === "contain";
   const productSrc = product ? productCardImageUrl(product) : "";
   const coverSrc = imageSrc || productSrc || "";

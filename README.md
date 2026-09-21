@@ -79,6 +79,14 @@ Product photos live at `public/products/{safeCode}/01…05.webp` and in Storage 
 
 Search by product **CODE**, title, or category from the header or `/search`.
 
+## Meta Commerce
+
+Scheduled product feed, Pixel, and Conversions API live in the app. Setup checklist: [docs/meta-commerce.md](docs/meta-commerce.md).
+
+Feed URL (after `META_CATALOG_FEED_TOKEN` is set):
+
+`https://www.rappisportshub.com/api/feeds/meta-catalog?token=…`
+
 ## Locale & currency
 
 The storefront serves two markets from the same NAD catalog:
@@ -120,6 +128,8 @@ Product names and descriptions stay in the source catalog language for v1.
 | `/account/orders` | Order history |
 | `/account/profile` | Profile |
 | `/promotions` | Promotions |
+| `/teamwear` | Teamwear quote form |
+| `/store` | Find our store / pickup / contact |
 | `/admin` | Staff back office |
 
 Top nav branches with stock: Sportswear, Football, Basketball, Netball, Swimming, Rugby, Cricket, Boxing, Hockey, Running & Fitness, Shoes, Balls & Bags.

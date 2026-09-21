@@ -451,6 +451,45 @@ export type Database = {
         }
         Relationships: []
       }
+      teamwear_quotes: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notes: string
+          organisation: string
+          players: string
+          sizes: string
+          sport: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          notes?: string
+          organisation?: string
+          players?: string
+          sizes?: string
+          sport?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          notes?: string
+          organisation?: string
+          players?: string
+          sizes?: string
+          sport?: string
+          status?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           hero_body: string

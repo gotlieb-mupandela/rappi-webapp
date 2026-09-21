@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   Truck,
   Users,
+  ClipboardList,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -21,6 +22,7 @@ const NAV = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin/quotes", label: "Quotes", icon: ClipboardList },
   { href: "/admin/content", label: "Content", icon: Settings2 },
   { href: "/admin/shipping", label: "Shipping", icon: Truck },
 ];

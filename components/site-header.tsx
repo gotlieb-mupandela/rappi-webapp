@@ -444,6 +444,12 @@ export function SiteHeader({
                   <Link href="/promotions">{t("nav.newCollections")}</Link>
                 </Button>
                 <Button asChild className="w-full" variant="outline">
+                  <Link href="/teamwear">{t("home.teamwearCta")}</Link>
+                </Button>
+                <Button asChild className="w-full" variant="outline">
+                  <Link href="/store">{t("footer.findStore")}</Link>
+                </Button>
+                <Button asChild className="w-full" variant="outline">
                   <Link href={user ? "/account" : "/login"}>
                     {user ? t("nav.myAccount") : t("nav.signIn")}
                   </Link>

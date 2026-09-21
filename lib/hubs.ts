@@ -207,6 +207,19 @@ export const AUDIENCE_COVERS: Partial<Record<AudienceSlug, string>> = {
   women: "/brand/audience-women.png?v=3",
 };
 
+export const HOME_SPORTS = [
+  "rugby",
+  "football",
+  "running-fitness",
+  "basketball",
+  "padel",
+  "swimming",
+  "cricket",
+  "hockey",
+] as const;
+
+export const HOME_CATEGORY_HUBS = ["shoes", "balls-bags", "lifestyle"] as const;
+
 /** Local lifestyle covers for homepage SHOP hub tiles (by category slug). */
 export const HUB_COVERS: Partial<Record<string, string>> = {
   sportswear: "/brand/hub-sportswear.png?v=4",

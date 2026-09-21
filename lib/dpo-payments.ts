@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/dpo";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
+import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 
@@ -142,8 +143,15 @@ export async function fulfillDpoPayment(input: {
       .select("*")
       .single();
 
+    const paidPayment = updated ?? { ...payment, status: "paid" as const };
+    try {
+      await sendMetaPurchaseCapi(paidPayment);
+    } catch (err) {
+      console.error("Meta CAPI Purchase error", err);
+    }
+
     return withOrder(
-      updated ?? { ...payment, status: "paid" },
+      paidPayment,
       verified.explanation ?? "Transaction Paid",
       { ok: true, status: "paid" },
     );

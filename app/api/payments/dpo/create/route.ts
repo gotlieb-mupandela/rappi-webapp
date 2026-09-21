@@ -12,6 +12,7 @@ import {
   createToken,
   dpoCurrency,
   dpoPaymentUrl,
+  formatDpoNetworkError,
   requestSiteUrl,
   splitName,
 } from "@/lib/dpo";
@@ -19,6 +20,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let body: {
@@ -104,22 +106,24 @@ export async function POST(req: Request) {
       amount,
       currency,
       description,
-      customer: { firstName, lastName, email },
+      customer: { firstName, lastName, email, address, city, country },
       siteUrl: requestSiteUrl(req),
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Could not start payment." },
+      { error: formatDpoNetworkError(err) },
       { status: 500 },
     );
   }
 
   if (created.result !== "000" || !created.transToken) {
+    const explanation = created.explanation?.trim() || "";
     return NextResponse.json(
       {
         error:
-          created.explanation ??
-          `DPO createToken failed (${created.result ?? "no result"}).`,
+          created.result === "802" || /company token does not exist|company is not active/i.test(explanation)
+            ? "DPO company token does not exist or is not active. Use the live token from DPO onboarding, or the sandbox token from their docs."
+            : explanation || `DPO createToken failed (${created.result ?? "no result"}).`,
       },
       { status: 400 },
     );

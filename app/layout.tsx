@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Geist_Mono, Inter, Oswald } from "next/font/google";
 import Script from "next/script";
 import { BrandAtmosphere } from "@/components/brand-atmosphere";
+import { MetaPixel } from "@/components/meta-pixel";
 import { Providers } from "@/components/providers";
 import { StorefrontChrome } from "@/components/storefront-chrome";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -79,6 +80,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {MARKET_BOOTSTRAP}
         </Script>
         <BrandAtmosphere />
+        <MetaPixel />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">
           <ThemeProvider>
             <Providers initialMarket={market}>

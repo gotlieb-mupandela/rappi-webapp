@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,10 @@ import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { shippingName } from "@/lib/i18n/labels";
 import { sizeDisplayLabel } from "@/lib/product-stock";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { feedVariantId } from "@/lib/meta/ids";
+import { trackMeta } from "@/lib/meta/pixel";
 import { useAuth } from "@/lib/stores/auth";
-import { useCart } from "@/lib/stores/cart";
+import { cartCount, useCart } from "@/lib/stores/cart";
 import type { Order } from "@/lib/types";
 
 type ShippingRow = { id: string; name: string; cost: number };
@@ -37,10 +39,29 @@ export default function CheckoutPage() {
   const [country, setCountry] = useState("");
   const [method, setMethod] = useState(FALLBACK_SHIPPING[0].id);
   const [notes, setNotes] = useState("");
+  const checkoutTracked = useRef(false);
 
   useEffect(() => {
     setAuthReady(true);
   }, []);
+
+  useEffect(() => {
+    if (checkoutTracked.current || !lines.length) return;
+    checkoutTracked.current = true;
+    const contents = lines.map((line) => ({
+      id: feedVariantId(line.code, line.size),
+      quantity: line.qty,
+      item_price: line.price,
+    }));
+    trackMeta("InitiateCheckout", {
+      currency: "NAD",
+      value: lines.reduce((sum, line) => sum + line.price * line.qty, 0),
+      content_type: "product",
+      content_ids: contents.map((item) => item.id),
+      contents,
+      num_items: cartCount(lines),
+    });
+  }, [lines]);
 
   useEffect(() => {
     if (!user) return;
@@ -125,14 +146,21 @@ export default function CheckoutPage() {
           })),
         }),
       });
-      const data = (await res.json()) as { paymentUrl?: string; error?: string };
+      const raw = await res.text();
+      let data: { paymentUrl?: string; error?: string } = {};
+      try {
+        data = raw ? (JSON.parse(raw) as { paymentUrl?: string; error?: string }) : {};
+      } catch {
+        toast.error(t("checkout.failed"));
+        return;
+      }
       if (res.status === 401) {
         toast.error(t("checkout.signInRequired"));
         router.push("/login?next=/checkout");
         return;
       }
       if (!res.ok || !data.paymentUrl) {
-        toast.error(data.error ?? t("checkout.failed"));
+        toast.error(friendlyCheckoutError(data.error, t("checkout.failed")));
         return;
       }
       window.location.href = data.paymentUrl;
@@ -391,6 +419,14 @@ export default function CheckoutPage() {
       <div className="h-24 md:hidden" />
     </div>
   );
+}
+
+function friendlyCheckoutError(error: string | undefined, fallback: string) {
+  const text = (error ?? "").trim();
+  if (!text || /^fetch failed$/i.test(text) || /failed to fetch/i.test(text)) {
+    return fallback;
+  }
+  return text;
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {

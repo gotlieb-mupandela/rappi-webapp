@@ -17,11 +17,12 @@ export default async function CheckoutCancelPage({
   searchParams: Promise<{
     TransactionToken?: string;
     TransToken?: string;
+    TransID?: string;
     CompanyRef?: string;
   }>;
 }) {
   const params = await searchParams;
-  const transToken = params.TransactionToken || params.TransToken || null;
+  const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
 
   let body = "Checkout was closed before payment. Your bag is still saved.";

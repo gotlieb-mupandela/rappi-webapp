@@ -136,7 +136,7 @@ export function ProductEditor({ productId }: { productId: string | null }) {
       unit_price: Number(unitPrice || price),
       currency: "NAD",
       badge: badge || null,
-      image_url: imageUrl || "/brand/rappi-logo.png",
+      image_url: imageUrl || "/brand/rappi-logo-v2.png",
       images: images.length ? images : imageUrl ? [imageUrl] : [],
     };
 

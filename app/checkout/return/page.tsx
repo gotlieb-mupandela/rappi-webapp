@@ -3,8 +3,10 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { ClearCartOnPaid } from "@/components/clear-cart-on-paid";
+import { MetaPurchase } from "@/components/meta-purchase";
 import { fulfillDpoPayment } from "@/lib/dpo-payments";
 import { formatPrice } from "@/lib/format";
+import { purchaseContentsFromPayment } from "@/lib/meta/capi";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +21,12 @@ export default async function CheckoutReturnPage({
   searchParams: Promise<{
     TransactionToken?: string;
     TransToken?: string;
+    TransID?: string;
     CompanyRef?: string;
   }>;
 }) {
   const params = await searchParams;
-  const transToken = params.TransactionToken || params.TransToken || null;
+  const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
 
   let heading = "Payment not verified";
@@ -32,6 +35,9 @@ export default async function CheckoutReturnPage({
   let ref: string | null = companyRef;
   let orderId: string | null = null;
   let amount: string | null = null;
+  let purchaseEventId: string | null = null;
+  let purchaseValue = 0;
+  let purchaseContents: ReturnType<typeof purchaseContentsFromPayment> = [];
 
   if (transToken || companyRef) {
     try {
@@ -43,6 +49,9 @@ export default async function CheckoutReturnPage({
       orderId = result.orderId;
       if (result.payment) {
         amount = formatPrice(Number(result.payment.amount));
+        purchaseEventId = result.payment.id;
+        purchaseValue = Number(result.payment.amount);
+        purchaseContents = purchaseContentsFromPayment(result.payment);
       }
     } catch (err) {
       heading = "Payment not verified";
@@ -60,6 +69,12 @@ export default async function CheckoutReturnPage({
         ]}
       />
       <ClearCartOnPaid paid={paid} />
+      <MetaPurchase
+        paid={paid}
+        eventId={purchaseEventId}
+        value={purchaseValue}
+        contents={purchaseContents}
+      />
       <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
         {paid ? "Verified" : "Pending"}
       </p>

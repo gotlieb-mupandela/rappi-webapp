@@ -99,7 +99,7 @@ export default async function AdminProductsPage({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={p.image_url || "/brand/rappi-logo.png"}
+                      src={p.image_url || "/brand/rappi-logo-v2.png"}
                       alt=""
                       className="h-12 w-12 rounded-lg object-cover bg-[var(--bg-elevated)]"
                     />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,8 @@ import {
   sizeStock,
   stockLabel,
 } from "@/lib/product-stock";
+import { feedGroupId } from "@/lib/meta/ids";
+import { trackMeta } from "@/lib/meta/pixel";
 import { useCart } from "@/lib/stores/cart";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +45,17 @@ export function ProductDetail({ product }: { product: Product }) {
   const showPicker = hasVisibleSizePicker(product);
   const unitLabel = sizeDisplayLabel(size, t);
   const symbol = currencySymbol(market);
+
+  useEffect(() => {
+    trackMeta("ViewContent", {
+      content_ids: [feedGroupId(product.code)],
+      content_type: "product_group",
+      content_name: product.displayName || product.name,
+      content_category: product.category,
+      currency: "NAD",
+      value: product.unitPrice || product.price,
+    });
+  }, [product.category, product.code, product.displayName, product.name, product.price, product.unitPrice]);
 
   function addToBag() {
     if (soldOut || stock <= 0) {

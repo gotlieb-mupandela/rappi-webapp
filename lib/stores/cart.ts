@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { feedVariantId } from "@/lib/meta/ids";
+import { trackMeta } from "@/lib/meta/pixel";
 import type { CartLine, CartLineSnapshot, Product } from "@/lib/types";
 import { sizeDisplayLabel, sizeStock, skuStock } from "@/lib/product-stock";
 
@@ -95,6 +97,18 @@ export const useCart = create<CartState>()(
           set({ lines: [...get().lines, { ...line, qty }] });
         }
         const label = sizeDisplayLabel(size);
+        const variantId = feedVariantId(product.code, size);
+        const unit = product.unitPrice || product.price;
+        trackMeta("AddToCart", {
+          content_ids: [variantId],
+          contents: [{ id: variantId, quantity: qty, item_price: unit }],
+          content_type: "product",
+          content_name: product.displayName || product.name,
+          content_category: product.category,
+          currency: "NAD",
+          value: unit * qty,
+          num_items: qty,
+        });
         return {
           ok: true,
           messageKey: "cart.added",
