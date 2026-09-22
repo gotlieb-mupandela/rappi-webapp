@@ -18,6 +18,7 @@ import {
 } from "@/lib/dpo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { defaultVatCountry, quoteVat, resolveVatCountry } from "@/lib/vat";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -61,10 +62,11 @@ export async function POST(req: Request) {
   const pickup = shippingMethod === "pickup";
   const address = String(body.address ?? "").trim() || (pickup ? "Hub pickup" : "");
   const city = String(body.city ?? "").trim() || (pickup ? "—" : "");
-  const country = String(body.country ?? "").trim() || (pickup ? "NA" : "");
-  if (!address || !city || !country) {
+  const vatCountry = resolveVatCountry(String(body.country ?? "")) ?? (pickup ? resolveVatCountry(defaultVatCountry()) : null);
+  if (!address || !city || !vatCountry) {
     return NextResponse.json({ error: "Complete shipping details." }, { status: 400 });
   }
+  const country = vatCountry.name;
 
   let lines;
   try {
@@ -77,7 +79,9 @@ export async function POST(req: Request) {
   }
 
   const shippingCost = cartShippingCost(shippingMethod);
-  const amount = cartSubtotal(lines) + shippingCost;
+  const net = cartSubtotal(lines) + shippingCost;
+  const vat = quoteVat(country, net);
+  const amount = vat.total;
   if (amount <= 0) {
     return NextResponse.json({ error: "Cart total must be greater than zero." }, { status: 400 });
   }
@@ -95,6 +99,8 @@ export async function POST(req: Request) {
     country,
     shippingMethod,
     shippingCost,
+    vatRate: vat.rate,
+    vatAmount: vat.amount,
     notes: String(body.notes ?? "").trim(),
     lines,
   };

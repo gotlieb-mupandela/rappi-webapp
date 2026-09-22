@@ -5,6 +5,7 @@ import { audienceName, hubName, subName } from "../lib/i18n/labels";
 import { en, fr } from "../lib/i18n/messages";
 import { makeT } from "../lib/i18n/translate";
 import { SHIPPING_METHODS } from "../lib/shipping";
+import { quoteVat, resolveVatCountry } from "../lib/vat";
 import { SUBCATEGORY_LABELS, CATEGORIES, AUDIENCES } from "../lib/catalog";
 
 function fail(msg: string) {
@@ -57,6 +58,12 @@ const costs = Object.fromEntries(SHIPPING_METHODS.map((m) => [m.id, m.cost]));
 if (costs.standard !== 100 || costs.express !== 150 || costs.pickup !== 0) {
   fail("shipping NAD rates drifted from 100/150/0");
 }
+if (resolveVatCountry("NA")?.rate !== 15) fail("Namibia VAT is not 15%");
+if (resolveVatCountry("France")?.rate !== 20) fail("France VAT is not 20%");
+if (quoteVat("Namibia", 100).amount !== 15 || quoteVat("Namibia", 100).total !== 115) {
+  fail("Namibia VAT quote drifted");
+}
+if (quoteVat("United States", 200).amount !== 0) fail("US VAT should be 0");
 
 const tFr = makeT("eu");
 const tEn = makeT("na");

@@ -63,6 +63,8 @@ export type Order = {
   country: string;
   shippingMethod: string;
   shippingCost: number;
+  vatRate?: number;
+  vatAmount?: number;
   items: Array<{
     code: string;
     name: string;
@@ -73,6 +75,7 @@ export type Order = {
   subtotal: number;
   total: number;
   status: "reserved" | "preparing" | "shipped" | "cancelled";
+  remote?: boolean;
 };
 
 export type User = {

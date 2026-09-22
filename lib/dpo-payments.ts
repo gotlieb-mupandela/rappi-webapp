@@ -1,5 +1,6 @@
 import { verifyToken } from "@/lib/dpo";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
+import { sendOrderInvoice } from "@/lib/invoice-email";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
@@ -51,6 +52,13 @@ async function withOrder(payment: Payment | null, message: string, extra: Omit<D
       orderId = (await createOrderFromPayment(payment)) ?? orderId;
     } catch {
       orderId = payment.order_id;
+    }
+    if (orderId) {
+      try {
+        await sendOrderInvoice(orderId);
+      } catch (err) {
+        console.error("invoice email", err);
+      }
     }
   }
   return { ...extra, message, payment, orderId };

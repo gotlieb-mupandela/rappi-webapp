@@ -9,6 +9,7 @@ import { useLocale } from "@/components/locale-provider";
 import { formatDate } from "@/lib/format";
 import { translateStoredShipping } from "@/lib/i18n/labels";
 import { useOrders } from "@/lib/stores/orders";
+import { formatVatRate } from "@/lib/vat";
 
 function ConfirmationInner() {
   const params = useSearchParams();
@@ -74,6 +75,10 @@ function ConfirmationInner() {
           <p className="flex justify-between text-sm">
             <span>{t("checkout.shipping")}</span>
             <span>{format(order.shippingCost)}</span>
+          </p>
+          <p className="flex justify-between text-sm">
+            <span>{t("checkout.vat", { rate: formatVatRate(order.vatRate ?? 0) })}</span>
+            <span>{format(order.vatAmount ?? 0)}</span>
           </p>
           <p className="mt-2 flex justify-between text-lg font-semibold">
             <span>{market === "eu" ? t("checkout.totalEur") : t("checkout.totalNad")}</span>

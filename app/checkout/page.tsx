@@ -18,6 +18,7 @@ import { trackMeta } from "@/lib/meta/pixel";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import type { Order } from "@/lib/types";
+import { defaultVatCountry, formatVatRate, quoteVat, VAT_COUNTRIES } from "@/lib/vat";
 
 type ShippingRow = { id: string; name: string; cost: number };
 
@@ -71,6 +72,10 @@ export default function CheckoutPage() {
   }, [user]);
 
   useEffect(() => {
+    setCountry((prev) => prev || defaultVatCountry(market));
+  }, [market]);
+
+  useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
     void supabase
@@ -104,7 +109,8 @@ export default function CheckoutPage() {
 
   const subtotal = rows.reduce((s, r) => s + r.price * r.qty, 0);
   const shipping = shippingOptions.find((s) => s.id === method) ?? shippingOptions[0];
-  const total = subtotal + (shipping?.cost ?? 0);
+  const vat = quoteVat(country, subtotal + (shipping?.cost ?? 0));
+  const total = vat.total;
   const pickup = method === "pickup";
   const addressRequired = !pickup;
 
@@ -123,7 +129,7 @@ export default function CheckoutPage() {
       toast.error(t("checkout.completeNameEmail"));
       return;
     }
-    if (addressRequired && (!address || !city || !country)) {
+    if (!country || (addressRequired && (!address || !city))) {
       toast.error(t("checkout.completeDetails"));
       return;
     }
@@ -275,7 +281,11 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-4 flex justify-between text-lg font-semibold">
+            <p className="mt-4 flex justify-between text-sm text-[var(--muted)]">
+              <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
+              <span>{vat.amount ? format(vat.amount) : t("common.free")}</span>
+            </p>
+            <p className="flex justify-between text-lg font-semibold">
               <span>{t("checkout.total")}</span>
               <span>{format(total)}</span>
             </p>
@@ -333,11 +343,21 @@ export default function CheckoutPage() {
                 />
               </Field>
               <Field label={t("checkout.country")}>
-                <Input
+                <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  required={addressRequired}
-                />
+                  required
+                  className="h-11 w-full rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-4 text-sm text-ink outline-none transition-[border-color,box-shadow,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50"
+                >
+                  <option value="">{t("checkout.countryPlaceholder")}</option>
+                  {[...VAT_COUNTRIES]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((row) => (
+                    <option key={row.name} value={row.name}>
+                      {row.name}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </div>
           </section>
@@ -396,6 +416,10 @@ export default function CheckoutPage() {
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.shipping")}</span>
               <span>{shipping.cost ? format(shipping.cost) : t("common.free")}</span>
+            </p>
+            <p className="flex justify-between text-[var(--muted)]">
+              <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
+              <span>{vat.amount ? format(vat.amount) : t("common.free")}</span>
             </p>
             <p className="flex justify-between pt-2 text-lg font-semibold">
               <span>{t("checkout.total")}</span>

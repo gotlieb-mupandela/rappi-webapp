@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isDpoPaymentPayload, type DpoPaymentPayload } from "@/lib/dpo-payload";
 import { SHIPPING_METHODS, shippingCostById } from "@/lib/shipping";
+import { quoteVat } from "@/lib/vat";
 import type { Database, Json } from "@/lib/database.types";
 
 type Payment = Database["public"]["Tables"]["payments"]["Row"];
@@ -28,6 +29,7 @@ export async function createOrderFromPayment(payment: Payment): Promise<string |
   const shippingLabel = shipping?.name ?? payload.shippingMethod;
   const shippingCost = shippingCostById(payload.shippingMethod);
   const subtotal = payload.lines.reduce((sum, line) => sum + line.price * line.qty, 0);
+  const vat = quoteVat(payload.country, subtotal + shippingCost);
 
   const { error: orderError } = await admin.from("orders").insert({
     id: orderId,
@@ -36,11 +38,13 @@ export async function createOrderFromPayment(payment: Payment): Promise<string |
     full_name: payload.name,
     address: payload.address,
     city: payload.city,
-    country: payload.country,
+    country: vat.country || payload.country,
     shipping_method: shippingLabel,
     shipping_cost: shippingCost,
     subtotal,
-    total: subtotal + shippingCost,
+    vat_rate: vat.rate,
+    vat_amount: vat.amount,
+    total: vat.total,
     notes: payload.notes || null,
     status: "reserved",
   });

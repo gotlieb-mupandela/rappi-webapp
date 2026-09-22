@@ -1,9 +1,11 @@
-/** Format a retail unit price as whole Namibian dollars. */
+/** Format a Namibian dollar amount. Whole catalog prices stay N$120; VAT/totals can show cents. */
 export function formatPrice(value: number) {
+  const rounded = Math.round((Number(value) || 0) * 100) / 100;
+  const whole = Number.isInteger(rounded);
   const n = new Intl.NumberFormat("en-NA", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.round(Number(value) || 0));
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(rounded);
   return `N$${n}`;
 }
 

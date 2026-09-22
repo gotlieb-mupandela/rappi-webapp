@@ -181,6 +181,8 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          invoice_last_error: string | null
+          invoice_sent_at: string | null
           notes: string | null
           shipping_cost: number
           shipping_method: string
@@ -189,6 +191,8 @@ export type Database = {
           total: number
           updated_at: string
           user_id: string | null
+          vat_amount: number
+          vat_rate: number
         }
         Insert: {
           address: string
@@ -198,6 +202,8 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          invoice_last_error?: string | null
+          invoice_sent_at?: string | null
           notes?: string | null
           shipping_cost?: number
           shipping_method: string
@@ -206,6 +212,8 @@ export type Database = {
           total: number
           updated_at?: string
           user_id?: string | null
+          vat_amount?: number
+          vat_rate?: number
         }
         Update: {
           address?: string
@@ -215,6 +223,8 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          invoice_last_error?: string | null
+          invoice_sent_at?: string | null
           notes?: string | null
           shipping_cost?: number
           shipping_method?: string
@@ -223,6 +233,8 @@ export type Database = {
           total?: number
           updated_at?: string
           user_id?: string | null
+          vat_amount?: number
+          vat_rate?: number
         }
         Relationships: [
           {

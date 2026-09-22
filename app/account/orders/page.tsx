@@ -96,6 +96,15 @@ export default function OrdersPage() {
                 <p className="mt-3">
                   <OrderStatusBadge status={order.status} />
                 </p>
+                {order.remote ? (
+                  <p className="mt-3">
+                    <Button asChild size="sm" variant="outline">
+                      <a href={`/api/orders/${encodeURIComponent(order.id)}/invoice`}>
+                        {t("account.downloadInvoice")}
+                      </a>
+                    </Button>
+                  </p>
+                ) : null}
               </article>
             );
           })}
@@ -109,6 +118,7 @@ export default function OrdersPage() {
                 <th className="px-3 py-3">{t("account.shipTo")}</th>
                 <th className="px-3 py-3">{t("account.total")}</th>
                 <th className="px-3 py-3">{t("account.status")}</th>
+                <th className="px-3 py-3">{t("account.downloadInvoice")}</th>
               </tr>
             </thead>
             <tbody>
@@ -153,6 +163,15 @@ export default function OrdersPage() {
                           </li>
                         ))}
                       </ol>
+                    </td>
+                    <td className="px-3 py-4">
+                      {order.remote ? (
+                        <Button asChild size="sm" variant="outline">
+                          <a href={`/api/orders/${encodeURIComponent(order.id)}/invoice`}>
+                            {t("account.downloadInvoice")}
+                          </a>
+                        </Button>
+                      ) : null}
                     </td>
                   </tr>
                 );

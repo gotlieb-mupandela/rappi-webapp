@@ -37,6 +37,7 @@ function mapRow(row: OrderRow): Order {
     subtotal: Number(row.subtotal),
     total: Number(row.total),
     status: row.status,
+    remote: true,
     items: (row.order_items ?? []).map((item) => ({
       code: item.code,
       name: item.name,
@@ -73,11 +74,12 @@ export async function fetchRemoteOrders(): Promise<Order[]> {
 }
 
 export function mergeOrders(local: Order[], remote: Order[]): Order[] {
+  const remoteIds = new Set(remote.map((order) => order.id));
   const byId = new Map<string, Order>();
   for (const order of [...remote, ...local]) {
     if (!byId.has(order.id)) byId.set(order.id, order);
   }
-  return [...byId.values()].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  return [...byId.values()]
+    .map((order) => (remoteIds.has(order.id) ? { ...order, remote: true } : order))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }

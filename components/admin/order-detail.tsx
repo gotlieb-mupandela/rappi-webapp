@@ -29,6 +29,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [emailing, setEmailing] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -84,6 +85,27 @@ export function OrderDetail({ orderId }: { orderId: string }) {
     setSaving(false);
   }
 
+  async function emailInvoice() {
+    if (!order) return;
+    setEmailing(true);
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(order.id)}/invoice`, {
+        method: "POST",
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        toast.error(body.error || "Could not email the invoice.");
+        return;
+      }
+      setOrder({ ...order, invoice_sent_at: new Date().toISOString(), invoice_last_error: null });
+      toast.success("Invoice emailed");
+    } catch {
+      toast.error("Could not email the invoice.");
+    } finally {
+      setEmailing(false);
+    }
+  }
+
   if (loading || !order) {
     return <p className="text-[var(--muted)]">Loading…</p>;
   }
@@ -98,6 +120,12 @@ export function OrderDetail({ orderId }: { orderId: string }) {
       </Link>
       <h1 className="mt-2 break-all font-mono text-2xl font-bold text-[var(--accent)] sm:text-3xl">{order.id}</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">{formatDate(order.created_at)}</p>
+      <p className="mt-1 text-sm text-[var(--muted)]">
+        {order.invoice_sent_at
+          ? `Invoice emailed ${formatDate(order.invoice_sent_at)}`
+          : "Invoice not emailed yet"}
+        {order.invoice_last_error ? ` — ${order.invoice_last_error}` : ""}
+      </p>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {STEPS.map((s) => (
@@ -117,6 +145,17 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             {s}
           </Button>
         ))}
+        <Button size="sm" variant="outline" asChild>
+          <a href={`/api/orders/${encodeURIComponent(order.id)}/invoice`}>Download invoice</a>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          disabled={saving || emailing}
+          onClick={() => void emailInvoice()}
+        >
+          {emailing ? "Emailing…" : "Email invoice"}
+        </Button>
       </div>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
@@ -142,6 +181,10 @@ export function OrderDetail({ orderId }: { orderId: string }) {
           <p className="flex justify-between text-sm">
             <span>Shipping</span>
             <span>{formatPrice(Number(order.shipping_cost))}</span>
+          </p>
+          <p className="flex justify-between text-sm">
+            <span>VAT {Number(order.vat_rate) || 0}%</span>
+            <span>{formatPrice(Number(order.vat_amount) || 0)}</span>
           </p>
           <p className="mt-2 flex justify-between text-lg font-semibold">
             <span>Total</span>
