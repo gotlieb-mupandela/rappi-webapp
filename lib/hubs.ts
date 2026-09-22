@@ -7,7 +7,9 @@ import {
 import {
   AUDIENCES,
   CAMPAIGN_COLLECTIONS,
+  HIDDEN_TYPE_FOLDERS,
   SUBCATEGORY_LABELS,
+  TYPE_FOLDER_ORDER,
   TYPE_FOLDERS,
   categoryBySlug,
   typeFolderForSubcategory,
@@ -267,7 +269,7 @@ function labeledSubcategoryGroups(
     else byFolder.set(folder, [p]);
   }
   return [...byFolder.entries()]
-    .filter(([, list]) => list.length > 0)
+    .filter(([key, list]) => list.length > 0 && !HIDDEN_TYPE_FOLDERS.has(key))
     .map(([key, list]) => ({
       key,
       name: SUBCATEGORY_LABELS[key] ?? SUBCATEGORY_LABELS[list[0]?.subcategory] ?? key,
@@ -275,7 +277,13 @@ function labeledSubcategoryGroups(
       href: hrefFor(key),
       sample: sampleFromList(list, sampleHub) ?? firstImagedProduct(list),
     }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    .sort((a, b) => {
+      const ia = TYPE_FOLDER_ORDER.indexOf(a.key as (typeof TYPE_FOLDER_ORDER)[number]);
+      const ib = TYPE_FOLDER_ORDER.indexOf(b.key as (typeof TYPE_FOLDER_ORDER)[number]);
+      const ra = ia === -1 ? TYPE_FOLDER_ORDER.length : ia;
+      const rb = ib === -1 ? TYPE_FOLDER_ORDER.length : ib;
+      return ra - rb || a.name.localeCompare(b.name);
+    });
 }
 
 export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundled) {

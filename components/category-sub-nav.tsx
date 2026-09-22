@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { CATEGORIES, HIDDEN_TYPE_FOLDERS, SUBCATEGORY_LABELS } from "@/lib/catalog";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
@@ -20,7 +20,7 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   if (!slug) return null;
 
   const subs = (taxonomy[slug] ?? []).filter(
-    (s) => s.count > 0 && SUBCATEGORY_LABELS[s.slug],
+    (s) => s.count > 0 && SUBCATEGORY_LABELS[s.slug] && !HIDDEN_TYPE_FOLDERS.has(s.slug),
   );
   if (subs.length < 2) return null;
 

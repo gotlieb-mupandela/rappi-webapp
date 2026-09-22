@@ -1,5 +1,11 @@
 import { matchesAudience, productAudience } from "@/lib/audience";
-import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS, matchesTypeFolder } from "@/lib/catalog";
+import {
+  AUDIENCES,
+  CATEGORIES,
+  HIDDEN_TYPE_FOLDERS,
+  SUBCATEGORY_LABELS,
+  matchesTypeFolder,
+} from "@/lib/catalog";
 import { hasUsableProductImage } from "@/lib/classify";
 import {
   LISTING_PAGE_SIZE,
@@ -181,6 +187,7 @@ function facetSubs(list: ListingItem[]): ListingFacet[] {
   const counts = new Map<string, number>();
   for (const p of list) counts.set(p.subcategory, (counts.get(p.subcategory) ?? 0) + 1);
   return [...counts.entries()]
+    .filter(([slug]) => !HIDDEN_TYPE_FOLDERS.has(slug))
     .map(([slug, count]) => ({
       slug,
       name: SUBCATEGORY_LABELS[slug] ?? slug,

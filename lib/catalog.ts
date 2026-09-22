@@ -157,10 +157,29 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
 };
 
 /**
- * Merchandising families for audience / category folder tiles.
+ * Apparel-style folders for audience / category tiles.
  * Unmapped labeled subcategories stay as their own folder.
+ * `general` is hidden — it is leftover stock, not a shop folder.
  */
 export const TYPE_FOLDERS: Record<string, readonly string[]> = {
+  shirts: [
+    "tees",
+    "tees-men",
+    "tees-women",
+    "tees-kids",
+    "polos",
+    "jerseys",
+    "tops",
+    "clothing",
+    "sets",
+  ],
+  jackets: ["jackets", "jackets-kids", "hoodies"],
+  shorts: ["shorts"],
+  pants: ["pants", "sweatpants", "tights", "skins", "leggings", "tracksuits"],
+  dresses: ["dresses"],
+  skirts: ["skirts"],
+  bras: ["bras"],
+  swimwear: ["swimwear"],
   shoes: [
     "sneakers",
     "running-shoes",
@@ -172,15 +191,37 @@ export const TYPE_FOLDERS: Record<string, readonly string[]> = {
     "training-shoes",
     "shoes",
   ],
-  tees: ["tees", "tees-men", "tees-women", "tees-kids"],
-  jackets: ["jackets", "jackets-kids"],
-  shorts: ["shorts"],
-  socks: ["socks"],
-  balls: ["balls"],
-  bags: ["bags", "equipment-bags", "ball-bags"],
-  pants: ["pants", "sweatpants"],
-  protection: ["protection", "shin-guards", "scrum-caps"],
+  accessories: [
+    "socks",
+    "caps",
+    "goggles",
+    "towels",
+    "mats",
+    "accessories",
+    "gk-gloves",
+    "protection",
+    "shin-guards",
+    "scrum-caps",
+  ],
+  equipment: ["balls", "bags", "equipment-bags", "ball-bags", "rackets"],
 };
+
+/** Shop-like order: clothes first, then shoes, then extras. */
+export const TYPE_FOLDER_ORDER = [
+  "shirts",
+  "jackets",
+  "shorts",
+  "pants",
+  "dresses",
+  "skirts",
+  "bras",
+  "swimwear",
+  "shoes",
+  "accessories",
+  "equipment",
+] as const;
+
+export const HIDDEN_TYPE_FOLDERS = new Set(["general"]);
 
 const SUB_TO_TYPE_FOLDER: Record<string, string> = Object.fromEntries(
   Object.entries(TYPE_FOLDERS).flatMap(([folder, slugs]) =>
