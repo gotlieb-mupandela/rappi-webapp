@@ -3,7 +3,7 @@ import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 
 const DEFAULT_API_URL = "https://secure.3gdirectpay.com/API/v6/";
-const DEFAULT_PAY_URL = "https://secure.3gdirectpay.com/pay.asp";
+const DEFAULT_PAY_URL = "https://secure.3gdirectpay.com/payv3.php";
 const DEFAULT_SITE_URL = "https://www.rappisportshub.com";
 const DPO_TIMEOUT_MS = 20_000;
 const DPO_RETRIES = 3;

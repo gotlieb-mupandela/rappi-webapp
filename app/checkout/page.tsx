@@ -26,6 +26,7 @@ const FALLBACK_SHIPPING: ShippingRow[] = shippingMethodsSnapshot();
 export default function CheckoutPage() {
   const router = useRouter();
   const lines = useCart((s) => s.lines);
+  const removeLine = useCart((s) => s.remove);
   const user = useAuth((s) => s.user);
   const { t, format, market } = useLocale();
   const [shippingOptions, setShippingOptions] = useState<ShippingRow[]>(FALLBACK_SHIPPING);
@@ -128,42 +129,57 @@ export default function CheckoutPage() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch("/api/payments/dpo/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          address,
-          city,
-          country,
-          notes,
-          shippingMethod: shipping.id,
-          lines: lines.map((line) => ({
-            code: line.code,
-            size: line.size,
-            qty: line.qty,
-          })),
-        }),
-      });
-      const raw = await res.text();
-      let data: { paymentUrl?: string; error?: string } = {};
-      try {
-        data = raw ? (JSON.parse(raw) as { paymentUrl?: string; error?: string }) : {};
-      } catch {
-        toast.error(t("checkout.failed"));
+      let paying = lines;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch("/api/payments/dpo/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            address,
+            city,
+            country,
+            notes,
+            shippingMethod: shipping.id,
+            lines: paying.map((line) => ({
+              code: line.code,
+              size: line.size,
+              qty: line.qty,
+            })),
+          }),
+        });
+        const raw = await res.text();
+        let data: { paymentUrl?: string; error?: string } = {};
+        try {
+          data = raw ? (JSON.parse(raw) as { paymentUrl?: string; error?: string }) : {};
+        } catch {
+          toast.error(t("checkout.failed"));
+          return;
+        }
+        if (res.status === 401) {
+          toast.error(t("checkout.signInRequired"));
+          router.push("/login?next=/checkout");
+          return;
+        }
+        const missing = missingProductCodes(data.error);
+        if (missing.length) {
+          for (const line of paying) {
+            if (missing.includes(line.code)) removeLine(line.code, line.size);
+          }
+          toast.error(t("checkout.removedUnavailable", { codes: missing.join(", ") }));
+          paying = paying.filter((line) => !missing.includes(line.code));
+          if (paying.length && attempt === 0) continue;
+          if (!paying.length) toast.error(t("checkout.cartEmpty"));
+          return;
+        }
+        if (!res.ok || !data.paymentUrl) {
+          toast.error(friendlyCheckoutError(data.error, t("checkout.failed")));
+          return;
+        }
+        window.location.href = data.paymentUrl;
         return;
       }
-      if (res.status === 401) {
-        toast.error(t("checkout.signInRequired"));
-        router.push("/login?next=/checkout");
-        return;
-      }
-      if (!res.ok || !data.paymentUrl) {
-        toast.error(friendlyCheckoutError(data.error, t("checkout.failed")));
-        return;
-      }
-      window.location.href = data.paymentUrl;
     } catch {
       toast.error(t("checkout.failed"));
     } finally {
@@ -419,6 +435,15 @@ export default function CheckoutPage() {
       <div className="h-24 md:hidden" />
     </div>
   );
+}
+
+function missingProductCodes(error: string | undefined) {
+  const match = error?.trim().match(/^Product (.+) was not found\.$/);
+  if (!match) return [];
+  return match[1]
+    .split(",")
+    .map((code) => code.trim())
+    .filter(Boolean);
 }
 
 function friendlyCheckoutError(error: string | undefined, fallback: string) {

@@ -34,6 +34,7 @@ export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
   }
 
   const lines: DpoCartLine[] = [];
+  const missing: string[] = [];
   for (const raw of input) {
     if (!raw || typeof raw !== "object") {
       throw new CartResolveError(400, "Invalid cart line.");
@@ -48,7 +49,8 @@ export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
 
     const product = getProduct(code);
     if (!product) {
-      throw new CartResolveError(400, `Product ${code} was not found.`);
+      if (!missing.includes(code)) missing.push(code);
+      continue;
     }
 
     const sizeRow = buyableSizes(product).find((option) => option.size === size);
@@ -66,6 +68,12 @@ export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
       qty,
       price: Number(product.price),
     });
+  }
+  if (missing.length) {
+    throw new CartResolveError(400, `Product ${missing.join(", ")} was not found.`);
+  }
+  if (!lines.length) {
+    throw new CartResolveError(400, "Cart is empty.");
   }
   return lines;
 }
