@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/shop/teampro", destination: "/shop/teampro-2026", permanent: true },
       { source: "/category/teampro", destination: "/category/teampro-2026", permanent: true },
-      { source: "/dpo-test", destination: "/checkout", permanent: false },
+      { source: "/dpo-test", destination: "/product/DPO-TEST", permanent: false },
       { source: "/dpo-test/return", destination: "/checkout/return", permanent: false },
       { source: "/dpo-test/cancel", destination: "/checkout/cancel", permanent: false },
     ];

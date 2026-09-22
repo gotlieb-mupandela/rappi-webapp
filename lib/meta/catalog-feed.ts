@@ -190,7 +190,9 @@ export function metaCatalogFeedLines(catalog: Product[]) {
 }
 
 export async function buildMetaCatalogTsv() {
-  const catalog = (await loadLiveProducts()) ?? offlineCatalog;
+  const catalog = ((await loadLiveProducts()) ?? offlineCatalog).filter(
+    (product) => product.code !== "DPO-TEST",
+  );
   return [metaCatalogFeedHeader(), ...metaCatalogFeedLines(catalog)].join("\n") + "\n";
 }
 

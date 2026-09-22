@@ -9,11 +9,13 @@ import { listingHay, type ListingItem } from "@/lib/listing-core";
 import { withProductImages } from "@/lib/media";
 import type { Product } from "@/lib/types";
 import bundled from "@/data/products.json";
+import { dpoTestProduct } from "@/lib/dpo-test-product";
 
 /** Process-level memo of the offline bundled catalog (avoid re-mapping 11k rows per call). */
-export const offlineCatalog: Product[] = withStorefrontCategories(
-  (bundled as Product[]).map(withProductImages),
-);
+export const offlineCatalog: Product[] = [
+  ...withStorefrontCategories((bundled as Product[]).map(withProductImages)),
+  withProductImages(dpoTestProduct),
+];
 
 for (const product of offlineCatalog) {
   const item = product as ListingItem;

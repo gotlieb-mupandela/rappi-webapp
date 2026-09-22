@@ -1,5 +1,6 @@
 import type { ListingItem } from "@/lib/listing-types";
 import { listingHay } from "@/lib/listing-core";
+import { DPO_TEST_CODE, dpoTestProduct } from "@/lib/dpo-test-product";
 
 let cached: ListingItem[] | null = null;
 let pending: Promise<ListingItem[]> | null = null;
@@ -17,6 +18,9 @@ async function fetchListingIndex(): Promise<ListingItem[]> {
   }
   if (!res.ok) throw new Error(`listing index ${res.status}`);
   const rows = (await res.json()) as ListingItem[];
+  if (!rows.some((row) => row.code === DPO_TEST_CODE)) {
+    rows.push({ ...dpoTestProduct });
+  }
   for (const row of rows) {
     if (!row.images) row.images = row.imageUrl ? [row.imageUrl] : [];
     if (!row.currency) row.currency = "NAD";

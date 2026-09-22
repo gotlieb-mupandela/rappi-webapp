@@ -2,5 +2,5 @@
   <rect width="800" height="800" fill="#10140c"/>
   <rect x="48" y="48" width="704" height="704" fill="none" stroke="#b6ff00" stroke-width="8"/>
   <text x="400" y="380" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" fill="#b6ff00">DPO TEST</text>
-  <text x="400" y="460" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#9aa68e">N$10 sandbox product</text>
+  <text x="400" y="460" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#9aa68e">N$10</text>
 </svg>
