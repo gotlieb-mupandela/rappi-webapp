@@ -11,6 +11,7 @@ import {
   SUBCATEGORY_LABELS,
   TYPE_FOLDER_ORDER,
   TYPE_FOLDERS,
+  WOMEN_CODED_TYPE_FOLDERS,
   categoryBySlug,
   typeFolderForSubcategory,
   type AudienceSlug,
@@ -255,6 +256,34 @@ function folderQueryParam(key: string) {
   return TYPE_FOLDERS[key] ? "group" : "sub";
 }
 
+const FOLDER_LOOK: Partial<Record<string, RegExp>> = {
+  shirts: /\b(t-?shirt|tee|polo|jersey|shirt|top)\b/,
+  jackets: /\b(jacket|hoodie|sweatshirt|anorak|raincoat|soft shell|parka)\b/,
+  shorts: /\b(short|bermuda)\b/,
+  pants: /\b(pant|trouser|tight|legging|tracksuit|sweatpant)\b/,
+  equipment: /\b(ball|bag|racket|backpack|paddle)\b/,
+};
+
+function looksLikeFolder(product: Product, folderKey: string) {
+  const re = FOLDER_LOOK[folderKey];
+  if (!re) return true;
+  return re.test(`${product.displayName} ${product.item} ${product.name}`.toLowerCase());
+}
+
+/** Folder-tile photo only — do not reuse for hub/homepage footwear heroes. */
+function sampleForTypeFolder(list: Product[], folderKey: string, sampleHub?: string) {
+  const footwear = list.filter(isStorefrontFootwear);
+  const apparel = list.filter((p) => !isStorefrontFootwear(p));
+  if (folderKey === "shoes") {
+    const pool = footwear.length ? footwear : list;
+    return sampleFromList(pool, "shoes") ?? firstImagedProduct(pool);
+  }
+  const base = apparel.length ? apparel : list;
+  const look = base.filter((p) => looksLikeFolder(p, folderKey));
+  const pool = look.length ? look : base;
+  return firstImagedProduct(pool) ?? sampleFromList(pool, sampleHub);
+}
+
 function labeledSubcategoryGroups(
   items: Product[],
   hrefFor: (key: string) => string,
@@ -262,8 +291,17 @@ function labeledSubcategoryGroups(
 ) {
   const byFolder = new Map<string, Product[]>();
   for (const p of items) {
-    if (!SUBCATEGORY_LABELS[p.subcategory]) continue;
-    const folder = typeFolderForSubcategory(p.subcategory);
+    if (!SUBCATEGORY_LABELS[p.subcategory] && !isStorefrontFootwear(p)) continue;
+    const folder = isStorefrontFootwear(p)
+      ? "shoes"
+      : typeFolderForSubcategory(p.subcategory);
+    if (HIDDEN_TYPE_FOLDERS.has(folder)) continue;
+    if (
+      !(TYPE_FOLDER_ORDER as readonly string[]).includes(folder) &&
+      !TYPE_FOLDERS[folder]
+    ) {
+      continue;
+    }
     const list = byFolder.get(folder);
     if (list) list.push(p);
     else byFolder.set(folder, [p]);
@@ -275,7 +313,7 @@ function labeledSubcategoryGroups(
       name: SUBCATEGORY_LABELS[key] ?? SUBCATEGORY_LABELS[list[0]?.subcategory] ?? key,
       count: list.length,
       href: hrefFor(key),
-      sample: sampleFromList(list, sampleHub) ?? firstImagedProduct(list),
+      sample: sampleForTypeFolder(list, key, sampleHub),
     }))
     .sort((a, b) => {
       const ia = TYPE_FOLDER_ORDER.indexOf(a.key as (typeof TYPE_FOLDER_ORDER)[number]);
@@ -302,7 +340,7 @@ export function audienceHubGroups(
   const hubSlug = opts?.categorySlug;
   const scoped = hubSlug ? productsByCategory(hubSlug, catalog) : catalog;
   const items = scoped.filter((p) => matchesAudience(p, audience));
-  return labeledSubcategoryGroups(
+  const groups = labeledSubcategoryGroups(
     items,
     (key) => {
       const param = `${folderQueryParam(key)}=${encodeURIComponent(key)}`;
@@ -312,6 +350,10 @@ export function audienceHubGroups(
     },
     hubSlug,
   );
+  if (audience === "men") {
+    return groups.filter((g) => !WOMEN_CODED_TYPE_FOLDERS.has(g.key));
+  }
+  return groups;
 }
 
 export function audienceTiles(

@@ -221,7 +221,16 @@ export const TYPE_FOLDER_ORDER = [
   "equipment",
 ] as const;
 
-export const HIDDEN_TYPE_FOLDERS = new Set(["general"]);
+/** Warehouse leftovers — never their own shop tiles. `sets` fold into shirts. */
+export const HIDDEN_TYPE_FOLDERS = new Set(["general", "sets"]);
+
+/** Adult women-coded families — unisex leftovers in these stay off Men. */
+export const WOMEN_CODED_TYPE_FOLDERS = new Set([
+  "dresses",
+  "skirts",
+  "bras",
+  "swimwear",
+]);
 
 const SUB_TO_TYPE_FOLDER: Record<string, string> = Object.fromEntries(
   Object.entries(TYPE_FOLDERS).flatMap(([folder, slugs]) =>

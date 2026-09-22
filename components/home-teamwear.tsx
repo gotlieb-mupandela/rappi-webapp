@@ -11,18 +11,18 @@ export function HomeTeamwear() {
 
   return (
     <section className="relative overflow-hidden border-y border-[var(--border)]">
-      <div className="relative min-h-[22rem] lg:min-h-[30rem]">
+      <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/9] lg:aspect-[2/1]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={TEAMWEAR_COVER}
           alt={t("home.teamwearTitle")}
-          className="absolute inset-0 h-full w-full max-w-none object-cover object-center"
+          className="absolute inset-0 h-full w-full max-w-none object-cover object-[center_16%]"
         />
         <div
           aria-hidden
           className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15"
         />
-        <div className="page-shell relative z-10 flex min-h-[22rem] flex-col justify-end py-12 lg:min-h-[30rem] lg:py-16">
+        <div className="page-shell relative z-10 flex h-full flex-col justify-end py-12 lg:py-16">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--accent)]">
             {t("home.teamwearEyebrow")}
           </p>

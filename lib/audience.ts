@@ -1,4 +1,8 @@
-import type { AudienceSlug } from "@/lib/catalog";
+import {
+  WOMEN_CODED_TYPE_FOLDERS,
+  typeFolderForSubcategory,
+  type AudienceSlug,
+} from "@/lib/catalog";
 import type { Product } from "@/lib/types";
 
 const KIDS_NAME_RE = /\b(junior| jr\b|kids|child|baby|youth|teen)\b/;
@@ -42,6 +46,10 @@ export function productAudience(product: Product): ListingAudience {
   return "unisex";
 }
 
+function isWomenCodedFolderProduct(product: Product) {
+  return WOMEN_CODED_TYPE_FOLDERS.has(typeFolderForSubcategory(product.subcategory));
+}
+
 export function matchesAudience(
   product: Product & { audience?: ListingAudience },
   audience: string | null,
@@ -50,7 +58,11 @@ export function matchesAudience(
   const resolved = product.audience ?? productAudience(product);
   if (audience === "kids") return resolved === "kids";
   if (audience === "women") return resolved === "women";
-  if (audience === "men") return resolved === "men";
+  if (audience === "men") {
+    if (resolved === "men") return true;
+    // Most adult kit is ungendered; treat it as men's unless it is a women-coded family.
+    return resolved === "unisex" && !isWomenCodedFolderProduct(product);
+  }
   if (audience === "adult") return resolved !== "kids";
   return true;
 }
