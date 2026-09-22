@@ -22,6 +22,7 @@ function amountsMatch(expected: number, actual: string | null) {
 function statusForResult(result: string | null): Payment["status"] {
   switch (result) {
     case "000":
+    case "001":
       return "paid";
     case "901":
       return "declined";
@@ -30,13 +31,17 @@ function statusForResult(result: string | null): Payment["status"] {
     case "904":
       return "cancelled";
     case "900":
-    case "001":
     case "003":
     case "007":
       return "pending";
     default:
       return "error";
   }
+}
+
+function paidMessage(result: string | null, explanation: string | null) {
+  if (result === "001") return "Card authorized";
+  return explanation ?? "Transaction Paid";
 }
 
 async function withOrder(payment: Payment | null, message: string, extra: Omit<DpoFulfillResult, "message" | "payment" | "orderId">): Promise<DpoFulfillResult> {
@@ -105,7 +110,7 @@ export async function fulfillDpoPayment(input: {
   const admin = createAdminClient();
   const nextStatus = statusForResult(verified.result);
 
-  if (verified.result === "000") {
+  if (verified.result === "000" || verified.result === "001") {
     const currencyOk =
       !verified.transactionCurrency ||
       verified.transactionCurrency.toUpperCase() === payment.currency.toUpperCase();
@@ -152,7 +157,7 @@ export async function fulfillDpoPayment(input: {
 
     return withOrder(
       paidPayment,
-      verified.explanation ?? "Transaction Paid",
+      paidMessage(verified.result, verified.explanation),
       { ok: true, status: "paid" },
     );
   }
