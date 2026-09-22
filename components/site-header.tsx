@@ -158,7 +158,7 @@ export function SiteHeader({
             ),
       )}
     >
-      <div className="page-shell flex h-16 items-center gap-1 sm:h-[5.5rem] sm:gap-4">
+      <div className="page-shell flex h-16 min-w-0 items-center gap-1 sm:h-[5.5rem] sm:gap-4">
         <button
           type="button"
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-[var(--hover)] lg:hidden"
@@ -173,9 +173,9 @@ export function SiteHeader({
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
-        <Link href="/" className="flex shrink-0 items-center" aria-label={t("nav.homeAria")}>
+        <Link href="/" className="flex min-w-0 shrink items-center" aria-label={t("nav.homeAria")}>
           <BrandLogo
-            className="h-12 w-auto max-w-none sm:h-[4.75rem]"
+            className="h-12 w-auto max-w-[9.5rem] sm:h-[4.75rem] sm:max-w-[14rem]"
             priority
           />
         </Link>

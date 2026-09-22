@@ -20,7 +20,31 @@ export default async function AdminQuotesPage() {
         Requests from /teamwear. Reply by email from your inbox.
       </p>
 
-      <div className="mt-8 max-h-[calc(100dvh-12rem)] overflow-auto rounded-xl border border-[var(--border)]">
+      <div className="mt-8 space-y-3 md:hidden">
+        {(quotes ?? []).length === 0 ? (
+          <p className="rounded-xl border border-[var(--border)] px-4 py-12 text-center text-[var(--muted)]">
+            No quote requests yet.
+          </p>
+        ) : (
+          (quotes ?? []).map((q) => (
+            <article
+              key={q.id}
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+            >
+              <p className="text-xs text-[var(--muted)]">{formatDate(q.created_at)}</p>
+              <p className="mt-2 font-semibold">{q.name}</p>
+              <p className="break-all text-xs text-[var(--muted)]">{q.email}</p>
+              <p className="mt-2 text-sm">{q.organisation || "—"}</p>
+              <p className="text-xs text-[var(--muted)]">
+                {[q.sport, q.players ? `${q.players} players` : ""].filter(Boolean).join(" · ") || "—"}
+              </p>
+              <p className="mt-2 break-words text-sm">{q.notes || q.sizes || "—"}</p>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="mt-8 hidden max-h-[calc(100dvh-12rem)] overflow-auto rounded-xl border border-[var(--border)] md:block">
         <table className="w-full min-w-[880px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-[var(--surface)] text-[11px] uppercase tracking-wider text-[var(--muted)] shadow-[0_1px_0_var(--border)]">
             <tr>

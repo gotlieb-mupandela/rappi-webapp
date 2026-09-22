@@ -11,7 +11,13 @@ import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/database.types";
 
 type Order = Database["public"]["Tables"]["orders"]["Row"];
-type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];
+type OrderItem = Database["public"]["Tables"]["order_items"]["Row"] & {
+  products?: {
+    id: string;
+    item: string | null;
+    image_url: string | null;
+  } | null;
+};
 type Status = Database["public"]["Enums"]["order_status"];
 
 const STEPS: Status[] = [...ORDER_STATUSES];
@@ -29,7 +35,10 @@ export function OrderDetail({ orderId }: { orderId: string }) {
     void (async () => {
       const [{ data: o }, { data: lines }] = await Promise.all([
         supabase.from("orders").select("*").eq("id", orderId).single(),
-        supabase.from("order_items").select("*").eq("order_id", orderId),
+        supabase
+          .from("order_items")
+          .select("*, products(id, item, image_url)")
+          .eq("order_id", orderId),
       ]);
       if (!o) {
         toast.error("Order not found");
@@ -87,7 +96,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
       >
         ← Orders
       </Link>
-      <h1 className="mt-2 font-mono text-3xl font-bold text-[var(--accent)]">{order.id}</h1>
+      <h1 className="mt-2 break-all font-mono text-2xl font-bold text-[var(--accent)] sm:text-3xl">{order.id}</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">{formatDate(order.created_at)}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -143,17 +152,46 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 
       <section className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
         <h2 className="text-sm font-bold uppercase tracking-wider">Items</h2>
-        <ul className="mt-3 divide-y divide-[var(--border)] text-sm">
-          {items.map((item) => (
-            <li key={item.id} className="flex justify-between gap-4 py-2">
-              <span>
-                {item.code} · {item.name} · {item.size} × {item.qty}
-              </span>
-              <span className="font-semibold">
-                {formatPrice(Number(item.unit_price) * item.qty)}
-              </span>
-            </li>
-          ))}
+        <ul className="mt-3 divide-y divide-[var(--border)]">
+          {items.map((item) => {
+            const product = item.products;
+            const row = (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={product?.image_url || "/brand/rappi-logo-v2.png"}
+                  alt=""
+                  className="h-12 w-12 shrink-0 rounded-lg bg-[var(--bg-elevated)] object-cover"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-mono text-sm font-bold">{item.code}</span>
+                  <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">
+                    {product?.item || item.name}
+                  </span>
+                  <span className="mt-1 block text-xs text-[var(--muted)]">
+                    {item.size} × {item.qty}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-semibold">
+                  {formatPrice(Number(item.unit_price) * item.qty)}
+                </span>
+              </>
+            );
+            return (
+              <li key={item.id} className="py-3">
+                {product?.id ? (
+                  <Link
+                    href={`/admin/products/${product.id}`}
+                    className="flex items-center gap-3 hover:text-[var(--accent)]"
+                  >
+                    {row}
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3">{row}</div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

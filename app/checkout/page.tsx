@@ -347,18 +347,18 @@ export default function CheckoutPage() {
               {shippingOptions.map((s) => (
                 <label
                   key={s.id}
-                  className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--border)] px-3 py-3 transition-colors has-[:checked]:border-[var(--accent)]"
+                  className="flex min-w-0 cursor-pointer flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] px-3 py-3 transition-colors has-[:checked]:border-[var(--accent)]"
                 >
-                  <span className="flex items-center gap-3 text-sm">
+                  <span className="flex min-w-0 items-center gap-3 text-sm">
                     <input
                       type="radio"
                       name="ship"
                       checked={method === s.id}
                       onChange={() => setMethod(s.id)}
                     />
-                    {shippingName(s.id, s.name, t)}
+                    <span className="min-w-0 break-words">{shippingName(s.id, s.name, t)}</span>
                   </span>
-                  <span className="text-sm font-semibold">
+                  <span className="shrink-0 text-sm font-semibold">
                     {s.cost ? format(s.cost) : t("common.free")}
                   </span>
                 </label>

@@ -81,7 +81,7 @@ export default function OrdersPage() {
         </div>
       ) : (
         <>
-        <div className="mt-8 space-y-4 md:hidden">
+        <div className="mt-8 space-y-4 lg:hidden">
           {mine.map((order) => {
             return (
               <article key={order.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
@@ -100,7 +100,7 @@ export default function OrdersPage() {
             );
           })}
         </div>
-        <div className="mt-8 hidden overflow-hidden rounded-xl border border-[var(--border)] md:block">
+        <div className="mt-8 hidden overflow-x-auto rounded-xl border border-[var(--border)] lg:block">
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="bg-[var(--surface-2)] text-[11px] uppercase tracking-wider text-[var(--muted)]">
               <tr>

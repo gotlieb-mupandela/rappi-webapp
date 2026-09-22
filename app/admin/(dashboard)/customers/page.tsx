@@ -33,7 +33,32 @@ export default async function AdminCustomersPage() {
         <code className="text-[var(--accent)]">select promote_admin(&apos;email&apos;)</code>.
       </p>
 
-      <div className="mt-8 max-h-[calc(100dvh-12rem)] overflow-auto rounded-xl border border-[var(--border)]">
+      <div className="mt-8 space-y-3 md:hidden">
+        {(profiles ?? []).length === 0 ? (
+          <p className="rounded-xl border border-[var(--border)] px-4 py-12 text-center text-[var(--muted)]">
+            No profiles yet.
+          </p>
+        ) : (
+          (profiles ?? []).map((p) => (
+            <article
+              key={p.id}
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+            >
+              <p className="font-semibold">{p.full_name || "—"}</p>
+              <p className="break-all text-xs text-[var(--muted)]">{p.email}</p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <Badge variant={p.role === "admin" ? "new" : "muted"}>{p.role}</Badge>
+                <Link href="/admin/orders" className="text-sm hover:text-[var(--accent)]">
+                  {orderCount.get(p.email) ?? 0} orders
+                </Link>
+              </div>
+              <p className="mt-2 text-xs text-[var(--muted)]">{formatDate(p.created_at)}</p>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="mt-8 hidden max-h-[calc(100dvh-12rem)] overflow-auto rounded-xl border border-[var(--border)] md:block">
         <table className="w-full min-w-[700px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-[var(--surface)] text-[11px] uppercase tracking-wider text-[var(--muted)] shadow-[0_1px_0_var(--border)]">
             <tr>

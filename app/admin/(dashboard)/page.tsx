@@ -79,8 +79,32 @@ export default async function AdminDashboardPage() {
             View all
           </Link>
         </div>
-        <div className="overflow-hidden rounded-xl border border-[var(--border)]">
-          <table className="w-full text-left text-sm">
+        <div className="space-y-3 md:hidden">
+          {(recentOrders ?? []).length === 0 ? (
+            <p className="rounded-xl border border-[var(--border)] px-4 py-10 text-center text-[var(--muted)]">
+              No orders yet.
+            </p>
+          ) : (
+            (recentOrders ?? []).map((o) => (
+              <Link
+                key={o.id}
+                href={`/admin/orders/${o.id}`}
+                className="block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+              >
+                <p className="break-all font-mono font-bold text-[var(--accent)]">{o.id}</p>
+                <p className="mt-1 text-sm">{o.full_name}</p>
+                <p className="break-all text-xs text-[var(--muted)]">{o.email}</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="font-semibold">{formatPrice(Number(o.total))}</span>
+                  <OrderStatusBadge status={o.status} />
+                </div>
+                <p className="mt-2 text-xs text-[var(--muted)]">{formatDate(o.created_at)}</p>
+              </Link>
+            ))
+          )}
+        </div>
+        <div className="hidden overflow-x-auto rounded-xl border border-[var(--border)] md:block">
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-[var(--hover)] text-[11px] uppercase tracking-wider text-[var(--muted)]">
               <tr>
                 <th className="px-4 py-3">Order</th>

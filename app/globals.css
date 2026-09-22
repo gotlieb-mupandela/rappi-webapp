@@ -24,7 +24,6 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-h) + env(safe-area-inset-top) + 0.75rem);
   letter-spacing: normal;
-  word-spacing: 0.12em;
 }
 
 html[data-theme="light"] {
@@ -42,7 +41,6 @@ body {
   font-family: var(--font-inter), "Inter", "Segoe UI", system-ui, sans-serif;
   line-height: 1.55;
   letter-spacing: normal;
-  word-spacing: 0.12em;
   font-kerning: none;
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0, "calt" 0, "kern" 0;
@@ -56,8 +54,8 @@ body {
 .page-shell {
   margin-inline: auto;
   max-width: var(--container);
+  min-width: 0;
   padding-inline: 1rem;
-  overflow-x: clip;
 }
 
 @media (min-width: 640px) {

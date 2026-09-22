@@ -55,7 +55,7 @@ export default async function AdminProductsPage({
           name="q"
           defaultValue={sp.q ?? ""}
           placeholder="Search code or title"
-          className="h-10 min-w-[200px] flex-1 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-4 text-sm"
+          className="h-10 min-w-0 flex-1 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-4 text-sm sm:min-w-[200px]"
         />
         <select
           name="cat"
@@ -78,7 +78,42 @@ export default async function AdminProductsPage({
         </Button>
       </form>
 
-      <div className="mt-6 max-h-[calc(100dvh-14rem)] overflow-auto rounded-xl border border-[var(--border)]">
+      <div className="mt-6 space-y-3 md:hidden">
+        {(products ?? []).map((p) => (
+          <Link
+            key={p.id}
+            href={`/admin/products/${p.id}`}
+            className="flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={p.image_url || "/brand/rappi-logo-v2.png"}
+              alt=""
+              className="h-16 w-16 shrink-0 rounded-lg bg-[var(--bg-elevated)] object-cover"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block font-mono font-bold">{p.code}</span>
+              <span className="mt-0.5 block truncate text-xs text-[var(--muted)]">{p.item}</span>
+              <span className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                <span>{formatPrice(Number(p.price))}</span>
+                <span
+                  className={
+                    p.stock_qty > 0 && p.stock_qty < 5
+                      ? "text-[var(--warn)]"
+                      : p.stock_qty === 0
+                        ? "text-[var(--danger)]"
+                        : "text-[var(--muted)]"
+                  }
+                >
+                  {p.stock_qty} in stock
+                </span>
+              </span>
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-6 hidden max-h-[calc(100dvh-14rem)] overflow-auto rounded-xl border border-[var(--border)] md:block">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="sticky top-0 z-10 bg-[var(--surface)] text-[11px] uppercase tracking-wider text-[var(--muted)] shadow-[0_1px_0_var(--border)]">
             <tr>

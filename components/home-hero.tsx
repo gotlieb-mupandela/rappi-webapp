@@ -44,7 +44,7 @@ export function HomeHero({
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--accent)]">
             {tagline}
           </p>
-          <h1 className="mt-3 max-w-3xl font-[family-name:var(--font-oswald)] text-[2.35rem] uppercase leading-[0.92] tracking-tight text-ink sm:mt-4 sm:text-6xl md:text-7xl">
+          <h1 className="mt-3 max-w-3xl break-words font-[family-name:var(--font-oswald)] text-[2.35rem] uppercase leading-[0.92] tracking-tight text-ink sm:mt-4 sm:text-6xl md:text-7xl">
             {heroTitle}
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--muted)] sm:mt-6 sm:text-base sm:leading-7">

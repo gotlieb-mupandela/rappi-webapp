@@ -41,7 +41,7 @@ export default function AccountPage() {
       <h1 className="mt-6 font-[family-name:var(--font-oswald)] text-4xl uppercase">
         {t("account.myAccount")}
       </h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">{t("account.signedInAs", { email: user.email })}</p>
+      <p className="mt-2 min-w-0 break-all text-sm text-[var(--muted)]">{t("account.signedInAs", { email: user.email })}</p>
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <Link href="/account/orders" className="surface-card p-6">
           <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.orders")}</p>
