@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OrderStatusBadge } from "@/components/order-status-badge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatPrice } from "@/lib/format";
 
@@ -112,8 +113,8 @@ export default async function AdminDashboardPage() {
                       <p className="text-xs text-[var(--muted)]">{o.email}</p>
                     </td>
                     <td className="px-4 py-3">{formatPrice(Number(o.total))}</td>
-                    <td className="px-4 py-3 uppercase tracking-wider text-[11px]">
-                      {o.status}
+                    <td className="px-4 py-3">
+                      <OrderStatusBadge status={o.status} />
                     </td>
                     <td className="px-4 py-3 text-[var(--muted)]">
                       {formatDate(o.created_at)}

@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { OrderStatusBadge } from "@/components/order-status-badge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatPrice } from "@/lib/format";
+import { ORDER_STATUSES, orderStatusClass } from "@/lib/order-status";
 
 export const metadata = { title: "Orders · Admin" };
 
-const STATUSES = ["reserved", "preparing", "shipped", "cancelled"] as const;
+const STATUSES = ORDER_STATUSES;
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -51,7 +53,7 @@ export default async function AdminOrdersPage({
             href={`/admin/orders?status=${s}`}
             className={`rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-wider ${
               sp.status === s
-                ? "border-[var(--accent)] text-[var(--accent)]"
+                ? `border-current ${orderStatusClass(s)}`
                 : "border-[var(--border)] text-[var(--muted)]"
             }`}
           >
@@ -96,8 +98,8 @@ export default async function AdminOrdersPage({
                     {o.city}, {o.country}
                   </td>
                   <td className="px-4 py-3">{formatPrice(Number(o.total))}</td>
-                  <td className="px-4 py-3 text-[11px] uppercase tracking-wider">
-                    {o.status}
+                  <td className="px-4 py-3">
+                    <OrderStatusBadge status={o.status} />
                   </td>
                   <td className="px-4 py-3 text-[var(--muted)]">
                     {formatDate(o.created_at)}

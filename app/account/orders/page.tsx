@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { OrderStatusBadge } from "@/components/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { useLocale } from "@/components/locale-provider";
@@ -12,6 +13,7 @@ import { useOrders } from "@/lib/stores/orders";
 function statusKey(status: string) {
   if (status === "shipped") return "statusShipped" as const;
   if (status === "preparing") return "statusPreparing" as const;
+  if (status === "cancelled") return "statusCancelled" as const;
   return "statusReserved" as const;
 }
 
@@ -81,7 +83,6 @@ export default function OrdersPage() {
         <>
         <div className="mt-8 space-y-4 md:hidden">
           {mine.map((order) => {
-            const active = statusKey(order.status);
             return (
               <article key={order.id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
                 <p className="font-mono text-lg font-bold text-[var(--accent)]">{order.id}</p>
@@ -92,8 +93,8 @@ export default function OrdersPage() {
                   {order.city}, {order.country}
                 </p>
                 <p className="mt-3 text-lg font-semibold">{format(order.total)}</p>
-                <p className="mt-1 text-xs uppercase tracking-wider text-[var(--accent)]">
-                  {t(`account.${active}`)}
+                <p className="mt-3">
+                  <OrderStatusBadge status={order.status} />
                 </p>
               </article>
             );
@@ -137,7 +138,8 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-3 py-4">{format(order.total)}</td>
                     <td className="px-3 py-4">
-                      <ol className="space-y-1">
+                      <OrderStatusBadge status={order.status} />
+                      <ol className="mt-3 space-y-1">
                         {stepKeys.map((step) => (
                           <li key={step} className="flex items-center gap-2 text-[11px]">
                             <span

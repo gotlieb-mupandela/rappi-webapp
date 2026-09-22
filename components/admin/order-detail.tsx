@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatPrice } from "@/lib/format";
+import { ORDER_STATUSES, orderStatusClass } from "@/lib/order-status";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/database.types";
 
@@ -13,7 +14,7 @@ type Order = Database["public"]["Tables"]["orders"]["Row"];
 type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];
 type Status = Database["public"]["Enums"]["order_status"];
 
-const STEPS: Status[] = ["reserved", "preparing", "shipped", "cancelled"];
+const STEPS: Status[] = [...ORDER_STATUSES];
 
 export function OrderDetail({ orderId }: { orderId: string }) {
   const router = useRouter();
@@ -95,9 +96,14 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             key={s}
             type="button"
             size="sm"
-            variant={order.status === s ? "default" : "outline"}
+            variant="outline"
             disabled={saving}
             onClick={() => void setStatus(s)}
+            className={`uppercase tracking-wider ${
+              order.status === s
+                ? `border-current ${orderStatusClass(s)}`
+                : "text-[var(--muted)]"
+            }`}
           >
             {s}
           </Button>

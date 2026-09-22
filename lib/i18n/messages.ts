@@ -294,6 +294,7 @@ export const en = {
     statusWaiting: "Waiting",
     statusReserved: "Reserved",
     statusShipped: "Shipped",
+    statusCancelled: "Cancelled",
     statusDelivered: "Delivered",
   },
   login: {
@@ -907,6 +908,7 @@ export const fr: Messages = {
     statusWaiting: "En attente",
     statusReserved: "Réservé",
     statusShipped: "Expédié",
+    statusCancelled: "Annulé",
     statusDelivered: "Livré",
   },
   login: {
