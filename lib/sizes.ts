@@ -85,6 +85,17 @@ function rowsFromSizes(
  * is not treated as a real size.
  */
 export function withCatalogSizes<T extends Product>(product: T): T {
+  if (product.code === "DPO-TEST") {
+    const stock = Math.max(skuStock(product), 1);
+    return {
+      ...product,
+      sizeOptions: ["ONE"],
+      sizes: [{ size: "ONE", stock }],
+      stockQty: stock,
+      totalQty: stock,
+    };
+  }
+
   const master = MASTER_BY_CODE.get(product.code);
   const sheet = SOURCE_BY_CODE.get(product.code);
   const recorded = hasRecordedSizeRun(product);
