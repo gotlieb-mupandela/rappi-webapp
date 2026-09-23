@@ -63,16 +63,16 @@ export function AudienceLandingGrid({
             key={`${tile.label}-${tile.href}-${index}`}
             href={tile.href}
             className={cn(
-              "group flex flex-col border border-transparent p-0.5 transition-colors hover:border-[#c5c9d4]",
+              "group flex flex-col border border-transparent p-0.5 transition-colors hover:border-[var(--border-strong)]",
               (isKids || isKits) && "hover:border-transparent",
             )}
           >
             <div
               className={cn(
                 "relative overflow-hidden",
-                isFootwear ? "aspect-square bg-[#e8eaed]" : "aspect-[3/4]",
-                isKids && "rounded-[18px] bg-[#e8eaed]",
-                !isKids && !isGraphic && "bg-[#e8eaed]",
+                isFootwear ? "aspect-square bg-[var(--tile-mid)]" : "aspect-[3/4]",
+                isKids && "rounded-[18px] bg-[var(--tile-mid)]",
+                !isKids && !isGraphic && "bg-[var(--tile-mid)]",
                 outletKind === "category" && "bg-[#f18a1f]",
                 outletKind === "price" && "bg-[#e85a4f]",
               )}
@@ -128,7 +128,7 @@ export function AudienceLandingGrid({
             </div>
             <p
               className={cn(
-                "mt-2 px-0.5 text-center font-bold uppercase leading-snug tracking-[0.04em] text-[#212f5c]",
+                "mt-2 px-0.5 text-center font-bold uppercase leading-snug tracking-[0.04em] text-[var(--text)]",
                 isKits
                   ? "text-xs sm:text-sm"
                   : isKids

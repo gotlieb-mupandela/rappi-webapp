@@ -229,7 +229,7 @@ export function SiteHeader({
   };
 
   const iconBtn =
-    "flex h-10 w-10 items-center justify-center text-[#212f5c] transition-colors hover:bg-[#e8eaf6]";
+    "flex h-10 w-10 items-center justify-center text-[var(--text)] transition-colors hover:bg-[var(--accent-muted)]";
 
   return (
     <>
@@ -290,8 +290,8 @@ export function SiteHeader({
                     <Link
                       href={item.href}
                       className={cn(
-                        "block whitespace-nowrap px-2.5 py-2 text-[12px] font-bold uppercase tracking-[0.06em] text-[#212f5c] transition-colors hover:bg-[#e8eaf6] xl:px-3",
-                        (item.active || menuOpen) && "bg-[#e8eaf6]",
+                        "block whitespace-nowrap px-2.5 py-2 text-[12px] font-bold uppercase tracking-[0.06em] text-[var(--text)] transition-colors hover:bg-[var(--accent-muted)] xl:px-3",
+                        (item.active || menuOpen) && "bg-[var(--accent-muted)]",
                       )}
                       aria-expanded={menuOpen}
                       aria-haspopup={links.length > 0 ? "true" : undefined}
@@ -301,7 +301,7 @@ export function SiteHeader({
                     {menuOpen && links.length > 0 ? (
                       <div
                         role="menu"
-                        className="absolute left-0 top-full z-[60] max-h-[min(70vh,28rem)] min-w-[15rem] overflow-y-auto border border-[#d8dce8] bg-white py-1.5 shadow-[0_8px_24px_rgba(33,47,92,0.12)]"
+                        className="absolute left-0 top-full z-[60] max-h-[min(70vh,28rem)] min-w-[15rem] overflow-y-auto border border-[var(--border)] bg-white py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.1)]"
                         onMouseEnter={() => openUnderNav(item.key)}
                       >
                         {links.map((link, i) => (
@@ -309,7 +309,7 @@ export function SiteHeader({
                             key={`${item.key}-${i}-${link.href}-${link.label}`}
                             href={link.href}
                             role="menuitem"
-                            className="block px-4 py-2.5 text-[13px] leading-snug text-[#212f5c] transition-colors hover:bg-[#e8eaf6]"
+                            className="block px-4 py-2.5 text-[13px] leading-snug text-[var(--text)] transition-colors hover:bg-[var(--accent-muted)]"
                           >
                             {link.label}
                           </Link>

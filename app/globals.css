@@ -82,7 +82,7 @@ body {
 .product-card-volume > div[aria-hidden] {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -18px 28px rgba(33, 47, 92, 0.08);
+    inset 0 -18px 28px rgba(0, 0, 0, 0.06);
 }
 
 @media (prefers-reduced-motion: reduce) {
