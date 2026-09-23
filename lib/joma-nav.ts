@@ -9,6 +9,8 @@ type LandingTileDef = {
   hub: string;
   /** Preferred local brand cover when available. */
   cover?: string;
+  /** Optional case-insensitive name match for product-sample covers. */
+  match?: string;
 };
 
 function audienceQuery(audience: "men" | "women") {
@@ -105,44 +107,46 @@ export function jomaFootwearLandingTiles(): FootwearLandingTileDef[] {
 export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTileDef[] {
   const d = destinations(audience);
   if (audience === "women") {
+    // Same pattern as Man: distinct lifestyle covers on hero tiles only;
+    // remaining tiles use women/unisex product samples for that hub (no repeats).
     return [
       {
         label: "TEAMWEAR",
         href: d.teamwear,
         hub: "teampro-2026",
-        cover: "/brand/hub-rugby.png?v=1",
+        cover: "/brand/audience-women-teamwear.png?v=2",
       },
       {
         label: "TEAMWEAR PRO 2026",
         href: d.teamwearPro,
         hub: "teampro-2026",
-        cover: "/brand/hub-teampro-2026.png",
+        cover: "/brand/audience-women-jersey-navy.png?v=2",
       },
       {
         label: "RUNNING / TRAIL",
         href: d.running,
         hub: "running-fitness",
-        cover: "/brand/hero-athlete.png?v=2",
+        cover: "/brand/audience-women-field.png?v=2",
       },
       {
         label: "CYCLING / TRIATHLON",
         href: d.cycling,
         hub: "sportswear",
-        cover: "/brand/hub-sportswear.png?v=5",
+        // Man uses hub-sportswear lifestyle; Woman uses category packshots (no duplicate model).
       },
       { label: "RACKET SPORTS", href: d.racket, hub: "padel" },
       {
         label: "FITNESS / GYM",
         href: d.fitness,
         hub: "running-fitness",
-        cover: "/brand/hero-athlete.png?v=2",
+        cover: "/brand/audience-women.png?v=6",
       },
       { label: "HIKING / OUTDOOR", href: d.hiking, hub: "hiking" },
       {
         label: "LIFESTYLE",
         href: d.lifestyle,
         hub: "lifestyle",
-        cover: "/brand/hub-lifestyle.png?v=4",
+        cover: "/brand/audience-women-lifestyle.png?v=2",
       },
       { label: "ÁGUILA LINE", href: d.aguila, hub: "football" },
       { label: "RESORT", href: d.resort, hub: "resort" },
@@ -228,7 +232,7 @@ export function jomaKidsLandingTiles(): LandingTileDef[] {
       label: "12-14 YEAR OLD GIRL",
       href: "/shop/kids?age=12-14&gender=girl",
       hub: "running-fitness",
-      cover: "/brand/hero-athlete.png?v=2",
+      cover: "/brand/audience-women.png?v=5",
     },
   ];
 }
@@ -333,8 +337,102 @@ export function jomaAccessoriesLandingTiles(): AccessoriesLandingTileDef[] {
 }
 
 /**
+ * Teams / Teamwear hub tiles — live Joma `#link=69` sports & materials grid.
+ * Shown on `/teamwear` (Man/Woman → TEAMWEAR). Not used for Man/Woman landings.
+ */
+export function jomaTeamsLandingTiles(): LandingTileDef[] {
+  return [
+    {
+      label: "POLYESTER",
+      href: "/shop/sportswear?q=polyester",
+      hub: "sportswear",
+      match: "polyester|poli[eé]ster",
+    },
+    {
+      label: "COTTON",
+      href: "/shop/sportswear?q=cotton",
+      hub: "sportswear",
+      match: "cotton|algod[oó]n",
+    },
+    {
+      label: "OUTERWEAR",
+      href: "/shop/sportswear?group=jackets",
+      hub: "sportswear",
+      match: "jacket|anorak|puffer|park|outerwear",
+      cover: "/brand/hub-sportswear.png?v=5",
+    },
+    {
+      label: "SOCCER / FUTSAL",
+      href: "/shop/football",
+      hub: "football",
+      match: "soccer|futsal|football|f[uú]tbol",
+    },
+    {
+      label: "BASKETBALL",
+      href: "/shop/basketball",
+      hub: "basketball",
+      match: "basket",
+    },
+    {
+      label: "RUGBY",
+      href: "/shop/rugby",
+      hub: "rugby",
+      cover: "/brand/hub-rugby.png?v=1",
+    },
+    {
+      label: "VOLLEYBALL",
+      href: "/shop/running-fitness?q=volley",
+      hub: "running-fitness",
+      match: "volley|voleibol",
+    },
+    {
+      label: "HANDBALL",
+      href: "/shop/sportswear?q=handball",
+      hub: "sportswear",
+      match: "handball|balonmano",
+    },
+    {
+      label: "COACH",
+      href: "/shop/sportswear?q=staff",
+      hub: "sportswear",
+      match: "staff|coach|entrenador",
+    },
+    {
+      label: "REFEREE",
+      href: "/shop/sportswear?q=referee",
+      hub: "sportswear",
+      match: "referee|arbitro|[aá]rbitro|respect",
+    },
+    {
+      label: "GOALIE",
+      href: "/shop/football?q=goalkeeper",
+      hub: "football",
+      match: "goalkeeper|goalie|portero",
+    },
+    {
+      label: "CRICKET",
+      href: "/shop/cricket",
+      hub: "cricket",
+      match: "cricket",
+    },
+    {
+      label: "SWIMMING",
+      href: "/shop/swimming",
+      hub: "swimming",
+      match: "swim|nataci[oó]n|ba[nñ]ador",
+    },
+    {
+      label: "PANTS",
+      href: "/shop/sportswear?group=pants",
+      hub: "sportswear",
+      match: "pants|pantalon|trouser|jogger",
+    },
+  ];
+}
+
+/**
  * Official Kits hub tiles — matches header Official Kits dropdown.
- * Three equal portrait tiles on `/teamwear`.
+ * Three equal portrait tiles on `/teamwear?view=kits`.
  */
 export function jomaOfficialKitsLandingTiles(): LandingTileDef[] {
   return [

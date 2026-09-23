@@ -21,11 +21,11 @@ const HEADER_HEIGHT = 96;
 const INK = rgb(0.1, 0.1, 0.1);
 const MUTED = rgb(0.35, 0.35, 0.35);
 const RULE = rgb(0.82, 0.82, 0.82);
-const HEADER_BG = rgb(0.06, 0.06, 0.07);
-const LIME = rgb(0.71, 1, 0);
-const LOGO_FILE = path.join(process.cwd(), "public", "brand", "rappi-logo-v2.png");
-const LOGO_NATIVE_WIDTH = 776;
-const LOGO_NATIVE_HEIGHT = 478;
+const HEADER_BG = rgb(1, 1, 1);
+const LIME = rgb(0.37, 1, 0.22);
+const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
+const LOGO_NATIVE_WIDTH = 1416;
+const LOGO_NATIVE_HEIGHT = 895;
 
 function envText(name: string) {
   return (process.env[name] || "").trim();
@@ -139,6 +139,13 @@ function drawBrandHeader(page: PDFPage, logo: PDFImage | null, bold: PDFFont) {
     height: HEADER_HEIGHT,
     color: HEADER_BG,
   });
+  page.drawRectangle({
+    x: 0,
+    y: PAGE_HEIGHT - HEADER_HEIGHT,
+    width: PAGE_WIDTH,
+    height: 3,
+    color: LIME,
+  });
   if (logo) {
     const height = 58;
     const width = height * (LOGO_NATIVE_WIDTH / LOGO_NATIVE_HEIGHT);
@@ -149,7 +156,7 @@ function drawBrandHeader(page: PDFPage, logo: PDFImage | null, bold: PDFFont) {
       height,
     });
   }
-  drawRight(page, "INVOICE", bold, 18, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 42, LIME);
+  drawRight(page, "INVOICE", bold, 18, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 42, INK);
 }
 
 export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {

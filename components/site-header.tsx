@@ -185,7 +185,7 @@ export function SiteHeader({
     },
     {
       key: "teamwear",
-      href: "/teamwear",
+      href: "/teamwear?view=kits",
       label: t("nav.officialKits"),
       active: pathname.startsWith("/teamwear") || activeSlug === "teampro-2026",
     },

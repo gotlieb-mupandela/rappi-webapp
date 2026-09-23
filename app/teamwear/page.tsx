@@ -3,12 +3,13 @@ import { AudienceLandingGrid } from "@/components/audience-landing";
 import { PageHeader } from "@/components/page-header";
 import { TeamwearIntro } from "@/components/teamwear-intro";
 import { TeamwearQuoteForm } from "@/components/teamwear-quote-form";
-import { officialKitsLandingTiles } from "@/lib/hubs";
+import { officialKitsLandingTiles, teamsLandingTiles } from "@/lib/hubs";
+import { getCatalog } from "@/lib/supabase/catalog";
 
 export const metadata: Metadata = {
-  title: "Official Kits",
+  title: "Teams",
   description:
-    "Official team collections, committees and federations, and special editions from Joma.",
+    "Teamwear by material and sport — polyester, cotton, soccer, basketball, rugby, and more.",
 };
 
 function firstSearchParam(value: string | string[] | undefined) {
@@ -30,7 +31,7 @@ export default async function TeamwearPage({
         <PageHeader
           crumbs={[
             { href: "/", key: "common.home" },
-            { href: "/teamwear", key: "nav.officialKits" },
+            { href: "/teamwear", key: "nav.teams" },
             { key: "quote.crumb" },
           ]}
           eyebrowKey="home.teamwearEyebrow"
@@ -45,19 +46,38 @@ export default async function TeamwearPage({
     );
   }
 
-  const tiles = officialKitsLandingTiles();
+  if (view === "kits") {
+    const tiles = officialKitsLandingTiles();
+    return (
+      <div className="bg-white">
+        <PageHeader
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.officialKits" },
+          ]}
+          titleKey="nav.officialKits"
+        />
+        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+          <AudienceLandingGrid tiles={tiles} variant="kits" />
+        </div>
+      </div>
+    );
+  }
+
+  const catalog = await getCatalog();
+  const tiles = teamsLandingTiles(catalog);
 
   return (
     <div className="bg-white">
       <PageHeader
         crumbs={[
           { href: "/", key: "common.home" },
-          { key: "nav.officialKits" },
+          { key: "nav.teams" },
         ]}
-        titleKey="nav.officialKits"
+        titleKey="nav.teams"
       />
       <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
-        <AudienceLandingGrid tiles={tiles} variant="kits" />
+        <AudienceLandingGrid tiles={tiles} />
       </div>
     </div>
   );

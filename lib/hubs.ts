@@ -31,6 +31,7 @@ import {
   jomaKidsLandingTiles,
   jomaOfficialKitsLandingTiles,
   jomaOutletLandingTiles,
+  jomaTeamsLandingTiles,
   type AccessoriesLandingTileDef,
 } from "@/lib/joma-nav";
 import { productCardImageUrl } from "@/lib/media";
@@ -378,17 +379,31 @@ function landingTileImage(
   catalog: Product[],
 ) {
   if (cover) return cover;
-  const scoped = catalog.filter(
-    (p) => productInHub(p, hub) && matchesAudience(p, audience),
-  );
-  const sample =
-    sampleFromList(scoped, hub) ??
-    sampleForCategory(catalog, hub) ??
-    firstImagedProduct(scoped);
+
+  // Women tiles: prefer women-coded products, then unisex packshots in that hub
+  // (avoids men's lifestyle models and avoids repeating one audience cover).
+  const scoped =
+    audience === "women"
+      ? catalog.filter((p) => {
+          if (!productInHub(p, hub)) return false;
+          const resolved = productAudience(p);
+          return resolved === "women" || resolved === "unisex";
+        })
+      : catalog.filter(
+          (p) => productInHub(p, hub) && matchesAudience(p, audience),
+        );
+
+  const sample = sampleFromList(scoped, hub) ?? firstImagedProduct(scoped);
   if (sample) {
     const url = productCardImageUrl(sample);
     if (url) return url;
   }
+
+  if (audience === "women") {
+    // Empty → gray plate rather than stamping the same portrait on every folder.
+    return "";
+  }
+
   return (
     HUB_COVERS[hub] ??
     AUDIENCE_COVERS[audience] ??
@@ -482,6 +497,65 @@ export function kidsLandingTiles(catalog: Product[] = bundled) {
     label: tile.label,
     href: tile.href,
     imageSrc: kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
+  }));
+}
+
+/** Prefer a keyword-matched product photo; skip URLs already used on other tiles. */
+function teamsLandingImage(
+  hub: string,
+  cover: string | undefined,
+  match: string | undefined,
+  catalog: Product[],
+  usedUrls: Set<string>,
+) {
+  if (cover) {
+    usedUrls.add(cover);
+    return cover;
+  }
+
+  const inHub = catalog.filter((p) => productInHub(p, hub));
+  let pool = inHub;
+  if (match) {
+    const re = new RegExp(match, "i");
+    const matched = inHub.filter((p) =>
+      re.test(`${p.displayName} ${p.item} ${p.name} ${p.sheetCategory ?? ""}`),
+    );
+    if (matched.length) pool = matched;
+  }
+
+  const unused = pool.filter((p) => {
+    const url = productCardImageUrl(p);
+    return url && !usedUrls.has(url);
+  });
+  const sample =
+    sampleFromList(unused.length ? unused : pool, hub) ??
+    firstImagedProduct(unused.length ? unused : pool);
+  if (sample) {
+    const url = productCardImageUrl(sample);
+    if (url) {
+      usedUrls.add(url);
+      return url;
+    }
+  }
+
+  const fallback = HUB_COVERS[hub] ?? "";
+  if (fallback) usedUrls.add(fallback);
+  return fallback;
+}
+
+/** Teams / Teamwear hub: dense sports & materials grid (Joma `#link=69`). */
+export function teamsLandingTiles(catalog: Product[] = bundled) {
+  const usedUrls = new Set<string>();
+  return jomaTeamsLandingTiles().map((tile) => ({
+    label: tile.label,
+    href: tile.href,
+    imageSrc: teamsLandingImage(
+      tile.hub,
+      tile.cover,
+      tile.match,
+      catalog,
+      usedUrls,
+    ),
   }));
 }
 
