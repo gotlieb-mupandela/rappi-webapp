@@ -10,11 +10,15 @@ export function HomeSportTile({
   product,
   imageSrc,
   priority = false,
+  size = "small",
+  className,
 }: {
   slug: string;
   product?: Product;
   imageSrc?: string;
   priority?: boolean;
+  size?: "large" | "medium" | "small";
+  className?: string;
 }) {
   const t = useT();
   return (
@@ -26,8 +30,10 @@ export function HomeSportTile({
       imageSrc={imageSrc}
       shape="square"
       compact
+      size={size}
       imageFit={imageSrc ? "contain" : "cover"}
       priority={priority}
+      className={className}
     />
   );
 }

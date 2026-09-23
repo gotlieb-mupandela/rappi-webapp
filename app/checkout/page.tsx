@@ -269,7 +269,7 @@ export default function CheckoutPage() {
             </div>
             <p className="mt-4 text-xs text-[var(--muted-2)]">{t("checkout.browseOk")}</p>
           </section>
-          <aside className="h-fit rounded-xl border border-[var(--accent)]/25 bg-[var(--surface)] p-5">
+          <aside className="h-fit rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-soft)]">
             <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.summary")}</h2>
             <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
               {rows.map((r) => (
@@ -396,7 +396,7 @@ export default function CheckoutPage() {
           </section>
         </div>
 
-        <aside className="h-fit rounded-xl border border-[var(--accent)]/25 bg-[var(--surface)] p-5 lg:sticky lg:top-28">
+        <aside className="h-fit rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-soft)] lg:sticky lg:top-28">
           <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.summary")}</h2>
           <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
             {rows.map((r) => (

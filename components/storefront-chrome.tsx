@@ -20,6 +20,7 @@ export function StorefrontChrome({
   const pathname = usePathname();
   const t = useT();
   const isAdmin = pathname?.startsWith("/admin");
+  const isLogin = pathname === "/login";
 
   useEffect(() => {
     if (!isAdmin) {
@@ -44,7 +45,7 @@ export function StorefrontChrome({
       <main id="main" key={pathname} className="page-enter flex-1">
         {children}
       </main>
-      <SiteFooter categoryCounts={categoryCounts} />
+      {isLogin ? null : <SiteFooter categoryCounts={categoryCounts} />}
     </>
   );
 }

@@ -6,6 +6,7 @@ import { CATEGORIES, HIDDEN_TYPE_FOLDERS, SUBCATEGORY_LABELS } from "@/lib/catal
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
 
 export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
@@ -29,30 +30,32 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
 
   return (
     <nav className="border-t border-[var(--border)] bg-[var(--header-bg-scrolled)]">
-      <ul className="scroll-touch page-shell flex items-center gap-x-5 overflow-x-auto py-2 [mask-image:linear-gradient(90deg,transparent,black_1.25rem,black_calc(100%-1.25rem),transparent)] lg:justify-center lg:[mask-image:none] xl:gap-x-6">
-        <li className="shrink-0">
-          <Link
-            href={`/shop/${slug}`}
-            data-active={onShop && !active ? "true" : undefined}
-            className={cn(
-              "nav-link text-xs font-medium uppercase tracking-[0.12em]",
-            )}
-          >
-            {t("common.all")}
-          </Link>
-        </li>
-        {subs.map((s) => (
-          <li key={s.slug} className="shrink-0">
+      <ScrollArea className="page-shell w-full">
+        <ul className="flex items-center gap-x-5 py-2 xl:gap-x-6 lg:justify-center">
+          <li className="shrink-0">
             <Link
-              href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}`}
-              data-active={active === s.slug ? "true" : undefined}
-              className="nav-link text-xs font-medium uppercase tracking-[0.12em]"
+              href={`/shop/${slug}`}
+              data-active={onShop && !active ? "true" : undefined}
+              className={cn(
+                "nav-link text-xs font-medium uppercase tracking-[0.12em]",
+              )}
             >
-              {subName(s.slug, t)}
+              {t("common.all")}
             </Link>
           </li>
-        ))}
-      </ul>
+          {subs.map((s) => (
+            <li key={s.slug} className="shrink-0">
+              <Link
+                href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}`}
+                data-active={active === s.slug ? "true" : undefined}
+                className="nav-link text-xs font-medium uppercase tracking-[0.12em]"
+              >
+                {subName(s.slug, t)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </ScrollArea>
     </nav>
   );
 }

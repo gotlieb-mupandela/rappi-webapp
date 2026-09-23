@@ -37,7 +37,7 @@ export default function CartPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <Breadcrumbs items={[{ href: "/", label: t("common.home") }, { label: t("cart.crumb") }]} />
-          <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-5xl">
+          <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl font-bold uppercase text-[var(--text-secondary)] sm:text-5xl">
             {t("cart.title")}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -121,7 +121,7 @@ export default function CartPage() {
               </div>
             </div>
           ))}
-          <div className="sticky bottom-0 z-20 flex flex-col gap-3 rounded-xl border border-[var(--accent)]/35 bg-[var(--header-bg-scrolled)] px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
+          <div className="sticky bottom-0 z-20 flex flex-col gap-3 rounded-xl border border-[var(--border-strong)] bg-white/95 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-soft)] backdrop-blur-xl sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
             <p className="text-sm uppercase tracking-wider text-[var(--muted)]">
               {t.plural("count.units", count)}
             </p>

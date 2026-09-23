@@ -16,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -63,10 +62,6 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 function SidebarFooter({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="mt-auto border-t border-[var(--border)] p-3">
-      <div className="mb-2 flex items-center justify-between rounded-lg px-1">
-        <span className="text-[11px] uppercase tracking-wider text-[var(--muted)]">Appearance</span>
-        <ThemeToggle className="h-9 w-9" />
-      </div>
       <Link
         href="/"
         className="mb-2 block rounded-lg px-3 py-2 text-xs uppercase tracking-wider text-[var(--muted)] hover:text-ink"

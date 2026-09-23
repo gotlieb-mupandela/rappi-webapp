@@ -18,7 +18,7 @@ export function AssortmentBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-normal text-[#111]",
+        "inline-flex items-center rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-normal text-[var(--text-secondary)]",
         className,
       )}
     >

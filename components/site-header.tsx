@@ -6,7 +6,6 @@ import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Menu, Search, ShoppingBag, User, X, ChevronDown } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useT } from "@/components/locale-provider";
 import { AUDIENCES, CATEGORIES, NAV_PRIMARY } from "@/lib/catalog";
@@ -16,6 +15,7 @@ import { cartCount, useCart } from "@/lib/stores/cart";
 import { CategorySubNav } from "@/components/category-sub-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 
@@ -195,7 +195,6 @@ export function SiteHeader({
 
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
           <LocaleSwitcher className="mr-0.5 hidden md:flex" />
-          <ThemeToggle className="hidden md:flex" />
           <button
             type="button"
             className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-[var(--hover)] hover:text-[var(--accent)] md:hidden"
@@ -396,7 +395,7 @@ export function SiteHeader({
             aria-label={t("nav.openMenu")}
             className="fixed inset-x-0 bottom-0 z-[90] flex flex-col bg-[var(--chrome)] top-[calc(var(--header-h)+env(safe-area-inset-top))] lg:hidden"
           >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <ScrollArea className="min-h-0 flex-1 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               <form onSubmit={onSearch} className="mb-5">
                 <Input
                   value={q}
@@ -407,7 +406,6 @@ export function SiteHeader({
               </form>
               <div className="mb-5 flex items-center justify-between gap-3">
                 <LocaleSwitcher />
-                <ThemeToggle />
               </div>
               <ul className="mb-3 grid grid-cols-3 gap-1">
                 {AUDIENCES.map((a) => (
@@ -470,7 +468,7 @@ export function SiteHeader({
                   </Button>
                 ) : null}
               </div>
-            </div>
+            </ScrollArea>
           </div>,
           document.body,
         )

@@ -2,19 +2,15 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist_Mono, Inter, Oswald } from "next/font/google";
 import Script from "next/script";
-import { BrandAtmosphere } from "@/components/brand-atmosphere";
 import { MetaPixel } from "@/components/meta-pixel";
 import { Providers } from "@/components/providers";
 import { StorefrontChrome } from "@/components/storefront-chrome";
-import { ThemeProvider } from "@/components/theme-provider";
 import { TAGLINE } from "@/lib/catalog";
 import { MARKET_BOOTSTRAP, htmlLang } from "@/lib/i18n/config";
 import { getMarket } from "@/lib/i18n/server";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
-import { THEME_BOOTSTRAP } from "@/lib/theme";
 import storefrontNav from "@/data/storefront-nav.json";
 import "./globals.css";
-import "./tokens.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -67,31 +63,24 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html
       lang={htmlLang(market)}
-      data-theme="dark"
       data-market={market}
       suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} ${oswald.variable} h-full antialiased`}
     >
       <body className={`${inter.className} flex min-h-full flex-col bg-bg text-ink`}>
-        <Script id="rappi-theme" strategy="beforeInteractive">
-          {THEME_BOOTSTRAP}
-        </Script>
         <Script id="rappi-market" strategy="beforeInteractive">
           {MARKET_BOOTSTRAP}
         </Script>
-        <BrandAtmosphere />
         <MetaPixel />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">
-          <ThemeProvider>
-            <Providers initialMarket={market}>
-              <StorefrontChrome
-                taxonomy={nav.taxonomy}
-                categoryCounts={nav.categoryCounts}
-              >
-                {children}
-              </StorefrontChrome>
-            </Providers>
-          </ThemeProvider>
+          <Providers initialMarket={market}>
+            <StorefrontChrome
+              taxonomy={nav.taxonomy}
+              categoryCounts={nav.categoryCounts}
+            >
+              {children}
+            </StorefrontChrome>
+          </Providers>
         </div>
       </body>
     </html>

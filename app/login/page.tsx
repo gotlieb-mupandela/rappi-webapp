@@ -14,6 +14,8 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
 import { useT } from "@/components/locale-provider";
 
+const LOGIN_VISUAL = "/brand/hero-athlete.png";
+
 function safeNext(raw: string | null) {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/account";
   return raw;
@@ -142,122 +144,153 @@ function LoginForm() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-[1440px] items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-soft)] sm:p-8">
-        <BrandLogo className="mx-auto mb-5 h-28 w-auto" />
-        <p className="text-center text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]">
-          {t("home.tagline")}
-        </p>
-        <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-4xl uppercase">
-          {mode === "signup" ? t("login.createTitle") : t("login.title")}
-        </h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          {next === "/checkout" ? t("login.checkoutHint") : t("login.hint")}
-        </p>
-
-        {configured ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-6 w-full normal-case tracking-normal"
-            size="lg"
-            disabled={googleLoading || loading}
-            onClick={() => void onGoogle()}
-          >
-            <GoogleMark />
-            {googleLoading ? t("login.signingIn") : t("login.google")}
-          </Button>
-        ) : null}
-
-        {configured ? (
-          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--muted-2)]">
-            <span className="h-px flex-1 bg-[var(--border)]" />
-            {t("login.orEmail")}
-            <span className="h-px flex-1 bg-[var(--border)]" />
+    <div className="grid min-h-[calc(100dvh-var(--header-h))] lg:grid-cols-2">
+      <aside className="relative hidden overflow-hidden bg-[var(--accent-dim)] lg:block">
+        <div className="absolute inset-4 overflow-hidden rounded-2xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOGIN_VISUAL}
+            alt=""
+            className="h-full w-full max-w-none object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--accent-dim)]/90 via-[var(--accent-dim)]/35 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-8 text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
+              {t("home.tagline")}
+            </p>
+            <p className="mt-3 max-w-sm font-[family-name:var(--font-oswald)] text-3xl font-bold uppercase leading-tight">
+              {t("home.title")}
+            </p>
           </div>
-        ) : (
-          <div className="mt-6" />
-        )}
+        </div>
+      </aside>
 
-        <form onSubmit={onSubmit} className="space-y-4">
-          {mode === "signup" ? (
+      <div className="flex flex-col justify-center bg-white px-4 py-10 sm:px-8 lg:px-12 xl:px-16">
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-6 h-28 overflow-hidden rounded-2xl lg:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={LOGIN_VISUAL}
+              alt=""
+              className="h-full w-full object-cover object-center"
+            />
+          </div>
+
+          <BrandLogo className="mb-5 h-20 w-auto sm:h-24" />
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
+            {t("home.tagline")}
+          </p>
+          <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-4xl font-bold uppercase text-[var(--text-secondary)]">
+            {mode === "signup" ? t("login.createTitle") : t("login.title")}
+          </h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            {next === "/checkout" ? t("login.checkoutHint") : t("login.hint")}
+          </p>
+
+          {configured ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-6 w-full normal-case tracking-normal"
+              size="lg"
+              disabled={googleLoading || loading}
+              onClick={() => void onGoogle()}
+            >
+              <GoogleMark />
+              {googleLoading ? t("login.signingIn") : t("login.google")}
+            </Button>
+          ) : null}
+
+          {configured ? (
+            <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--muted-2)]">
+              <span className="h-px flex-1 bg-[var(--border)]" />
+              {t("login.orEmail")}
+              <span className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+          ) : (
+            <div className="mt-6" />
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            {mode === "signup" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="name">{t("login.name")}</Label>
+                <Input
+                  id="name"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            ) : null}
             <div className="space-y-1.5">
-              <Label htmlFor="name">{t("login.name")}</Label>
+              <Label htmlFor="email">{t("login.email")}</Label>
               <Input
-                id="name"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                id="email"
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
-          ) : null}
-          <div className="space-y-1.5">
-            <Label htmlFor="email">{t("login.email")}</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">{t("login.password")}</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-          <Button type="submit" className="w-full" size="lg" disabled={loading || googleLoading}>
-            {loading
-              ? t("login.signingIn")
-              : mode === "signup"
-                ? t("login.createAccount")
-                : t("login.submit")}
-          </Button>
-        </form>
+            <div className="space-y-1.5">
+              <Label htmlFor="password">{t("login.password")}</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+            <Button type="submit" className="w-full" size="lg" disabled={loading || googleLoading}>
+              {loading
+                ? t("login.signingIn")
+                : mode === "signup"
+                  ? t("login.createAccount")
+                  : t("login.submit")}
+            </Button>
+          </form>
 
-        <p className="mt-4 text-center text-sm text-[var(--muted)]">
-          {mode === "signup" ? (
-            <>
-              {t("login.haveAccount")}{" "}
-              <button
-                type="button"
-                className="font-semibold text-[var(--accent)]"
-                onClick={() => setMode("signin")}
-              >
-                {t("login.submit")}
-              </button>
-            </>
-          ) : (
-            <>
-              {t("login.noAccount")}{" "}
-              <button
-                type="button"
-                className="font-semibold text-[var(--accent)]"
-                onClick={() => setMode("signup")}
-              >
-                {t("login.createAccount")}
-              </button>
-            </>
-          )}
-        </p>
-
-        {!configured ? (
-          <p className="mt-4 text-xs text-[var(--muted-2)]">
-            {t("login.demo", { email: DEMO_EMAIL, password: DEMO_PASSWORD })}
+          <p className="mt-4 text-center text-sm text-[var(--muted)]">
+            {mode === "signup" ? (
+              <>
+                {t("login.haveAccount")}{" "}
+                <button
+                  type="button"
+                  className="font-semibold text-[var(--accent)]"
+                  onClick={() => setMode("signin")}
+                >
+                  {t("login.submit")}
+                </button>
+              </>
+            ) : (
+              <>
+                {t("login.noAccount")}{" "}
+                <button
+                  type="button"
+                  className="font-semibold text-[var(--accent)]"
+                  onClick={() => setMode("signup")}
+                >
+                  {t("login.createAccount")}
+                </button>
+              </>
+            )}
           </p>
-        ) : null}
 
-        <Button asChild variant="outline" className="mt-6 w-full">
-          <Link href="/">{t("login.continueShopping")}</Link>
-        </Button>
+          {!configured ? (
+            <p className="mt-4 text-xs text-[var(--muted-2)]">
+              {t("login.demo", { email: DEMO_EMAIL, password: DEMO_PASSWORD })}
+            </p>
+          ) : null}
+
+          <Button asChild variant="outline" className="mt-6 w-full">
+            <Link href="/">{t("login.continueShopping")}</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -290,7 +323,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto flex min-h-[70vh] items-center justify-center px-4 py-16 text-sm text-[var(--muted)]">
+        <div className="flex min-h-[70vh] items-center justify-center px-4 py-16 text-sm text-[var(--muted)]">
           …
         </div>
       }

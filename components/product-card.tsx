@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent } from "react";
+import { type MouseEvent, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
 import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/product-image";
+import { StockMatrix } from "@/components/stock-matrix";
+import TiltedCard from "@/components/tilted-card";
 import { useLocale } from "@/components/locale-provider";
 import { buyableSizes, isSoldOut, stockLabel, totalStock } from "@/lib/product-stock";
 import { productCardImageUrl } from "@/lib/media";
 import { useCart } from "@/lib/stores/cart";
+import { productImageAlt } from "@/lib/copy";
 import { productPath } from "@/lib/utils";
 
 export function ProductCard({
@@ -28,6 +31,8 @@ export function ProductCard({
   const soldOut = isSoldOut(product);
   const title = product.displayName || product.item;
   const cardSrc = productCardImageUrl(product);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imageSrc = cardSrc && failedSrc !== cardSrc ? cardSrc : undefined;
 
   function quickAdd(e: MouseEvent) {
     e.preventDefault();
@@ -44,7 +49,7 @@ export function ProductCard({
   if (layout === "list") {
     return (
       <article className="grid grid-cols-[80px_minmax(0,1fr)] items-center gap-4 border-b border-[var(--border)] py-4 sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:gap-5">
-        <Link href={productPath(product.code)} className="media-frame block w-20 overflow-hidden rounded-lg sm:w-24">
+        <Link href={productPath(product.code)} className="media-frame block w-20 overflow-hidden rounded-xl sm:w-24">
           <ProductImage
             product={product}
             src={cardSrc}
@@ -83,48 +88,70 @@ export function ProductCard({
   }
 
   return (
-    <article className="group relative w-full max-w-sm">
+    <article className="product-card group relative w-full max-w-sm">
       <Link href={productPath(product.code)} className="block">
-        <div className="media-frame relative overflow-hidden rounded-lg border border-[var(--border)] transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-[var(--border-strong)] group-hover:shadow-[var(--shadow-lift)]">
-          <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1">
-            {product.badge ? (
-              <Badge variant={product.badge === "offer" ? "offer" : "new"}>
-                {product.badge === "offer" ? t("common.offer") : t("common.new")}
-              </Badge>
-            ) : null}
-            <AssortmentBadge product={product} />
-          </div>
-          {stock === 0 ? (
-            <span className="absolute bottom-3 left-3 z-10 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/80">
-              {t("common.soldOut")}
-            </span>
-          ) : null}
-          <ProductImage
-            product={product}
-            src={cardSrc}
-            className="aspect-[3/4] w-full bg-[var(--bg-elevated)] object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        </div>
-        <div className="mt-3.5 space-y-1 text-left">
-          <p className="text-[13px] font-medium leading-snug tracking-wide text-ink">
+        <TiltedCard
+          imageSrc={imageSrc}
+          altText={productImageAlt(product)}
+          captionText={title}
+          containerHeight="auto"
+          containerWidth="100%"
+          imageHeight="auto"
+          imageWidth="100%"
+          rotateAmplitude={16}
+          scaleOnHover={1.07}
+          showMobileWarning={false}
+          showTooltip
+          displayOverlayContent
+          onImageError={() => {
+            if (cardSrc) setFailedSrc(cardSrc);
+          }}
+          imageClassName="bg-[var(--bg-elevated)]"
+          overlayContent={
+            <>
+              <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1.5">
+                {product.badge ? (
+                  <Badge variant={product.badge === "offer" ? "offer" : "new"}>
+                    {product.badge === "offer" ? t("common.offer") : t("common.new")}
+                  </Badge>
+                ) : null}
+                <AssortmentBadge product={product} />
+              </div>
+              {stock === 0 ? (
+                <span className="absolute bottom-3 left-3 z-10 rounded-md bg-[var(--accent)]/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+                  {t("common.soldOut")}
+                </span>
+              ) : null}
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-[var(--accent-dim)]/45 via-transparent to-white/10 opacity-70 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
+              {!soldOut ? (
+                <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 max-sm:hidden">
+                  <StockMatrix product={product} />
+                </div>
+              ) : null}
+            </>
+          }
+        />
+        <div className="mt-4 space-y-1 text-left">
+          <p className="text-[14px] font-semibold leading-snug tracking-[-0.01em] text-ink transition-colors duration-300 group-hover:text-[var(--accent)]">
             {title}
           </p>
           <p className="font-mono text-[10px] tracking-[0.16em] text-[var(--muted-2)]">
             {product.code}
           </p>
-          <p className="price pt-1 text-sm font-semibold text-ink">
+          <p className="price pt-1.5 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-wide text-[var(--text-secondary)]">
             {format(product.unitPrice)}
           </p>
           <AssortmentHint product={product} />
-          <p className="text-[11px] text-[var(--muted)]">{stockLabel(product, t)}</p>
+          <p className="text-[11px] text-[var(--muted)] transition-opacity duration-200 sm:group-hover:opacity-0">
+            {stockLabel(product, t)}
+          </p>
         </div>
       </Link>
       <button
         type="button"
         aria-label={t("common.addToBagAria", { title })}
         onClick={quickAdd}
-        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/90 opacity-100 backdrop-blur-md transition-[opacity,border-color,color,transform] duration-300 hover:border-[var(--accent)] hover:text-[var(--accent)] sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+        className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--on-accent)] opacity-100 shadow-[var(--shadow-volume)] transition-[opacity,transform,background-color] duration-300 hover:bg-[var(--accent-bright)] hover:scale-105 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
       >
         <ShoppingBag className="h-4 w-4" />
       </button>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/catalog";
 import { ProductImage } from "@/components/product-image";
 import { useT } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
@@ -9,15 +8,6 @@ import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import { productCardImageUrl } from "@/lib/media";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const ACCENTS = [
-  "#B6FF00",
-  "#C8FF00",
-  "#7CFF6B",
-  "#E8FF8A",
-  "#9CFF2E",
-  "#D4FF4A",
-];
 
 export function HubTile({
   slug,
@@ -38,6 +28,13 @@ export function HubTile({
   fill = false,
   /** Cover crops to fill (product tiles). Contain keeps full lifestyle subjects visible. */
   imageFit = "cover",
+  /** Tailwind object-* position utility, e.g. object-left, object-[center_30%]. */
+  imagePosition = "object-center",
+  size = "medium",
+  /** Dark = white label on dark gradient; light = navy label for bright imagery. */
+  tone = "dark",
+  labelPosition = "bottom",
+  showLabel = true,
   priority = false,
   className,
 }: {
@@ -59,14 +56,14 @@ export function HubTile({
   shape?: "portrait" | "square";
   fill?: boolean;
   imageFit?: "cover" | "contain";
+  imagePosition?: string;
+  size?: "large" | "medium" | "small";
+  tone?: "dark" | "light";
+  labelPosition?: "bottom" | "center";
+  showLabel?: boolean;
   priority?: boolean;
   className?: string;
 }) {
-  const idx = Math.max(
-    0,
-    CATEGORIES.findIndex((c) => c.slug === slug),
-  );
-  const accent = ACCENTS[idx % ACCENTS.length];
   const n = count ?? 0;
   const to = href ?? `/category/${slug}`;
   const t = useT();
@@ -86,33 +83,38 @@ export function HubTile({
   const coverSrc = imageSrc || productSrc || "";
   const useProductPhoto = Boolean(product && coverSrc && !imageSrc);
   const hasCover = Boolean(coverSrc);
+  const light = tone === "light";
   const imageClassName = cn(
     // max-w-none: global `img { max-width:100% }` breaks object-fit on absolute fill images
-    "absolute inset-0 h-full w-full max-w-none object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
+    "bento-tile__media absolute inset-0 h-full w-full min-h-full min-w-full max-w-none motion-reduce:transition-none",
     contain ? "object-contain" : "object-cover",
+    imagePosition,
   );
 
+  const sizeClass =
+    fill || size === "large"
+      ? "h-full min-h-0"
+      : size === "small"
+        ? "aspect-square min-h-0"
+        : shape === "square" || compact
+          ? "aspect-square"
+          : "aspect-[3/4]";
+
   return (
-    <Link href={to} className={cn("group block h-full", className)}>
+    <Link href={to} className={cn("bento-tile group block h-full min-h-0", className)}>
       <div
         className={cn(
-          "media-frame relative overflow-hidden rounded-lg border border-[var(--border)] transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-[var(--border-strong)] group-hover:shadow-[var(--shadow-lift)]",
-          fill
-            ? contain
-              ? // Featured lifestyle (sportswear): tall enough for head-to-toe in a col-span-2 cell
-                "h-full min-h-[18rem] sm:min-h-[24rem] md:min-h-full"
-              : "h-full min-h-[20rem] md:min-h-full"
-            : shape === "square" || compact
-              ? "aspect-square"
-              : "aspect-[3/4]",
+          "media-frame relative h-full overflow-hidden rounded-[1rem] sm:rounded-[1.15rem]",
+          sizeClass,
         )}
         style={
           hasCover
             ? contain
-              ? { backgroundColor: "#fff" }
-              : undefined
+              ? { backgroundColor: "#e8eaed" }
+              : { backgroundColor: "#1a1c1e" }
             : {
-                backgroundImage: `linear-gradient(160deg, ${accent}26 0%, var(--tile-mid) 58%, var(--tile-end) 100%)`,
+                backgroundImage:
+                  "linear-gradient(160deg, var(--visual-from) 0%, var(--tile-mid) 58%, var(--tile-end) 100%)",
               }
         }
       >
@@ -136,24 +138,50 @@ export function HubTile({
             fetchPriority={priority ? "high" : "auto"}
           />
         ) : (
-          <div className="absolute inset-0 opacity-40 mix-blend-overlay [background-image:repeating-linear-gradient(90deg,transparent,transparent_18px,rgba(255,255,255,0.04)_19px)]" />
+          <div className="absolute inset-0 bg-[var(--surface-2)]" />
         )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+        {light ? (
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/55 via-white/10 to-transparent" />
+        ) : contain ? (
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+        ) : (
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+        )}
         {banner || bannerKey ? (
           <div className="absolute inset-x-3 top-3 rounded-full bg-[var(--danger)] py-1 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white">
             {bannerKey ? t(bannerKey) : banner}
           </div>
         ) : null}
-        <div className="absolute inset-x-0 bottom-0 p-3">
+        {showLabel ? (
+        <div
+          className={cn(
+            "absolute inset-x-0 p-4 sm:p-5",
+            labelPosition === "center" ? "bottom-0 top-0 flex flex-col justify-center" : "bottom-0",
+          )}
+        >
           {n > 0 ? (
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--accent)]">
+            <p
+              className={cn(
+                "text-[10px] font-medium uppercase tracking-[0.2em]",
+                light ? "text-[var(--muted)]" : "text-white/75",
+              )}
+            >
               {t.plural("count.pieces", n)}
             </p>
           ) : null}
-          <p className="mt-0.5 font-[family-name:var(--font-oswald)] text-sm uppercase tracking-wide text-white sm:text-base">
+          <p
+            className={cn(
+              "mt-0.5 font-[family-name:var(--font-oswald)] font-bold uppercase tracking-wide",
+              light ? "text-[var(--text-secondary)]" : "text-white",
+              size === "large" || fill
+                ? "text-lg sm:text-xl lg:text-2xl xl:text-[1.65rem]"
+                : "text-sm sm:text-base lg:text-lg",
+            )}
+          >
             {label}
           </p>
         </div>
+        ) : null}
       </div>
     </Link>
   );

@@ -3,6 +3,7 @@
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/product-card";
 import { useT } from "@/components/locale-provider";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
 import { SUBCATEGORY_LABELS } from "@/lib/catalog";
 
@@ -88,17 +89,19 @@ export function ProductGrid({
   return (
     <div className="space-y-10">
       {entries.length > 1 ? (
-        <nav className="scroll-touch mb-2 flex gap-x-6 overflow-x-auto border-b border-[var(--border)] pb-3">
-          {entries.map(([sub, list]) => (
-            <a
-              key={sub}
-              href={`#${sub}`}
-              className="inline-flex min-h-10 shrink-0 items-center whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)] hover:text-[var(--accent)]"
-            >
-              {subName(sub, t)} [{groupCounts?.[sub] ?? list.length}]
-            </a>
-          ))}
-        </nav>
+        <ScrollArea className="mb-2 w-full border-b border-[var(--border)] pb-3">
+          <nav className="flex gap-x-6">
+            {entries.map(([sub, list]) => (
+              <a
+                key={sub}
+                href={`#${sub}`}
+                className="inline-flex min-h-10 shrink-0 items-center whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)] hover:text-[var(--accent)]"
+              >
+                {subName(sub, t)} [{groupCounts?.[sub] ?? list.length}]
+              </a>
+            ))}
+          </nav>
+        </ScrollArea>
       ) : null}
       {entries.map(([sub, list]) => (
         <section key={sub} id={sub}>

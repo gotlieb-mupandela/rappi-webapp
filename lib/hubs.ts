@@ -214,8 +214,9 @@ export function bramaHubGroups(catalog: Product[] = bundled) {
 
 /** Local lifestyle covers for homepage / hub audience tiles. */
 export const AUDIENCE_COVERS: Partial<Record<AudienceSlug, string>> = {
-  men: "/brand/audience-men.png?v=2",
-  women: "/brand/audience-women.png?v=3",
+  men: "/brand/audience-men.png?v=3",
+  women: "/brand/audience-women.png?v=4",
+  kids: "/brand/hub-kids.png",
 };
 
 export const HOME_SPORTS = [
@@ -236,11 +237,13 @@ export const HOME_CATEGORY_HUBS = ["shoes", "balls-bags", "lifestyle"] as const;
 
 /** Local lifestyle covers for homepage SHOP hub tiles (by category slug). */
 export const HUB_COVERS: Partial<Record<string, string>> = {
-  sportswear: "/brand/hub-sportswear.png?v=4",
+  sportswear: "/brand/hub-sportswear.png?v=5",
   shoes: "/brand/hub-shoes.png",
-  lifestyle: "/brand/hub-lifestyle.png?v=3",
+  lifestyle: "/brand/hub-lifestyle.png?v=4",
   "teampro-2026": "/brand/hub-teampro-2026.png",
   rugby: "/brand/hub-rugby.png?v=1",
+  "running-fitness": "/brand/hero-athlete.png?v=2",
+  kids: "/brand/hub-kids.png",
 };
 
 function audienceSample(items: Product[], slug: AudienceSlug) {

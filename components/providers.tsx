@@ -3,7 +3,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { LocaleProvider } from "@/components/locale-provider";
-import { useTheme } from "@/components/theme-provider";
 import type { Market } from "@/lib/i18n/config";
 import { userFromAuth } from "@/lib/auth/session";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -19,7 +18,6 @@ export function Providers({
   children: ReactNode;
   initialMarket: Market;
 }) {
-  const { theme } = useTheme();
   const setUser = useAuth((s) => s.setUser);
   const syncFromSupabase = useAuth((s) => s.syncFromSupabase);
 
@@ -55,7 +53,7 @@ export function Providers({
     <LocaleProvider initialMarket={initialMarket}>
       {children}
       <Toaster
-        theme={theme}
+        theme="light"
         position="bottom-right"
         offset={24}
         toastOptions={{

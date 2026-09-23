@@ -38,7 +38,7 @@ export function SectionHeading({
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="font-[family-name:var(--font-oswald)] text-2xl uppercase tracking-wide text-ink sm:text-3xl">
+        <h2 className="font-[family-name:var(--font-oswald)] text-2xl font-bold uppercase tracking-[0.06em] text-[var(--text-secondary)] sm:text-3xl">
           {resolvedTitle}
         </h2>
       </div>

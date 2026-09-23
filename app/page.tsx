@@ -1,6 +1,5 @@
 import { HomeHero } from "@/components/home-hero";
 import { HomeSportTile } from "@/components/home-sport-tile";
-import { HomeTeamwear } from "@/components/home-teamwear";
 import { HubTile } from "@/components/hub-tile";
 import { ProductCard } from "@/components/product-card";
 import { SectionHeading } from "@/components/section-heading";
@@ -28,6 +27,7 @@ export default async function HomePage() {
     .filter((p): p is Product => p != null)
     .filter(hasUsableProductImage);
   const audiences = audienceTiles(catalog);
+  const kidsAudience = audiences.find((a) => a.key === "kids");
   const football = productsInHub("football").filter(hasUsableProductImage);
   const featured = spotlight.length ? spotlight : football.slice(0, 6);
   const categoryHubs = HOME_CATEGORY_HUBS.map((slug) => ({
@@ -40,34 +40,22 @@ export default async function HomePage() {
   return (
     <div>
       <HomeHero
-        settingsTagline={settings?.tagline}
-        settingsTitle={settings?.hero_title}
-        settingsBody={settings?.hero_body}
+        sportswearCover={HUB_COVERS.sportswear}
+        sportswearProduct={sampleForCategory(catalog, "sportswear")}
+        shoesCover={HUB_COVERS.shoes}
+        shoesProduct={sampleForCategory(catalog, "shoes")}
+        lifestyleCover={HUB_COVERS.lifestyle}
+        lifestyleProduct={sampleForCategory(catalog, "lifestyle")}
+        runningCover={HUB_COVERS["running-fitness"] ?? HUB_COVERS.rugby}
+        runningProduct={sampleForCategory(catalog, "running-fitness")}
+        kidsCover={kidsAudience?.cover ?? HUB_COVERS.kids ?? HUB_COVERS.lifestyle}
+        kidsProduct={kidsAudience?.sample}
+        kidsHref={kidsAudience?.href ?? "/shop/kids"}
       />
 
-      <section className="page-shell py-12 lg:py-16">
+      <section className="page-shell py-10 lg:py-14">
         <SectionHeading
           eyebrow="01"
-          titleKey="home.shopBySport"
-          href="/search"
-          linkLabelKey="home.browseAll"
-        />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:gap-4">
-          {sports.map((slug, i) => (
-            <HomeSportTile
-              key={slug}
-              slug={slug}
-              product={sampleForCategory(catalog, slug)}
-              imageSrc={HUB_COVERS[slug]}
-              priority={i < 4}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="page-shell pb-12 lg:pb-16">
-        <SectionHeading
-          eyebrow="02"
           titleKey="home.featuredTitle"
           href="/shop/sportswear"
           linkLabelKey="home.viewAll"
@@ -79,16 +67,37 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <HomeTeamwear />
+      <section className="border-t border-[var(--border)] bg-[var(--bg-elevated)]">
+        <div className="page-shell py-10 lg:py-14">
+          <SectionHeading
+            eyebrow="02"
+            titleKey="home.shopBySport"
+            href="/search"
+            linkLabelKey="home.browseAll"
+          />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 md:gap-4">
+            {sports.map((slug, i) => (
+              <HomeSportTile
+                key={slug}
+                slug={slug}
+                product={sampleForCategory(catalog, slug)}
+                imageSrc={HUB_COVERS[slug]}
+                size="small"
+                priority={i < 4}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <section className="page-shell py-12 lg:py-16">
+      <section className="page-shell py-10 lg:py-14">
         <SectionHeading
           eyebrow="03"
           titleKey="home.shopByCategory"
           href="/shop/men"
           linkLabelKey="home.shopMen"
         />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
           {audiences.map((a) => (
             <HubTile
               key={a.key}
@@ -97,20 +106,21 @@ export default async function HomePage() {
               href={a.href}
               product={a.sample}
               imageSrc={a.cover}
+              size="medium"
               shape="square"
               imageFit={a.cover ? "contain" : "cover"}
-              priority
             />
           ))}
           {categoryHubs.map((hub) => (
             <HubTile
-              key={hub.slug}
+              key={`cat-${hub.slug}`}
               slug={hub.slug}
               nameHub={hub.slug === "balls-bags" ? undefined : hub.slug}
               nameKey={hub.slug === "balls-bags" ? "home.equipment" : undefined}
               href={`/shop/${hub.slug}`}
               product={hub.product}
               imageSrc={hub.imageSrc}
+              size="medium"
               shape="square"
               imageFit={hub.imageSrc ? "contain" : "cover"}
             />
