@@ -36,7 +36,7 @@ export function HomeHero({
 
   return (
     <section className="bg-white">
-      <div className="page-shell py-3 sm:py-4 lg:py-5">
+      <div className="page-shell py-3 sm:py-4 lg:flex lg:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top))] lg:flex-col lg:py-5">
         <h1 className="sr-only">{t("home.title")}</h1>
         {/*
           Joma-style 2×4 bento:
@@ -44,7 +44,7 @@ export function HomeHero({
           [ life 1 ] [ shoes 1 ] [ kids 2 ]
           Equal row heights; every tile fills with object-cover.
         */}
-        <div className="grid grid-cols-2 grid-rows-[minmax(11rem,1fr)_minmax(11rem,1fr)] gap-2 sm:gap-2.5 md:h-[min(70vh,38rem)] md:grid-cols-4 md:grid-rows-2 md:gap-3 lg:gap-3.5">
+        <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(11rem,1fr)_minmax(11rem,1fr)] gap-2 sm:gap-2.5 md:grid-cols-4 md:grid-rows-2 md:gap-3 lg:gap-3.5">
           <HubTile
             slug="teampro-2026"
             name={t("home.teamwearEyebrow")}

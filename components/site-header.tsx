@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Menu, Search, ShoppingBag, User, X, ChevronDown } from "lucide-react";
+import { Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useT } from "@/components/locale-provider";
-import { AUDIENCES, CATEGORIES, NAV_PRIMARY } from "@/lib/catalog";
-import { audienceName, hubName, hubNav } from "@/lib/i18n/labels";
+import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
+import { hubName } from "@/lib/i18n/labels";
+import { jomaAudienceLinks, jomaOutletLinks } from "@/lib/joma-nav";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import { CategorySubNav } from "@/components/category-sub-nav";
@@ -18,6 +19,35 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
+
+type NavKey =
+  | "men"
+  | "women"
+  | "kids"
+  | "shoes"
+  | "teamwear"
+  | "accessories"
+  | "outlet";
+
+type UnderLink = { href: string; label: string };
+
+/** Exact Joma B2B ACCESSORIES dropdown labels → RAPPI shop routes. */
+const JOMA_ACCESSORIES_LINKS: UnderLink[] = [
+  { label: "Balls", href: "/shop/balls-bags?sub=balls" },
+  { label: "Goalkeeper gloves", href: "/shop/football?sub=gk-gloves" },
+  { label: "Backpacks", href: "/shop/balls-bags?sub=bags" },
+  { label: "Socks", href: "/shop/balls-bags?sub=socks" },
+  { label: "Socks", href: "/shop/balls-bags?sub=socks" },
+  { label: "Teamwear accessories", href: "/teamwear" },
+  { label: "Running accessories", href: "/shop/running-fitness?sub=accessories" },
+  { label: "Racket Accessories", href: "/shop/balls-bags?sub=rackets" },
+  { label: "Padel rackets", href: "/shop/padel?sub=rackets" },
+  { label: "Pickleball paddles", href: "/shop/balls-bags?sub=rackets" },
+  { label: "Outdoor accessories", href: "/shop/hiking" },
+  { label: "Fitness / Gym Accessories", href: "/shop/running-fitness" },
+  { label: "Accessories stores", href: "/store" },
+  { label: "Teamwear Catalogue", href: "/shop/teampro-2026" },
+];
 
 export function SiteHeader({
   taxonomy,
@@ -32,11 +62,11 @@ export function SiteHeader({
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [hoveredNav, setHoveredNav] = useState<NavKey | null>(null);
   const [ready, setReady] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
-  const moreRef = useRef<HTMLLIElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const t = useT();
   const lines = useCart((s) => s.lines);
   const user = useAuth((s) => s.user);
@@ -48,17 +78,10 @@ export function SiteHeader({
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
     setOpen(false);
     setSearchOpen(false);
     setAccountOpen(false);
-    setMoreOpen(false);
+    setHoveredNav(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -95,14 +118,14 @@ export function SiteHeader({
     function onPointer(e: Event) {
       const target = e.target as Node;
       if (!accountRef.current?.contains(target)) setAccountOpen(false);
-      if (!moreRef.current?.contains(target)) setMoreOpen(false);
+      if (!searchRef.current?.contains(target)) setSearchOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setAccountOpen(false);
-        setMoreOpen(false);
         setOpen(false);
         setSearchOpen(false);
+        setHoveredNav(null);
       }
     }
     document.addEventListener("mousedown", onPointer);
@@ -113,6 +136,24 @@ export function SiteHeader({
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+    };
+  }, []);
+
+  function openUnderNav(key: NavKey) {
+    if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+    setHoveredNav(key);
+    setSearchOpen(false);
+    setAccountOpen(false);
+  }
+
+  function scheduleCloseUnderNav() {
+    if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+    hoverCloseTimer.current = setTimeout(() => setHoveredNav(null), 120);
+  }
+
   function onSearch(e: FormEvent) {
     e.preventDefault();
     const query = q.trim();
@@ -122,357 +163,383 @@ export function SiteHeader({
   }
 
   const visibleCategories = CATEGORIES.filter((c) => (categoryCounts[c.slug] ?? 0) > 0);
-  const primaryNav = NAV_PRIMARY.map((slug) => visibleCategories.find((c) => c.slug === slug)).filter(
-    (c): c is (typeof CATEGORIES)[number] => Boolean(c),
-  );
-  const moreNav = visibleCategories.filter(
-    (c) => !NAV_PRIMARY.includes(c.slug as (typeof NAV_PRIMARY)[number]),
-  );
-
   const activeSlug = CATEGORIES.find(
     (c) => pathname === `/category/${c.slug}` || pathname.startsWith(`/shop/${c.slug}`),
   )?.slug;
   const activeAudience = AUDIENCES.find((a) => pathname.startsWith(`/shop/${a.slug}`))?.slug;
 
+  const catalogNav: Array<{
+    key: NavKey;
+    href: string;
+    label: string;
+    active: boolean;
+  }> = [
+    { key: "men", href: "/shop/men", label: t("nav.man"), active: activeAudience === "men" },
+    { key: "women", href: "/shop/women", label: t("nav.woman"), active: activeAudience === "women" },
+    { key: "kids", href: "/shop/kids", label: t("nav.children"), active: activeAudience === "kids" },
+    {
+      key: "shoes",
+      href: "/shop/shoes",
+      label: t("nav.footwear"),
+      active: activeSlug === "shoes",
+    },
+    {
+      key: "teamwear",
+      href: "/teamwear",
+      label: t("nav.officialKits"),
+      active: pathname.startsWith("/teamwear") || activeSlug === "teampro-2026",
+    },
+    {
+      key: "accessories",
+      href: "/shop/balls-bags",
+      label: t("nav.accessories"),
+      active: activeSlug === "balls-bags",
+    },
+    {
+      key: "outlet",
+      href: "/promotions",
+      label: t("nav.outlet"),
+      active: pathname === "/promotions",
+    },
+  ];
+
+  const underLinksByKey: Record<NavKey, UnderLink[]> = {
+    men: jomaAudienceLinks("men"),
+    women: jomaAudienceLinks("women"),
+    kids: [
+      { label: "1-4 years", href: "/shop/kids?age=1-4" },
+      { label: "6-10 years", href: "/shop/kids?age=6-10" },
+      { label: "12-14 year old boy", href: "/shop/kids?age=12-14&gender=boy" },
+      { label: "12-14 year old girl", href: "/shop/kids?age=12-14&gender=girl" },
+    ],
+    shoes: [
+      { label: "Man", href: "/shop/shoes?audience=men" },
+      { label: "Woman", href: "/shop/shoes?audience=women" },
+      { label: "Junior", href: "/shop/shoes?audience=kids" },
+      { label: "Outlet", href: "/promotions" },
+    ],
+    teamwear: [
+      { label: "Sponsor replicas", href: "/shop/teampro-2026" },
+      { label: "Committees and Federations", href: "/teamwear?view=quote" },
+      { label: "Special Editions", href: "/promotions?view=all" },
+    ],
+    accessories: JOMA_ACCESSORIES_LINKS,
+    /** Exact Joma B2B OUTLET dropdown labels → RAPPI shop / promotions routes. */
+    outlet: jomaOutletLinks(),
+  };
+
+  const iconBtn =
+    "flex h-10 w-10 items-center justify-center text-[#212f5c] transition-colors hover:bg-[#e8eaf6]";
+
   return (
     <>
-    {open ? (
-      <div
-        className="lg:hidden"
-        style={{ height: "calc(var(--header-h) + env(safe-area-inset-top))" }}
-        aria-hidden
-      />
-    ) : null}
-    <header
-      className={cn(
-        "border-b pt-[env(safe-area-inset-top)] transition-[background-color,box-shadow,border-color] duration-300",
-        // backdrop-filter creates a containing block that clips fixed descendants —
-        // keep blur only when the mobile drawer is closed.
-        open
-          ? "fixed inset-x-0 top-0 z-[100] border-[var(--border)] bg-[var(--chrome)]"
-          : cn(
-              "sticky top-0 z-50 backdrop-blur-xl backdrop-saturate-150",
-              scrolled
-                ? "border-[var(--border)] bg-[var(--header-bg-scrolled)] shadow-[var(--shadow-soft)]"
-                : "border-[var(--border)] bg-[var(--header-bg)]",
-            ),
-      )}
-    >
-      <div className="page-shell flex h-16 min-w-0 items-center gap-1 sm:h-[5.5rem] sm:gap-4">
-        <button
-          type="button"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-[var(--hover)] lg:hidden"
-          aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          onClick={() => {
-            setSearchOpen(false);
-            setOpen((v) => !v);
-          }}
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-
-        <Link href="/" className="flex min-w-0 shrink items-center" aria-label={t("nav.homeAria")}>
-          <BrandLogo
-            className="h-12 w-auto max-w-[9.5rem] sm:h-[4.75rem] sm:max-w-[14rem]"
-            priority
-          />
-        </Link>
-
-        <form onSubmit={onSearch} className="mx-3 hidden w-full max-w-[18rem] flex-1 md:flex lg:max-w-[20rem]">
-          <div className="relative w-full">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-2)]" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("nav.searchPlaceholder")}
-              className="h-10 pl-10"
-              aria-label={t("nav.searchAria")}
-            />
-          </div>
-        </form>
-
-        <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-          <LocaleSwitcher className="mr-0.5 hidden md:flex" />
+      {open ? (
+        <div
+          className="lg:hidden"
+          style={{ height: "calc(var(--header-h) + env(safe-area-inset-top))" }}
+          aria-hidden
+        />
+      ) : null}
+      <header
+        className={cn(
+          "border-b border-black/10 bg-white pt-[env(safe-area-inset-top)] text-neutral-900",
+          open ? "fixed inset-x-0 top-0 z-[100]" : "sticky top-0 z-50",
+        )}
+      >
+        <div className="relative z-20 flex h-16 items-center px-4 sm:px-6 lg:h-[4.5rem] lg:px-8">
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-[var(--hover)] hover:text-[var(--accent)] md:hidden"
-            aria-label={searchOpen ? t("nav.closeSearch") : t("nav.search")}
-            aria-expanded={searchOpen}
+            className={cn(iconBtn, "lg:hidden")}
+            aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
             onClick={() => {
-              setOpen(false);
-              setSearchOpen((v) => !v);
+              setSearchOpen(false);
+              setOpen((v) => !v);
             }}
           >
-            {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
+
           <Link
-            href="/cart"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-[var(--hover)] hover:text-[var(--accent)]"
-            aria-label={t("nav.cart")}
+            href="/"
+            className="relative z-10 flex shrink-0 items-center"
+            aria-label={t("nav.homeAria")}
+            onMouseEnter={() => setHoveredNav(null)}
           >
-            <ShoppingBag className="h-5 w-5" />
-            {ready && count > 0 ? (
-              <span className="price absolute right-1 top-1 min-w-4 rounded-full bg-[var(--accent)] px-1 text-center text-[10px] font-bold leading-4 text-[var(--on-accent)]">
-                {count}
-              </span>
-            ) : null}
+            <BrandLogo
+              className="h-8 w-auto max-w-[8.5rem] sm:h-9 sm:max-w-[10rem]"
+              priority
+            />
           </Link>
-          {ready && user ? (
-            <div className="relative hidden md:block" ref={accountRef}>
+
+          <nav
+            className="pointer-events-none absolute inset-x-0 hidden justify-center lg:flex"
+            onMouseLeave={scheduleCloseUnderNav}
+          >
+            <ul className="pointer-events-auto flex items-center gap-x-1 xl:gap-x-2">
+              {catalogNav.map((item) => {
+                const menuOpen = hoveredNav === item.key;
+                const links = underLinksByKey[item.key];
+                return (
+                  <li
+                    key={item.key}
+                    className="relative"
+                    onMouseEnter={() => openUnderNav(item.key)}
+                  >
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "block whitespace-nowrap px-2.5 py-2 text-[12px] font-bold uppercase tracking-[0.06em] text-[#212f5c] transition-colors hover:bg-[#e8eaf6] xl:px-3",
+                        (item.active || menuOpen) && "bg-[#e8eaf6]",
+                      )}
+                      aria-expanded={menuOpen}
+                      aria-haspopup={links.length > 0 ? "true" : undefined}
+                    >
+                      {item.label}
+                    </Link>
+                    {menuOpen && links.length > 0 ? (
+                      <div
+                        role="menu"
+                        className="absolute left-0 top-full z-[60] max-h-[min(70vh,28rem)] min-w-[15rem] overflow-y-auto border border-[#d8dce8] bg-white py-1.5 shadow-[0_8px_24px_rgba(33,47,92,0.12)]"
+                        onMouseEnter={() => openUnderNav(item.key)}
+                      >
+                        {links.map((link, i) => (
+                          <Link
+                            key={`${item.key}-${i}-${link.href}-${link.label}`}
+                            href={link.href}
+                            role="menuitem"
+                            className="block px-4 py-2.5 text-[13px] leading-snug text-[#212f5c] transition-colors hover:bg-[#e8eaf6]"
+                          >
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          <div className="relative z-10 ml-auto flex items-center" onMouseEnter={() => setHoveredNav(null)}>
+            <div className="relative" ref={searchRef}>
               <button
                 type="button"
-                className="flex h-11 items-center gap-2 rounded-full px-2 text-ink transition-colors hover:bg-[var(--hover)] hover:text-[var(--accent)]"
+                className={iconBtn}
+                aria-label={searchOpen ? t("nav.closeSearch") : t("nav.search")}
+                aria-expanded={searchOpen}
+                onClick={() => {
+                  setOpen(false);
+                  setAccountOpen(false);
+                  setHoveredNav(null);
+                  setSearchOpen((v) => !v);
+                }}
+              >
+                {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+              </button>
+              {searchOpen ? (
+                <form
+                  onSubmit={onSearch}
+                  className="absolute right-0 top-full z-20 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-black/10 bg-white p-3 shadow-sm"
+                >
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                    <Input
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      placeholder={t("nav.searchPlaceholder")}
+                      className="h-10 border-black/15 bg-white pl-10 text-neutral-900"
+                      aria-label={t("nav.searchAria")}
+                      autoFocus
+                    />
+                  </div>
+                </form>
+              ) : null}
+            </div>
+            <Link
+              href="/cart"
+              className="relative flex h-10 items-center gap-1.5 px-1.5 text-neutral-900 transition-colors hover:text-neutral-500"
+              aria-label={t("nav.cart")}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              <span className="price min-w-4 text-[11px] font-medium tabular-nums">
+                {ready ? String(count).padStart(2, "0") : "00"}
+              </span>
+            </Link>
+            <div className="relative" ref={accountRef}>
+              <button
+                type="button"
+                className={iconBtn}
+                aria-label={t("nav.account")}
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"
-                onClick={() => setAccountOpen((v) => !v)}
+                onClick={() => {
+                  setSearchOpen(false);
+                  setHoveredNav(null);
+                  setAccountOpen((v) => !v);
+                }}
               >
                 <User className="h-5 w-5" />
-                <span className="hidden text-[11px] font-semibold uppercase tracking-wider sm:inline">
-                  {user.name}
-                </span>
               </button>
               {accountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-20 mt-1 min-w-44 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[var(--shadow-soft)]"
+                  className="absolute right-0 top-full z-20 mt-2 min-w-48 overflow-hidden border border-black/10 bg-white py-1 text-neutral-900 shadow-sm"
                 >
-                  <Link
-                    href="/account"
-                    role="menuitem"
-                    className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-[var(--hover)] hover:text-[var(--accent)]"
-                  >
-                    {t("nav.account")}
-                  </Link>
-                  <Link
-                    href="/account/orders"
-                    role="menuitem"
-                    className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-[var(--hover)] hover:text-[var(--accent)]"
-                  >
-                    {t("nav.orders")}
-                  </Link>
-                  <Link
-                    href="/account/profile"
-                    role="menuitem"
-                    className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-[var(--hover)] hover:text-[var(--accent)]"
-                  >
-                    {t("nav.profile")}
-                  </Link>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      void logout();
-                      setAccountOpen(false);
-                      router.push("/");
-                    }}
-                    className="block w-full px-3 py-2.5 text-left text-xs uppercase tracking-wider hover:bg-[var(--hover)] hover:text-[var(--accent)]"
-                  >
-                    {t("nav.logout")}
-                  </button>
+                  {ready && user ? (
+                    <>
+                      <Link
+                        href="/account"
+                        role="menuitem"
+                        className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
+                      >
+                        {t("nav.account")}
+                      </Link>
+                      <Link
+                        href="/account/orders"
+                        role="menuitem"
+                        className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
+                      >
+                        {t("nav.orders")}
+                      </Link>
+                      <Link
+                        href="/account/profile"
+                        role="menuitem"
+                        className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
+                      >
+                        {t("nav.profile")}
+                      </Link>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          void logout();
+                          setAccountOpen(false);
+                          router.push("/");
+                        }}
+                        className="block w-full px-3 py-2.5 text-left text-xs uppercase tracking-wider hover:bg-neutral-50"
+                      >
+                        {t("nav.logout")}
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/login"
+                      role="menuitem"
+                      className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
+                    >
+                      {t("nav.signIn")}
+                    </Link>
+                  )}
+                  <div className="border-t border-black/8 px-3 py-3">
+                    <LocaleSwitcher className="w-full justify-center border-black/15 text-neutral-900" />
+                  </div>
                 </div>
               ) : null}
             </div>
-          ) : (
-            <Link
-              href="/login"
-              className="hidden h-11 items-center gap-2 rounded-full px-2 text-ink transition-colors hover:bg-[var(--hover)] hover:text-[var(--accent)] md:flex"
-            >
-              <User className="h-5 w-5" />
-              <span className="hidden text-[11px] font-semibold uppercase tracking-wider sm:inline">
-                {t("nav.account")}
-              </span>
-            </Link>
-          )}
+          </div>
         </div>
-      </div>
 
-      {searchOpen ? (
-        <div className="border-t border-[var(--border)] bg-[var(--chrome)] px-4 py-3 md:hidden">
-          <form onSubmit={onSearch}>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-2)]" />
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t("nav.searchPlaceholderLong")}
-                className="h-11 pl-10"
-                aria-label={t("nav.searchAria")}
-                autoFocus
-              />
-            </div>
-            <Button type="submit" className="mt-3 w-full">
-              {t("nav.search")}
-            </Button>
-          </form>
-        </div>
-      ) : null}
-
-      <nav className="hidden border-t border-[var(--border)] lg:block">
-        <ul className="page-shell flex flex-wrap items-center justify-center gap-x-5 gap-y-1 py-2.5 xl:gap-x-7">
-          {AUDIENCES.map((a) => (
-            <li key={a.slug}>
-              <Link
-                href={`/shop/${a.slug}`}
-                data-active={activeAudience === a.slug || undefined}
-                className="nav-link text-[11px] font-semibold uppercase tracking-[0.14em]"
-              >
-                {audienceName(a.slug, t)}
-              </Link>
-            </li>
-          ))}
-          {primaryNav.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/category/${c.slug}`}
-                data-active={activeSlug === c.slug || undefined}
-                className="nav-link text-[11px] font-semibold uppercase tracking-[0.14em]"
-              >
-                {hubNav(c.slug, t)}
-              </Link>
-            </li>
-          ))}
-          {moreNav.length > 0 ? (
-          <li className="relative" ref={moreRef}>
-            <button
-              type="button"
-              aria-expanded={moreOpen}
-              aria-haspopup="menu"
-              data-active={moreNav.some((c) => c.slug === activeSlug) || undefined}
-              className="nav-link cursor-pointer border-0 bg-transparent text-[11px] font-semibold uppercase tracking-[0.14em]"
-              onClick={() => setMoreOpen((v) => !v)}
+        {!open ? (
+          <Suspense fallback={null}>
+            <CategorySubNav taxonomy={taxonomy} />
+          </Suspense>
+        ) : null}
+      </header>
+      {ready && open
+        ? createPortal(
+            <div
+              id="mobile-nav"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("nav.openMenu")}
+              className="fixed inset-x-0 bottom-0 z-[90] flex flex-col bg-white text-neutral-900 top-[calc(var(--header-h)+env(safe-area-inset-top))] lg:hidden"
             >
-              {t("nav.more")}
-              <ChevronDown className={cn("ml-1 h-3.5 w-3.5 transition-transform", moreOpen && "rotate-180")} />
-            </button>
-            {moreOpen ? (
-              <div
-                role="menu"
-                className="absolute left-1/2 top-full z-20 mt-2 min-w-44 -translate-x-1/2 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] py-1 shadow-[var(--shadow-soft)]"
-              >
-                {moreNav.map((c) => (
-                  <Link
-                    key={c.slug}
-                    href={`/category/${c.slug}`}
-                    role="menuitem"
-                    className={cn(
-                      "block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-[var(--hover)] hover:text-[var(--accent)]",
-                      activeSlug === c.slug && "text-[var(--accent)]",
-                    )}
-                  >
-                    {hubName(c.slug, t)}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </li>
-          ) : null}
-          <li>
-            <Link
-              href="/promotions"
-              data-active={pathname === "/promotions" || undefined}
-              className="nav-link text-[11px] font-semibold uppercase tracking-[0.14em] !text-[var(--accent)]"
-            >
-              {t("nav.newCollections")}
-            </Link>
-          </li>
-        </ul>
-      </nav>
-      {!open ? (
-        <Suspense fallback={null}>
-          <CategorySubNav taxonomy={taxonomy} />
-        </Suspense>
-      ) : null}
-
-    </header>
-    {ready && open
-      ? createPortal(
-          <div
-            id="mobile-nav"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("nav.openMenu")}
-            className="fixed inset-x-0 bottom-0 z-[90] flex flex-col bg-[var(--chrome)] top-[calc(var(--header-h)+env(safe-area-inset-top))] lg:hidden"
-          >
-            <ScrollArea className="min-h-0 flex-1 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <form onSubmit={onSearch} className="mb-5">
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder={t("nav.searchPlaceholderLong")}
-                  className="h-11"
-                />
-              </form>
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <LocaleSwitcher />
-              </div>
-              <ul className="mb-3 grid grid-cols-3 gap-1">
-                {AUDIENCES.map((a) => (
-                  <li key={a.slug}>
-                    <Link
-                      href={`/shop/${a.slug}`}
-                      className={cn(
-                        "flex min-h-11 items-center justify-center rounded-lg bg-[var(--hover)] px-2 text-xs font-semibold uppercase tracking-wider text-ink hover:text-[var(--accent)]",
-                        activeAudience === a.slug && "text-[var(--accent)]",
-                      )}
-                    >
-                      {audienceName(a.slug, t)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <ul className="grid grid-cols-2 gap-1">
-                {visibleCategories.map((c) => (
-                  <li key={c.slug}>
-                    <Link
-                      href={`/category/${c.slug}`}
-                      className={cn(
-                        "flex min-h-11 items-center rounded-lg px-2 text-xs font-semibold uppercase tracking-wider text-ink hover:bg-[var(--hover)] hover:text-[var(--accent)]",
-                        activeSlug === c.slug && "text-[var(--accent)]",
-                      )}
-                    >
-                      {hubName(c.slug, t)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5 grid gap-2">
-                <Button asChild className="w-full" variant="outline">
-                  <Link href="/promotions">{t("nav.newCollections")}</Link>
-                </Button>
-                <Button asChild className="w-full" variant="outline">
-                  <Link href="/teamwear">{t("home.teamwearCta")}</Link>
-                </Button>
-                <Button asChild className="w-full" variant="outline">
-                  <Link href="/store">{t("footer.findStore")}</Link>
-                </Button>
-                <Button asChild className="w-full" variant="outline">
-                  <Link href={user ? "/account" : "/login"}>
-                    {user ? t("nav.myAccount") : t("nav.signIn")}
-                  </Link>
-                </Button>
-                {user ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      void logout().then(() => {
-                        setOpen(false);
-                        router.push("/");
-                      });
-                    }}
-                  >
-                    {t("nav.logout")}
+              <ScrollArea className="min-h-0 flex-1 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+                <form onSubmit={onSearch} className="mb-5">
+                  <Input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder={t("nav.searchPlaceholderLong")}
+                    className="h-11 border-black/15 bg-white text-neutral-900"
+                  />
+                </form>
+                <ul className="grid gap-1">
+                  {catalogNav.map((item) => (
+                    <li key={item.key}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50",
+                          item.active && "text-black",
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                      <ul className="mb-2 ml-3 grid gap-0.5 border-l border-black/10 pl-3">
+                        {underLinksByKey[item.key].slice(0, 8).map((link, i) => (
+                          <li key={`${item.key}-${i}-${link.href}-${link.label}`}>
+                            <Link
+                              href={link.href}
+                              className="flex min-h-9 items-center text-[11px] uppercase tracking-wider text-neutral-600 hover:text-black"
+                            >
+                              {link.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+                <ul className="mt-4 grid grid-cols-2 gap-1 border-t border-black/8 pt-4">
+                  {visibleCategories.map((c) => (
+                    <li key={c.slug}>
+                      <Link
+                        href={`/category/${c.slug}`}
+                        className={cn(
+                          "flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50",
+                          activeSlug === c.slug && "text-black",
+                        )}
+                      >
+                        {hubName(c.slug, t)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-5 grid gap-2">
+                  <Button asChild className="w-full" variant="outline">
+                    <Link href="/teamwear?view=quote">{t("home.teamwearCta")}</Link>
                   </Button>
-                ) : null}
-              </div>
-            </ScrollArea>
-          </div>,
-          document.body,
-        )
-      : null}
+                  <Button asChild className="w-full" variant="outline">
+                    <Link href={user ? "/account" : "/login"}>
+                      {user ? t("nav.myAccount") : t("nav.signIn")}
+                    </Link>
+                  </Button>
+                  {user ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        void logout().then(() => {
+                          setOpen(false);
+                          router.push("/");
+                        });
+                      }}
+                    >
+                      {t("nav.logout")}
+                    </Button>
+                  ) : null}
+                  <div className="pt-2">
+                    <LocaleSwitcher className="border-black/15 text-neutral-900" />
+                  </div>
+                </div>
+              </ScrollArea>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

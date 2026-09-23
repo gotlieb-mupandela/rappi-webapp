@@ -29,7 +29,7 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const onShop = pathname.startsWith(`/shop/${slug}`);
 
   return (
-    <nav className="border-t border-[var(--border)] bg-[var(--header-bg-scrolled)]">
+    <nav className="border-t border-black/8 bg-white">
       <ScrollArea className="page-shell w-full">
         <ul className="flex items-center gap-x-5 py-2 xl:gap-x-6 lg:justify-center">
           <li className="shrink-0">
@@ -37,7 +37,8 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
               href={`/shop/${slug}`}
               data-active={onShop && !active ? "true" : undefined}
               className={cn(
-                "nav-link text-xs font-medium uppercase tracking-[0.12em]",
+                "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
+                onShop && !active && "text-black",
               )}
             >
               {t("common.all")}
@@ -48,7 +49,10 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
               <Link
                 href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}`}
                 data-active={active === s.slug ? "true" : undefined}
-                className="nav-link text-xs font-medium uppercase tracking-[0.12em]"
+                className={cn(
+                  "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
+                  active === s.slug && "text-black",
+                )}
               >
                 {subName(s.slug, t)}
               </Link>

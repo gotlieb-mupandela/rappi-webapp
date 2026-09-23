@@ -24,6 +24,17 @@ import {
   matchesAudience,
   productAudience,
 } from "@/lib/audience";
+import {
+  jomaAccessoriesLandingTiles,
+  jomaAudienceLandingTiles,
+  jomaFootwearLandingTiles,
+  jomaKidsLandingTiles,
+  jomaOfficialKitsLandingTiles,
+  jomaOutletLandingTiles,
+  type AccessoriesLandingTileDef,
+} from "@/lib/joma-nav";
+import { productCardImageUrl } from "@/lib/media";
+import { productInHub } from "@/lib/hub-membership";
 
 export { isKidsProduct, isKidsShoe, matchesAudience, productAudience };
 
@@ -357,6 +368,204 @@ export function audienceHubGroups(
     return groups.filter((g) => !WOMEN_CODED_TYPE_FOLDERS.has(g.key));
   }
   return groups;
+}
+
+/** Resolve a non-blank cover for a Joma audience landing tile. */
+function landingTileImage(
+  hub: string,
+  cover: string | undefined,
+  audience: "men" | "women",
+  catalog: Product[],
+) {
+  if (cover) return cover;
+  const scoped = catalog.filter(
+    (p) => productInHub(p, hub) && matchesAudience(p, audience),
+  );
+  const sample =
+    sampleFromList(scoped, hub) ??
+    sampleForCategory(catalog, hub) ??
+    firstImagedProduct(scoped);
+  if (sample) {
+    const url = productCardImageUrl(sample);
+    if (url) return url;
+  }
+  return (
+    HUB_COVERS[hub] ??
+    AUDIENCE_COVERS[audience] ??
+    HUB_COVERS.sportswear ??
+    "/brand/hub-sportswear.png?v=5"
+  );
+}
+
+/** Resolve a non-blank cover for a Children landing tile. */
+function kidsLandingTileImage(
+  hub: string,
+  cover: string | undefined,
+  catalog: Product[],
+  index: number,
+) {
+  if (cover) return cover;
+  const kids = catalog.filter((p) => isKidsProduct(p) && productInHub(p, hub));
+  const pool = kids.length ? kids : catalog.filter(isKidsProduct);
+  const imaged = pool.filter((p) => Boolean(productCardImageUrl(p)));
+  const sample =
+    imaged[index % Math.max(imaged.length, 1)] ??
+    sampleFromList(pool, hub) ??
+    firstImagedProduct(pool);
+  if (sample) {
+    const url = productCardImageUrl(sample);
+    if (url) return url;
+  }
+  return (
+    HUB_COVERS[hub] ??
+    AUDIENCE_COVERS.kids ??
+    HUB_COVERS.kids ??
+    "/brand/hub-kids.png"
+  );
+}
+
+/** Man / Woman first-view tiles: image + uppercase label, Joma B2B order. */
+export function audienceLandingTiles(
+  audience: "men" | "women",
+  catalog: Product[] = bundled,
+) {
+  return jomaAudienceLandingTiles(audience).map((tile) => ({
+    label: tile.label,
+    href: tile.href,
+    imageSrc: landingTileImage(tile.hub, tile.cover, audience, catalog),
+  }));
+}
+
+/** Prefer an audience-scoped footwear photo; fall back to any shoes / hub cover. */
+function footwearLandingImage(
+  audience: "men" | "women" | "kids" | undefined,
+  catalog: Product[],
+  preferOffers = false,
+) {
+  const shoes = footwearOnly(productsByCategory("shoes", catalog));
+  const fallback = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
+  if (!shoes.length) return fallback;
+
+  let pool = shoes;
+  if (preferOffers) {
+    const offers = shoes.filter((p) => p.badge === "offer" || p.badge === "new");
+    if (offers.length) pool = offers;
+  } else if (audience === "kids") {
+    const kids = shoes.filter((p) => matchesAudience(p, "kids") || isKidsShoe(p));
+    if (kids.length) pool = kids;
+  } else if (audience) {
+    const scoped = shoes.filter((p) => matchesAudience(p, audience));
+    if (scoped.length) pool = scoped;
+  }
+
+  const sample = sampleFromList(pool, "shoes") ?? firstImagedProduct(pool);
+  if (sample) {
+    const url = productCardImageUrl(sample);
+    if (url) return url;
+  }
+  return fallback;
+}
+
+/** Footwear first-view tiles: Man / Woman / Junior / Outlet. */
+export function footwearLandingTiles(catalog: Product[] = bundled) {
+  return jomaFootwearLandingTiles().map((tile) => ({
+    label: tile.label,
+    href: tile.href,
+    imageSrc: footwearLandingImage(tile.audience, catalog, tile.label === "OUTLET"),
+    banner: tile.banner,
+  }));
+}
+
+/** Children first-view tiles: 4 age/gender destinations matching header dropdown. */
+export function kidsLandingTiles(catalog: Product[] = bundled) {
+  return jomaKidsLandingTiles().map((tile, index) => ({
+    label: tile.label,
+    href: tile.href,
+    imageSrc: kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
+  }));
+}
+
+/** Official Kits hub: 3 portrait tiles matching header dropdown. */
+export function officialKitsLandingTiles(catalog: Product[] = bundled) {
+  return jomaOfficialKitsLandingTiles().map((tile) => ({
+    label: tile.label,
+    href: tile.href,
+    imageSrc:
+      tile.cover ??
+      landingTileImage(tile.hub, undefined, "men", catalog),
+  }));
+}
+
+/** Outlet hub: photo promos + orange category cards + red price cards. */
+export function outletLandingTiles(catalog: Product[] = bundled) {
+  return jomaOutletLandingTiles().map((tile, index) => {
+    let imageSrc = "";
+    if (tile.kind === "photo") {
+      if (tile.hub === "shoes") {
+        imageSrc = footwearLandingImage(
+          undefined,
+          catalog,
+          tile.label === "FOOTWEAR" || tile.label === "PROMOTIONS",
+        );
+      } else if (tile.hub) {
+        imageSrc = landingTileImage(tile.hub, undefined, "men", catalog);
+      }
+      if (!imageSrc) {
+        imageSrc = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
+      }
+    }
+    return {
+      label: tile.label,
+      href: tile.href,
+      imageSrc,
+      banner: tile.banner,
+      bannerTone: tile.bannerTone,
+      outletKind: tile.kind,
+      barLabel: tile.barLabel,
+      key: `${tile.label}-${index}`,
+    };
+  });
+}
+
+/** Prefer subcategory product photo; brand cover; hub cover; empty = gray tile. */
+function accessoriesLandingTileImage(
+  tile: AccessoriesLandingTileDef,
+  catalog: Product[],
+  index: number,
+) {
+  if (tile.hub) {
+    let pool = catalog.filter((p) => productInHub(p, tile.hub!));
+    if (tile.sub) {
+      const bySub = pool.filter((p) => p.subcategory === tile.sub);
+      if (bySub.length) pool = bySub;
+    }
+    const imaged = pool.filter((p) => Boolean(productCardImageUrl(p)));
+    if (imaged.length) {
+      const sample = imaged[index % imaged.length];
+      const url = productCardImageUrl(sample);
+      if (url) return url;
+    }
+    const sample =
+      sampleFromList(pool, tile.hub) ??
+      sampleForCategory(catalog, tile.hub) ??
+      firstImagedProduct(pool);
+    if (sample) {
+      const url = productCardImageUrl(sample);
+      if (url) return url;
+    }
+  }
+  if (tile.cover) return tile.cover;
+  if (tile.hub) return HUB_COVERS[tile.hub] ?? "";
+  return "";
+}
+
+/** Accessories first-view tiles: dense B2B grid matching Accessories dropdown. */
+export function accessoriesLandingTiles(catalog: Product[] = bundled) {
+  return jomaAccessoriesLandingTiles().map((tile, index) => ({
+    label: tile.label,
+    href: tile.href,
+    imageSrc: accessoriesLandingTileImage(tile, catalog, index),
+  }));
 }
 
 export function audienceTiles(

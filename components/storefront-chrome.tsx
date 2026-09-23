@@ -21,6 +21,7 @@ export function StorefrontChrome({
   const t = useT();
   const isAdmin = pathname?.startsWith("/admin");
   const isLogin = pathname === "/login";
+  const isHome = pathname === "/";
 
   useEffect(() => {
     if (!isAdmin) {
@@ -42,10 +43,10 @@ export function StorefrontChrome({
       <Suspense fallback={null}>
         <SiteHeader taxonomy={taxonomy} categoryCounts={categoryCounts} />
       </Suspense>
-      <main id="main" key={pathname} className="page-enter flex-1">
+      <main id="main" key={pathname} className={isHome ? "flex-1" : "page-enter flex-1"}>
         {children}
       </main>
-      {isLogin ? null : <SiteFooter categoryCounts={categoryCounts} />}
+      {isLogin || isHome ? null : <SiteFooter categoryCounts={categoryCounts} />}
     </>
   );
 }
