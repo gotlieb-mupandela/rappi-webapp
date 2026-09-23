@@ -205,6 +205,7 @@ export async function createToken(input: {
     firstName: string;
     lastName: string;
     email: string;
+    phone?: string;
     address?: string;
     city?: string;
     country?: string;
@@ -214,6 +215,7 @@ export async function createToken(input: {
   const { companyToken, serviceType } = dpoConfig();
   const site = (input.siteUrl || dpoSiteUrl()).replace(/\/$/, "");
   const country = isoCustomerCountry(input.customer.country);
+  const phone = (input.customer.phone || "").trim();
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <API3G>
   <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
@@ -231,6 +233,7 @@ export async function createToken(input: {
     <customerFirstName>${escapeXml(input.customer.firstName)}</customerFirstName>
     <customerLastName>${escapeXml(input.customer.lastName)}</customerLastName>
     <customerEmail>${escapeXml(input.customer.email)}</customerEmail>
+    ${phone ? `<customerPhone>${escapeXml(phone)}</customerPhone>` : ""}
     <customerAddress>${escapeXml(input.customer.address || "")}</customerAddress>
     <customerCity>${escapeXml(input.customer.city || "")}</customerCity>
     <customerCountry>${escapeXml(country)}</customerCountry>

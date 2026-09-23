@@ -5,7 +5,7 @@ import { ProductImage } from "@/components/product-image";
 import { useT } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
-import { productCardImageUrl } from "@/lib/media";
+import { productCardImageCandidates, productCardImageUrl } from "@/lib/media";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +80,7 @@ export function HubTile({
             : (name ?? slug);
   const contain = imageFit === "contain";
   const productSrc = product ? productCardImageUrl(product) : "";
+  const productSources = product ? productCardImageCandidates(product) : [];
   const coverSrc = imageSrc || productSrc || "";
   const useProductPhoto = Boolean(product && coverSrc && !imageSrc);
   const hasCover = Boolean(coverSrc);
@@ -122,8 +123,11 @@ export function HubTile({
           <ProductImage
             product={product}
             src={coverSrc}
+            sources={productSources}
             alt={productImageAlt(product)}
             priority={priority}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 280px"
             className={imageClassName}
             fallbackClassName="absolute inset-0 h-full w-full"
           />

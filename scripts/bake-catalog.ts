@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import raw from "../data/products.json";
 import { productAudience } from "../lib/audience";
 import { withStorefrontCategories, withStorefrontMerchandising } from "../lib/classify";
-import { productCardImageUrl, withProductImages } from "../lib/media";
+import { productCardImageCandidates, withProductImages } from "../lib/media";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "../lib/taxonomy";
 import type { ListingItem } from "../lib/listing-types";
 import type { Product } from "../lib/types";
@@ -16,7 +16,8 @@ const listingDest = join(root, "public", "listing-index.json");
 const listingOnly = process.argv.includes("--listing-only");
 
 function toListingItem(product: Product): ListingItem {
-  const card = productCardImageUrl(product) || product.imageUrl;
+  const candidates = productCardImageCandidates(product).slice(0, 3);
+  const card = candidates[0] || product.imageUrl;
   const sizes = (product.sizes ?? []).filter((s) => s.stock > 0);
   return {
     id: product.id,
@@ -40,6 +41,7 @@ function toListingItem(product: Product): ListingItem {
     sizeOptions: product.sizeOptions ?? sizes.map((s) => s.size),
     sizes,
     imageUrl: card,
+    images: candidates,
   } as ListingItem;
 }
 

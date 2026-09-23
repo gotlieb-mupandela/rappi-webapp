@@ -12,7 +12,7 @@ import { StockMatrix } from "@/components/stock-matrix";
 import TiltedCard from "@/components/tilted-card";
 import { useLocale } from "@/components/locale-provider";
 import { buyableSizes, isSoldOut, stockLabel, totalStock } from "@/lib/product-stock";
-import { productCardImageUrl } from "@/lib/media";
+import { productCardImageCandidates, productCardImageUrl } from "@/lib/media";
 import { useCart } from "@/lib/stores/cart";
 import { productImageAlt } from "@/lib/copy";
 import { productPath } from "@/lib/utils";
@@ -31,8 +31,9 @@ export function ProductCard({
   const soldOut = isSoldOut(product);
   const title = product.displayName || product.item;
   const cardSrc = productCardImageUrl(product);
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const imageSrc = cardSrc && failedSrc !== cardSrc ? cardSrc : undefined;
+  const cardSources = productCardImageCandidates(product);
+  const [failedAll, setFailedAll] = useState(false);
+  const imageSrc = !failedAll && cardSrc ? cardSrc : undefined;
 
   function quickAdd(e: MouseEvent) {
     e.preventDefault();
@@ -53,6 +54,7 @@ export function ProductCard({
           <ProductImage
             product={product}
             src={cardSrc}
+            sources={cardSources}
             className="aspect-square w-full object-cover"
             fallbackClassName="aspect-square"
           />
@@ -92,6 +94,7 @@ export function ProductCard({
       <Link href={productPath(product.code)} className="block">
         <TiltedCard
           imageSrc={imageSrc}
+          imageSrcs={failedAll ? [] : cardSources}
           altText={productImageAlt(product)}
           captionText={title}
           containerHeight="auto"
@@ -103,9 +106,7 @@ export function ProductCard({
           showMobileWarning={false}
           showTooltip
           displayOverlayContent
-          onImageError={() => {
-            if (cardSrc) setFailedSrc(cardSrc);
-          }}
+          onImageError={() => setFailedAll(true)}
           imageClassName="bg-[var(--bg-elevated)]"
           overlayContent={
             <>

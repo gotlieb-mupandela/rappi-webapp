@@ -1,12 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import type { SpringOptions } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "motion/react";
+import { productImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 
 interface TiltedCardProps {
   imageSrc?: React.ComponentProps<"img">["src"];
+  /** Ordered fallbacks when the primary remote URL fails. */
+  imageSrcs?: string[];
   altText?: string;
   captionText?: string;
   containerHeight?: React.CSSProperties["height"];
@@ -32,6 +36,7 @@ const springValues: SpringOptions = {
 
 export default function TiltedCard({
   imageSrc,
+  imageSrcs,
   altText = "Tilted card image",
   captionText = "",
   containerHeight = "auto",
@@ -67,6 +72,21 @@ export default function TiltedCard({
 
   const [lastY, setLastY] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const candidates = useMemo(
+    () =>
+      (imageSrcs?.length ? imageSrcs : imageSrc ? [String(imageSrc)] : []).filter(
+        Boolean,
+      ),
+    [imageSrc, imageSrcs],
+  );
+  const [srcIndex, setSrcIndex] = useState(0);
+  const [exhausted, setExhausted] = useState(false);
+  const activeSrc = !exhausted ? candidates[srcIndex] : undefined;
+
+  useEffect(() => {
+    setSrcIndex(0);
+    setExhausted(false);
+  }, [candidates]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -117,6 +137,15 @@ export default function TiltedCard({
     glareY.set(50);
   }
 
+  function handleImageError() {
+    if (srcIndex + 1 < candidates.length) {
+      setSrcIndex((i) => i + 1);
+      return;
+    }
+    setExhausted(true);
+    onImageError?.();
+  }
+
   return (
     <figure
       ref={ref}
@@ -144,22 +173,29 @@ export default function TiltedCard({
           scale,
         }}
       >
-        {imageSrc ? (
-          <motion.img
-            src={imageSrc}
-            alt={altText}
+        {activeSrc ? (
+          <motion.div
             className={cn(
-              "relative z-0 block h-auto w-full max-w-full rounded-2xl will-change-transform [transform:translateZ(24px)]",
+              "relative z-0 aspect-square w-full overflow-hidden rounded-2xl will-change-transform [transform:translateZ(24px)]",
               imageClassName,
             )}
             style={{
               width: imageWidth,
-              height: imageHeight,
+              height: imageHeight === "auto" ? undefined : imageHeight,
             }}
-            loading="lazy"
-            decoding="async"
-            onError={onImageError}
-          />
+          >
+            <Image
+              key={activeSrc}
+              src={activeSrc}
+              alt={altText}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
+              quality={75}
+              className="object-contain"
+              loader={/^https?:\/\//i.test(activeSrc) ? productImageLoader : undefined}
+              onError={handleImageError}
+            />
+          </motion.div>
         ) : (
           <div
             className={cn(

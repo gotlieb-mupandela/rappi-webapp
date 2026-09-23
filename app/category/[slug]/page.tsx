@@ -4,6 +4,7 @@ import { HubTile } from "@/components/hub-tile";
 import { PageHeader } from "@/components/page-header";
 import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
+import { productCardImageCandidates } from "@/lib/media";
 import { SectionHeading } from "@/components/section-heading";
 import { NoStockBody } from "@/components/no-stock-body";
 import { OtherHubsNav } from "@/components/other-hubs-nav";
@@ -109,10 +110,12 @@ export default async function CategoryHubPage({
               <ProductImage
                 product={sample}
                 src={sample.imageUrl}
+                sources={productCardImageCandidates(sample)}
                 alt={sample.displayName}
                 priority
                 className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                 fallbackClassName="aspect-[4/5] w-full"
+                sizes="(max-width: 1024px) 100vw, 420px"
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">

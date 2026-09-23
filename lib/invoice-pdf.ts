@@ -215,7 +215,13 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     if (pageNo === 1) {
       page.drawText("Bill to", { x: MARGIN, y, size: 9, font: bold, color: MUTED });
       y -= 13;
-      const buyer = [order.full_name, order.email, order.address, `${order.city}, ${order.country}`];
+      const buyer = [
+        order.full_name,
+        order.email,
+        order.phone,
+        order.address,
+        `${order.city}, ${order.country}`,
+      ].filter((line): line is string => Boolean(line));
       for (const line of buyer) {
         page.drawText(pdfSafe(line), { x: MARGIN, y, size: 10, font: regular, color: INK });
         y -= 13;

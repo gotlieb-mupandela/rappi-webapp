@@ -39,19 +39,46 @@ function mergeGallery(
   return { imageUrl: first ?? "", images: merged };
 }
 
+function isDemandwareMedium(url: string) {
+  return /\/images\/medium\//i.test(url);
+}
+
+function isJomaNet(url: string) {
+  return /v1\.joma-sport\.net/i.test(url);
+}
+
 /**
- * Prefer Demandware `medium` gallery shots for cards (~small CDN thumbs).
- * Falls back to primary imageUrl. Preserves any leftover `_large` thumbs.
+ * Ordered card sources: first Demandware medium, then Joma.net primary (reliable
+ * fallback), then remaining gallery URLs. Callers should walk this list on error.
+ */
+export function productCardImageCandidates(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}): string[] {
+  const gallery = (product.images ?? []).filter(Boolean);
+  const primary = product.imageUrl?.trim() || "";
+  const mediums = gallery.filter(isDemandwareMedium);
+  const nets = [primary, ...gallery].filter(isJomaNet);
+  const rest = [primary, ...gallery].filter(
+    (url) => url && !isDemandwareMedium(url) && !isJomaNet(url),
+  );
+  return [
+    ...new Set(
+      [mediums[0], nets[0], ...mediums.slice(1), ...nets.slice(1), ...rest].filter(
+        Boolean,
+      ),
+    ),
+  ];
+}
+
+/**
+ * Prefer Demandware `medium` gallery shots for cards, then Joma.net primary.
  */
 export function productCardImageUrl(product: {
   imageUrl?: string | null;
   images?: string[] | null;
 }) {
-  const medium = (product.images ?? []).find((url) =>
-    /\/images\/medium\//i.test(url),
-  );
-  if (medium) return medium;
-  return product.imageUrl ?? "";
+  return productCardImageCandidates(product)[0] ?? "";
 }
 
 /**

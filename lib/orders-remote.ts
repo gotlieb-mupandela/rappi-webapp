@@ -6,6 +6,7 @@ type OrderRow = {
   created_at: string;
   email: string;
   full_name: string;
+  phone: string | null;
   address: string;
   city: string;
   country: string;
@@ -29,6 +30,7 @@ function mapRow(row: OrderRow): Order {
     createdAt: row.created_at,
     email: row.email,
     name: row.full_name,
+    phone: row.phone ?? undefined,
     address: row.address,
     city: row.city,
     country: row.country,
@@ -61,7 +63,7 @@ export async function fetchRemoteOrders(): Promise<Order[]> {
     const { data, error } = await supabase
       .from("orders")
       .select(
-        "id, created_at, email, full_name, address, city, country, shipping_method, shipping_cost, subtotal, total, status, order_items(code, name, size, qty, unit_price)",
+        "id, created_at, email, full_name, phone, address, city, country, shipping_method, shipping_cost, subtotal, total, status, order_items(code, name, size, qty, unit_price)",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });

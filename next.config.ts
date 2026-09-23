@@ -5,8 +5,16 @@ const nextConfig: NextConfig = {
   // Dev binds to 0.0.0.0; browsers hit 127.0.0.1 / localhost — allow HMR + assets.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
+    // Cache optimized product thumbs for a day (remote Joma files are multi‑MB originals).
+    minimumCacheTTL: 60 * 60 * 24,
+    qualities: [70, 75, 80],
     localPatterns: [{ pathname: "/brand/**" }, { pathname: "/**" }],
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "wsrv.nl",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "wzmzwerzbyudcvoiiege.supabase.co",

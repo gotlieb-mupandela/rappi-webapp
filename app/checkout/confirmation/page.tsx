@@ -61,6 +61,12 @@ function ConfirmationInner() {
             {order.city}, {order.country}
             <br />
             {order.email}
+            {order.phone ? (
+              <>
+                <br />
+                {order.phone}
+              </>
+            ) : null}
           </p>
           <p className="mt-3 text-sm text-[var(--muted)]">
             {translateStoredShipping(order.shippingMethod, t)}

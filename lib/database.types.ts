@@ -184,6 +184,7 @@ export type Database = {
           invoice_last_error: string | null
           invoice_sent_at: string | null
           notes: string | null
+          phone: string | null
           shipping_cost: number
           shipping_method: string
           status: Database["public"]["Enums"]["order_status"]
@@ -205,6 +206,7 @@ export type Database = {
           invoice_last_error?: string | null
           invoice_sent_at?: string | null
           notes?: string | null
+          phone?: string | null
           shipping_cost?: number
           shipping_method: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -226,6 +228,7 @@ export type Database = {
           invoice_last_error?: string | null
           invoice_sent_at?: string | null
           notes?: string | null
+          phone?: string | null
           shipping_cost?: number
           shipping_method?: string
           status?: Database["public"]["Enums"]["order_status"]

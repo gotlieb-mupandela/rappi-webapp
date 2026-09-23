@@ -27,6 +27,7 @@ export async function POST(req: Request) {
   let body: {
     name?: string;
     email?: string;
+    phone?: string;
     address?: string;
     city?: string;
     country?: string;
@@ -50,8 +51,12 @@ export async function POST(req: Request) {
 
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim();
+  const phone = String(body.phone ?? "").trim();
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Enter a name and a valid email." }, { status: 400 });
+  }
+  if (!phone || !/^\+?[\d\s().-]{7,20}$/.test(phone)) {
+    return NextResponse.json({ error: "Enter a valid cell phone number." }, { status: 400 });
   }
 
   const shippingMethod = parseShippingMethod(body.shippingMethod);
@@ -94,6 +99,7 @@ export async function POST(req: Request) {
     userId: user.id,
     email,
     name,
+    phone,
     address,
     city,
     country,
@@ -112,7 +118,7 @@ export async function POST(req: Request) {
       amount,
       currency,
       description,
-      customer: { firstName, lastName, email, address, city, country },
+      customer: { firstName, lastName, email, phone, address, city, country },
       siteUrl: requestSiteUrl(req),
     });
   } catch (err) {

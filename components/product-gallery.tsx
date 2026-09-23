@@ -40,9 +40,13 @@ export function ProductGallery({ product }: { product: Product }) {
       <ProductImage
         product={product}
         src={src}
+        sources={shots}
         alt=""
         className="aspect-square w-full object-cover"
         fallbackClassName="aspect-square"
+        sizes="80px"
+        width={160}
+        height={160}
       />
     </button>
   ));
@@ -53,10 +57,15 @@ export function ProductGallery({ product }: { product: Product }) {
         <ProductImage
           product={product}
           src={current}
+          sources={shots}
           alt={productImageAlt(product, shots.length > 1 ? `photo ${active + 1}` : undefined)}
           className="pdp-stage"
           fallbackClassName="aspect-square w-full sm:aspect-[4/5]"
           priority
+          sizes="(max-width: 1024px) 100vw, 560px"
+          width={1200}
+          height={1500}
+          quality={75}
         />
       </div>
       {shots.length > 1 ? (

@@ -58,6 +58,7 @@ export type Order = {
   createdAt: string;
   email: string;
   name: string;
+  phone?: string;
   address: string;
   city: string;
   country: string;

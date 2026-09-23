@@ -19,6 +19,7 @@ import {
   audienceLandingTiles,
   footwearLandingTiles,
   kidsLandingTiles,
+  subcategoryHubGroups,
 } from "@/lib/hubs";
 import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
@@ -173,14 +174,19 @@ export default async function ShopListingPage({
     );
   }
 
-  const typeGroups =
-    activeAudience && firstSearchParam(sp.view) !== "all" && !hasTypeOrSearchFilter
+  const wantTypeFolders =
+    firstSearchParam(sp.view) !== "all" && !hasTypeOrSearchFilter;
+  const typeGroups = wantTypeFolders
+    ? activeAudience
       ? audienceHubGroups(
           activeAudience.slug,
           catalog,
           audienceFromPath ? undefined : { categorySlug: hubSlug },
         )
-      : [];
+      : cat
+        ? subcategoryHubGroups(hubSlug, catalog)
+        : []
+    : [];
   const showFolders = typeGroups.length > 0;
   const listing = audienceFromPath
     ? buildListing(catalog, { ...query, audience: audienceFromPath.slug })
