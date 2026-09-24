@@ -50,7 +50,10 @@ export function ProductImage({
   quality?: number;
 }) {
   const candidates = useMemo(() => {
-    const list = (sources?.length ? sources : src ? [src] : []).filter(
+    // Prefer the explicit `src` (active gallery shot / card primary), then walk
+    // `sources` as fallbacks. Never drop `src` when sources is non-empty —
+    // that made every PDP thumbnail render the first gallery URL.
+    const list = [src, ...(sources ?? [])].filter(
       (url): url is string => Boolean(url),
     );
     return [...new Set(list)];

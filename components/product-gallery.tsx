@@ -25,7 +25,7 @@ export function ProductGallery({ product }: { product: Product }) {
 
   const thumbs = shots.map((src, i) => (
     <button
-      key={src}
+      key={`${src}-${i}`}
       type="button"
       onClick={() => setActive(i)}
       className={cn(
@@ -40,7 +40,6 @@ export function ProductGallery({ product }: { product: Product }) {
       <ProductImage
         product={product}
         src={src}
-        sources={shots}
         alt=""
         className="aspect-square w-full object-cover"
         fallbackClassName="aspect-square"
