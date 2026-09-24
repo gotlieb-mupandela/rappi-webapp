@@ -1,5 +1,6 @@
 import {
   firstImagedProduct,
+  hasUsableProductImage,
   isStorefrontFootwear,
   sampleForCategory,
   sampleFromList,
@@ -500,62 +501,98 @@ export function kidsLandingTiles(catalog: Product[] = bundled) {
   }));
 }
 
-/** Prefer a keyword-matched product photo; skip URLs already used on other tiles. */
+/** Prefer a real catalog product photo for Teams tiles (packshot or model gallery). */
 function teamsLandingImage(
-  hub: string,
-  cover: string | undefined,
-  match: string | undefined,
+  tile: {
+    hub: string;
+    cover?: string;
+    match?: string;
+    prefer?: string;
+    exclude?: string;
+    productIds?: string[];
+  },
   catalog: Product[],
   usedUrls: Set<string>,
+  usedIds: Set<string>,
 ) {
-  if (cover) {
-    usedUrls.add(cover);
-    return cover;
-  }
+  const hay = (p: Product) =>
+    `${p.displayName} ${p.item} ${p.name} ${p.sheetCategory ?? ""} ${p.subcategory ?? ""}`;
 
-  const inHub = catalog.filter((p) => productInHub(p, hub));
-  let pool = inHub;
-  if (match) {
-    const re = new RegExp(match, "i");
-    const matched = inHub.filter((p) =>
-      re.test(`${p.displayName} ${p.item} ${p.name} ${p.sheetCategory ?? ""}`),
-    );
-    if (matched.length) pool = matched;
-  }
+  const take = (product: Product | undefined) => {
+    if (!product || usedIds.has(product.id) || !hasUsableProductImage(product)) {
+      return "";
+    }
+    const url = productCardImageUrl(product);
+    if (!url || usedUrls.has(url) || /default\.jp/i.test(url)) return "";
+    usedIds.add(product.id);
+    usedUrls.add(url);
+    return url;
+  };
 
-  const unused = pool.filter((p) => {
-    const url = productCardImageUrl(p);
-    return url && !usedUrls.has(url);
-  });
-  const sample =
-    sampleFromList(unused.length ? unused : pool, hub) ??
-    firstImagedProduct(unused.length ? unused : pool);
-  if (sample) {
-    const url = productCardImageUrl(sample);
-    if (url) {
-      usedUrls.add(url);
-      return url;
+  if (tile.productIds?.length) {
+    for (const id of tile.productIds) {
+      const hit = catalog.find((p) => p.id === id || p.code === id);
+      const url = take(hit);
+      if (url) return url;
     }
   }
 
-  const fallback = HUB_COVERS[hub] ?? "";
-  if (fallback) usedUrls.add(fallback);
-  return fallback;
+  // Brand covers only as last resort — Teams tiles should show real SKUs.
+  let pool = catalog.filter(
+    (p) => productInHub(p, tile.hub) && hasUsableProductImage(p),
+  );
+
+  if (tile.match) {
+    const re = new RegExp(tile.match, "i");
+    const matched = pool.filter((p) => re.test(hay(p)));
+    if (matched.length) pool = matched;
+  }
+  if (tile.exclude) {
+    const re = new RegExp(tile.exclude, "i");
+    const narrowed = pool.filter((p) => !re.test(hay(p)));
+    if (narrowed.length) pool = narrowed;
+  }
+
+  const preferRe = tile.prefer ? new RegExp(tile.prefer, "i") : null;
+  const ranked = [...pool]
+    .filter((p) => !usedIds.has(p.id))
+    .map((p) => {
+      const url = productCardImageUrl(p);
+      let score = (p.images?.length ?? 0) * 2;
+      if (preferRe?.test(hay(p))) score += 40;
+      if (url && !usedUrls.has(url)) score += 5;
+      if (/default\.jp/i.test(url)) score -= 50;
+      return { p, score, url };
+    })
+    .filter((row) => row.url)
+    .sort((a, b) => b.score - a.score);
+
+  for (const row of ranked) {
+    const url = take(row.p);
+    if (url) return url;
+  }
+
+  if (tile.cover && !usedUrls.has(tile.cover)) {
+    usedUrls.add(tile.cover);
+    return tile.cover;
+  }
+
+  const fallback = HUB_COVERS[tile.hub] ?? "";
+  if (fallback && !usedUrls.has(fallback)) {
+    usedUrls.add(fallback);
+    return fallback;
+  }
+  return "";
 }
 
 /** Teams / Teamwear hub: dense sports & materials grid (Joma `#link=69`). */
 export function teamsLandingTiles(catalog: Product[] = bundled) {
   const usedUrls = new Set<string>();
+  const usedIds = new Set<string>();
   return jomaTeamsLandingTiles().map((tile) => ({
     label: tile.label,
     href: tile.href,
-    imageSrc: teamsLandingImage(
-      tile.hub,
-      tile.cover,
-      tile.match,
-      catalog,
-      usedUrls,
-    ),
+    imageSrc: teamsLandingImage(tile, catalog, usedUrls, usedIds),
   }));
 }
 

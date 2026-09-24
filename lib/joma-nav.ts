@@ -11,6 +11,12 @@ type LandingTileDef = {
   cover?: string;
   /** Optional case-insensitive name match for product-sample covers. */
   match?: string;
+  /** Prefer these name patterns when picking a cover product. */
+  prefer?: string;
+  /** Drop products matching this pattern from the cover pool. */
+  exclude?: string;
+  /** Prefer these product ids (first hit with a usable image wins). */
+  productIds?: string[];
 };
 
 function audienceQuery(audience: "men" | "women") {
@@ -338,7 +344,8 @@ export function jomaAccessoriesLandingTiles(): AccessoriesLandingTileDef[] {
 
 /**
  * Teams / Teamwear hub tiles — live Joma `#link=69` sports & materials grid.
- * Shown on `/teamwear` (Man/Woman → TEAMWEAR). Not used for Man/Woman landings.
+ * Shown on `/teamwear` (Man/Woman → TEAMWEAR). Covers pin real catalog SKUs
+ * (packshot or model gallery) so tiles never fall back to blank brand plates.
  */
 export function jomaTeamsLandingTiles(): LandingTileDef[] {
   return [
@@ -347,85 +354,119 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
       href: "/shop/sportswear?q=polyester",
       hub: "sportswear",
       match: "polyester|poli[eé]ster",
+      prefer: "wind|jacket|breaker",
+      exclude: "3/4|pants|short",
+      productIds: ["5001-13-35", "5001-13-100"],
     },
     {
       label: "COTTON",
       href: "/shop/sportswear?q=cotton",
       hub: "sportswear",
       match: "cotton|algod[oó]n",
+      prefer: "t-?shirt|sweat|hoodie|montana|lille",
+      exclude: "boxer|slip|brief|underwear",
+      productIds: ["100912-200", "100912-331"],
     },
     {
       label: "OUTERWEAR",
       href: "/shop/sportswear?group=jackets",
       hub: "sportswear",
-      match: "jacket|anorak|puffer|park|outerwear",
-      cover: "/brand/hub-sportswear.png?v=5",
+      match: "jacket|anorak|puffer|park|outerwear|gala",
+      prefer: "gala|anorak|park|bomb|arctic|jacket",
+      exclude: "wind breaker polyester",
+      productIds: ["100086-671", "100086-100"],
     },
     {
       label: "SOCCER / FUTSAL",
       href: "/shop/football",
       hub: "football",
-      match: "soccer|futsal|football|f[uú]tbol",
+      prefer: "premier|interlock|campus|shirt|set|jersey",
+      exclude: "goalkeeper|goalie|portero|\\bgk\\b|protec",
+      productIds: ["104594-102", "104594-602"],
     },
     {
       label: "BASKETBALL",
       href: "/shop/basketball",
       hub: "basketball",
       match: "basket",
+      prefer: "sleeveless|combi basket|jersey|shirt",
+      exclude: "sock|protec",
+      productIds: ["101660-100", "101660-200"],
     },
     {
       label: "RUGBY",
       href: "/shop/rugby",
       hub: "rugby",
-      cover: "/brand/hub-rugby.png?v=1",
+      prefer: "skrum|jersey|shirt",
+      exclude: "protec|helmet|protection|ball",
+      productIds: ["102219-602", "102219-102"],
     },
     {
       label: "VOLLEYBALL",
       href: "/shop/running-fitness?q=volley",
       hub: "running-fitness",
-      match: "volley|voleibol",
+      match: "volley|volea|voleibol",
+      prefer: "volea|shirt|jersey",
+      productIds: ["105374-013", "105374-100"],
     },
     {
       label: "HANDBALL",
       href: "/shop/sportswear?q=handball",
       hub: "sportswear",
       match: "handball|balonmano",
+      prefer: "olimpiada|shirt|jersey",
+      productIds: ["103837-251", "103837-100"],
     },
     {
       label: "COACH",
       href: "/shop/sportswear?q=staff",
       hub: "sportswear",
       match: "staff|coach|entrenador",
+      prefer: "rain jacket|polo|jacket|sweatshirt",
+      exclude: "torino|pants|short",
+      productIds: ["TI10201B1221", "AH10701B3121", "100027-100"],
     },
     {
       label: "REFEREE",
       href: "/shop/sportswear?q=referee",
       hub: "sportswear",
-      match: "referee|arbitro|[aá]rbitro|respect",
+      match: "referee|arbitro|[aá]rbitro",
+      prefer: "shirt|yellow|fluorescent|turquoise",
+      exclude: "respect|short(?!\\s*sleeve)",
+      productIds: ["104240-061", "104240-011", "101299-110"],
     },
     {
       label: "GOALIE",
       href: "/shop/football?q=goalkeeper",
       hub: "football",
-      match: "goalkeeper|goalie|portero",
+      match: "goalkeeper|goalie|portero|\\bgk\\b",
+      prefer: "phoenix|set|shirt",
+      exclude: "short(?!\\s*sleeve)|glove",
+      productIds: ["102858-013", "102858-021", "100009-100"],
     },
     {
       label: "CRICKET",
       href: "/shop/cricket",
       hub: "cricket",
       match: "cricket",
+      prefer: "polo|jersey|shirt",
+      exclude: "pants",
+      productIds: ["104443-001", "104443-200"],
     },
     {
       label: "SWIMMING",
       href: "/shop/swimming",
       hub: "swimming",
-      match: "swim|nataci[oó]n|ba[nñ]ador",
+      prefer: "swim short|swimsuit|santa|shark",
+      productIds: ["104143-345", "103545-100"],
     },
     {
       label: "PANTS",
       href: "/shop/sportswear?group=pants",
       hub: "sportswear",
-      match: "pants|pantalon|trouser|jogger",
+      prefer: "long pants|nilo|montana|cuff",
+      exclude: "staff|3/4|short|bermuda",
+      productIds: ["100165-100", "100165-331"],
     },
   ];
 }
