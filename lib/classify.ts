@@ -1,4 +1,4 @@
-import { BIB_PACK_PRICE_NAD, isFixedBibPack, isTrainingBibPack } from "@/lib/assortment";
+import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
 import { isSportHub, jomaLeafHub, productInHub } from "@/lib/hub-membership";
@@ -613,14 +613,20 @@ function applyRetailPrice<T extends Product>(product: T): T {
   return { ...product, price: rounded, unitPrice: rounded };
 }
 
-function applyBibTitle<T extends Product>(product: T): T {
-  if (!isTrainingBibPack(product)) return product;
-  const display = product.displayName.replace(/\s*·\s*pack of 10/i, "").trim();
-  const labeled = `${display} · Pack of 10`;
+function applyPackTitle<T extends Product>(product: T): T {
+  const info = getAssortment(product);
+  if (!info?.packSize || info.packSize <= 1) return product;
+  const n = info.packSize;
+  const already = new RegExp(`\\bpack(?:\\s+of)?\\s+${n}\\b`, "i").test(
+    [product.displayName, product.title, product.name].join(" "),
+  );
+  if (already) return product;
+  const display = product.displayName.replace(/\s*·\s*pack of \d+/i, "").trim();
+  const labeled = `${display} · Pack of ${n}`;
   return {
     ...product,
     displayName: labeled,
-    title: /pack of 10/i.test(product.title) ? product.title : labeled,
+    title: new RegExp(`pack of ${n}`, "i").test(product.title) ? product.title : labeled,
   };
 }
 
@@ -638,7 +644,7 @@ export function withStorefrontMerchandising<T extends Product>(product: T): T {
     ...(hubs.length ? { hubs } : {}),
   } as T;
   next = applyRetailPrice(next);
-  next = applyBibTitle(next);
+  next = applyPackTitle(next);
   next = withCatalogSizes(next);
   next = withProductImages(next);
   const description = productDescription(next);

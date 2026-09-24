@@ -11,6 +11,14 @@ export const WHOLESALE_SHOE_ASSORTMENT_THRESHOLD_NAD = 4000;
 
 const NAMED_PACK = /\bpack(?:\s+of)?\s+(\d+)\b/i;
 const BOX_OF = /\bbox of\s+(\d+)\b/i;
+const MULTIPACK_RE = /\bmultipack\b/i;
+const EVENTOS_PACK_CODE = /^105463\./i;
+const EVENTOS_NAME_RE = /\beventos\b/i;
+const EVENTOS_TEE_RE = /\b(t-?shirts?|tees?)\b/i;
+const NOT_EVENTOS_PACK_RE = /\b(sack|bag|backpack)\b/i;
+
+export const EVENTOS_TEE_PACK_SIZE = 25;
+export const EVENTOS_TEE_PACK_THRESHOLD_NAD = 2000;
 
 const FOOTWEAR_NAME =
   /\b(sneaker|sandal|barefoot|shoe|boot|cleat|spike|trainer|footwear)\b/i;
@@ -27,6 +35,7 @@ export type AssortmentInfo = {
   pairHint: string | null;
   /** Keep the Joma size run (e.g. bib S01–S04) instead of collapsing to PACK. */
   preserveSizes?: boolean;
+  kind?: "named" | "multipack" | "wholesale";
 };
 
 export const BIB_PACK_PRICE_NAD = 900;
@@ -71,6 +80,40 @@ function namedPackSize(product: Product): number | null {
   return null;
 }
 
+export function isEventosTeePack(product: Product) {
+  if (EVENTOS_PACK_CODE.test(product.code)) return true;
+  const text = blob(product);
+  if (!EVENTOS_NAME_RE.test(text) || !EVENTOS_TEE_RE.test(text)) return false;
+  if (NOT_EVENTOS_PACK_RE.test(text)) return false;
+  const price = product.price || product.unitPrice || 0;
+  return price >= EVENTOS_TEE_PACK_THRESHOLD_NAD;
+}
+
+export function isMultipack(product: Product) {
+  return MULTIPACK_RE.test(blob(product));
+}
+
+function namedPackInfo(
+  product: Product,
+  packSize: number,
+  format: (nad: number) => string,
+): AssortmentInfo {
+  const footwear = isFootwearSku(product);
+  const unit = footwear ? "pairs" : "pcs";
+  const price = product.price || product.unitPrice || 0;
+  return {
+    isAssortment: true,
+    packSize,
+    label: `Pack · ${packSize} ${unit}`,
+    pairHint: footwear
+      ? pairHint(price, packSize, format)
+      : price > 0
+        ? `About ${format(price / packSize)} each`
+        : null,
+    kind: "named",
+  };
+}
+
 function pairHint(price: number, size: number | null, format = formatPrice) {
   if (!price || price <= 0) return null;
   if (size && size > 1) {
@@ -96,15 +139,20 @@ export function getAssortment(
 
   const named = namedPackSize(product);
   if (named && named > 1) {
-    const footwear = isFootwearSku(product);
-    const unit = footwear ? "pairs" : "pcs";
+    return namedPackInfo(product, named, format);
+  }
+
+  if (isEventosTeePack(product)) {
+    return namedPackInfo(product, EVENTOS_TEE_PACK_SIZE, format);
+  }
+
+  if (isMultipack(product)) {
     return {
       isAssortment: true,
-      packSize: named,
-      label: `Pack · ${named} ${unit}`,
-      pairHint: footwear
-        ? pairHint(product.price || product.unitPrice, named, format)
-        : `About ${format((product.price || product.unitPrice) / named)} each`,
+      packSize: null,
+      label: "Multipack",
+      pairHint: null,
+      kind: "multipack",
     };
   }
 
@@ -115,6 +163,7 @@ export function getAssortment(
       packSize: null,
       label: "Wholesale assortment (8–12 pairs)",
       pairHint: pairHint(price, null, format),
+      kind: "wholesale",
     };
   }
 
@@ -145,6 +194,13 @@ export function assortmentCopy(
       pairHint: footwear
         ? t("product.aboutPair", { amount: format(price / info.packSize) })
         : t("product.aboutEach", { amount: format(price / info.packSize) }),
+    };
+  }
+  if (info.kind === "multipack") {
+    return {
+      ...info,
+      label: t("product.multipack"),
+      pairHint: null,
     };
   }
   const price = product.price || product.unitPrice || 0;

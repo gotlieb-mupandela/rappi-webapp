@@ -60,7 +60,13 @@ export function ProductCard({
           />
         </Link>
         <Link href={productPath(product.code)} className="min-w-0">
-          <p className="truncate text-sm font-medium tracking-wide text-ink">{title}</p>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="min-w-0 truncate text-sm font-medium tracking-wide text-ink">{title}</p>
+            <AssortmentBadge
+              product={product}
+              className="shrink-0 bg-[var(--text)] text-[var(--bg)]"
+            />
+          </div>
           <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.16em] text-[var(--muted-2)]">
             {product.code}
           </p>
