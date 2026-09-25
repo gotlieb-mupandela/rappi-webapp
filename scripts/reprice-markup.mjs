@@ -21,6 +21,7 @@ import { spawnSync } from "node:child_process";
 const root = path.resolve(import.meta.dirname, "..");
 const catalogPath = path.join(root, "data", "products.json");
 const sourcePath = path.join(root, "data", "products-source.json");
+const statePath = path.join(root, "data", "retail-markup.json");
 const previewPath = path.join(root, "tmp", "reprice-67-to-45-preview.json");
 const csvPath = path.join(root, "tmp", "reprice-67-to-45-preview.csv");
 const backupPath = path.join(root, "tmp", "products-before-reprice-45.json");
@@ -30,13 +31,14 @@ const OLD_MARKUP = 0.67;
 const NEW_MARKUP = 0.45;
 const WRITE = process.argv.includes("--write");
 const BAKE = process.argv.includes("--bake");
+const FORCE = process.argv.includes("--force");
 
 function retailFromEur(eur, markup) {
   return Math.round(eur * FX * (1 + markup));
 }
 
-function eurFromLegacyNad(nad) {
-  return nad / (FX * (1 + OLD_MARKUP));
+function eurFromMarkupNad(nad, markup) {
+  return nad / (FX * (1 + markup));
 }
 
 function isBibFixed(code, price) {
@@ -45,6 +47,33 @@ function isBibFixed(code, price) {
 
 function isDpoTest(code) {
   return /^DPO[-_]?TEST$/i.test(code);
+}
+
+function readMarkupState() {
+  if (!fs.existsSync(statePath)) return { markup: OLD_MARKUP, fx: FX };
+  try {
+    return JSON.parse(fs.readFileSync(statePath, "utf8"));
+  } catch {
+    return { markup: OLD_MARKUP, fx: FX };
+  }
+}
+
+const state = readMarkupState();
+if (!FORCE && Math.abs(Number(state.markup) - NEW_MARKUP) < 1e-9) {
+  console.error(
+    `Catalog already at ${(NEW_MARKUP * 100).toFixed(0)}% markup (${statePath}). Use --force to recalculate anyway.`,
+  );
+  process.exit(0);
+}
+
+const fromMarkup = FORCE
+  ? OLD_MARKUP
+  : Number(state.markup) || OLD_MARKUP;
+if (!FORCE && Math.abs(fromMarkup - OLD_MARKUP) > 1e-9) {
+  console.error(
+    `Refusing to reprice from markup ${fromMarkup} (expected ${OLD_MARKUP}). Use --force if intentional.`,
+  );
+  process.exit(1);
 }
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
@@ -78,12 +107,23 @@ for (const product of catalog) {
   const sheetEur = sourceEur.get(code);
   let eur;
   let base = "recovered";
-  if (sheetEur != null && sheetEur > 0 && retailFromEur(sheetEur, OLD_MARKUP) === oldPrice) {
-    eur = sheetEur;
-    base = "source";
-    fromSource += 1;
+  if (sheetEur != null && sheetEur > 0) {
+    const expectedOld = retailFromEur(sheetEur, OLD_MARKUP);
+    const expectedNew = retailFromEur(sheetEur, NEW_MARKUP);
+    if (oldPrice === expectedNew) {
+      skipped.unchanged += 1;
+      continue;
+    }
+    if (oldPrice === expectedOld) {
+      eur = sheetEur;
+      base = "source";
+      fromSource += 1;
+    } else {
+      eur = eurFromMarkupNad(oldPrice, fromMarkup);
+      fromRecovered += 1;
+    }
   } else {
-    eur = eurFromLegacyNad(oldPrice);
+    eur = eurFromMarkupNad(oldPrice, fromMarkup);
     fromRecovered += 1;
   }
 
@@ -163,7 +203,12 @@ const next = catalog.map((product) => {
   return { ...product, price: change.newPrice, unitPrice: change.newPrice };
 });
 fs.writeFileSync(catalogPath, `${JSON.stringify(next)}\n`);
+fs.writeFileSync(
+  statePath,
+  `${JSON.stringify({ markup: NEW_MARKUP, fx: FX, updatedAt: new Date().toISOString() }, null, 2)}\n`,
+);
 console.log(`Updated ${changes.length} products in data/products.json`);
+console.log(`Markup state → ${statePath}`);
 
 if (BAKE) {
   console.log("Baking listing index…");
