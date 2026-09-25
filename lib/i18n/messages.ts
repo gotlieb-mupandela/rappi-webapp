@@ -361,6 +361,8 @@ export const en = {
     packMultipack: "Sold as a multipack. The {symbol} price is for the full set, not a single piece.",
     packAssortment:
       "Sold as a wholesale assortment pack, not a single pair. The {symbol} price is the pack price. Mixed sizes ship as packed by the supplier — we do not invent a single-pair size.",
+    packAssortmentApparel:
+      "Sold as a wholesale assortment pack, not a single piece. The {symbol} price is for the full pack (shirts, shorts, and other apparel boxes). Mixed sizes ship as packed by the supplier.",
     moreIn: "More in {name}",
     moreInHub: "More in this hub",
     soldOutPiece: "This piece is sold out.",
@@ -374,9 +376,11 @@ export const en = {
     pairs: "pairs",
     pcs: "pcs",
     wholesale: "Wholesale assortment (8–12 pairs)",
+    wholesaleApparel: "Wholesale assortment",
     aboutEach: "About {amount} each",
     aboutPair: "About {amount} / pair",
     aboutPairRange: "About {eight} / pair (8) · {twelve} / pair (12)",
+    aboutEachRange: "About {six} each (6) · {eight} each (8) · {twelve} each (12)",
     descFromHub: "{name} from the {hub} drop.",
     descUnisex: "Unisex piece.",
     descPiece: "{who} piece.",
@@ -999,6 +1003,8 @@ export const fr: Messages = {
     packMultipack: "Vendu en multipack. Le prix {symbol} concerne l’ensemble, pas une pièce seule.",
     packAssortment:
       "Vendu en pack assortiment gros, pas à la paire. Le prix {symbol} est le prix du pack. Tailles mixtes selon le fournisseur — nous n’inventons pas de taille à la paire.",
+    packAssortmentApparel:
+      "Vendu en pack assortiment gros, pas à la pièce. Le prix {symbol} concerne le pack entier (tees, shorts et autres boxes textile). Tailles mixtes selon le fournisseur.",
     moreIn: "Plus dans {name}",
     moreInHub: "Plus dans ce rayon",
     soldOutPiece: "Cet article est épuisé.",
@@ -1012,9 +1018,11 @@ export const fr: Messages = {
     pairs: "paires",
     pcs: "pcs",
     wholesale: "Assortiment gros (8–12 paires)",
+    wholesaleApparel: "Assortiment gros",
     aboutEach: "Environ {amount} pièce",
     aboutPair: "Environ {amount} / paire",
     aboutPairRange: "Environ {eight} / paire (8) · {twelve} / paire (12)",
+    aboutEachRange: "Environ {six} pièce (6) · {eight} pièce (8) · {twelve} pièce (12)",
     descFromHub: "{name} de la collection {hub}.",
     descUnisex: "Pièce unisexe.",
     descPiece: "Pièce {who}.",

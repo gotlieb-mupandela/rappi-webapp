@@ -8,7 +8,7 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment } from "@/lib/assortment";
+import { getAssortment, isFootwearSku } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -114,13 +114,15 @@ export function ProductDetail({ product }: { product: Product }) {
           <p className="mt-2 text-sm text-[var(--muted)]">{stockLabel(product, t)}</p>
           {assortment?.isAssortment ? (
             <p className="mt-1 text-[12px] text-[var(--muted-2)]">
-              {assortment.preserveSizes
+              {assortment.packSize === 10 && assortment.preserveSizes
                 ? t("product.pack10", { symbol })
                 : assortment.packSize && assortment.packSize > 1
                   ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
                   : assortment.kind === "multipack"
                     ? t("product.packMultipack", { symbol })
-                    : t("product.packAssortment", { symbol })}
+                    : assortment.kind === "wholesale" && !isFootwearSku(product)
+                      ? t("product.packAssortmentApparel", { symbol })
+                      : t("product.packAssortment", { symbol })}
             </p>
           ) : null}
         </div>
