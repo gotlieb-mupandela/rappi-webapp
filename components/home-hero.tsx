@@ -69,7 +69,6 @@ export function HomeHero({
             fill
             imageFit="cover"
             imagePosition="object-top"
-            priority
             className="min-h-[12rem] md:min-h-0"
           />
 
@@ -83,7 +82,6 @@ export function HomeHero({
             fill
             imageFit="cover"
             imagePosition="object-[center_20%]"
-            priority
             className="min-h-[12rem] md:min-h-0"
           />
 

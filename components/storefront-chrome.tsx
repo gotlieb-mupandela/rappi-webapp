@@ -1,11 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { useT } from "@/components/locale-provider";
-import { loadListingIndex } from "@/lib/listing-index";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 
 export function StorefrontChrome({
@@ -23,13 +22,9 @@ export function StorefrontChrome({
   const isLogin = pathname === "/login";
   const isHome = pathname === "/";
 
-  useEffect(() => {
-    if (!isAdmin) {
-      void loadListingIndex().catch(() => {
-        /* Prefetch is best-effort; catalog pages load their own fallback. */
-      });
-    }
-  }, [isAdmin]);
+  // NOTE: no global listing-index prefetch — it is an 11MB download that
+  // CatalogBrowser already fetches on demand on catalog pages. Prefetching
+  // it here taxed every homepage visit for zero benefit.
 
   if (isAdmin) {
     return <>{children}</>;
