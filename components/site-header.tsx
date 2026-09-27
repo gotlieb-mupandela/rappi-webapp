@@ -512,7 +512,6 @@ export function SiteHeader({
                   <Button asChild className="w-full" variant="outline">
                     <Link href="/teamwear?view=quote">{t("home.teamwearCta")}</Link>
                   </Button>
-                  </Button>
                   <Button asChild className="w-full" variant="outline">
                     <Link href={user ? "/account" : "/login"}>
                       {user ? t("nav.myAccount") : t("nav.signIn")}

@@ -36,6 +36,9 @@ import {
   jomaFolderByKey,
   jomaFolderHasChildren,
   productsInJomaFolder,
+  type JomaFolderDef,
+} from "@/lib/joma-tree";
+import {
   jomaAccessoriesLandingTiles,
   jomaAudienceLandingTiles,
   jomaFootwearLandingTiles,
@@ -43,9 +46,8 @@ import {
   jomaOfficialKitsLandingTiles,
   jomaOutletLandingTiles,
   jomaTeamsLandingTiles,
-  type JomaFolderDef,
   type AccessoriesLandingTileDef,
-} from "@/lib/joma-tree";
+} from "@/lib/joma-nav";
 import { productCardImageUrl } from "@/lib/media";
 import { productInHub } from "@/lib/hub-membership";
 export { isKidsProduct, isKidsShoe, matchesAudience, productAudience };
