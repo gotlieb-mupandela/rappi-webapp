@@ -5,6 +5,7 @@ import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
 import { useT } from "@/components/locale-provider";
 import { audienceBlurb, audienceName, groupName, hubBlurb, hubName, subName } from "@/lib/i18n/labels";
 import type { MessageVars } from "@/lib/i18n/translate";
+import { jomaFolderByKey } from "@/lib/joma-tree";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
@@ -28,6 +29,8 @@ export function PageHeader({
   media,
   /** Tighter chrome for Joma folder landings (crumbs + title only). */
   compact = false,
+  /** Full-bleed browse width (Men / Women / folder grids). */
+  wide = false,
 }: {
   crumbs?: Crumb[];
   eyebrow?: string;
@@ -50,6 +53,7 @@ export function PageHeader({
   actions?: ReactNode;
   media?: ReactNode;
   compact?: boolean;
+  wide?: boolean;
 }) {
   const t = useT();
   const resolvedEyebrow =
@@ -66,7 +70,7 @@ export function PageHeader({
           const g = groupName(kind, titleSub, t);
           if (g !== titleSub) return g;
         }
-        return fromSub;
+        return jomaFolderByKey(titleSub)?.label ?? fromSub;
       })()
     : titleAudience
       ? audienceName(titleAudience, t)
@@ -92,6 +96,7 @@ export function PageHeader({
       <div
         className={cn(
           "page-shell",
+          wide && "page-shell--browse",
           compact ? "py-4 sm:py-5" : "py-8 sm:py-10 lg:py-14",
           media &&
             "grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)] lg:gap-12",

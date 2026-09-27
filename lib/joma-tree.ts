@@ -30,6 +30,11 @@ export type JomaFolderDef = {
   pattern?: RegExp;
   /** Storefront subcategory slug when classification maps here. */
   sub?: string;
+  /**
+   * When set, product.category must equal this hub slug
+   * (e.g. Teamwear Pro 2026 sport leaves → `teampro-2026`).
+   */
+  category?: string;
   children?: readonly JomaFolderDef[];
   /** Local cover override for HubTile. */
   cover?: string;
@@ -50,9 +55,14 @@ function leafMatchesProduct(
   fam: string,
   blob: string,
 ): boolean {
+  if (folder.category && product.category !== folder.category) return false;
   if (folder.sub && product.subcategory === folder.sub) return true;
   if (familyIn(fam, folder.families)) return true;
   if (folder.pattern?.test(blob)) return true;
+  // Category-only leaf (e.g. catch-all under a campaign hub).
+  if (folder.category && !folder.families?.length && !folder.pattern && !folder.sub) {
+    return true;
+  }
   return false;
 }
 
@@ -458,12 +468,18 @@ export const KIDS_FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
 
 function collectionLeaves(
   prefix: string,
-  entries: readonly { key: string; label: string; families: readonly string[] }[],
+  entries: readonly {
+    key: string;
+    label: string;
+    families?: readonly string[];
+    pattern?: RegExp;
+  }[],
 ): JomaFolderDef[] {
   return entries.map((e) => ({
     key: `${prefix}-${e.key}`,
     label: e.label,
     families: e.families,
+    pattern: e.pattern,
   }));
 }
 
@@ -637,6 +653,319 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
   },
 ];
 
+/**
+ * Teamwear Pro 2026 sport folders (PDF Man/Woman).
+ * Leaves are scoped to `teampro-2026` so they don’t steal regular Teamwear stock.
+ */
+const TEAMWEAR_PRO_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "tp-football",
+    label: "Football",
+    category: "teampro-2026",
+    families: ["montreal 2026", "montreal 26", "montreal", "mundial 2026", "mundial"],
+    pattern: /\b(football|futsal)\b/,
+    cover: "/brand/hub-lifestyle.png?v=1",
+  },
+  {
+    key: "tp-basketball",
+    label: "Basketball",
+    category: "teampro-2026",
+    pattern: /\b(basketball|basket|cancha|final four)\b/,
+  },
+  {
+    key: "tp-running",
+    label: "Running",
+    category: "teampro-2026",
+    pattern: /\b(running|trail)\b/,
+    cover: "/brand/hub-shoes.png",
+  },
+  {
+    key: "tp-rugby",
+    label: "Rugby",
+    category: "teampro-2026",
+    pattern: /\b(rugby|myskin|skrum)\b/,
+    cover: "/brand/hub-rugby.png?v=1",
+  },
+  {
+    key: "tp-handball",
+    label: "Handball",
+    category: "teampro-2026",
+    pattern: /\b(handball|hispa)\b/,
+  },
+  {
+    key: "tp-volleyball",
+    label: "Volleyball",
+    category: "teampro-2026",
+    pattern: /\bvolley(ball)?\b/,
+  },
+  {
+    key: "tp-training",
+    label: "Training",
+    category: "teampro-2026",
+    pattern: /\b(training|entrenamiento|polyester|cotton|combi)\b/,
+    cover: "/brand/hub-teampro-2026.png",
+  },
+  {
+    key: "tp-travel",
+    label: "Travel",
+    category: "teampro-2026",
+    pattern: /\b(travel|pasarela|lifestyle)\b/,
+  },
+];
+
+/** Running / Trail — season + collection folders (PDF). */
+const RUNNING_TRAIL_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "rt-new-ss27",
+    label: "New SS27",
+    children: collectionLeaves("rt-new", [
+      { key: "r-city", label: "R-City", families: ["r-city"], pattern: /\br-city\b/ },
+      { key: "r-trail", label: "R-Trail", families: ["r-trail"], pattern: /\br-trail\b/ },
+    ]),
+  },
+  {
+    key: "rt-in-stock",
+    label: "In stock",
+    children: collectionLeaves("rt-stock", [
+      {
+        key: "r-city-fall",
+        label: "R-City Fall",
+        families: ["r-city fall"],
+        pattern: /\br-city fall\b/,
+      },
+      {
+        key: "r-city-winter",
+        label: "R-City Winter",
+        families: ["r-city winter"],
+        pattern: /\br-city winter\b/,
+      },
+      { key: "r-night", label: "R-Night", families: ["r-night"], pattern: /\br-night\b/ },
+      { key: "r-trail", label: "R-Trail", families: ["r-trail"], pattern: /\br-trail\b/ },
+    ]),
+  },
+  {
+    key: "rt-previous",
+    label: "Previous collections",
+    children: collectionLeaves("rt-prev", [
+      { key: "r-nature", label: "R-Nature", families: ["r-nature"], pattern: /\br-nature\b/ },
+      { key: "r-night", label: "R-Night", families: ["r-night"], pattern: /\br-night\b/ },
+      { key: "r-city", label: "R-City", families: ["r-city"], pattern: /\br-city\b/ },
+    ]),
+  },
+  {
+    key: "rt-teamwear-collections",
+    label: "Teamwear collections",
+    children: collectionLeaves("rt-tw", [
+      { key: "picasho-city", label: "Picasho City", families: ["picasho city", "picasho"] },
+      { key: "record-pro", label: "Record Pro", families: ["record pro"] },
+      { key: "elite-xi", label: "Élite XI", families: ["elite xi", "élite xi"] },
+      { key: "elite-x", label: "Élite X", families: ["elite x", "élite x"] },
+      { key: "elite-ix", label: "Élite IX", families: ["elite ix", "élite ix"] },
+      { key: "record-ii", label: "Record II", families: ["record ii"] },
+      { key: "basicos", label: "Básicos", families: ["basicos", "básicos"] },
+    ]),
+  },
+];
+
+/** Cycling season folders (PDF). */
+const CYCLING_CHILDREN: readonly JomaFolderDef[] = collectionLeaves("cyc", [
+  {
+    key: "ss27",
+    label: "Spring Summer 2027",
+    families: ["spring summer 2027", "ss27"],
+    pattern: /\b(spring summer 2027|ss\s*27)\b/,
+  },
+  {
+    key: "fw26",
+    label: "Fall Winter 2026",
+    families: ["fall winter 2026", "fw26"],
+    pattern: /\b(fall winter 2026|fw\s*26|autumn winter)\b/,
+  },
+  {
+    key: "previous",
+    label: "Previous season",
+    families: ["previous season", "cycling"],
+    pattern: /\b(previous season|cycling)\b/,
+  },
+]);
+
+/** Racket sports — season + teamwear collection folders (PDF). */
+const RACKET_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "rk-new-ss27",
+    label: "New SS27",
+    children: collectionLeaves("rk-new", [
+      { key: "challenge", label: "Challenge", families: ["challenge"] },
+      { key: "smash", label: "Smash", families: ["smash"] },
+      { key: "torneo", label: "Torneo", families: ["torneo"] },
+    ]),
+  },
+  {
+    key: "rk-in-stock",
+    label: "In stock",
+    children: collectionLeaves("rk-stock", [
+      { key: "challenge", label: "Challenge", families: ["challenge"] },
+      { key: "smash", label: "Smash", families: ["smash"] },
+    ]),
+  },
+  {
+    key: "rk-previous",
+    label: "Previous collections",
+    children: collectionLeaves("rk-prev", [
+      { key: "challenge", label: "Challenge", families: ["challenge"] },
+      { key: "smash", label: "Smash", families: ["smash"] },
+      { key: "torneo", label: "Torneo", families: ["torneo"] },
+    ]),
+  },
+  {
+    key: "rk-teamwear-collections",
+    label: "Teamwear collections",
+    children: collectionLeaves("rk-tw", [
+      { key: "terra", label: "Terra", families: ["terra"] },
+      { key: "montreal-26", label: "Montreal 26", families: ["montreal 26", "montreal 2026"] },
+      { key: "montreal-25", label: "Montreal 25", families: ["montreal 25", "montreal 2025"] },
+      { key: "basicos", label: "Básicos", families: ["basicos", "básicos", "court"] },
+    ]),
+  },
+];
+
+/** Hiking / Outdoor (PDF). */
+const HIKING_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "hk-ss27",
+    label: "Spring Summer 2027",
+    families: ["spring summer 2027", "ss27"],
+    pattern: /\b(spring summer 2027|ss\s*27)\b/,
+  },
+  {
+    key: "hk-in-stock",
+    label: "In stock",
+    children: collectionLeaves("hk-stock", [
+      { key: "explorer", label: "Explorer", families: ["explorer"], pattern: /\bexplorer\b/ },
+      { key: "snow", label: "Snow", families: ["snow"], pattern: /\bsnow\b/ },
+    ]),
+  },
+  {
+    key: "hk-previous",
+    label: "Previous collections",
+    children: collectionLeaves("hk-prev", [
+      {
+        key: "outdoor",
+        label: "Outdoor",
+        families: ["outdoor"],
+        pattern: /\b(outdoor|hiking|trekking)\b/,
+      },
+      { key: "snow", label: "Snow", families: ["snow"], pattern: /\bsnow\b/ },
+    ]),
+  },
+];
+
+/** Fitness / Gym (PDF). */
+const FITNESS_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "fit-new",
+    label: "New collections",
+    children: collectionLeaves("fit-new", [
+      {
+        key: "fitness-gym",
+        label: "Fitness / Gym",
+        families: ["fitness / gym", "fitness", "gym"],
+        pattern: /\b(fitness|gym)\b/,
+      },
+      { key: "soft", label: "Soft", pattern: /\bsoft\b(?![\s-]*shell)/ },
+    ]),
+  },
+  {
+    key: "fit-in-stock",
+    label: "In stock",
+    children: collectionLeaves("fit-stock", [
+      {
+        key: "indoor-gym",
+        label: "Indoor Gym",
+        families: ["indoor gym", "indoor"],
+        pattern: /\b(indoor gym|r-indoor)\b/,
+      },
+      { key: "soft", label: "Soft", pattern: /\bsoft\b(?![\s-]*shell)/ },
+    ]),
+  },
+  {
+    key: "fit-previous",
+    label: "Previous collections",
+    children: collectionLeaves("fit-prev", [
+      {
+        key: "indoor",
+        label: "Indoor",
+        families: ["indoor", "r-indoor"],
+        pattern: /\b(indoor|r-indoor)\b/,
+      },
+      { key: "soft", label: "Soft", pattern: /\bsoft\b(?![\s-]*shell)/ },
+    ]),
+  },
+];
+
+/** Lifestyle apparel (PDF Man/Woman). */
+const LIFESTYLE_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "ls-ss27",
+    label: "Spring Summer 2027",
+    families: ["spring summer 2027", "ss27"],
+    pattern: /\b(spring summer 2027|ss\s*27)\b/,
+  },
+  {
+    key: "ls-in-stock",
+    label: "In stock",
+    children: collectionLeaves("ls-stock", [
+      { key: "mimetic", label: "Mimetic", families: ["mimetic"], pattern: /\bmimetic\b/ },
+      { key: "step", label: "Step", families: ["step"], pattern: /\bstep\b/ },
+      {
+        key: "urban-aesthetics",
+        label: "Urban Aesthetics",
+        families: ["urban aesthetics"],
+        pattern: /\burban aesthetics\b/,
+      },
+    ]),
+  },
+  {
+    key: "ls-previous",
+    label: "Previous season",
+    families: ["previous season"],
+    pattern: /\bprevious season\b/,
+  },
+  {
+    key: "ls-basicos",
+    label: "Básicos",
+    children: collectionLeaves("ls-bas", [
+      { key: "desert", label: "Desert", families: ["desert"] },
+      { key: "versalles", label: "Versalles", families: ["versalles"] },
+      { key: "montana", label: "Montana", families: ["montana"] },
+      { key: "pasarela", label: "Pasarela", families: ["pasarela", "pasarela travel"] },
+      { key: "oasis", label: "Oasis / Desert", families: ["oasis", "oasis ii", "desert"] },
+    ]),
+  },
+];
+
+/** Underwear / Brama (PDF). */
+const BRAMA_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "brama-line",
+    label: "Brama Line",
+    families: ["brama", "brama line"],
+    pattern: /\bbrama\b/,
+  },
+  {
+    key: "brama-sujetadores",
+    label: "Sujetadores deportivos",
+    families: ["sujetadores deportivos", "sujetador"],
+    pattern: /\bsujetador/,
+  },
+  {
+    key: "brama-intimi",
+    label: "Intimi",
+    families: ["intimi"],
+    pattern: /\bintimi\b/,
+  },
+];
+
 /** Top-level Man / Woman apparel folders from the PDF. */
 export const APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   {
@@ -648,72 +977,39 @@ export const APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "teamwear-pro-2026",
     label: "Teamwear Pro 2026",
-    families: ["teamwear pro 2026", "montreal 2026", "mundial 2026"],
-    pattern: /\b(teamwear pro|mundial 2026|montreal 2026|teampro)\b/,
+    children: TEAMWEAR_PRO_CHILDREN,
     cover: "/brand/hub-teampro-2026.png",
   },
   {
     key: "running-trail",
     label: "Running / Trail",
-    families: [
-      "r-city",
-      "r-trail",
-      "r-night",
-      "r-nature",
-      "record pro",
-      "record ii",
-      "elite xi",
-      "elite x",
-      "elite ix",
-      "elite vii & viii",
-      "picasho city",
-      "basicos",
-      "básicos",
-    ],
-    pattern: /\b(r-city|r-trail|r-night|r-nature|record pro|elite x|running \/ trail)\b/,
+    children: RUNNING_TRAIL_CHILDREN,
     cover: "/brand/hub-shoes.png",
   },
   {
     key: "cycling",
     label: "Cycling",
-    families: ["cycling", "spring summer 2027", "fall winter 2026"],
-    pattern: /\b(cycling|bike|bicicleta)\b/,
+    children: CYCLING_CHILDREN,
   },
   {
     key: "racket-sports",
     label: "Racket sports",
-    families: [
-      "challenge",
-      "smash",
-      "torneo",
-      "terra",
-      "montreal 26",
-      "montreal 25",
-      "montreal 2026",
-      "montreal 2025",
-      "court",
-      "basicos",
-      "básicos",
-    ],
-    pattern: /\b(challenge|smash|torneo|terra|padel|p[aá]del|pickleball|tennis)\b/,
+    children: RACKET_CHILDREN,
   },
   {
     key: "hiking-outdoor",
     label: "Hiking / Outdoor",
-    families: ["explorer", "snow", "outdoor"],
-    pattern: /\b(explorer|hiking|trekking|outdoor|snow)\b/,
+    children: HIKING_CHILDREN,
   },
   {
     key: "fitness-gym",
     label: "Fitness / Gym",
-    families: ["fitness / gym", "soft", "indoor gym", "indoor", "r-indoor"],
-    pattern: /\b(fitness|gym|indoor gym|r-indoor)\b/,
+    children: FITNESS_CHILDREN,
   },
   {
     key: "lifestyle-apparel",
     label: "Lifestyle",
-    families: ["mimetic", "step", "urban aesthetics", "urban aesthetics"],
-    pattern: /\b(mimetic|urban aesthetics|\bstep\b)\b/,
+    children: LIFESTYLE_CHILDREN,
   },
   {
     key: "aguila-line",
@@ -736,8 +1032,7 @@ export const APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "underwear-brama",
     label: "Underwear / Brama",
-    families: ["brama", "brama line", "intimi", "sujetadores deportivos"],
-    pattern: /\b(brama|intimi|sujetador)\b/,
+    children: BRAMA_CHILDREN,
   },
   {
     key: "athletes-combat",

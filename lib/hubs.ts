@@ -676,13 +676,14 @@ function footwearLandingImage(
   return fallback;
 }
 
-/** Footwear first-view tiles: Man / Woman / Junior / Outlet. */
+/** Footwear first-view tiles: Men / Women / Kids / Outlet. */
 export function footwearLandingTiles(catalog: Product[] = bundled) {
   return jomaFootwearLandingTiles().map((tile) => ({
     label: tile.label,
     href: tile.href,
     imageSrc: footwearLandingImage(tile.audience, catalog, tile.label === "OUTLET"),
     banner: tile.banner,
+    bannerTone: tile.banner ? ("magenta" as const) : undefined,
   }));
 }
 

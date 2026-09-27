@@ -129,13 +129,14 @@ export default async function ShopListingPage({
       <div className="bg-white">
         <PageHeader
           compact
+          wide
           crumbs={[
             { href: "/", key: "common.home" },
             { key: titleKey },
           ]}
           titleKey={titleKey}
         />
-        <div className="page-shell pb-8 pt-1 sm:pb-10">
+        <div className="page-shell page-shell--browse pb-8 pt-1 sm:pb-10">
           <AudienceLandingGrid tiles={tiles} />
         </div>
       </div>
@@ -262,6 +263,8 @@ export default async function ShopListingPage({
 
   const shopPath = `/shop/${audienceFromPath ? audienceFromPath.slug : hubSlug}`;
   const ancestors = groupKey ? jomaFolderAncestorKeys(groupKey) : [];
+  const shoesAudienceFromQuery =
+    !audienceFromPath && hubSlug === "shoes" && Boolean(activeAudience);
 
   const crumbs = [
     { href: "/", key: "common.home" as const },
@@ -270,7 +273,23 @@ export default async function ShopListingPage({
           href: groupKey || subKey || !showFolders ? shopPath : undefined,
           audience: audienceFromPath.slug,
         }
-      : { href: `/category/${hubSlug}`, hub: hubSlug },
+      : shoesAudienceFromQuery
+        ? {
+            href: "/shop/shoes",
+            key: "nav.footwear" as const,
+          }
+        : { href: `/shop/${hubSlug}`, hub: hubSlug },
+    ...(shoesAudienceFromQuery && activeAudience
+      ? [
+          {
+            href:
+              groupKey || subKey
+                ? `/shop/shoes?audience=${activeAudience.slug}`
+                : undefined,
+            audience: activeAudience.slug,
+          },
+        ]
+      : []),
     ...ancestors.map((key) => ({
       href: groupHref(
         key,
@@ -307,19 +326,31 @@ export default async function ShopListingPage({
       ? listing.total
       : undefined;
 
+  const titleAudienceSlug =
+    !groupKey && !subKey
+      ? audienceFromPath?.slug ?? (shoesAudienceFromQuery ? activeAudience?.slug : undefined)
+      : undefined;
+
   return (
     <div>
       <PageHeader
         compact
+        wide={showFolders}
         crumbs={crumbs}
-        titleAudience={!groupKey && !subKey ? audienceFromPath?.slug : undefined}
+        titleAudience={titleAudienceSlug}
         titleHub={
-          !groupKey && !subKey && !audienceFromPath ? hubSlug : undefined
+          !groupKey && !subKey && !titleAudienceSlug ? hubSlug : undefined
         }
         titleSub={subKey || groupKey || undefined}
         titleCount={titleCount}
       />
-      <div className={showFolders ? "page-shell pb-10 pt-1" : "page-shell pb-10 pt-1"}>
+      <div
+        className={
+          showFolders
+            ? "page-shell page-shell--browse pb-10 pt-1"
+            : "page-shell pb-10 pt-1"
+        }
+      >
         {showFolders ? (
           <FolderGrid
             folders={folders}
@@ -329,7 +360,7 @@ export default async function ShopListingPage({
           <CatalogBrowser
             initialListing={listing}
             categorySlug={audienceFromPath ? undefined : hubSlug}
-            audienceSlug={audienceFromPath?.slug}
+            audienceSlug={audienceFromPath?.slug ?? activeAudience?.slug}
             basePath={shopPath}
             grouped
             hideFilters

@@ -26,16 +26,20 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
 
   if (!slug) return null;
 
+  const activeSub = params.get("sub");
+  const viewAll = params.get("view") === "all";
+  const onShop = pathname.startsWith(`/shop/${slug}`);
+
+  // Footwear folder landings (audience tiles + sport folders) have no type strip.
+  // Show Boots / Sneakers / … only on product lists (`sub` or `view=all`).
+  if (slug === "shoes" && onShop && !activeSub && !viewAll) {
+    return null;
+  }
+
   const subs = (taxonomy[slug] ?? []).filter(
     (s) => s.count > 0 && SUBCATEGORY_LABELS[s.slug] && !HIDDEN_TYPE_FOLDERS.has(s.slug),
   );
   if (subs.length < 2) return null;
-
-  const activeSub = params.get("sub");
-  const activeGroup = params.get("group");
-  const viewAll = params.get("view") === "all";
-  const onShop = pathname.startsWith(`/shop/${slug}`);
-  const onFolders = onShop && !activeSub && !viewAll && !activeGroup;
 
   return (
     <nav className="border-t border-black/8 bg-white">

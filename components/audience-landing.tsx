@@ -25,7 +25,7 @@ export function AudienceLandingGrid({
   className?: string;
   /**
    * `audience` = dense Man/Woman apparel grid (7-col);
-   * `footwear` = 4 equal shoe tiles with object-contain;
+   * `footwear` = 4 equal square shoe tiles with object-contain;
    * `kits` = 3 equal Official Kits portrait tiles;
    * `kids` = 4 equal Children portrait cards;
    * `outlet` = photo + orange/red graphic OUTLET cards.
@@ -45,7 +45,7 @@ export function AudienceLandingGrid({
           ? "grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-4 md:gap-6"
           : isKids || isFootwear
             ? "grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5"
-            : "joma-folder-grid grid grid-cols-2 gap-0.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7",
+            : "joma-folder-grid grid grid-cols-2 gap-0.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7",
         className,
       )}
     >
@@ -75,6 +75,7 @@ export function AudienceLandingGrid({
             <div
               className={cn(
                 "relative overflow-hidden",
+                /* Footwear hub stays square; catalog folders (HubTile) use portrait 3/4 */
                 isFootwear ? "aspect-square bg-[#eceff1]" : "aspect-[3/4] bg-[#eceff1]",
                 isKids && "rounded-[18px]",
                 outletKind === "category" && "bg-[#f18a1f]",

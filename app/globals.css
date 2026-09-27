@@ -50,15 +50,29 @@ body {
   padding-inline: 1rem;
 }
 
+/* Joma folder landings: edge-to-edge tiles across the viewport */
+.page-shell--browse {
+  max-width: var(--container-browse);
+  padding-inline: 0.5rem;
+}
+
 @media (min-width: 640px) {
   .page-shell {
     padding-inline: 1.25rem;
+  }
+
+  .page-shell--browse {
+    padding-inline: 0.625rem;
   }
 }
 
 @media (min-width: 1024px) {
   .page-shell {
     padding-inline: 1.5rem;
+  }
+
+  .page-shell--browse {
+    padding-inline: 0.75rem;
   }
 }
 

@@ -10,7 +10,7 @@ export function FolderGrid({
   slug: string;
 }) {
   return (
-    <div className="joma-folder-grid grid grid-cols-2 gap-0.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
+    <div className="joma-folder-grid grid grid-cols-2 gap-0.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
       {folders.map((g, i) => (
         <HubTile
           key={g.key}

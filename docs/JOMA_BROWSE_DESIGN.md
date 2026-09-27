@@ -29,7 +29,7 @@ Women uses the same apparel tree (`/shop/women?group=…`). Footwear uses `/shop
 
 - Portrait studio plate on light gray (`#eceff1`), **edge-to-edge cover** (no padded contain)
 - **White label bar under** the image — centered, bold uppercase, near-black (`#1a1a2e`); no piece counts
-- Near-flush gutters (`2px`); grid up to **7 columns** on `xl`
+- Near-flush gutters (`2px`); grid **7 columns from `lg`**, browse shell up to **1920px**
 - Hover: **1px navy outline** around the whole tile (image + label); subtle image zoom
 - Empty folders still render
 
@@ -64,6 +64,14 @@ Homepage bento tiles stay overlay-style (`variant` default). Catalog folder hubs
 | PDF / screenshot | Key |
 |------------------|-----|
 | Teamwear | `teamwear` |
+| Teamwear Pro 2026 | `teamwear-pro-2026` → sport leaves (`tp-*`) |
+| Running / Trail | `running-trail` → New SS27 / In stock / Previous / Teamwear collections |
+| Cycling | `cycling` → SS27 / FW26 / Previous season |
+| Racket sports | `racket-sports` → New SS27 / In stock / Previous / Teamwear collections |
+| Hiking / Outdoor | `hiking-outdoor` → SS27 / In stock / Previous |
+| Fitness / Gym | `fitness-gym` → New / In stock / Previous |
+| Lifestyle | `lifestyle-apparel` → SS27 / In stock / Previous / Básicos |
+| Underwear / Brama | `underwear-brama` → Brama Line / Sujetadores / Intimi |
 | Training Polyester / Cotton | `training-polyester`, `training-cotton` (+ collection children) |
 | Outerwear | `outerwear` |
 | Anorak/Jackets | `anorak-jackets` |

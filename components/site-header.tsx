@@ -214,9 +214,9 @@ export function SiteHeader({
       { label: "12-14 year old girl", href: "/shop/kids?age=12-14&gender=girl" },
     ],
     shoes: [
-      { label: "Man", href: "/shop/shoes?audience=men" },
-      { label: "Woman", href: "/shop/shoes?audience=women" },
-      { label: "Junior", href: "/shop/shoes?audience=kids" },
+      { label: "Men", href: "/shop/shoes?audience=men" },
+      { label: "Women", href: "/shop/shoes?audience=women" },
+      { label: "Kids", href: "/shop/shoes?audience=kids" },
       { label: "Outlet", href: "/promotions" },
     ],
     teamwear: [

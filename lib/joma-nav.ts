@@ -87,12 +87,12 @@ export type FootwearLandingTileDef = {
 
 type AudienceSlugForShoes = "men" | "women" | "kids";
 
-/** Exact Footwear dropdown destinations shared by header + footwear landing. */
+/** Exact Footwear first-view tiles (Joma B2B: MEN / WOMEN / KIDS / OUTLET). */
 export function jomaFootwearLandingTiles(): FootwearLandingTileDef[] {
   return [
-    { label: "MAN", href: "/shop/shoes?audience=men", audience: "men" },
-    { label: "WOMAN", href: "/shop/shoes?audience=women", audience: "women" },
-    { label: "JUNIOR", href: "/shop/shoes?audience=kids", audience: "kids" },
+    { label: "MEN", href: "/shop/shoes?audience=men", audience: "men" },
+    { label: "WOMEN", href: "/shop/shoes?audience=women", audience: "women" },
+    { label: "KIDS", href: "/shop/shoes?audience=kids", audience: "kids" },
     {
       label: "OUTLET",
       href: "/promotions",

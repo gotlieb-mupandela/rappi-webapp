@@ -26,7 +26,8 @@
   --font-display: var(--font-oswald), "Oswald", "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-body: var(--font-inter), "Inter", "Segoe UI", system-ui, sans-serif;
   --header-h: 4rem;
-  --container: 1440px;
+  --container: 1680px;
+  --container-browse: 1920px;
   --radius: 0.625rem;
   --radius-lg: 0.875rem;
   --radius-xl: 1rem;

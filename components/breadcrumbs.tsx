@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { useT } from "@/components/locale-provider";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import type { MessageVars } from "@/lib/i18n/translate";
+import { jomaFolderByKey } from "@/lib/joma-tree";
 import { cn } from "@/lib/utils";
 
 export type Crumb = {
@@ -31,7 +32,7 @@ function crumbLabel(
       const g = groupName(kind, item.sub, t);
       if (g !== item.sub) return g;
     }
-    return fromSub;
+    return jomaFolderByKey(item.sub)?.label ?? fromSub;
   }
   return item.label ?? "";
 }
