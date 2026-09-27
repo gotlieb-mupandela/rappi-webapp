@@ -38,23 +38,17 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const onFolders = onShop && !activeSub && !viewAll && !activeGroup;
 
   return (
-    <nav className="border-t border-[var(--border)] bg-[var(--header-bg-scrolled)]">
+    <nav className="border-t border-black/8 bg-white">
       <ScrollArea className="page-shell w-full">
         <ul className="flex items-center gap-x-5 py-2 xl:gap-x-6 lg:justify-center">
           <li className="shrink-0">
             <Link
               href={`/shop/${slug}`}
-              data-active={onFolders ? "true" : undefined}
-              className={cn("nav-link text-xs font-medium uppercase tracking-[0.12em]")}
-            >
-              {t("shop.shopByType")}
-            </Link>
-          </li>
-          <li className="shrink-0">
-            <Link
-              href={`/shop/${slug}?view=all`}
               data-active={onShop && viewAll && !activeSub ? "true" : undefined}
-              className={cn("nav-link text-xs font-medium uppercase tracking-[0.12em]")}
+              className={cn(
+                "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
+                onShop && viewAll && !activeSub && "text-black",
+              )}
             >
               {t("common.all")}
             </Link>
@@ -70,7 +64,10 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
                 <Link
                   href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}${groupParam}`}
                   data-active={activeSub === s.slug ? "true" : undefined}
-                  className="nav-link text-xs font-medium uppercase tracking-[0.12em]"
+                  className={cn(
+                    "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
+                    activeSub === s.slug && "text-black",
+                  )}
                 >
                   {subName(s.slug, t)}
                 </Link>

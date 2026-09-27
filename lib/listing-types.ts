@@ -1,7 +1,7 @@
 import type { ListingAudience } from "@/lib/audience";
 import type { Product } from "@/lib/types";
 
-export const LISTING_PAGE_SIZE = 48;
+export const LISTING_PAGE_SIZE = 24;
 
 /** Slim catalog row for client listing (full Product fields + search/facet helpers). */
 export type ListingItem = Product & {

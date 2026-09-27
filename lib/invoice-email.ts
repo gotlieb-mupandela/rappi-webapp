@@ -23,7 +23,7 @@ function bytesToBase64(bytes: Uint8Array) {
 
 function invoiceLogoUrl() {
   const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.rappisportshub.com").replace(/\/$/, "");
-  return `${site}/brand/rappi-logo-v2.png`;
+  return `${site}/brand/logo-dark.png`;
 }
 
 async function sendResendEmail(input: {
@@ -129,8 +129,8 @@ export async function sendOrderInvoice(
       subject: `Invoice ${data.order.id} — ${seller.legalName}`,
       html: [
         `<div style="font-family:Arial,sans-serif;color:#111">`,
-        `<div style="background:#111;padding:16px 20px">`,
-        `<img src="${escapeHtml(invoiceLogoUrl())}" alt="${escapeHtml(seller.legalName)}" width="140" style="display:block;height:auto" />`,
+        `<div style="background:#ffffff;border-bottom:3px solid #5eff38;padding:16px 20px">`,
+        `<img src="${escapeHtml(invoiceLogoUrl())}" alt="${escapeHtml(seller.legalName)}" width="160" style="display:block;height:auto" />`,
         `</div>`,
         `<p>Hi ${escapeHtml(data.order.full_name)},</p>`,
         `<p>Thank you for your order <strong>${escapeHtml(data.order.id)}</strong>. Your invoice is attached.</p>`,

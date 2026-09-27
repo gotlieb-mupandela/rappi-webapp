@@ -34,7 +34,7 @@ export function HomeTeamwear() {
           </p>
           <div className="mt-6">
             <Button asChild size="lg">
-              <Link href="/teamwear">{t("home.teamwearCta")}</Link>
+              <Link href="/teamwear?view=quote">{t("home.teamwearCta")}</Link>
             </Button>
           </div>
         </div>

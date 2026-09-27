@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SelectMenu } from "@/components/ui/select-menu";
 import { useLocale } from "@/components/locale-provider";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { shippingName } from "@/lib/i18n/labels";
@@ -36,6 +37,7 @@ export default function CheckoutPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
@@ -129,6 +131,10 @@ export default function CheckoutPage() {
       toast.error(t("checkout.completeNameEmail"));
       return;
     }
+    if (!phone.trim() || !/^\+?[\d\s().-]{7,20}$/.test(phone.trim())) {
+      toast.error(t("checkout.completePhone"));
+      return;
+    }
     if (!country || (addressRequired && (!address || !city))) {
       toast.error(t("checkout.completeDetails"));
       return;
@@ -143,6 +149,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             name,
             email,
+            phone: phone.trim(),
             address,
             city,
             country,
@@ -327,6 +334,19 @@ export default function CheckoutPage() {
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </Field>
               <div className="sm:col-span-2">
+                <Field label={t("checkout.phone")}>
+                  <Input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder={t("checkout.phonePlaceholder")}
+                    required
+                  />
+                </Field>
+              </div>
+              <div className="sm:col-span-2">
                 <Field label={t("checkout.street")}>
                   <Input
                     value={address}
@@ -343,21 +363,16 @@ export default function CheckoutPage() {
                 />
               </Field>
               <Field label={t("checkout.country")}>
-                <select
+                <SelectMenu
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
+                  onChange={setCountry}
                   required
-                  className="h-11 w-full rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-4 text-sm text-ink outline-none transition-[border-color,box-shadow,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-50"
-                >
-                  <option value="">{t("checkout.countryPlaceholder")}</option>
-                  {[...VAT_COUNTRIES]
+                  aria-label={t("checkout.country")}
+                  placeholder={t("checkout.countryPlaceholder")}
+                  options={[...VAT_COUNTRIES]
                     .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((row) => (
-                    <option key={row.name} value={row.name}>
-                      {row.name}
-                    </option>
-                  ))}
-                </select>
+                    .map((row) => ({ value: row.name, label: row.name }))}
+                />
               </Field>
             </div>
           </section>
@@ -375,6 +390,7 @@ export default function CheckoutPage() {
                       name="ship"
                       checked={method === s.id}
                       onChange={() => setMethod(s.id)}
+                      className="accent-[var(--accent)]"
                     />
                     <span className="min-w-0 break-words">{shippingName(s.id, s.name, t)}</span>
                   </span>

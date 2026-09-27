@@ -9,7 +9,7 @@ export function StoreHeaderActions() {
   return (
     <>
       <Button asChild>
-        <Link href="/teamwear">{t("home.teamwearCta")}</Link>
+        <Link href="/teamwear?view=quote">{t("home.teamwearCta")}</Link>
       </Button>
       <Button asChild variant="outline">
         <Link href="/shop/sportswear">{t("home.shopNow")}</Link>

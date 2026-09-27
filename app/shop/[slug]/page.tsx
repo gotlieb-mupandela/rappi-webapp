@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { FolderGrid } from "@/components/folder-grid";
 import { PageHeader } from "@/components/page-header";
@@ -17,13 +18,13 @@ import {
   categoryHubFolders,
   jomaChildFolderGroups,
   typeFolderLeafGroups,
+  accessoriesLandingTiles,
+  audienceLandingTiles,
+  footwearLandingTiles,
+  kidsLandingTiles,
+  subcategoryHubGroups,
   type HubFolderTile,
 } from "@/lib/hubs";
-import {
-  jomaFolderAncestorKeys,
-  jomaFolderHasChildren,
-  jomaFolderParentKey,
-} from "@/lib/joma-tree";
 import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
@@ -88,6 +89,13 @@ export default async function ShopListingPage({
   const groupKey = query.group && query.group !== "all" ? query.group : "";
   const subKey = query.sub && query.sub !== "all" ? query.sub : "";
 
+  const hasTypeOrSearchFilter = listingQueryIsActive(query, {
+    categorySlug: audienceFromPath ? undefined : hubSlug,
+    audienceSlug: activeAudience?.slug,
+  });
+  const hasKidsAgeOrGender =
+    Boolean(firstSearchParam(sp.age)) || Boolean(firstSearchParam(sp.gender));
+
   const hasProductFilters = listingQueryIsActive(
     { ...query, group: undefined },
     {
@@ -95,6 +103,7 @@ export default async function ShopListingPage({
       audienceSlug: activeAudience?.slug,
     },
   );
+
   const wantsProducts =
     viewAll ||
     hasProductFilters ||
@@ -103,8 +112,123 @@ export default async function ShopListingPage({
 
   const catalog = await getCatalog();
 
+  const jomaLandingAudience =
+    audienceFromPath?.slug === "men" || audienceFromPath?.slug === "women"
+      ? audienceFromPath.slug
+      : null;
+  const showJomaLanding =
+    Boolean(jomaLandingAudience) &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter;
+
+  if (showJomaLanding && jomaLandingAudience) {
+    const tiles = audienceLandingTiles(jomaLandingAudience, catalog);
+    const titleKey = jomaLandingAudience === "men" ? "nav.man" : "nav.woman";
+    return (
+      <div className="bg-white">
+        <PageHeader
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: titleKey },
+          ]}
+          titleKey={titleKey}
+        />
+        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+          <AudienceLandingGrid tiles={tiles} />
+        </div>
+      </div>
+    );
+  }
+
+  const showKidsLanding =
+    audienceFromPath?.slug === "kids" &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter &&
+    !hasKidsAgeOrGender;
+
+  if (showKidsLanding) {
+    const tiles = kidsLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.children" },
+          ]}
+          titleKey="nav.children"
+        />
+        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+          <AudienceLandingGrid tiles={tiles} variant="kids" />
+        </div>
+      </div>
+    );
+  }
+
+  const showFootwearLanding =
+    !audienceFromPath &&
+    hubSlug === "shoes" &&
+    !activeAudience &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter;
+
+  if (showFootwearLanding) {
+    const tiles = footwearLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.footwear" },
+          ]}
+          titleKey="nav.footwear"
+        />
+        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+          <AudienceLandingGrid tiles={tiles} variant="footwear" />
+        </div>
+      </div>
+    );
+  }
+
+  const showAccessoriesLanding =
+    !audienceFromPath &&
+    hubSlug === "balls-bags" &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter;
+
+  if (showAccessoriesLanding) {
+    const tiles = accessoriesLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.accessories" },
+          ]}
+          titleKey="nav.accessories"
+        />
+        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+          <AudienceLandingGrid tiles={tiles} />
+        </div>
+      </div>
+    );
+  }
+
+  const wantTypeFolders =
+    firstSearchParam(sp.view) !== "all" && !hasTypeOrSearchFilter;
+
   let folders: HubFolderTile[] = [];
-  if (!wantsProducts) {
+  if (wantTypeFolders) {
+    const typeGroups = activeAudience
+      ? audienceHubGroups(
+          activeAudience.slug,
+          catalog,
+          audienceFromPath ? undefined : { categorySlug: hubSlug },
+        )
+      : hubSlug
+      ? subcategoryHubGroups(hubSlug, catalog)
+      : [];
+    folders = typeGroups;
+  } else if (!wantsProducts) {
     if (groupKey && jomaFolderHasChildren(groupKey)) {
       folders = jomaChildFolderGroups(groupKey, catalog, {
         categorySlug: audienceFromPath ? undefined : hubSlug,

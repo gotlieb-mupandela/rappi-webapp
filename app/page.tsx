@@ -1,42 +1,12 @@
 import { HomeHero } from "@/components/home-hero";
-import { HomeSportTile } from "@/components/home-sport-tile";
-import { HubTile } from "@/components/hub-tile";
-import { ProductCard } from "@/components/product-card";
-import { SectionHeading } from "@/components/section-heading";
-import { sampleForCategory, hasUsableProductImage } from "@/lib/classify";
-import {
-  audienceTiles,
-  HOME_CATEGORY_HUBS,
-  HOME_SPORTS,
-  HUB_COVERS,
-} from "@/lib/hubs";
-import { getProductByCode, productsInHub } from "@/lib/offline-catalog";
-import { getCatalog, getSiteSettings } from "@/lib/supabase/catalog";
-import type { Product } from "@/lib/types";
+import { HUB_COVERS } from "@/lib/hubs";
 
 export const revalidate = 3600;
 
+// Homepage tiles render static local covers (HUB_COVERS) — no catalog scan.
+// Loading the 11k-row catalog here cost ~6s of server time for zero
+// rendered pixels (HubTile prefers imageSrc over the product photo).
 export default async function HomePage() {
-  const [catalog, settings] = await Promise.all([getCatalog(), getSiteSettings()]);
-  const byCode = (code: string) => getProductByCode(code);
-  const spotlightCodes = settings?.spotlight_codes?.length
-    ? settings.spotlight_codes
-    : ["104409.484", "TOJS2604TF", "RR300W2680", "C448S2715"];
-  const spotlight = spotlightCodes
-    .map((code) => byCode(code))
-    .filter((p): p is Product => p != null)
-    .filter(hasUsableProductImage);
-  const audiences = audienceTiles(catalog);
-  const kidsAudience = audiences.find((a) => a.key === "kids");
-  const football = productsInHub("football").filter(hasUsableProductImage);
-  const featured = spotlight.length ? spotlight : football.slice(0, 6);
-  const categoryHubs = HOME_CATEGORY_HUBS.map((slug) => ({
-    slug,
-    product: sampleForCategory(catalog, slug),
-    imageSrc: HUB_COVERS[slug],
-  }));
-  const sports = HOME_SPORTS.filter((slug) => sampleForCategory(catalog, slug));
-
   return (
     <div>
       <HomeHero

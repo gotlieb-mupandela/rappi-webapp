@@ -60,6 +60,10 @@ export function ListingPagination({
   );
 }
 
+function scrollListingToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+}
+
 function PageLink({
   href,
   active,
@@ -88,17 +92,15 @@ function PageLink({
       href={href}
       rel={rel}
       className={className}
-      onClick={
-        onNavigate
-          ? (event) => {
-              if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
-                return;
-              }
-              event.preventDefault();
-              onNavigate(href);
-            }
-          : undefined
-      }
+      onClick={(event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+          return;
+        }
+        scrollListingToTop();
+        if (!onNavigate) return;
+        event.preventDefault();
+        onNavigate(href);
+      }}
     >
       {children}
     </Link>

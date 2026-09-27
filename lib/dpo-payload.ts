@@ -10,6 +10,7 @@ export type DpoPaymentPayload = {
   userId: string;
   email: string;
   name: string;
+  phone?: string;
   address: string;
   city: string;
   country: string;
@@ -34,6 +35,6 @@ export function isDpoPaymentPayload(value: unknown): value is DpoPaymentPayload 
     typeof row.shippingMethod === "string" &&
     typeof row.shippingCost === "number" &&
     Array.isArray(row.lines)
-    // vatRate / vatAmount are optional on older pending payments
+    // phone / vatRate / vatAmount optional on older pending payments
   );
 }

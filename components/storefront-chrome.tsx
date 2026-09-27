@@ -1,11 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Suspense, useEffect, type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { useT } from "@/components/locale-provider";
-import { loadListingIndex } from "@/lib/listing-index";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 
 export function StorefrontChrome({
@@ -21,14 +20,11 @@ export function StorefrontChrome({
   const t = useT();
   const isAdmin = pathname?.startsWith("/admin");
   const isLogin = pathname === "/login";
+  const isHome = pathname === "/";
 
-  useEffect(() => {
-    if (!isAdmin) {
-      void loadListingIndex().catch(() => {
-        /* Prefetch is best-effort; catalog pages load their own fallback. */
-      });
-    }
-  }, [isAdmin]);
+  // NOTE: no global listing-index prefetch — it is an 11MB download that
+  // CatalogBrowser already fetches on demand on catalog pages. Prefetching
+  // it here taxed every homepage visit for zero benefit.
 
   if (isAdmin) {
     return <>{children}</>;
@@ -42,10 +38,10 @@ export function StorefrontChrome({
       <Suspense fallback={null}>
         <SiteHeader taxonomy={taxonomy} categoryCounts={categoryCounts} />
       </Suspense>
-      <main id="main" key={pathname} className="page-enter flex-1">
+      <main id="main" key={pathname} className={isHome ? "flex-1" : "page-enter flex-1"}>
         {children}
       </main>
-      {isLogin ? null : <SiteFooter categoryCounts={categoryCounts} />}
+      {isLogin || isHome ? null : <SiteFooter categoryCounts={categoryCounts} />}
     </>
   );
 }

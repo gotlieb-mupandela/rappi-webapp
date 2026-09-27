@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 /agent-tools/
+/tmp/joma-session/
 
 # generated catalog shots (uploaded to Supabase Storage)
 /public/products/

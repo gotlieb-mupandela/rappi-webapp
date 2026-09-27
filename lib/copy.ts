@@ -75,7 +75,7 @@ export function productDescription(
       ? hubName(product.category, t)
       : (CATEGORIES.find((c) => c.slug === product.category)?.name ?? "the catalog");
     const name = product.displayName
-      .replace(/\s*·\s*pack of 10/i, "")
+      .replace(/\s*·\s*pack of \d+/i, "")
       .replace(/\s+/g, " ")
       .trim();
     bits.push(t ? t("product.descFromHub", { name, hub }) : `${name} from the ${hub} drop.`);

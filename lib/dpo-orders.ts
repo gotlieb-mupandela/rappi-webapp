@@ -36,6 +36,7 @@ export async function createOrderFromPayment(payment: Payment): Promise<string |
     user_id: payload.userId || payment.user_id,
     email: payload.email,
     full_name: payload.name,
+    phone: typeof payload.phone === "string" && payload.phone.trim() ? payload.phone.trim() : null,
     address: payload.address,
     city: payload.city,
     country: vat.country || payload.country,
