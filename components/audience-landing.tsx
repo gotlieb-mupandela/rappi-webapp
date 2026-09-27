@@ -15,7 +15,7 @@ export type AudienceLandingTile = {
   barLabel?: string;
 };
 
-/** Joma B2B-style dense subcategory grid: portrait image + uppercase label under it. */
+/** Joma B2B dense subcategory grid: portrait plate + white uppercase label bar. */
 export function AudienceLandingGrid({
   tiles,
   className,
@@ -24,7 +24,7 @@ export function AudienceLandingGrid({
   tiles: AudienceLandingTile[];
   className?: string;
   /**
-   * `audience` = dense Man/Woman apparel grid;
+   * `audience` = dense Man/Woman apparel grid (7-col);
    * `footwear` = 4 equal shoe tiles with object-contain;
    * `kits` = 3 equal Official Kits portrait tiles;
    * `kids` = 4 equal Children portrait cards;
@@ -36,6 +36,7 @@ export function AudienceLandingGrid({
   const isKits = variant === "kits";
   const isKids = variant === "kids";
   const isOutlet = variant === "outlet";
+  const isDense = !isFootwear && !isKits && !isKids;
 
   return (
     <div
@@ -44,7 +45,7 @@ export function AudienceLandingGrid({
           ? "grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-4 md:gap-6"
           : isKids || isFootwear
             ? "grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5"
-            : "grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5 md:grid-cols-4 lg:grid-cols-7",
+            : "joma-folder-grid grid grid-cols-2 gap-0.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7",
         className,
       )}
     >
@@ -63,16 +64,19 @@ export function AudienceLandingGrid({
             key={`${tile.label}-${tile.href}-${index}`}
             href={tile.href}
             className={cn(
-              "group flex flex-col border border-transparent p-0.5 transition-colors hover:border-[var(--border-strong)]",
+              "group relative flex flex-col bg-white",
+              isDense &&
+                "outline-solid outline-1 outline-transparent -outline-offset-1 transition-[outline-color] duration-150 hover:outline-accent focus-visible:outline-accent",
+              !isDense &&
+                "border border-transparent p-0.5 transition-colors hover:border-[var(--border-strong)]",
               (isKids || isKits) && "hover:border-transparent",
             )}
           >
             <div
               className={cn(
                 "relative overflow-hidden",
-                isFootwear ? "aspect-square bg-[var(--tile-mid)]" : "aspect-[3/4]",
-                isKids && "rounded-[18px] bg-[var(--tile-mid)]",
-                !isKids && !isGraphic && "bg-[var(--tile-mid)]",
+                isFootwear ? "aspect-square bg-[#eceff1]" : "aspect-[3/4] bg-[#eceff1]",
+                isKids && "rounded-[18px]",
                 outletKind === "category" && "bg-[#f18a1f]",
                 outletKind === "price" && "bg-[#e85a4f]",
               )}
@@ -106,12 +110,12 @@ export function AudienceLandingGrid({
                   src={tile.imageSrc}
                   alt={tile.label}
                   className={cn(
-                    "absolute inset-0 h-full w-full transition-transform duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transition-none",
+                    "absolute inset-0 h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
                     isFootwear
                       ? "object-contain object-center p-5 sm:p-6"
                       : "min-h-full min-w-full max-w-none object-cover object-center",
                   )}
-                  loading="lazy"
+                  loading={index < 7 ? "eager" : "lazy"}
                   decoding="async"
                 />
               ) : null}
@@ -126,18 +130,28 @@ export function AudienceLandingGrid({
                 </div>
               ) : null}
             </div>
-            <p
+            <div
               className={cn(
-                "mt-2 px-0.5 text-center font-bold uppercase leading-snug tracking-[0.04em] text-[var(--text)]",
-                isKits
-                  ? "text-xs sm:text-sm"
-                  : isKids
-                    ? "text-[11px] sm:text-xs"
-                    : "text-[10px] sm:text-[11px] lg:text-xs",
+                "flex items-center justify-center bg-white px-1.5",
+                isDense
+                  ? "min-h-9 border-t border-[#e8eaed] py-2 sm:min-h-10"
+                  : "mt-2 min-h-0 py-0",
+                isKids && "mt-2 border-0",
               )}
             >
-              {tile.label}
-            </p>
+              <p
+                className={cn(
+                  "text-center font-bold uppercase leading-snug tracking-[0.04em] text-[#1a1a2e]",
+                  isKits
+                    ? "text-xs sm:text-sm"
+                    : isKids
+                      ? "text-[11px] sm:text-xs"
+                      : "text-[10px] sm:text-[11px]",
+                )}
+              >
+                {tile.label}
+              </p>
+            </div>
           </Link>
         );
       })}

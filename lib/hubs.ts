@@ -572,7 +572,8 @@ function landingTileImage(
   audience: "men" | "women",
   catalog: Product[],
 ) {
-  if (cover) return cover;
+  // Explicit cover (including "") wins — empty string = gray Joma placeholder.
+  if (typeof cover === "string") return cover;
 
   // Women tiles: prefer women-coded products, then unisex packshots in that hub
   // (avoids men's lifestyle models and avoids repeating one audience cover).

@@ -21,6 +21,18 @@ export function StorefrontChrome({
   const isAdmin = pathname?.startsWith("/admin");
   const isLogin = pathname === "/login";
   const isHome = pathname === "/";
+  // Joma browse landings are tile grids only — no storefront footer chrome.
+  const hideFooter =
+    isLogin ||
+    isHome ||
+    Boolean(
+      pathname &&
+        (pathname.startsWith("/shop") ||
+          pathname.startsWith("/category") ||
+          pathname.startsWith("/promotions") ||
+          pathname === "/teamwear" ||
+          pathname.startsWith("/search")),
+    );
 
   // NOTE: no global listing-index prefetch — it is an 11MB download that
   // CatalogBrowser already fetches on demand on catalog pages. Prefetching
@@ -41,7 +53,7 @@ export function StorefrontChrome({
       <main id="main" key={pathname} className={isHome ? "flex-1" : "page-enter flex-1"}>
         {children}
       </main>
-      {isLogin || isHome ? null : <SiteFooter categoryCounts={categoryCounts} />}
+      {hideFooter ? null : <SiteFooter categoryCounts={categoryCounts} />}
     </>
   );
 }

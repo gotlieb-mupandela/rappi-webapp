@@ -3,7 +3,6 @@ import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { FolderGrid } from "@/components/folder-grid";
 import { PageHeader } from "@/components/page-header";
-import { TLink } from "@/components/t-link";
 import {
   AUDIENCES,
   CATEGORIES,
@@ -25,7 +24,6 @@ import {
   subcategoryHubGroups,
   jomaFolderAncestorKeys,
   jomaFolderHasChildren,
-  jomaFolderParentKey,
   type HubFolderTile,
 } from "@/lib/hubs";
 import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
@@ -130,13 +128,14 @@ export default async function ShopListingPage({
     return (
       <div className="bg-white">
         <PageHeader
+          compact
           crumbs={[
             { href: "/", key: "common.home" },
             { key: titleKey },
           ]}
           titleKey={titleKey}
         />
-        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
           <AudienceLandingGrid tiles={tiles} />
         </div>
       </div>
@@ -154,13 +153,14 @@ export default async function ShopListingPage({
     return (
       <div className="bg-white">
         <PageHeader
+          compact
           crumbs={[
             { href: "/", key: "common.home" },
             { key: "nav.children" },
           ]}
           titleKey="nav.children"
         />
-        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
           <AudienceLandingGrid tiles={tiles} variant="kids" />
         </div>
       </div>
@@ -179,13 +179,14 @@ export default async function ShopListingPage({
     return (
       <div className="bg-white">
         <PageHeader
+          compact
           crumbs={[
             { href: "/", key: "common.home" },
             { key: "nav.footwear" },
           ]}
           titleKey="nav.footwear"
         />
-        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
           <AudienceLandingGrid tiles={tiles} variant="footwear" />
         </div>
       </div>
@@ -203,13 +204,14 @@ export default async function ShopListingPage({
     return (
       <div className="bg-white">
         <PageHeader
+          compact
           crumbs={[
             { href: "/", key: "common.home" },
             { key: "nav.accessories" },
           ]}
           titleKey="nav.accessories"
         />
-        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
           <AudienceLandingGrid tiles={tiles} />
         </div>
       </div>
@@ -259,21 +261,6 @@ export default async function ShopListingPage({
     : buildListing(catalog, query, { categorySlug: hubSlug });
 
   const shopPath = `/shop/${audienceFromPath ? audienceFromPath.slug : hubSlug}`;
-  const parentKey = groupKey ? jomaFolderParentKey(groupKey) : undefined;
-  const backHref = parentKey
-    ? groupHref(
-        parentKey,
-        shopPath,
-        audienceFromPath?.slug,
-        activeAudience?.slug,
-        hubSlug,
-      )
-    : groupKey
-      ? shopPath
-      : audienceFromPath
-        ? "/"
-        : `/category/${hubSlug}`;
-
   const ancestors = groupKey ? jomaFolderAncestorKeys(groupKey) : [];
 
   const crumbs = [
@@ -323,7 +310,7 @@ export default async function ShopListingPage({
   return (
     <div>
       <PageHeader
-        compact={showFolders}
+        compact
         crumbs={crumbs}
         titleAudience={!groupKey && !subKey ? audienceFromPath?.slug : undefined}
         titleHub={
@@ -331,26 +318,8 @@ export default async function ShopListingPage({
         }
         titleSub={subKey || groupKey || undefined}
         titleCount={titleCount}
-        descriptionAudience={
-          showFolders || subKey || groupKey ? undefined : audienceFromPath?.slug
-        }
-        descriptionHub={
-          showFolders || audienceFromPath || subKey || groupKey
-            ? undefined
-            : hubSlug
-        }
-        actions={
-          showFolders ? undefined : (
-            <TLink
-              href={backHref}
-              k="back"
-              variant="outline"
-              className="w-full sm:w-auto"
-            />
-          )
-        }
       />
-      <div className={showFolders ? "page-shell pb-10 pt-1" : "page-shell py-8 sm:py-10"}>
+      <div className={showFolders ? "page-shell pb-10 pt-1" : "page-shell pb-10 pt-1"}>
         {showFolders ? (
           <FolderGrid
             folders={folders}
@@ -363,8 +332,9 @@ export default async function ShopListingPage({
             audienceSlug={audienceFromPath?.slug}
             basePath={shopPath}
             grouped
-            showCategoryFilter={Boolean(audienceFromPath)}
-            showAudienceFilter={!audienceFromPath}
+            hideFilters
+            showCategoryFilter={false}
+            showAudienceFilter={false}
             showLayoutToggle
             emptyTitleKey={audienceFromPath ? "shop.emptyAudience" : "shop.emptyHub"}
             emptyKind={audienceFromPath ? "audience" : "hub"}

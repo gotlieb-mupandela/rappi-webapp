@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 /** Dense Joma-style catalog grid — up to ~5 columns on wide screens. */
 const GRID =
-  "grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-4 lg:grid-cols-5 xl:gap-x-5";
+  "grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-4 lg:grid-cols-5 xl:gap-x-5 [&>*]:relative";
 
 const COLOR_STOP =
   /^(dark|light|neon|navy|black|white|red|blue|green|grey|gray|orange|yellow|pink|purple|beige|brown|soft|shell|polar|fleece|jacket|anorak|man|woman|junior|ii|iii|iv|v|vi|vii|viii)$/i;
@@ -151,13 +151,10 @@ export function ProductGrid({
       ) : null}
       {entries.map((e) => (
         <section key={e.key} id={e.key} className="scroll-mt-28">
-          <header className="relative mb-6 sm:mb-7">
-            <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[var(--accent)]/35" />
-            <h2 className="relative inline-block bg-white pr-4 font-[family-name:var(--font-display)] text-lg font-bold uppercase tracking-[0.06em] text-[var(--accent)] sm:text-xl">
+          <header className="relative mb-5 sm:mb-6">
+            <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[var(--accent)]" />
+            <h2 className="relative inline-block bg-white pr-3 text-sm font-bold uppercase tracking-[0.06em] text-[var(--accent)] sm:text-base">
               {e.display}
-              <span className="ml-2 text-sm font-semibold text-[var(--muted)]">
-                [{e.count}]
-              </span>
             </h2>
           </header>
           {flat(e.list)}
