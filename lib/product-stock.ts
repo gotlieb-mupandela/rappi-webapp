@@ -33,8 +33,9 @@ export function inStockSizes(product: Pick<Product, "sizes">) {
  * as a one-unit item (ONE/SKU) so accessory SKUs are purchasable.
  */
 export function buyableSizes(
-  product: Pick<Product, "sizes" | "stockQty" | "totalQty">,
+  product: Pick<Product, "sizes" | "stockQty" | "totalQty" | "available">,
 ): SizeStock[] {
+  if (!isAvailable(product)) return [];
   const rows = inStockSizes(product);
   if (rows.length) return rows;
   if (sizeRows(product).length === 0) {
@@ -44,9 +45,15 @@ export function buyableSizes(
   return [];
 }
 
+/** False means hidden from storefront / not purchasable (pack-price guard). */
+export function isAvailable(product: Pick<Product, "available">) {
+  return (product as { available?: boolean }).available !== false;
+}
+
 export function isSoldOut(
-  product: Pick<Product, "sizes" | "stockQty" | "totalQty">,
+  product: Pick<Product, "sizes" | "stockQty" | "totalQty" | "available">,
 ) {
+  if (!isAvailable(product)) return true;
   if (skuStock(product) <= 0) return true;
   if (sizeRows(product).length === 0) return false;
   return inStockSizes(product).length === 0;

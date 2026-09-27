@@ -10,6 +10,7 @@
     "catalog": "python3 scripts/write-source.py",
     "check:catalog": "python3 scripts/check-catalog.py",
     "check:merch": "node scripts/check-baked-catalog.mjs",
+    "check:pack-prices": "node scripts/check-pack-prices.mjs",
     "descriptions:joma": "node scripts/fetch-joma-descriptions.mjs",
     "check:i18n": "npx tsx scripts/check-i18n.ts",
     "bake:catalog": "npx tsx scripts/bake-catalog.ts",

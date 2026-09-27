@@ -115,7 +115,9 @@ export function searchListing(
   category?: string,
 ): ListingItem[] {
   const q = query.trim().toLowerCase();
-  let list = catalog.filter((p) => hasUsableProductImage(p as Product));
+  let list = catalog.filter(
+    (p) => (p as { available?: boolean }).available !== false && hasUsableProductImage(p as Product),
+  );
   if (category && category !== "all") {
     list = list.filter((p) => listingInHub(p, category));
   }
@@ -132,7 +134,13 @@ export function filterListing(
   if (opts?.requireQuery && !q) return [];
 
   const scopedCat = opts?.categorySlug || query.cat;
-  let list = q ? searchListing(catalog, q, scopedCat) : catalog.filter((p) => hasUsableProductImage(p as Product));
+  let list = q
+    ? searchListing(catalog, q, scopedCat)
+    : catalog.filter(
+        (p) =>
+          (p as { available?: boolean }).available !== false &&
+          hasUsableProductImage(p as Product),
+      );
   if (!q && scopedCat && scopedCat !== "all") {
     list = list.filter((p) => listingInHub(p, scopedCat));
   }

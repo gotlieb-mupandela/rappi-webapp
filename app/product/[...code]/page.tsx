@@ -17,7 +17,7 @@ export default async function ProductPage({
   const { code } = await params;
   const sku = decodeProductCode(code);
   const found = getProduct(sku);
-  if (!found) notFound();
+  if (!found || (found as { available?: boolean }).available === false) notFound();
   const product = withFullResProductImages(found);
   const related = productsByCategory(product.category)
     .filter((p) => p.code !== product.code)

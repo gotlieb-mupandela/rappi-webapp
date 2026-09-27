@@ -120,9 +120,11 @@ export function ProductDetail({ product }: { product: Product }) {
                   ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
                   : assortment.kind === "multipack"
                     ? t("product.packMultipack", { symbol })
-                    : assortment.kind === "wholesale" && !isFootwearSku(product)
-                      ? t("product.packAssortmentApparel", { symbol })
-                      : t("product.packAssortment", { symbol })}
+                    : assortment.kind === "wholesale-pack"
+                      ? t("product.packWholesalePack", { symbol })
+                      : assortment.kind === "wholesale" && !isFootwearSku(product)
+                        ? t("product.packAssortmentApparel", { symbol })
+                        : t("product.packAssortment", { symbol })}
             </p>
           ) : null}
         </div>
@@ -172,11 +174,13 @@ export function ProductDetail({ product }: { product: Product }) {
                 ? t("product.orderPackNamed", { n: assortment.packSize })
                 : assortment?.kind === "multipack"
                   ? t("product.orderMultipack")
-                  : assortment?.isAssortment
-                    ? t("product.orderAssortment")
-                    : /^ONE$/i.test(size)
-                      ? t("product.orderOneSize")
-                      : t("product.orderSku")}
+                  : assortment?.kind === "wholesale-pack"
+                    ? t("product.orderWholesalePack")
+                    : assortment?.isAssortment
+                      ? t("product.orderAssortment")
+                      : /^ONE$/i.test(size)
+                        ? t("product.orderOneSize")
+                        : t("product.orderSku")}
           </p>
         )}
 

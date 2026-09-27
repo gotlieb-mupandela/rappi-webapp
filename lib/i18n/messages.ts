@@ -353,6 +353,7 @@ export const en = {
     orderPackNamed: "Order unit: pack of {n}.",
     orderMultipack: "Order unit: multipack.",
     orderAssortment: "Order unit: assortment pack.",
+    orderWholesalePack: "Order unit: wholesale pack.",
     orderSku: "Order unit: SKU. A per-size run is attached when the Joma B2B export lists one.",
     orderOneSize: "Order unit: one size.",
     pack10:
@@ -363,6 +364,8 @@ export const en = {
       "Sold as a wholesale assortment pack, not a single pair. The {symbol} price is the pack price. Mixed sizes ship as packed by the supplier — we do not invent a single-pair size.",
     packAssortmentApparel:
       "Sold as a wholesale assortment pack, not a single piece. The {symbol} price is for the full pack (shirts, shorts, and other apparel boxes). Mixed sizes ship as packed by the supplier.",
+    packWholesalePack:
+      "Sold as a wholesale pack, not a single piece. The {symbol} price is the pack price.",
     moreIn: "More in {name}",
     moreInHub: "More in this hub",
     soldOutPiece: "This piece is sold out.",
@@ -377,6 +380,7 @@ export const en = {
     pcs: "pcs",
     wholesale: "Wholesale assortment (8–12 pairs)",
     wholesaleApparel: "Wholesale assortment",
+    wholesalePack: "Wholesale pack",
     aboutEach: "About {amount} each",
     aboutPair: "About {amount} / pair",
     aboutPairRange: "About {eight} / pair (8) · {twelve} / pair (12)",
@@ -995,6 +999,7 @@ export const fr: Messages = {
     orderPackNamed: "Unité de commande : pack de {n}.",
     orderMultipack: "Unité de commande : multipack.",
     orderAssortment: "Unité de commande : pack assortiment.",
+    orderWholesalePack: "Unité de commande : pack gros.",
     orderSku: "Unité de commande : SKU. Une grille de tailles est jointe lorsque l’export Joma B2B en liste une.",
     orderOneSize: "Unité de commande : taille unique.",
     pack10:
@@ -1005,6 +1010,8 @@ export const fr: Messages = {
       "Vendu en pack assortiment gros, pas à la paire. Le prix {symbol} est le prix du pack. Tailles mixtes selon le fournisseur — nous n’inventons pas de taille à la paire.",
     packAssortmentApparel:
       "Vendu en pack assortiment gros, pas à la pièce. Le prix {symbol} concerne le pack entier (tees, shorts et autres boxes textile). Tailles mixtes selon le fournisseur.",
+    packWholesalePack:
+      "Vendu en pack gros, pas à la pièce. Le prix {symbol} est le prix du pack.",
     moreIn: "Plus dans {name}",
     moreInHub: "Plus dans ce rayon",
     soldOutPiece: "Cet article est épuisé.",
@@ -1019,6 +1026,7 @@ export const fr: Messages = {
     pcs: "pcs",
     wholesale: "Assortiment gros (8–12 paires)",
     wholesaleApparel: "Assortiment gros",
+    wholesalePack: "Pack gros",
     aboutEach: "Environ {amount} pièce",
     aboutPair: "Environ {amount} / paire",
     aboutPairRange: "Environ {eight} / paire (8) · {twelve} / paire (12)",
