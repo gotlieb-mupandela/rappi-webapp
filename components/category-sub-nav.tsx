@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CATEGORIES, HIDDEN_TYPE_FOLDERS, SUBCATEGORY_LABELS } from "@/lib/catalog";
+import {
+  CATEGORIES,
+  HIDDEN_TYPE_FOLDERS,
+  SUBCATEGORY_LABELS,
+  TYPE_FOLDERS,
+  typeFolderForSubcategory,
+} from "@/lib/catalog";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
@@ -25,8 +31,11 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   );
   if (subs.length < 2) return null;
 
-  const active = params.get("sub");
+  const activeSub = params.get("sub");
+  const activeGroup = params.get("group");
+  const viewAll = params.get("view") === "all";
   const onShop = pathname.startsWith(`/shop/${slug}`);
+  const onFolders = onShop && !activeSub && !viewAll && !activeGroup;
 
   return (
     <nav className="border-t border-[var(--border)] bg-[var(--header-bg-scrolled)]">
@@ -35,25 +44,39 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
           <li className="shrink-0">
             <Link
               href={`/shop/${slug}`}
-              data-active={onShop && !active ? "true" : undefined}
-              className={cn(
-                "nav-link text-xs font-medium uppercase tracking-[0.12em]",
-              )}
+              data-active={onFolders ? "true" : undefined}
+              className={cn("nav-link text-xs font-medium uppercase tracking-[0.12em]")}
+            >
+              {t("shop.shopByType")}
+            </Link>
+          </li>
+          <li className="shrink-0">
+            <Link
+              href={`/shop/${slug}?view=all`}
+              data-active={onShop && viewAll && !activeSub ? "true" : undefined}
+              className={cn("nav-link text-xs font-medium uppercase tracking-[0.12em]")}
             >
               {t("common.all")}
             </Link>
           </li>
-          {subs.map((s) => (
-            <li key={s.slug} className="shrink-0">
-              <Link
-                href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}`}
-                data-active={active === s.slug ? "true" : undefined}
-                className="nav-link text-xs font-medium uppercase tracking-[0.12em]"
-              >
-                {subName(s.slug, t)}
-              </Link>
-            </li>
-          ))}
+          {subs.map((s) => {
+            const folder = typeFolderForSubcategory(s.slug);
+            const groupParam =
+              TYPE_FOLDERS[folder] && folder !== s.slug
+                ? `&group=${encodeURIComponent(folder)}`
+                : "";
+            return (
+              <li key={s.slug} className="shrink-0">
+                <Link
+                  href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}${groupParam}`}
+                  data-active={activeSub === s.slug ? "true" : undefined}
+                  className="nav-link text-xs font-medium uppercase tracking-[0.12em]"
+                >
+                  {subName(s.slug, t)}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </ScrollArea>
     </nav>

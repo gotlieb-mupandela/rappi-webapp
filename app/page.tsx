@@ -117,7 +117,7 @@ export default async function HomePage() {
               slug={hub.slug}
               nameHub={hub.slug === "balls-bags" ? undefined : hub.slug}
               nameKey={hub.slug === "balls-bags" ? "home.equipment" : undefined}
-              href={`/shop/${hub.slug}`}
+              href={`/category/${hub.slug}`}
               product={hub.product}
               imageSrc={hub.imageSrc}
               size="medium"

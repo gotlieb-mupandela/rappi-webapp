@@ -8,6 +8,12 @@ import {
 } from "@/lib/catalog";
 import { hasUsableProductImage } from "@/lib/classify";
 import {
+  hasJomaFolderIndex,
+  isJomaBrowseFolder,
+  matchesJomaFolderKey,
+  productsInJomaFolder,
+} from "@/lib/joma-tree";
+import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
   type ListingFilterOpts,
@@ -123,6 +129,11 @@ export function searchListing(
   return list.filter((p) => listingHay(p).includes(q));
 }
 
+function productHasImage(p: ListingItem) {
+  if (typeof p.hasImage === "boolean") return p.hasImage;
+  return hasUsableProductImage(p as Product);
+}
+
 export function filterListing(
   catalog: ListingItem[],
   query: ListingQuery,
@@ -132,24 +143,43 @@ export function filterListing(
   if (opts?.requireQuery && !q) return [];
 
   const scopedCat = opts?.categorySlug || query.cat;
-  let list = q ? searchListing(catalog, q, scopedCat) : catalog.filter((p) => hasUsableProductImage(p as Product));
-  if (!q && scopedCat && scopedCat !== "all") {
-    list = list.filter((p) => listingInHub(p, scopedCat));
-  }
-  if (opts?.badges?.length) {
-    const badges = new Set(opts.badges);
-    list = list.filter((p) => p.badge != null && badges.has(p.badge));
-  }
-
   const sub = query.sub && query.sub !== "all" ? query.sub : "";
   const group = query.group && query.group !== "all" ? query.group : "";
   const size = query.size && query.size !== "all" ? query.size : "";
   const audience = query.audience && query.audience !== "all" ? query.audience : "";
   const max = query.max ? Number(query.max) : NaN;
+  const jomaGroup = group && isJomaBrowseFolder(group) ? group : "";
+
+  let list: ListingItem[];
+  if (q) {
+    list = searchListing(catalog, q, scopedCat);
+  } else if (jomaGroup && hasJomaFolderIndex()) {
+    list = productsInJomaFolder(jomaGroup).filter(productHasImage) as ListingItem[];
+    if (scopedCat && scopedCat !== "all") {
+      list = list.filter((p) => listingInHub(p, scopedCat));
+    }
+  } else {
+    list = catalog.filter(productHasImage);
+    if (scopedCat && scopedCat !== "all") {
+      list = list.filter((p) => listingInHub(p, scopedCat));
+    }
+  }
+
+  if (opts?.badges?.length) {
+    const badges = new Set(opts.badges);
+    list = list.filter((p) => p.badge != null && badges.has(p.badge));
+  }
 
   return list.filter((p) => {
     if (sub && p.subcategory !== sub) return false;
-    if (group && !matchesTypeFolder(p.subcategory, group)) return false;
+    if (group) {
+      if (jomaGroup) {
+        // Already constrained to the folder when the index is available.
+        if (!hasJomaFolderIndex() && !matchesJomaFolderKey(p, jomaGroup)) return false;
+      } else if (!matchesTypeFolder(p.subcategory, group)) {
+        return false;
+      }
+    }
     if (audience && !matchesAudience(p, audience)) return false;
     if (size && !p.sizes.some((s) => s.size === size && s.stock > 0)) return false;
     if (Number.isFinite(max) && p.price > max) return false;

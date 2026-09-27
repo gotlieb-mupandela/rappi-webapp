@@ -136,9 +136,10 @@ export default function TiltedCard({
       ) : null}
 
       <motion.div
-        className="product-card-volume relative w-full [transform-style:preserve-3d]"
+        className="product-card-volume relative h-full w-full [transform-style:preserve-3d]"
         style={{
           width: imageWidth,
+          height: imageHeight === "100%" || imageHeight === "auto" ? undefined : imageHeight,
           rotateX,
           rotateY,
           scale,
@@ -149,7 +150,8 @@ export default function TiltedCard({
             src={imageSrc}
             alt={altText}
             className={cn(
-              "relative z-0 block h-auto w-full max-w-full rounded-2xl will-change-transform [transform:translateZ(24px)]",
+              "relative z-0 block max-w-full rounded-2xl will-change-transform [transform:translateZ(24px)]",
+              imageHeight === "100%" ? "h-full w-full" : "h-auto w-full",
               imageClassName,
             )}
             style={{
@@ -163,7 +165,8 @@ export default function TiltedCard({
         ) : (
           <div
             className={cn(
-              "relative z-0 aspect-square w-full rounded-2xl bg-[var(--bg-elevated)] [transform:translateZ(24px)]",
+              "relative z-0 w-full rounded-2xl bg-[var(--bg-elevated)] [transform:translateZ(24px)]",
+              imageHeight === "100%" ? "h-full" : "aspect-square",
               imageClassName,
             )}
             style={{ width: imageWidth }}

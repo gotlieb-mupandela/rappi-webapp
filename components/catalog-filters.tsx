@@ -262,21 +262,23 @@ export function CatalogFilters({
 
       <div className={cn("min-w-0 transition-opacity duration-300", pending && "opacity-50")}>
         <div className="mb-5 flex items-center justify-between gap-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-            {t.plural("count.pieces", listing.total)}
+          <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
+            <span className="font-semibold text-[var(--accent)]">
+              {t.plural("count.pieces", listing.total)}
+            </span>
             {listing.pageCount > 1
               ? t("filters.pageOf", { page: listing.page, pageCount: listing.pageCount })
-              : ""}
+              : null}
           </p>
           {layoutToggle ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 aria-label={t("common.gridView")}
                 onClick={() => setLayout("grid")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
-                  layout === "grid" ? "bg-[var(--hover-strong)] text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
+                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  layout === "grid" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -286,8 +288,8 @@ export function CatalogFilters({
                 aria-label={t("common.listView")}
                 onClick={() => setLayout("list")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
-                  layout === "list" ? "bg-[var(--hover-strong)] text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
+                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  layout === "list" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
                 <List className="h-4 w-4" />
@@ -296,11 +298,11 @@ export function CatalogFilters({
           ) : null}
         </div>
         {listing.total === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
-            <p className="text-lg font-semibold text-ink">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-20 text-center">
+            <p className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase tracking-wide text-ink">
               {emptyTitle ?? t("search.noProducts")}
             </p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
+            <p className="mx-auto mt-3 max-w-sm text-sm text-[var(--muted)]">
               {emptyBody ?? t("search.noProductsBody")}
             </p>
           </div>

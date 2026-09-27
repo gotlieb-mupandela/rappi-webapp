@@ -1,8 +1,7 @@
 "use client";
 
 import type { Product } from "@/lib/types";
-import { useT } from "@/components/locale-provider";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLocale } from "@/components/locale-provider";
 import {
   isSoldOut,
   pickerSizes,
@@ -18,60 +17,78 @@ export function StockMatrix({
   product: Product;
   className?: string;
 }) {
-  const t = useT();
+  const { t, format } = useLocale();
   if (isSoldOut(product)) return null;
 
   const rows = pickerSizes(product);
-  const fallback =
+  const cols =
     rows.length === 0
       ? [{ size: "SKU", stock: skuStock(product) }]
       : rows;
 
-  if (!fallback.length || fallback.every((r) => r.stock <= 0)) return null;
+  if (!cols.length || cols.every((r) => r.stock <= 0)) return null;
+
+  const price = format(product.unitPrice);
 
   return (
     <div
       className={cn(
-        "stock-matrix pointer-events-none absolute inset-x-2 bottom-2 z-20 hidden overflow-hidden rounded-xl border border-[var(--border)] sm:block",
+        "stock-matrix pointer-events-none absolute inset-x-0 bottom-0 z-20 hidden overflow-hidden border-t border-[var(--border)] bg-white/95 shadow-[0_-8px_24px_rgba(33,47,92,0.08)] backdrop-blur-sm sm:block",
         className,
       )}
       role="table"
       aria-label={t("product.inStock", { total: skuStock(product) })}
     >
-      <div className="grid grid-cols-[1fr_auto] gap-x-3 border-b border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
-        <span>{t("product.size")}</span>
-        <span className="text-right">{t("home.statStock")}</span>
-      </div>
-      <ScrollArea className="max-h-36 bg-white/90">
-        <ul>
-          {fallback.map((row) => {
-            const available = row.stock > 0;
-            return (
-              <li
-                key={row.size}
-                className={cn(
-                  "grid grid-cols-[1fr_auto] gap-x-3 border-b border-[var(--border)] px-3 py-1.5 text-[11px] last:border-b-0",
-                  available
-                    ? "bg-[var(--ok-muted)] text-[var(--text)]"
-                    : "text-[var(--muted-2)]",
-                )}
-              >
-                <span className="font-medium tabular-nums">
-                  {sizeDisplayLabel(row.size, t)}
-                </span>
-                <span
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-full border-collapse text-[10px]">
+          <thead>
+            <tr className="border-b border-[var(--border)]">
+              <th className="whitespace-nowrap px-2 py-1.5 text-left font-semibold uppercase tracking-[0.1em] text-[var(--muted)]">
+                {t("product.size")}
+              </th>
+              {cols.map((col) => (
+                <th
+                  key={col.size}
+                  className="whitespace-nowrap px-2 py-1.5 text-center font-semibold uppercase tracking-[0.08em] text-ink"
+                >
+                  {sizeDisplayLabel(col.size, t)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-[var(--border)]">
+              <th className="whitespace-nowrap px-2 py-1.5 text-left font-semibold uppercase tracking-[0.1em] text-[var(--muted)]">
+                {t("product.priceRow")}
+              </th>
+              {cols.map((col) => (
+                <td
+                  key={col.size}
+                  className="price whitespace-nowrap px-2 py-1.5 text-center tabular-nums text-ink"
+                >
+                  {price}
+                </td>
+              ))}
+            </tr>
+            <tr className="bg-[var(--ok-muted)]">
+              <th className="whitespace-nowrap px-2 py-1.5 text-left font-semibold uppercase tracking-[0.1em] text-[var(--accent)]">
+                {t("product.availableStock")}
+              </th>
+              {cols.map((col) => (
+                <td
+                  key={col.size}
                   className={cn(
-                    "text-right font-semibold tabular-nums",
-                    available ? "text-[var(--ok)]" : "text-[var(--muted-2)]",
+                    "whitespace-nowrap px-2 py-1.5 text-center font-semibold tabular-nums",
+                    col.stock > 0 ? "text-[var(--ok)]" : "text-[var(--muted-2)]",
                   )}
                 >
-                  {row.stock}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </ScrollArea>
+                  {col.stock}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

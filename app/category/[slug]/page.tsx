@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { FolderGrid } from "@/components/folder-grid";
 import { HubTile } from "@/components/hub-tile";
 import { PageHeader } from "@/components/page-header";
-import { ProductCard } from "@/components/product-card";
 import { ProductImage } from "@/components/product-image";
 import { SectionHeading } from "@/components/section-heading";
 import { NoStockBody } from "@/components/no-stock-body";
@@ -11,12 +11,7 @@ import { TLink } from "@/components/t-link";
 import { Translated } from "@/components/translated";
 import { CATEGORIES, CATEGORY_ALIASES, categoryBySlug, resolveCategorySlug } from "@/lib/catalog";
 import { sampleForCategory } from "@/lib/classify";
-import {
-  audienceTiles,
-  bramaHubGroups,
-  shoeHubGroups,
-  subcategoryHubGroups,
-} from "@/lib/hubs";
+import { audienceTiles, categoryHubFolders } from "@/lib/hubs";
 import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
 import { productPath } from "@/lib/utils";
@@ -42,28 +37,13 @@ export default async function CategoryHubPage({
   const catalog = await getCatalog();
   const items = productsByCategory(hubSlug, catalog);
   const sample = sampleForCategory(catalog, hubSlug);
-  const preview =
-    hubSlug === "rugby"
-      ? [...items]
-          .sort((a, b) => {
-            const rank = (name: string) => {
-              const n = name.toLowerCase();
-              if (/\b(helmet|protection|protec)\b/.test(n)) return 2;
-              if (/\bball\b/.test(n)) return 1;
-              return 0;
-            };
-            return rank(a.displayName) - rank(b.displayName);
-          })
-          .slice(0, 12)
-      : items.slice(0, 12);
-  const shoeGroups = hubSlug === "shoes" ? shoeHubGroups(catalog) : [];
-  const bramaGroups = hubSlug === "brama" ? bramaHubGroups(catalog) : [];
-  const hasCustomGroups = shoeGroups.length > 0 || bramaGroups.length > 0;
-  const typeGroups = hasCustomGroups ? [] : subcategoryHubGroups(hubSlug, catalog);
+  const typeGroups = categoryHubFolders(hubSlug, catalog);
   const audiences = audienceTiles(catalog, { categorySlug: hubSlug });
   const otherHubs = CATEGORIES.filter(
     (c) => c.slug !== hubSlug && sampleForCategory(catalog, c.slug),
   );
+  const shopAllHref = `/shop/${hubSlug}?view=all`;
+  const folderLandingHref = `/shop/${hubSlug}`;
 
   return (
     <div>
@@ -78,14 +58,14 @@ export default async function CategoryHubPage({
           items.length ? (
             <>
               <TLink
-                href={`/shop/${hubSlug}`}
-                k="common.shopAll"
+                href={folderLandingHref}
+                k="shop.shopByType"
                 size="lg"
                 className="w-full sm:w-auto"
               />
               <TLink
-                href="/search"
-                k="common.browseCatalog"
+                href={shopAllHref}
+                k="common.shopAll"
                 size="lg"
                 variant="outline"
                 className="w-full sm:w-auto"
@@ -131,22 +111,10 @@ export default async function CategoryHubPage({
           <section className="mb-12 lg:mb-16">
             <SectionHeading
               titleKey="shop.shopByType"
-              href={`/shop/${hubSlug}`}
+              href={shopAllHref}
               linkLabelKey="common.shopAll"
             />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-              {typeGroups.map((g) => (
-                <HubTile
-                  key={g.key}
-                  slug={hubSlug}
-                  nameSubcategory={g.key}
-                  count={g.count}
-                  href={g.href}
-                  product={g.sample}
-                  shape="square"
-                />
-              ))}
-            </div>
+            <FolderGrid folders={typeGroups} slug={hubSlug} />
           </section>
         ) : null}
 
@@ -154,7 +122,7 @@ export default async function CategoryHubPage({
           <section className="mb-12 lg:mb-16">
             <SectionHeading
               titleKey="shop.shopByAthlete"
-              href={`/shop/${hubSlug}`}
+              href={folderLandingHref}
               linkLabelKey="common.shopAll"
             />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
@@ -176,68 +144,7 @@ export default async function CategoryHubPage({
           </section>
         ) : null}
 
-        {shoeGroups.length > 0 ? (
-          <section className="mb-12 lg:mb-16">
-            <SectionHeading
-              titleKey="shop.shopByFit"
-              href={`/shop/${hubSlug}`}
-              linkLabelKey="shop.allShoes"
-            />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-              {shoeGroups.map((g) => (
-                <HubTile
-                  key={g.key}
-                  slug={hubSlug}
-                  nameGroup={{ kind: "shoes", key: g.key }}
-                  count={g.count}
-                  href={g.href}
-                  product={g.sample}
-                  bannerKey={g.banner ? "group.shoes.offersBanner" : undefined}
-                  shape="square"
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {bramaGroups.length > 0 ? (
-          <section className="mb-12 lg:mb-16">
-            <SectionHeading titleKey="shop.shopBrama" href="/shop/brama" linkLabelKey="shop.allBrama" />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
-              {bramaGroups.map((g) => (
-                <HubTile
-                  key={g.key}
-                  slug={hubSlug}
-                  nameGroup={{ kind: "brama", key: g.key }}
-                  count={g.count}
-                  href={g.href}
-                  product={g.sample}
-                  shape="square"
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {preview.length ? (
-          <section>
-            <SectionHeading
-              titleKey="shop.inThisHub"
-              href={`/shop/${hubSlug}`}
-              linkLabelKey={
-                items.length > preview.length ? "shop.viewAllCount" : "home.viewAll"
-              }
-              linkLabelVars={
-                items.length > preview.length ? { count: items.length } : undefined
-              }
-            />
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-              {preview.map((p) => (
-                <ProductCard key={p.code} product={p} />
-              ))}
-            </div>
-          </section>
-        ) : (
+        {!typeGroups.length && !items.length ? (
           <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
             <p className="font-[family-name:var(--font-oswald)] text-2xl uppercase text-ink">
               <Translated k="shop.noStockTitle" />
@@ -250,7 +157,7 @@ export default async function CategoryHubPage({
               <TLink href="/search" k="common.browseCatalog" variant="outline" />
             </div>
           </section>
-        )}
+        ) : null}
 
         {otherHubs.length ? <OtherHubsNav hubs={otherHubs.map((c) => c.slug)} /> : null}
       </div>

@@ -175,6 +175,7 @@ img {
 .bento-tile .media-frame {
   box-shadow: none;
   background: #111;
+  isolation: isolate;
 }
 
 /*
@@ -247,21 +248,45 @@ a:hover .brand-logo {
   opacity: 0.9;
 }
 
-.bento-tile {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bento-tile:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lift);
-}
-
 .bento-tile .bento-tile__media {
-  transition: transform 0.35s var(--ease);
+  transform: scale(1) translateZ(0);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  will-change: transform;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.bento-tile:hover .bento-tile__media {
-  transform: scale(1.05);
+.bento-tile:hover .bento-tile__media,
+.bento-tile:focus-visible .bento-tile__media {
+  transform: scale(1.08) translateZ(0);
+}
+
+.joma-folder .bento-tile__media {
+  transform: scale(1);
+  transform-origin: center center;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.joma-folder:hover .bento-tile__media {
+  transform: scale(1.04);
+}
+
+.joma-folder-grid {
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bento-tile .bento-tile__media,
+  .joma-folder .bento-tile__media {
+    transition: none;
+    will-change: auto;
+  }
+
+  .bento-tile:hover .bento-tile__media,
+  .bento-tile:focus-visible .bento-tile__media,
+  .joma-folder:hover .bento-tile__media {
+    transform: none;
+  }
 }
 
 .stock-matrix {
