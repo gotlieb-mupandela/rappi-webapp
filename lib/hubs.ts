@@ -51,6 +51,11 @@ import {
 import { productCardImageUrl } from "@/lib/media";
 import { productInHub } from "@/lib/hub-membership";
 export { isKidsProduct, isKidsShoe, matchesAudience, productAudience };
+export {
+  jomaFolderAncestorKeys,
+  jomaFolderHasChildren,
+  jomaFolderParentKey,
+} from "@/lib/joma-tree";
 /** Folder tile used on category hubs and shop folder landings. */
 export type HubFolderTile = {
   key: string;
