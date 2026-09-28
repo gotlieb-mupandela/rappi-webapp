@@ -59,7 +59,7 @@ checkAiSmoke("100807.200", {
 const bib = catalog.find((p) => p.code === "101686.010");
 if (!bib) fail("missing 101686.010");
 else {
-  if (bib.price !== 900 || bib.unitPrice !== 900) fail(`bib price ${bib.price}/${bib.unitPrice}`);
+  if (bib.price !== 783 || bib.unitPrice !== 783) fail(`bib price ${bib.price}/${bib.unitPrice}`);
   if (/_large\.(jpe?g|png|webp)/i.test(bib.imageUrl || "")) fail(`bib image still _large ${bib.imageUrl}`);
   if ((bib.images || []).some((u) => /_large\.(jpe?g|png|webp)/i.test(u))) fail("bib images[] still _large");
   if (!bib.description || String(bib.description).length <= 20) {
@@ -97,7 +97,7 @@ const large = catalog.filter(
 );
 const emptyDesc = catalog.filter((p) => !String(p.description || "").trim());
 const bibs = catalog.filter((p) => String(p.code).startsWith("101686."));
-const badBibs = bibs.filter((p) => p.price !== 900 || p.unitPrice !== 900);
+const badBibs = bibs.filter((p) => p.price !== 783 || p.unitPrice !== 783);
 const multi = catalog.filter((p) => (p.images || []).length >= 2);
 const dwMulti = catalog.filter(
   (p) => (p.images || []).filter((u) => /joma-sport\.com\/on\/demandware/i.test(u)).length >= 2,
@@ -109,7 +109,7 @@ const imageUrlMismatch = catalog.filter(
 if (cents.length) fail(`catalog cents left: ${cents.length}`);
 if (large.length) fail(`catalog _large left: ${large.length}`);
 if (emptyDesc.length) fail(`catalog empty descriptions: ${emptyDesc.length}`);
-if (badBibs.length) fail(`101686 family not 900: ${badBibs.map((p) => p.code).join(",")}`);
+if (badBibs.length) fail(`101686 family not 783: ${badBibs.map((p) => p.code).join(",")}`);
 if (imageUrlMismatch.length) fail(`imageUrl not first gallery image: ${imageUrlMismatch.length}`);
 if (multi.length < catalog.length * 0.5) {
   fail(`too few multi-image SKUs: ${multi.length}/${catalog.length}`);

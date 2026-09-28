@@ -1,4 +1,4 @@
-import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack } from "@/lib/assortment";
+import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack, isFootwearSku } from "@/lib/assortment";
 import type { AssortmentInfo } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
@@ -778,8 +778,8 @@ function applyPackTitle<T extends Product>(product: T): T {
 
 /**
  * Title suffix for packs without a known size ("· Pack" / "· Assortment pack" /
- * "· Multipack"). Scoped to explicit pack-policy flags and multipack kind so
- * unrelated wholesale-threshold SKUs keep their existing titles. Idempotent
+ * "· Multipack"). Scoped to explicit pack-policy flags, multipack kind, and
+ * footwear wholesale assortments so unrelated SKUs keep existing titles. Idempotent
  * across repeated bakes: skips when the wording is already present.
  */
 function applyPackWordTitle<T extends Product>(product: T, info: AssortmentInfo | null): T {
@@ -791,7 +791,9 @@ function applyPackWordTitle<T extends Product>(product: T, info: AssortmentInfo 
         ? "Assortment pack"
         : info.kind === "pack"
           ? "Pack"
-          : null;
+          : info.kind === "wholesale" && isFootwearSku(product)
+            ? "Assortment pack"
+            : null;
   if (!suffix) return product;
   const hay = [product.displayName, product.title, product.name].join(" ");
   if (suffix === "Multipack") {

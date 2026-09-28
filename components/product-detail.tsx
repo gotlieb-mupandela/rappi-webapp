@@ -128,7 +128,9 @@ export function ProductDetail({ product }: { product: Product }) {
                       ? t("product.packWholesalePack", { symbol })
                       : assortment.kind === "wholesale" && !isFootwearSku(product)
                         ? t("product.packAssortmentApparel", { symbol })
-                        : t("product.packAssortment", { symbol })}
+                        : assortment.kind === "wholesale"
+                          ? t("product.packAssortmentFootwear", { symbol })
+                          : t("product.packAssortment", { symbol })}
             </p>
           ) : null}
         </div>

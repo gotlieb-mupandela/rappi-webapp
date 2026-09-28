@@ -84,7 +84,7 @@ export type AssortmentInfo = {
 /** Explicit pack-policy flag values (see Product.sellAs). */
 export type SellAs = "pack" | "assortment" | "multipack";
 
-export const BIB_PACK_PRICE_NAD = 900;
+export const BIB_PACK_PRICE_NAD = 783;
 
 const BIB_CODE = /^101686\./i;
 const TRAINING_BIB_RE = /\b(training bibs?|petos(?:\s+de\s+entrenamiento|\s+entrenamiento)?)\b/i;
@@ -319,7 +319,7 @@ export function getAssortment(
     return {
       isAssortment: true,
       packSize: null,
-      label: "Wholesale assortment (8–12 pairs)",
+      label: "Assortment pack (size run, ~8–12 pairs)",
       pairHint: pairHint(price, null, format),
       kind: "wholesale",
     };
@@ -412,7 +412,7 @@ export function assortmentCopy(
   if (isFootwearSku(product)) {
     return {
       ...info,
-      label: t("product.wholesale"),
+      label: t("product.assortmentFootwear"),
       pairHint: t("product.aboutPairRange", {
         eight: format(price / 8),
         twelve: format(price / 12),
