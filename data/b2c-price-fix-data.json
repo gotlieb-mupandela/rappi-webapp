@@ -4,579 +4,991 @@
     "markup": 0.45,
     "nad": "round(unit_usd * 18 * 1.45)"
   },
-  "unit_price_overrides": [
-    {
-      "code": "401955.215",
-      "name": "INTER BALL WHITE BURGUNDY",
-      "pack_usd": 99,
-      "unit_usd": 8.25,
-      "pack_size": 12,
-      "new_nad": 215,
-      "source": "prior DOM capture: Price by unit 8.25"
-    },
-    {
-      "code": "401955.216",
-      "name": "INTER BALL WHITE TURQUOISE",
-      "pack_usd": 99,
-      "unit_usd": 8.25,
-      "pack_size": 12,
-      "new_nad": 215,
-      "source": "prior DOM capture: Price by unit 8.25"
-    },
-    {
-      "code": "401955.217",
-      "name": "INTER BALL WHITE FLUOR GREEN",
-      "pack_usd": 99,
-      "unit_usd": 8.25,
-      "pack_size": 12,
-      "new_nad": 215,
-      "source": "prior DOM capture: Price by unit 8.25"
-    },
+  "policy": "pack retail policy 2026-09-28: one cart line = one pack; supplier unit figures are never the selling price",
+  "pack_price_overrides": [
     {
       "code": "400855.220",
-      "name": "FLAME III BALL WHITE ORANGE",
-      "new_nad": 783,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "FLAME III BALL WHITE ORANGE · 400855.220",
+      "pack_nad": 9396,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401724.204",
-      "name": "GIOCO III BALL WHITE GREEN",
-      "new_nad": 626,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "GIOCO III BALL WHITE GREEN · 401724.204",
+      "pack_nad": 7517,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401725.063",
-      "name": "W-Gioco BALL FLUOR YELLOW NAVY BLUE",
-      "new_nad": 626,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "W-GIOCO BALL FLUOR YELLOW NAVY BLUE · 401725.063",
+      "pack_nad": 7517,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401581.903",
-      "name": "J-PRO Handball BALL YELLOW DARK NAVY",
-      "new_nad": 539,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "J-PRO HANDBALL BALL YELLOW DARK NAVY · 401581.903",
+      "pack_nad": 6468,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401581.906",
-      "name": "J-PRO Handball BALL YELLOW RED",
-      "new_nad": 539,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "J-PRO HANDBALL BALL YELLOW RED · 401581.906",
+      "pack_nad": 6468,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401581.916",
-      "name": "J-PRO Handball BALL YELLOW Turquoise",
-      "new_nad": 539,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "J-PRO HANDBALL BALL YELLOW TURQUOISE · 401581.916",
+      "pack_nad": 6468,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401581.918",
-      "name": "J-PRO Handball BALL YELLOW FLUOR PINK",
-      "new_nad": 539,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "J-PRO HANDBALL BALL YELLOW FLUOR PINK · 401581.918",
+      "pack_nad": 6468,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401728.207",
-      "name": "URANUS III BALL WHITE ROYAL BLUE",
-      "new_nad": 539,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "URANUS III BALL WHITE ROYAL BLUE · 401728.207",
+      "pack_nad": 6468,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401647.216",
-      "name": "S-GRIP BALL WHITE Turquoise",
-      "new_nad": 489,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "S-GRIP BALL WHITE TURQUOISE · 401647.216",
+      "pack_nad": 5873,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401647.217",
-      "name": "S-GRIP BALL WHITE FLUOR GREEN",
-      "new_nad": 489,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "S-GRIP BALL WHITE FLUOR GREEN · 401647.217",
+      "pack_nad": 5873,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401647.218",
-      "name": "S-GRIP BALL WHITE FLUOR PINK",
-      "new_nad": 489,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "S-GRIP BALL WHITE FLUOR PINK · 401647.218",
+      "pack_nad": 5873,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400854.216",
-      "name": "Iceberg III BALL WHITE Turquoise",
-      "new_nad": 453,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "ICEBERG III BALL WHITE TURQUOISE · 400854.216",
+      "pack_nad": 5434,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401494.116",
-      "name": "Pentaforce BALL Turquoise NAVY",
-      "new_nad": 453,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "PENTAFORCE BALL TURQUOISE NAVY · 401494.116",
+      "pack_nad": 5434,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401483.814",
-      "name": "Evolution IV BALL FLUOR ORANGE ROYAL",
-      "new_nad": 428,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "EVOLUTION IV BALL FLUOR ORANGE ROYAL · 401483.814",
+      "pack_nad": 5137,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400906.206",
-      "name": "Neptune II BALL WHITE RED",
-      "new_nad": 416,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "NEPTUNE II BALL WHITE RED · 400906.206",
+      "pack_nad": 4995,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401495.023",
-      "name": "Dinamic IV BALL FLUOR GREEN NAVY",
-      "new_nad": 405,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DINAMIC IV BALL FLUOR GREEN NAVY · 401495.023",
+      "pack_nad": 4854,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401957.206",
-      "name": "J-PRO BALL WHITE RED",
-      "new_nad": 392,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "J-PRO BALL WHITE RED · 401957.206",
+      "pack_nad": 4698,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401957.207",
-      "name": "J-PRO BALL WHITE BLUE",
-      "new_nad": 392,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "J-PRO BALL WHITE BLUE · 401957.207",
+      "pack_nad": 4698,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401413.117",
-      "name": "EGEO II BALL BLACK FLUOR GREEN",
-      "new_nad": 380,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "EGEO II  BALL BLACK FLUOR GREEN · 401413.117",
+      "pack_nad": 4557,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401413.268",
-      "name": "EGEO II BALL LIGHT GREY FLUOR CORAL",
-      "new_nad": 380,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "EGEO II  BALL LIGHT GREY FLUOR CORAL · 401413.268",
+      "pack_nad": 4557,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401240.061",
-      "name": "Evolution III BALL YELLOW BLACK",
-      "new_nad": 368,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "EVOLUTION III BALL YELLOW BLACK · 401240.061",
+      "pack_nad": 4416,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401959.015",
-      "name": "Pentaforce BALL Turquoise PINK",
-      "new_nad": 343,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "PENTAFORCE BALL TURQUOISE PINK · 401959.015",
+      "pack_nad": 4118,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401243.207",
-      "name": "U-Light BALL WHITE BLUE",
-      "new_nad": 331,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "U-LIGHT BALL WHITE BLUE · 401243.207",
+      "pack_nad": 3978,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401243.220",
-      "name": "U-Light BALL WHITE FLUOR ORANGE",
-      "new_nad": 331,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "U-LIGHT BALL WHITE FLUOR ORANGE · 401243.220",
+      "pack_nad": 3978,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401244.206",
-      "name": "LIGHT BALL WHITE RED",
-      "new_nad": 331,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "LIGHT BALL WHITE RED · 401244.206",
+      "pack_nad": 3978,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401953.057",
-      "name": "Evolution V BALL FLUOR YELLOW PURPLE",
-      "new_nad": 324,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "EVOLUTION V BALL FLUOR YELLOW PURPLE · 401953.057",
+      "pack_nad": 3884,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401726.217",
-      "name": "HALLEY II BALL WHITE FLUOR GREEN",
-      "new_nad": 313,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "HALLEY II BALL WHITE FLUOR GREEN · 401726.217",
+      "pack_nad": 3759,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401727.218",
-      "name": "HALLEY II BALL WHITE FLUOR PINK",
-      "new_nad": 313,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "HALLEY II BALL WHITE FLUOR PINK · 401727.218",
+      "pack_nad": 3759,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401952.205",
-      "name": "Dinamic V BALL WHITE PINK",
-      "new_nad": 313,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DINAMIC V BALL WHITE PINK · 401952.205",
+      "pack_nad": 3759,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400649.061",
-      "name": "DALI II BALL FLUOR YELLOW",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI II BALL FLUOR YELLOW · 400649.061",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400649.203",
-      "name": "DALI II BALL Fuchsia RED FLUOR",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI II BALL FUCHSIA RED FLUOR · 400649.203",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400649.211",
-      "name": "DALI II BALL GREY GREEN",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI II BALL GREY GREEN · 400649.211",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400649.214",
-      "name": "DALI II BALL WHITE FLUOR ORANGE",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI II BALL WHITE FLUOR ORANGE · 400649.214",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400649.216",
-      "name": "DALI II BALL WHITE FLUOR Turquoise",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI II BALL WHITE FLUOR TURQUOISE · 400649.216",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400649.497",
-      "name": "DALI II BALL Fuchsia Turquoise",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI II BALL FUCHSIA TURQUOISE · 400649.497",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401412.047",
-      "name": "DALI III BALL FLUOR Turquoise FLUOR CORAL",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI III BALL FLUOR TURQUOISE FLUOR CORAL · 401412.047",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401412.206",
-      "name": "DALI III BALL RED FLUOR GREEN",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI III BALL RED FLUOR GREEN · 401412.206",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401412.216",
-      "name": "DALI III BALL YELLOW",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI III BALL YELLOW · 401412.216",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401412.334",
-      "name": "DALI III BALL FLUOR GREEN FLUOR PINK NAVY",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI III BALL FLUOR GREEN FLUOR PINK NAVY · 401412.334",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401412.920",
-      "name": "DALI III BALL FLUOR YELLOW FLUOR Turquoise",
-      "new_nad": 312,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI III BALL FLUOR YELLOW FLUOR TURQUOISE · 401412.920",
+      "pack_nad": 3743,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401951.219",
-      "name": "Neptune III BALL WHITE FLUOR CORAL",
-      "new_nad": 294,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "NEPTUNE III BALL WHITE FLUOR CORAL · 401951.219",
+      "pack_nad": 3523,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401956.067",
-      "name": "S-GRIP BALL FLUOR YELLOW BLUE",
-      "new_nad": 294,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "S-GRIP BALL FLUOR YELLOW BLUE · 401956.067",
+      "pack_nad": 3523,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401963.211",
-      "name": "Victory IV JR BALL WHITE GRAY",
-      "new_nad": 294,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "VICTORY IV JR BALL WHITE GRAY · 401963.211",
+      "pack_nad": 3523,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401484.207",
-      "name": "Challenge III BALL WHITE ROYAL",
-      "new_nad": 282,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CHALLENGE III BALL WHITE ROYAL · 401484.207",
+      "pack_nad": 3383,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401484.217",
-      "name": "Challenge III BALL WHITE FLUOR GREEN",
-      "new_nad": 282,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CHALLENGE III BALL WHITE FLUOR GREEN · 401484.217",
+      "pack_nad": 3383,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401954.067",
-      "name": "DALI IV BALL FLUOR YELLOW BLUE",
-      "new_nad": 245,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI IV BALL FLUOR YELLOW BLUE · 401954.067",
+      "pack_nad": 2944,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401954.211",
-      "name": "DALI IV BALL WHITE GRAY",
-      "new_nad": 245,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI IV BALL WHITE GRAY · 401954.211",
+      "pack_nad": 2944,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401954.216",
-      "name": "DALI IV BALL WHITE FLUOR Turquoise",
-      "new_nad": 245,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI IV BALL WHITE FLUOR TURQUOISE · 401954.216",
+      "pack_nad": 2944,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401954.219",
-      "name": "DALI IV BALL WHITE FLUOR CORAL",
-      "new_nad": 245,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI IV BALL WHITE FLUOR CORAL · 401954.219",
+      "pack_nad": 2944,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401954.221",
-      "name": "DALI IV BALL WHITE FLUOR YELLOW",
-      "new_nad": 245,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "DALI IV BALL WHITE FLUOR YELLOW · 401954.221",
+      "pack_nad": 2944,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400851.216",
-      "name": "Challenge II BALL WHITE Turquoise",
-      "new_nad": 221,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CHALLENGE II BALL WHITE TURQUOISE · 400851.216",
+      "pack_nad": 2646,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401962.206",
-      "name": "Challenge IV BALL WHITE RED",
-      "new_nad": 196,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CHALLENGE IV BALL WHITE RED · 401962.206",
+      "pack_nad": 2349,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401962.207",
-      "name": "Challenge IV BALL WHITE BLUE",
-      "new_nad": 196,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CHALLENGE IV BALL WHITE BLUE · 401962.207",
+      "pack_nad": 2349,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401962.221",
-      "name": "Challenge IV BALL WHITE FLUOR YELLOW",
-      "new_nad": 196,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CHALLENGE IV BALL WHITE FLUOR YELLOW · 401962.221",
+      "pack_nad": 2349,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "401955.215",
+      "name": "INTER BALL WHITE BURGUNDY · 401955.215",
+      "pack_nad": 2584,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "401955.216",
+      "name": "INTER BALL WHITE TURQUOISE · 401955.216",
+      "pack_nad": 2584,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "401955.217",
+      "name": "INTER BALL WHITE FLUOR GREEN · 401955.217",
+      "pack_nad": 2584,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "401731.204",
+      "name": "VICTORY BALL WHITE GREEN · 401731.204",
+      "pack_nad": 4416,
+      "pack_size": null,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "401268.214",
+      "name": "HALLEY II BALL WHITE FLUOR TURQUOISE · 401268.214",
+      "pack_nad": 3978,
+      "pack_size": null,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "400356.308",
+      "name": "ERIS HYBRID SOCCER BALL WHITE-GREEN-ORANGE SIZE 62 · 400356.308",
+      "pack_nad": 3759,
+      "pack_size": null,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "AH41800B0501",
+      "name": "FED. FUTBOL RUMANÍA 1ST OPT E BALL · AH41800B0501",
+      "pack_nad": 1954,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "TI41800B5101",
+      "name": "HELLAS VERONA FC REPLICA BALL · TI41800B5101",
+      "pack_nad": 3496,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.100",
-      "name": "CAP Classic BLACK",
-      "new_nad": 117,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CAP CLASSIC BLACK · 400089.100",
+      "pack_nad": 2819,
+      "pack_size": 24,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.200",
-      "name": "CAP Classic WHITE",
-      "new_nad": 117,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "CAP CLASSIC WHITE · 400089.200",
+      "pack_nad": 2819,
+      "pack_size": 24,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400056.100",
-      "name": "HAT Reversible BLACK",
-      "new_nad": 176,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "HAT REVERSIBLE BLACK · 400056.100",
+      "pack_nad": 1762,
+      "pack_size": 10,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400360.100",
-      "name": "HAT BLACK",
-      "new_nad": 117,
-      "source": "supplier B2B exact NAD map 2026-09-28"
+      "name": "HAT BLACK · 400360.100",
+      "pack_nad": 1409,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300151.003",
+      "name": "MULTIPACK OF MULTICOLOR CAPS R-TRAIL NATURE · 300151.003",
+      "pack_nad": 2928,
+      "pack_size": null,
+      "sell_as": "multipack",
+      "source": "pack retail policy 2026-09-28 (keep catalog pack NAD)"
+    },
+    {
+      "code": "300249.001",
+      "name": "MULTIPACK OF VISORS MULTICOLOR · 300249.001",
+      "pack_nad": 1083,
+      "pack_size": null,
+      "sell_as": "multipack",
+      "source": "pack retail policy 2026-09-28 (keep catalog pack NAD)"
+    },
+    {
+      "code": "105463.040",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT FLUOR CORAL · 105463.040",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.100",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT BLACK · 105463.100",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.200",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT WHITE · 105463.200",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.250",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT GRAY · 105463.250",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.400",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT LIME · 105463.400",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.450",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT GREEN · 105463.450",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.600",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT RED · 105463.600",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.700",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT ROYAL BLUE · 105463.700",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "105463.900",
+      "name": "EVENTOS SHORT SLEEVE T-SHIRT YELLOW · 105463.900",
+      "pack_nad": 2447,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-25",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101686.010",
+      "name": "TRAINING BIB FLUOR TURQUOISE · 101686.010",
+      "pack_nad": 900,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101686.020",
+      "name": "TRAINING BIB FLUOR GREEN · 101686.020",
+      "pack_nad": 900,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101686.030",
+      "name": "TRAINING BIB FLUOR PINK · 101686.030",
+      "pack_nad": 900,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101686.050",
+      "name": "TRAINING BIB FLUOR ORANGE · 101686.050",
+      "pack_nad": 900,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101686.060",
+      "name": "TRAINING BIB FLUOR YELLOW · 101686.060",
+      "pack_nad": 900,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101686.200",
+      "name": "TRAINING BIB WHITE · 101686.200",
+      "pack_nad": 900,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101689.050",
+      "name": "REVERSIBLE TRAINING BIB F.ORANGE-F.GREEN · 101689.050",
+      "pack_nad": 1279,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-10",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "400245.P04",
+      "name": "WRISTBAND COLOR ASSORTMENT · 400245.P04",
+      "pack_nad": 1785,
+      "pack_size": 24,
+      "sell_as": "assortment",
+      "expect": "assortment",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "400300.P04",
+      "name": "WRISTBAND COLOR ASSORTMENT · 400300.P04",
+      "pack_nad": 768,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "expect": "assortment",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300206.003",
+      "name": "MULTIPACK ACCESSORIES SOCKS R-NATURE MULTICOLOR · 300206.003",
+      "pack_nad": 1249,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300117.001",
+      "name": "MULTIPACK SOCKS MYSTIC MULTICOLOR · 300117.001",
+      "pack_nad": 1142,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300213.003",
+      "name": "MULTIPACK WRISTBANDS GYM MULTICOLOR · 300213.003",
+      "pack_nad": 1033,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300119.001",
+      "name": "MULTIPACK SOCKS R- TRAIL NATURE MULTICOLOR · 300119.001",
+      "pack_nad": 939,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300273.001",
+      "name": "MULTIPACK ACCESSORIES MERINO SOCKS MULTICOLOR · 300273.001",
+      "pack_nad": 933,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300022.001",
+      "name": "MULTIPACK SWIMMING CAPS SPLASH MULTICOLOR · 300022.001",
+      "pack_nad": 812,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300274.001",
+      "name": "MULTIPACK OF WINTER HATS MULTICOLORED · 300274.001",
+      "pack_nad": 781,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "300275.001",
+      "name": "MULTIPACK SOCKS MULTICOLOR · 300275.001",
+      "pack_nad": 693,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "multipack",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "900-027",
+      "name": "BOX OF 100 NAILS · 900-027",
+      "pack_nad": 653,
+      "pack_size": null,
+      "sell_as": null,
+      "expect": "pack-of-100",
+      "price_stable": true,
+      "source": "pack retail policy 2026-09-28"
     }
   ],
-  "pack_price_suspects_no_unit_yet": [
+  "hidden_packs": [
     {
       "code": "TI42305B1101",
       "name": "HELLAS VERONA FC TRAINING WINTER HAT · TI42305B1101",
       "catalog_nad": 5030,
       "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known"
+      "reason": "hat at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.300",
       "name": "CAP CLASSIC NAVY · 400089.300",
       "catalog_nad": 2818,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.474",
       "name": "CLASSIC CAP KHAKI · 400089.474",
       "catalog_nad": 2818,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.600",
       "name": "CAP CLASSIC RED · 400089.600",
       "catalog_nad": 2818,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.700",
       "name": "CAP CLASSIC ROYAL · 400089.700",
       "catalog_nad": 2818,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401504.100",
       "name": "CLASSIC  CAP BLACK · 401504.100",
       "catalog_nad": 2349,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401504.200",
       "name": "CLASSIC  CAP WHITE · 401504.200",
       "catalog_nad": 2349,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401504.331",
       "name": "CLASSIC  CAP NAVY · 401504.331",
       "catalog_nad": 2349,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "300267.001",
       "name": "CAP ACCESSORIES MULTICOLOR · 300267.001",
       "catalog_nad": 2276,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400635.000",
       "name": "TORNEO VISOR CAP MULTICOLOR · 400635.000",
       "catalog_nad": 2067,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400635.001",
       "name": "TORNEO VISOR CAP MULTICOLOR · 400635.001",
       "catalog_nad": 2067,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400635.002",
       "name": "TORNEO VISOR CAP MULTICOLOR · 400635.002",
       "catalog_nad": 2067,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400635.102",
       "name": "TORNEO VISOR CAP BLACK WHITE · 400635.102",
       "catalog_nad": 2067,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400580.001",
       "name": "RUNNING NIGHT CAP MULTICOLOR · 400580.001",
       "catalog_nad": 1921,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400580.100",
       "name": "RUNNING NIGHT CAP BLACK · 400580.100",
       "catalog_nad": 1921,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400580.200",
       "name": "RUNNING NIGHT CAP WHITE · 400580.200",
       "catalog_nad": 1921,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401779.102",
       "name": "TRAIL CAP BLACK WHITE · 401779.102",
       "catalog_nad": 1777,
       "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
+      "reason": "cap at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400360.280",
       "name": "HAT MELANGE · 400360.280",
       "catalog_nad": 1409,
       "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known"
+      "reason": "hat at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400360.331",
       "name": "HAT NAVY · 400360.331",
       "catalog_nad": 1409,
       "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known"
+      "reason": "hat at pack NAD, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401021.100",
       "name": "SPLASH SWIMMING CAP BLACK · 401021.100",
       "catalog_nad": 783,
       "subcategory": "caps",
-      "reason": "cap suspect, no unit USD known"
+      "reason": "cap suspect, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "401779.924",
       "name": "TRAIL CAP YELLOW · 401779.924",
       "catalog_nad": 533,
       "subcategory": "caps",
-      "reason": "cap suspect, no unit USD known"
-    },
-    {
-      "code": "300151.003",
-      "name": "MULTIPACK OF MULTICOLOR CAPS R-TRAIL NATURE · 300151.003",
-      "catalog_nad": 2928,
-      "subcategory": "caps",
-      "reason": "multipack cap at pack NAD, no unit USD known"
-    },
-    {
-      "code": "401731.204",
-      "name": "VICTORY BALL WHITE GREEN · 401731.204",
-      "catalog_nad": 4416,
-      "subcategory": "balls",
-      "reason": "ball pack suspect, no unit USD known"
-    },
-    {
-      "code": "401268.214",
-      "name": "HALLEY II BALL WHITE FLUOR TURQUOISE · 401268.214",
-      "catalog_nad": 3978,
-      "subcategory": "balls",
-      "reason": "ball pack suspect, no unit USD known"
-    },
-    {
-      "code": "400356.308",
-      "name": "ERIS HYBRID SOCCER BALL WHITE-GREEN-ORANGE SIZE 62 · 400356.308",
-      "catalog_nad": 3759,
-      "subcategory": "balls",
-      "reason": "ball pack suspect, no unit USD known"
-    },
-    {
-      "code": "AH41800B0501",
-      "name": "FED. FUTBOL RUMANÍA 1ST OPT E BALL · AH41800B0501",
-      "catalog_nad": 1954,
-      "subcategory": "balls",
-      "reason": "ball pack suspect, no unit USD known"
-    },
-    {
-      "code": "TI41800B5101",
-      "name": "HELLAS VERONA FC REPLICA BALL · TI41800B5101",
-      "catalog_nad": 3496,
-      "subcategory": "balls",
-      "reason": "ball pack suspect, no unit USD known"
-    },
-    {
-      "code": "300249.001",
-      "name": "MULTIPACK OF VISORS MULTICOLOR · 300249.001",
-      "catalog_nad": 1083,
-      "subcategory": "general",
-      "reason": "multipack visor at pack NAD, no unit USD known"
+      "reason": "cap suspect, no unit USD known",
+      "source": "pack retail policy 2026-09-28"
     }
   ]
 }

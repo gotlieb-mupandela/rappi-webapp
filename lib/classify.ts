@@ -1,4 +1,5 @@
 import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack } from "@/lib/assortment";
+import type { AssortmentInfo } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
 import { isSportHub, jomaLeafHub, productInHub } from "@/lib/hub-membership";
@@ -760,7 +761,7 @@ function applyRetailPrice<T extends Product>(product: T): T {
 
 function applyPackTitle<T extends Product>(product: T): T {
   const info = getAssortment(product);
-  if (!info?.packSize || info.packSize <= 1) return product;
+  if (!info?.packSize || info.packSize <= 1) return applyPackWordTitle(product, info);
   const n = info.packSize;
   const already = new RegExp(`\\bpack(?:\\s+of)?\\s+${n}\\b`, "i").test(
     [product.displayName, product.title, product.name].join(" "),
@@ -773,6 +774,36 @@ function applyPackTitle<T extends Product>(product: T): T {
     displayName: labeled,
     title: new RegExp(`pack of ${n}`, "i").test(product.title) ? product.title : labeled,
   };
+}
+
+/**
+ * Title suffix for packs without a known size ("· Pack" / "· Assortment pack" /
+ * "· Multipack"). Scoped to explicit pack-policy flags and multipack kind so
+ * unrelated wholesale-threshold SKUs keep their existing titles. Idempotent
+ * across repeated bakes: skips when the wording is already present.
+ */
+function applyPackWordTitle<T extends Product>(product: T, info: AssortmentInfo | null): T {
+  if (!info) return product;
+  const suffix =
+    info.kind === "multipack"
+      ? "Multipack"
+      : info.kind === "assortment"
+        ? "Assortment pack"
+        : info.kind === "pack"
+          ? "Pack"
+          : null;
+  if (!suffix) return product;
+  const hay = [product.displayName, product.title, product.name].join(" ");
+  if (suffix === "Multipack") {
+    if (/\bmultipack\b/i.test(hay)) return product;
+  } else if (suffix === "Assortment pack") {
+    if (/assortment pack/i.test(hay)) return product;
+  } else if (/\bpack(\s+of\s+\d+)?\b/i.test(hay)) {
+    return product;
+  }
+  const display = product.displayName.trim();
+  const labeled = `${display} · ${suffix}`;
+  return { ...product, displayName: labeled, title: labeled };
 }
 
 export function withStorefrontMerchandising<T extends Product>(product: T): T {

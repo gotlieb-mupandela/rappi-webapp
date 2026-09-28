@@ -120,7 +120,11 @@ export function ProductDetail({ product }: { product: Product }) {
                   ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
                   : assortment.kind === "multipack"
                     ? t("product.packMultipack", { symbol })
-                    : assortment.kind === "wholesale-pack"
+                    : assortment.kind === "pack"
+                      ? t("product.packPdp", { symbol })
+                      : assortment.kind === "assortment"
+                        ? t("product.packAssortmentPack", { symbol })
+                        : assortment.kind === "wholesale-pack"
                       ? t("product.packWholesalePack", { symbol })
                       : assortment.kind === "wholesale" && !isFootwearSku(product)
                         ? t("product.packAssortmentApparel", { symbol })
@@ -174,7 +178,9 @@ export function ProductDetail({ product }: { product: Product }) {
                 ? t("product.orderPackNamed", { n: assortment.packSize })
                 : assortment?.kind === "multipack"
                   ? t("product.orderMultipack")
-                  : assortment?.kind === "wholesale-pack"
+                  : assortment?.kind === "pack"
+                    ? t("product.orderPack")
+                    : assortment?.kind === "wholesale-pack"
                     ? t("product.orderWholesalePack")
                     : assortment?.isAssortment
                       ? t("product.orderAssortment")

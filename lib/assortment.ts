@@ -78,8 +78,11 @@ export type AssortmentInfo = {
   pairHint: string | null;
   /** Keep the Joma size run (e.g. bib S01–S04) instead of collapsing to PACK. */
   preserveSizes?: boolean;
-  kind?: "named" | "multipack" | "wholesale" | "wholesale-pack";
+  kind?: "named" | "multipack" | "wholesale" | "wholesale-pack" | "pack" | "assortment";
 };
+
+/** Explicit pack-policy flag values (see Product.sellAs). */
+export type SellAs = "pack" | "assortment" | "multipack";
 
 export const BIB_PACK_PRICE_NAD = 900;
 
@@ -228,10 +231,59 @@ function pieceHint(price: number, format = formatPrice) {
   return `About ${format(price / 6)} each (6) · ${format(price / 8)} each (8) · ${format(price / 12)} each (12)`;
 }
 
+/**
+ * Explicit pack-policy flags from the catalog row (data/b2c-price-fix-data.json).
+ * Checked before any name/price sniffing so listed packs always render as packs.
+ * pairHint stays null: the supplier unit figure is never our selling price,
+ * so no per-unit math is shown for these packs.
+ */
+function explicitPackInfo(product: Product): AssortmentInfo | null {
+  const sellAs = product.sellAs;
+  if (!sellAs) return null;
+  const n = product.packSize ?? null;
+  if (sellAs === "multipack") {
+    return {
+      isAssortment: true,
+      packSize: n && n > 1 ? n : null,
+      label: "Multipack",
+      pairHint: null,
+      kind: "multipack",
+    };
+  }
+  if (sellAs === "assortment") {
+    return {
+      isAssortment: true,
+      packSize: n && n > 1 ? n : null,
+      label: "Assortment pack",
+      pairHint: null,
+      kind: "assortment",
+    };
+  }
+  if (n && n > 1) {
+    return {
+      isAssortment: true,
+      packSize: n,
+      label: `Pack of ${n}`,
+      pairHint: null,
+      kind: "pack",
+    };
+  }
+  return {
+    isAssortment: true,
+    packSize: null,
+    label: "Pack",
+    pairHint: null,
+    kind: "pack",
+  };
+}
+
 export function getAssortment(
   product: Product,
   format: (nad: number) => string = formatPrice,
 ): AssortmentInfo | null {
+  const explicit = explicitPackInfo(product);
+  if (explicit) return explicit;
+
   if (isTrainingBibPack(product)) {
     const price = product.price || product.unitPrice || BIB_PACK_PRICE_NAD;
     return {
@@ -310,6 +362,24 @@ export function assortmentCopy(
       ...info,
       label: t("product.packOf10"),
       pairHint: t("product.aboutEach", { amount: format((product.price || product.unitPrice || 0) / 10) }),
+    };
+  }
+  // Explicit pack-policy packs first: badge is exactly Pack / Assortment /
+  // Multipack and no per-unit math is ever shown (supplier unit figures are
+  // never our selling price). Must precede the generic packSize branch below,
+  // which divides price by pack size for detected (non-explicit) packs.
+  if (info.kind === "pack") {
+    return {
+      ...info,
+      label: t("product.pack"),
+      pairHint: null,
+    };
+  }
+  if (info.kind === "assortment") {
+    return {
+      ...info,
+      label: t("product.assortment"),
+      pairHint: null,
     };
   }
   if (info.packSize && info.packSize > 1) {

@@ -12,6 +12,7 @@ import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "@/components/product-image";
+import { AssortmentBadge } from "@/components/assortment-label";
 import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
@@ -130,6 +131,7 @@ export function ProductCard({
           <p className="mt-0.5 truncate text-[12px] font-semibold uppercase tracking-[0.02em] text-[var(--text)]">
             {title}
           </p>
+          <AssortmentBadge product={product} />
           <p className="price mt-1 text-[12px] font-semibold text-[var(--accent)]">
             {t("product.tariff", { amount: format(product.unitPrice) })}
           </p>
@@ -163,6 +165,12 @@ export function ProductCard({
             className="h-full w-full object-contain object-center p-3 sm:p-4"
             fallbackClassName="h-full w-full"
           />
+          <div className="absolute left-2 top-2 z-10">
+            <AssortmentBadge
+              product={product}
+              className="bg-[var(--text)] text-[var(--bg)]"
+            />
+          </div>
           {soldOut ? (
             <span className="absolute bottom-2 left-2 z-10 bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
               {t("common.soldOut")}

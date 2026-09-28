@@ -29,6 +29,13 @@ export type Product = {
   description?: string;
   /** False hides the SKU from the storefront and blocks purchase (pack-price guard). */
   available?: boolean;
+  /**
+   * Explicit pack-policy flag (from data/b2c-price-fix-data.json).
+   * Drives pack UI (badge/title/disclaimer) without name sniffing.
+   */
+  sellAs?: "pack" | "assortment" | "multipack";
+  /** Exact units per pack when the supplier states it; null/omitted = unknown. */
+  packSize?: number | null;
 };
 
 /** Product fields persisted on each cart line so the client never loads the catalog JSON. */
@@ -47,6 +54,8 @@ export type CartLineSnapshot = {
   subcategory: string;
   gender: Product["gender"];
   badge: Product["badge"];
+  sellAs?: Product["sellAs"];
+  packSize?: Product["packSize"];
 };
 
 export type CartLine = {
