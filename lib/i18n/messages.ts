@@ -355,10 +355,10 @@ export const en = {
     orderAssortment: "Order unit: assortment pack.",
     orderWholesalePack: "Order unit: wholesale pack.",
     orderPack: "Order unit: pack.",
-    orderSku: "Order unit: SKU. A per-size run is attached when the Joma B2B export lists one.",
+    orderSku: "Order unit: SKU. A per-size run is attached when the supplier export lists one.",
     orderOneSize: "Order unit: one size.",
     pack10:
-      "Sold as a pack of 10. The {symbol} price is for the full pack. Choose a size — S01–S04 follow the Joma grid (3XS, XS, M, XL).",
+      "Sold as a pack of 10. The {symbol} price is for the full pack. Choose a size — S01–S04 follow the size grid (3XS, XS, M, XL).",
     packNamedPdp: "Sold as a pack of {n}. The {symbol} price is for the full pack.",
     packMultipack: "Sold as a multipack. The {symbol} price is for the full set, not a single piece.",
     packAssortment:
@@ -367,8 +367,6 @@ export const en = {
       "Sold as a wholesale assortment pack, not a single piece. The {symbol} price is for the full pack (shirts, shorts, and other apparel boxes). Mixed sizes ship as packed by the supplier.",
     packWholesalePack:
       "Sold as a wholesale pack, not a single piece. The {symbol} price is the pack price.",
-    packAssortmentFootwear:
-      "Sold as an assortment pack (size run, about 8–12 pairs). The {symbol} price is the pack price.",
     packPdp: "Sold as a pack. The {symbol} price is for the full pack.",
     packAssortmentPack:
       "Sold as an assortment pack. The {symbol} price is for the full pack.",
@@ -391,7 +389,6 @@ export const en = {
     pcs: "pcs",
     wholesaleApparel: "Wholesale assortment",
     wholesalePack: "Wholesale pack",
-    assortmentFootwear: "Assortment pack (size run, ~8–12 pairs)",
     aboutEach: "About {amount} each",
     aboutPair: "About {amount} / pair",
     aboutPairRange: "About {eight} / pair (8) · {twelve} / pair (12)",
@@ -400,7 +397,7 @@ export const en = {
     descUnisex: "Unisex piece.",
     descPiece: "{who} piece.",
     descPack10: "Sold as a pack of 10. The {symbol} price is for the full pack.",
-    descBibSizes: "Sizes S01–S04 follow the Joma grid (3XS, XS, M, XL).",
+    descBibSizes: "Sizes S01–S04 follow the size grid (3XS, XS, M, XL).",
     descPack: "Sold as {label}. The {symbol} price is the pack price.",
     descPricedNad: "Priced in Namibian dollars.",
     descPricedEur: "Priced in euros (converted from NAD).",
@@ -1165,10 +1162,10 @@ export const fr: Messages = {
     orderAssortment: "Unité de commande : pack assortiment.",
     orderWholesalePack: "Unité de commande : pack gros.",
     orderPack: "Unité de commande : pack.",
-    orderSku: "Unité de commande : SKU. Une grille de tailles est jointe lorsque l’export Joma B2B en liste une.",
+    orderSku: "Unité de commande : SKU. Une grille de tailles est jointe lorsque l’export fournisseur en liste une.",
     orderOneSize: "Unité de commande : taille unique.",
     pack10:
-      "Vendu par pack de 10. Le prix {symbol} concerne le pack entier. Choisissez une taille — S01–S04 suivent la grille Joma (3XS, XS, M, XL).",
+      "Vendu par pack de 10. Le prix {symbol} concerne le pack entier. Choisissez une taille — S01–S04 suivent la grille des tailles (3XS, XS, M, XL).",
     packNamedPdp: "Vendu par pack de {n}. Le prix {symbol} concerne le pack entier.",
     packMultipack: "Vendu en multipack. Le prix {symbol} concerne l’ensemble, pas une pièce seule.",
     packAssortment:
@@ -1177,8 +1174,6 @@ export const fr: Messages = {
       "Vendu en pack assortiment gros, pas à la pièce. Le prix {symbol} concerne le pack entier (tees, shorts et autres boxes textile). Tailles mixtes selon le fournisseur.",
     packWholesalePack:
       "Vendu en pack gros, pas à la pièce. Le prix {symbol} est le prix du pack.",
-    packAssortmentFootwear:
-      "Vendu en pack assortiment (pointures, environ 8–12 paires). Le prix {symbol} est le prix du pack.",
     packPdp: "Vendu par pack. Le prix {symbol} concerne le pack entier.",
     packAssortmentPack:
       "Vendu en pack assortiment. Le prix {symbol} concerne le pack entier.",
@@ -1201,7 +1196,6 @@ export const fr: Messages = {
     pcs: "pcs",
     wholesaleApparel: "Assortiment gros",
     wholesalePack: "Pack gros",
-    assortmentFootwear: "Pack assortiment (pointures, ~8–12 paires)",
     aboutEach: "Environ {amount} pièce",
     aboutPair: "Environ {amount} / paire",
     aboutPairRange: "Environ {eight} / paire (8) · {twelve} / paire (12)",
@@ -1210,7 +1204,7 @@ export const fr: Messages = {
     descUnisex: "Pièce unisexe.",
     descPiece: "Pièce {who}.",
     descPack10: "Vendu par pack de 10. Le prix {symbol} concerne le pack entier.",
-    descBibSizes: "Les tailles S01–S04 suivent la grille Joma (3XS, XS, M, XL).",
+    descBibSizes: "Les tailles S01–S04 suivent la grille des tailles (3XS, XS, M, XL).",
     descPack: "Vendu en {label}. Le prix {symbol} est le prix du pack.",
     descPricedNad: "Prix en dollars namibiens.",
     descPricedEur: "Prix en euros (convertis depuis le NAD).",

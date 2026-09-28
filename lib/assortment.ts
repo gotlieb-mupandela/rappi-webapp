@@ -3,20 +3,6 @@ import type { Product } from "@/lib/types";
 import type { TFunction } from "@/lib/i18n/translate";
 
 /**
- * Wholesale footwear in this band is sold as mixed-size assortment boxes
- * (typically 8 or 12 pairs). The price feed does not encode pack size —
- * `unitPrice` equals the sell / pack price. Do not invent a single-pair list price.
- */
-export const WHOLESALE_SHOE_ASSORTMENT_THRESHOLD_NAD = 4000;
-
-/**
- * Apparel sold on the Joma clothing size grid (S01–S11) at/above this NAD
- * sell price is treated as a wholesale assortment box (shirts, shorts, etc.),
- * not a single piece — even when the name omits "PACK".
- */
-export const WHOLESALE_APPAREL_ASSORTMENT_THRESHOLD_NAD = 700;
-
-/**
  * Headwear (caps/hats/visors/beanies) and balls at/above these NAD sell
  * prices are treated as wholesale packs, not silent single pieces.
  * Pack size is unknown from the feed — do not divide into a unit price.
@@ -151,17 +137,6 @@ export function isMultipack(product: Product) {
   return MULTIPACK_RE.test(blob(product));
 }
 
-/**
- * Unlabeled apparel assortment boxes: clothing-grid sizes + elevated pack price.
- * Covers shirts, shorts, skirts, tracksuits, etc. — not footwear.
- */
-export function isWholesaleApparelAssortment(product: Product) {
-  if (!isApparelSku(product)) return false;
-  if (!hasClothingSizeGrid(product)) return false;
-  const price = product.price || product.unitPrice || 0;
-  return price >= WHOLESALE_APPAREL_ASSORTMENT_THRESHOLD_NAD;
-}
-
 const HEADWEAR_RE = /\b(caps?|hats?|visors?|beanies?)\b/i;
 const HEADWEAR_NOT = /\bscrum\b/i;
 const BALL_RE = /\b(balls?|bal[oó]n)\b/i;
@@ -224,11 +199,6 @@ function pairHint(price: number, size: number | null, format = formatPrice) {
     return `About ${format(price / size)} / pair`;
   }
   return `About ${format(price / 8)} / pair (8) · ${format(price / 12)} / pair (12)`;
-}
-
-function pieceHint(price: number, format = formatPrice) {
-  if (!price || price <= 0) return null;
-  return `About ${format(price / 6)} each (6) · ${format(price / 8)} each (8) · ${format(price / 12)} each (12)`;
 }
 
 /**
@@ -314,29 +284,6 @@ export function getAssortment(
     };
   }
 
-  const price = product.price || product.unitPrice || 0;
-  if (isFootwearSku(product) && price >= WHOLESALE_SHOE_ASSORTMENT_THRESHOLD_NAD) {
-    return {
-      isAssortment: true,
-      packSize: null,
-      label: "Assortment pack (size run, ~8–12 pairs)",
-      pairHint: pairHint(price, null, format),
-      kind: "wholesale",
-    };
-  }
-
-  if (isWholesaleApparelAssortment(product)) {
-    return {
-      isAssortment: true,
-      packSize: null,
-      label: "Wholesale assortment",
-      pairHint: pieceHint(price, format),
-      kind: "wholesale",
-      // Keep S0x so shoppers still pick the packed size run when present.
-      preserveSizes: true,
-    };
-  }
-
   if (isWholesaleHeadwearPack(product) || isWholesaleBallPack(product)) {
     return {
       isAssortment: true,
@@ -408,24 +355,8 @@ export function assortmentCopy(
       pairHint: null,
     };
   }
-  const price = product.price || product.unitPrice || 0;
-  if (isFootwearSku(product)) {
-    return {
-      ...info,
-      label: t("product.assortmentFootwear"),
-      pairHint: t("product.aboutPairRange", {
-        eight: format(price / 8),
-        twelve: format(price / 12),
-      }),
-    };
-  }
-  return {
-    ...info,
-    label: t("product.wholesaleApparel"),
-    pairHint: t("product.aboutEachRange", {
-      six: format(price / 6),
-      eight: format(price / 8),
-      twelve: format(price / 12),
-    }),
-  };
+  // No remaining kind reaches here: footwear/apparel price-threshold
+  // heuristics were removed, so packs are only named, multipack,
+  // wholesale-pack, or explicit sell_as metadata.
+  return null;
 }

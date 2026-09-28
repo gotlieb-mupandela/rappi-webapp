@@ -120,15 +120,52 @@ for (const [code, nad] of Object.entries(mapB.prices)) {
 }
 if (mapBChecked !== mapB.count) fail(`MAP B checked ${mapBChecked}, expected ${mapB.count}`);
 
-// MAP C footwear samples: baked titles must carry the Assortment pack cue.
-for (const code of ["RR500W2602", "BF111JS2629V", "BF1448W2503", "C448W2612", "TM100W2602C"]) {
+// Former footwear-threshold SKUs: never Assortment/Pack size-run UI.
+for (const code of ["RR500W2602", "BF111JS2629V"]) {
   const p = byCode.get(code);
   if (!p) {
-    fail(`MAP C sample missing ${code}`);
+    fail(`missing SKU ${code}`);
     continue;
   }
+  if (p.sellAs) fail(`${code} unexpectedly carries sellAs=${p.sellAs}`);
   const hay = [p.displayName, p.title, p.name].join(" ");
-  if (!/assortment pack/i.test(hay)) fail(`MAP C ${code} title missing Assortment pack cue`);
+  if (/assortment pack|pack of \d+|\bmultipack\b|wholesale assortment|size run/i.test(hay)) {
+    fail(`${code} still shows assortment/pack wording`);
+  }
+  if (p.available === false) fail(`${code} should stay purchasable`);
+}
+
+// Title-wording regression net: every baked pack suffix must be justified by
+// explicit sell_as metadata or name/code evidence (named Pack of N, multipack,
+// Eventos 105463.*, bib 101686.*). Price-threshold heuristics must never
+// leave wording behind.
+for (const p of catalog) {
+  const shown = [p.displayName, p.title].join(" ");
+  const mPack = shown.match(/·\s*pack of (\d+)\s*$/i);
+  const mBare = !mPack && /·\s*pack\s*$/i.test(shown);
+  const mAssort = /·\s*assortment pack\s*$/i.test(shown);
+  const mMulti = /·\s*multipack\s*$/i.test(shown);
+  if (!mPack && !mBare && !mAssort && !mMulti) continue;
+  const blob = [p.displayName, p.name, p.title, p.item, p.sheetCategory].filter(Boolean).join(" ");
+  const trainingBib =
+    /\btraining bib/i.test(blob) && (p.sizeOptions || []).some((s) => /^S0\d$/i.test(s));
+  const namedOk =
+    /\bpack(?:\s+of)?\s+(\d+)\b/i.test(p.name || "") ||
+    /\bbox of\s+(\d+)\b/i.test(p.name || "") ||
+    /^105463\./i.test(p.code) ||
+    trainingBib;
+  if (mPack && !(p.packSize === Number(mPack[1]) || namedOk)) {
+    fail(`${p.code} unjustified Pack-of-N title`);
+  }
+  if (mBare && !(p.sellAs === "pack" && (p.packSize ?? null) === null)) {
+    fail(`${p.code} unjustified bare Pack title`);
+  }
+  if (mAssort && p.sellAs !== "assortment") {
+    fail(`${p.code} unjustified Assortment pack title`);
+  }
+  if (mMulti && !(p.sellAs === "multipack" || /\bmultipack\b/i.test(blob))) {
+    fail(`${p.code} unjustified Multipack title`);
+  }
 }
 
 // No unavailable catalog row should leak into any public browse index.

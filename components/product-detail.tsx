@@ -8,7 +8,7 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment, isFootwearSku } from "@/lib/assortment";
+import { getAssortment } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -125,11 +125,7 @@ export function ProductDetail({ product }: { product: Product }) {
                       : assortment.kind === "assortment"
                         ? t("product.packAssortmentPack", { symbol })
                         : assortment.kind === "wholesale-pack"
-                      ? t("product.packWholesalePack", { symbol })
-                      : assortment.kind === "wholesale" && !isFootwearSku(product)
-                        ? t("product.packAssortmentApparel", { symbol })
-                        : assortment.kind === "wholesale"
-                          ? t("product.packAssortmentFootwear", { symbol })
+                          ? t("product.packWholesalePack", { symbol })
                           : t("product.packAssortment", { symbol })}
             </p>
           ) : null}
