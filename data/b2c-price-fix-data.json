@@ -977,6 +977,70 @@
       "subcategory": "caps",
       "reason": "cap suspect, no unit USD known",
       "source": "pack retail policy 2026-09-28"
+    },
+    {
+      "code": "101739EW200A",
+      "name": "SHORT-SLEEVE T-SHIRT CHALLENGE WHITE · 101739EW200A",
+      "catalog_nad": 0,
+      "subcategory": "tees",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "102752.100",
+      "name": "LONG PANTS ECO CHAMPIONSHIP BLACK · 102752.100",
+      "catalog_nad": 0,
+      "subcategory": "general",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "401517.001",
+      "name": "HEADBAND BREATH MULTICOLOR · 401517.001",
+      "catalog_nad": 0,
+      "subcategory": "general",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "500971.760",
+      "name": "JOMA KIDS SET VIOLET · 500971.760",
+      "catalog_nad": 0,
+      "subcategory": "sets",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "700133.100",
+      "name": "MIMETIC SWEATSHIRT BLACK · 700133.100",
+      "catalog_nad": 0,
+      "subcategory": "hoodies",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "FSS2402IN",
+      "name": "FS REACTIVE 2402 WHITE INDOOR · FSS2402IN",
+      "catalog_nad": 0,
+      "subcategory": "boots",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "RHISPS2501",
+      "name": "HISPALIS MEN 2501 BLACK · RHISPS2501",
+      "catalog_nad": 0,
+      "subcategory": "running-shoes",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
+    },
+    {
+      "code": "RREW2528IN",
+      "name": "REGATE REACTIVE 2528 ORANGE SAFFRON INDOOR · RREW2528IN",
+      "catalog_nad": 0,
+      "subcategory": "boots",
+      "reason": "zero-price stub, no supplier USD",
+      "source": "cleanup 2026-09-28"
     }
   ],
   "map_b": {
