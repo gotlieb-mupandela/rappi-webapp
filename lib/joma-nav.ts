@@ -121,37 +121,43 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
     return [
       {
         label: "TEAMWEAR",
+        labelKey: "tiles.teamwear",
         href: d.teamwear,
         hub: "teampro-2026",
         cover: "/brand/audience-women-teamwear.png?v=2",
       },
       {
         label: "TEAMWEAR PRO 2026",
+        labelKey: "tiles.teamwearPro",
         href: d.teamwearPro,
         hub: "teampro-2026",
         cover: "/brand/audience-women-jersey-navy.png?v=2",
       },
       {
         label: "RUNNING / TRAILRUNNING",
+        labelKey: "tiles.runningTrail",
         href: d.running,
         hub: "running-fitness",
         cover: "/brand/audience-women-field.png?v=2",
       },
       {
         label: "CYCLING",
+        labelKey: "tiles.cycling",
         href: d.cycling,
         hub: "sportswear",
       },
-      { label: "RACKET SPORTS", href: d.racket, hub: "padel" },
+      { label: "RACKET SPORTS", labelKey: "tiles.racketSports", href: d.racket, hub: "padel" },
       {
         label: "FITNESS / GYM",
+        labelKey: "tiles.fitnessGym",
         href: d.fitness,
         hub: "running-fitness",
         cover: "/brand/audience-women.png?v=6",
       },
-      { label: "HIKING / OUTDOOR", href: d.hiking, hub: "hiking" },
+      { label: "HIKING / OUTDOOR", labelKey: "tiles.hikingOutdoor", href: d.hiking, hub: "hiking" },
       {
         label: "LIFESTYLE",
+        labelKey: "tiles.lifestyle",
         href: d.lifestyle,
         hub: "lifestyle",
         cover: "/brand/audience-women-lifestyle.png?v=2",
@@ -159,46 +165,52 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
       { label: "EAGLE LINE", href: d.aguila, hub: "football" },
       { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
       { label: "BEACHWEAR", href: d.beachwear, hub: "swimming" },
-      { label: "UNDERWEAR / BRAMA", href: d.brama, hub: "brama" },
-      { label: "ATHLETES / COMBAT", href: d.combat, hub: "boxing" },
+      { label: "UNDERWEAR / BRAMA", labelKey: "tiles.underwearBrama", href: d.brama, hub: "brama" },
+      { label: "ATHLETES / COMBAT", labelKey: "tiles.athletesCombat", href: d.combat, hub: "boxing" },
       { label: "ELITE CLUB", href: d.elite, hub: "football" },
     ];
   }
   return [
     {
       label: "TEAMWEAR",
+      labelKey: "tiles.teamwear",
       href: d.teamwear,
       hub: "teampro-2026",
       cover: "/brand/hub-rugby.png?v=1",
     },
     {
       label: "TEAMWEAR PRO 2026",
+      labelKey: "tiles.teamwearPro",
       href: d.teamwearPro,
       hub: "teampro-2026",
       cover: "/brand/hub-teampro-2026.png",
     },
     {
       label: "RUNNING / TRAILRUNNING",
+      labelKey: "tiles.runningTrail",
       href: d.running,
       hub: "running-fitness",
       cover: "/brand/hero-athlete.png?v=2",
     },
     {
       label: "CYCLING",
+      labelKey: "tiles.cycling",
       href: d.cycling,
       hub: "sportswear",
       cover: "/brand/hub-sportswear.png?v=5",
     },
-    { label: "RACKET SPORTS", href: d.racket, hub: "padel" },
-    { label: "HIKING / OUTDOOR", href: d.hiking, hub: "hiking" },
+    { label: "RACKET SPORTS", labelKey: "tiles.racketSports", href: d.racket, hub: "padel" },
+    { label: "HIKING / OUTDOOR", labelKey: "tiles.hikingOutdoor", href: d.hiking, hub: "hiking" },
     {
       label: "FITNESS / GYM",
+      labelKey: "tiles.fitnessGym",
       href: d.fitness,
       hub: "running-fitness",
       cover: "/brand/hero-athlete.png?v=2",
     },
     {
       label: "LIFESTYLE",
+      labelKey: "tiles.lifestyle",
       href: d.lifestyle,
       hub: "lifestyle",
       cover: "/brand/hub-lifestyle.png?v=4",
@@ -207,8 +219,8 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
     /** Empty cover → gray plate like live Joma RESORT tile. */
     { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
     { label: "BEACHWEAR", href: d.beachwear, hub: "swimming" },
-    { label: "UNDERWEAR / BRAMA", href: d.brama, hub: "brama" },
-    { label: "ATHLETES / COMBAT", href: d.combat, hub: "boxing" },
+    { label: "UNDERWEAR / BRAMA", labelKey: "tiles.underwearBrama", href: d.brama, hub: "brama" },
+    { label: "ATHLETES / COMBAT", labelKey: "tiles.athletesCombat", href: d.combat, hub: "boxing" },
     { label: "ELITE CLUB", href: d.elite, hub: "football" },
   ];
 }
@@ -221,24 +233,28 @@ export function jomaKidsLandingTiles(): LandingTileDef[] {
   return [
     {
       label: "1-4 YEARS",
+      labelKey: "tiles.kids1to4",
       href: "/shop/kids?age=1-4",
       hub: "sportswear",
       cover: "/brand/hub-kids.png",
     },
     {
       label: "6-10 YEARS",
+      labelKey: "tiles.kids6to10",
       href: "/shop/kids?age=6-10",
       hub: "lifestyle",
       cover: "/brand/hub-lifestyle.png?v=4",
     },
     {
       label: "12-14 YEAR OLD BOY",
+      labelKey: "tiles.kidsBoy1214",
       href: "/shop/kids?age=12-14&gender=boy",
       hub: "football",
       cover: "/brand/hub-sportswear.png?v=5",
     },
     {
       label: "12-14 YEAR OLD GIRL",
+      labelKey: "tiles.kidsGirl1214",
       href: "/shop/kids?age=12-14&gender=girl",
       hub: "running-fitness",
       cover: "/brand/audience-women.png?v=5",
@@ -249,6 +265,8 @@ export function jomaKidsLandingTiles(): LandingTileDef[] {
 /** Accessories first-view tiles — matches header Accessories dropdown order (incl. duplicate Socks). */
 export type AccessoriesLandingTileDef = {
   label: string;
+  /** i18n key resolving the label at render (falls back to label). */
+  labelKey?: string;
   href: string;
   /** Catalog hub used for product-sample cover fallbacks. */
   hub?: string;
@@ -262,42 +280,49 @@ export function jomaAccessoriesLandingTiles(): AccessoriesLandingTileDef[] {
   return [
     {
       label: "BALLS",
+      labelKey: "tiles.balls",
       href: "/shop/balls-bags?sub=balls",
       hub: "balls-bags",
       sub: "balls",
     },
     {
       label: "GOALKEEPER GLOVES",
+      labelKey: "tiles.goalkeeperGloves",
       href: "/shop/football?sub=gk-gloves",
       hub: "football",
       sub: "gk-gloves",
     },
     {
       label: "BACKPACKS",
+      labelKey: "tiles.backpacks",
       href: "/shop/balls-bags?sub=bags",
       hub: "balls-bags",
       sub: "bags",
     },
     {
       label: "SOCKS",
+      labelKey: "tiles.socks",
       href: "/shop/balls-bags?sub=socks",
       hub: "balls-bags",
       sub: "socks",
     },
     {
       label: "SOCKS",
+      labelKey: "tiles.socks",
       href: "/shop/balls-bags?sub=socks",
       hub: "balls-bags",
       sub: "socks",
     },
     {
       label: "TEAMWEAR ACCESSORIES",
+      labelKey: "tiles.teamwearAccessories",
       href: "/teamwear",
       hub: "teampro-2026",
       cover: "/brand/hub-rugby.png?v=1",
     },
     {
       label: "RUNNING ACCESSORIES",
+      labelKey: "tiles.runningAccessories",
       href: "/shop/running-fitness?sub=accessories",
       hub: "running-fitness",
       sub: "accessories",
@@ -305,39 +330,46 @@ export function jomaAccessoriesLandingTiles(): AccessoriesLandingTileDef[] {
     },
     {
       label: "RACKET ACCESSORIES",
+      labelKey: "tiles.racketAccessories",
       href: "/shop/balls-bags?sub=rackets",
       hub: "balls-bags",
       sub: "rackets",
     },
     {
       label: "PADEL RACKETS",
+      labelKey: "tiles.padelRackets",
       href: "/shop/padel?sub=rackets",
       hub: "padel",
       sub: "rackets",
     },
     {
       label: "PICKLEBALL PADDLES",
+      labelKey: "tiles.pickleballPaddles",
       href: "/shop/balls-bags?sub=rackets",
       hub: "balls-bags",
       sub: "rackets",
     },
     {
       label: "OUTDOOR ACCESSORIES",
+      labelKey: "tiles.outdoorAccessories",
       href: "/shop/hiking",
       hub: "hiking",
     },
     {
       label: "FITNESS / GYM ACCESSORIES",
+      labelKey: "tiles.fitnessGymAccessories",
       href: "/shop/running-fitness",
       hub: "running-fitness",
       cover: "/brand/hero-athlete.png?v=2",
     },
     {
       label: "ACCESSORIES STORES",
+      labelKey: "tiles.accessoriesStores",
       href: "/store",
     },
     {
       label: "TEAMWEAR CATALOGUE",
+      labelKey: "tiles.teamwearCatalogue",
       href: "/shop/teampro-2026",
       hub: "teampro-2026",
       cover: "/brand/hub-teampro-2026.png",
@@ -496,18 +528,21 @@ export function jomaOfficialKitsLandingTiles(): LandingTileDef[] {
   return [
     {
       label: "SPONSOR REPLICAS",
+      labelKey: "tiles.kitSponsorReplicas",
       href: "/shop/teampro-2026",
       hub: "teampro-2026",
       cover: "/brand/hub-teampro-2026.png",
     },
     {
       label: "COMMITTEES AND FEDERATIONS",
+      labelKey: "tiles.kitCommittees",
       href: "/teamwear?view=quote",
       hub: "rugby",
       cover: "/brand/hub-rugby.png?v=1",
     },
     {
       label: "SPECIAL EDITIONS",
+      labelKey: "tiles.kitSpecialEditions",
       href: "/promotions?view=all",
       hub: "lifestyle",
       cover: "/brand/hub-lifestyle.png?v=4",
@@ -518,14 +553,20 @@ export function jomaOfficialKitsLandingTiles(): LandingTileDef[] {
 /** Outlet first-view tiles — live `#link=66` order (photo + orange category + red price). */
 export type OutletLandingTileDef = {
   label: string;
+  /** i18n key resolving the label at render (falls back to label). */
+  labelKey?: string;
   href: string;
   /** photo = product cover; category = orange OUTLET graphic; price = red OUTLET graphic. */
   kind: "photo" | "category" | "price";
   /** Overlay strip on photo tiles. */
   banner?: string;
+  /** i18n key resolving the banner at render (falls back to banner). */
+  bannerKey?: string;
   bannerTone?: "green" | "magenta";
   /** Text drawn on the colored bar for graphic tiles (defaults to label). */
   barLabel?: string;
+  /** i18n key resolving the bar label at render (falls back to barLabel). */
+  barLabelKey?: string;
   hub?: string;
 };
 
@@ -533,67 +574,85 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
   return [
     {
       label: "PROMOTIONS",
+      labelKey: "tiles.promotions",
       href: "/promotions?view=all",
       kind: "photo",
       banner: "LIMITED TIME",
+      bannerKey: "tiles.limitedTime",
       bannerTone: "green",
       hub: "shoes",
     },
     {
       label: "FOOTWEAR",
+      labelKey: "tiles.footwear",
       href: "/shop/shoes",
       kind: "photo",
       banner: "SPECIAL OFFERS",
+      bannerKey: "group.shoes.offersBanner",
       bannerTone: "magenta",
       hub: "shoes",
     },
     {
       label: "BEACHWEAR",
+      labelKey: "tiles.beachwear",
       href: "/shop/swimming",
       kind: "category",
       barLabel: "BEACHWEAR",
+      barLabelKey: "tiles.beachwear",
       hub: "swimming",
     },
     {
       label: "SWEATSHIRT / JACKET",
+      labelKey: "tiles.sweatshirtJacket",
       href: "/shop/sportswear?group=jackets",
       kind: "category",
       barLabel: "SWEATSHIRT / JACKET",
+      barLabelKey: "tiles.sweatshirtJacket",
       hub: "sportswear",
     },
     {
       label: "T-SHIRT / TOP",
+      labelKey: "tiles.tshirtTop",
       href: "/shop/sportswear?group=shirts",
       kind: "category",
       barLabel: "T-SHIRT / TOP",
+      barLabelKey: "tiles.tshirtTop",
       hub: "sportswear",
     },
     {
       label: "PANTS / SHORTS",
+      labelKey: "tiles.pantsShorts",
       href: "/shop/sportswear?group=shorts",
       kind: "category",
       barLabel: "PANTS / SHORTS",
+      barLabelKey: "tiles.pantsShorts",
       hub: "sportswear",
     },
     {
       label: "ANORAK",
+      labelKey: "tiles.anorak",
       href: "/shop/sportswear?group=jackets",
       kind: "category",
       barLabel: "ANORAK",
+      barLabelKey: "tiles.anorak",
       hub: "sportswear",
     },
     {
       label: "TRACK-SUIT",
+      labelKey: "tiles.tracksuit",
       href: "/shop/sportswear?sub=tracksuits",
       kind: "category",
       barLabel: "TRACKSUIT",
+      barLabelKey: "tiles.tracksuit",
       hub: "sportswear",
     },
     {
       label: "JUNIOR",
+      labelKey: "tiles.junior",
       href: "/shop/kids",
       kind: "category",
       barLabel: "JUNIOR",
+      barLabelKey: "tiles.junior",
       hub: "sportswear",
     },
     { label: "1.99 - 2.99", href: "/promotions?max=3&view=all", kind: "price", barLabel: "1.99 - 2.99" },
@@ -604,7 +663,7 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
     { label: "6.99 - 7.99", href: "/promotions?max=8&view=all", kind: "price", barLabel: "6.99 - 7.99" },
     { label: "7.99 - 10.99", href: "/promotions?max=11&view=all", kind: "price", barLabel: "7.99 - 10.99" },
     { label: "10.99 - 15.99", href: "/promotions?max=16&view=all", kind: "price", barLabel: "10.99 - 15.99" },
-    { label: "FROM 15.99", href: "/promotions?max=999&view=all", kind: "price", barLabel: "FROM 15.99" },
+    { label: "FROM 15.99", labelKey: "tiles.from1599", href: "/promotions?max=999&view=all", kind: "price", barLabel: "FROM 15.99", barLabelKey: "tiles.from1599" },
   ];
 }
 
