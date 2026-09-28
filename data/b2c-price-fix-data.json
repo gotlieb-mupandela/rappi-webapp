@@ -208,6 +208,13 @@
       "catalog_nad": 533,
       "subcategory": "caps",
       "reason": "cap suspect, no unit USD known"
+    },
+    {
+      "code": "300151.003",
+      "name": "MULTIPACK OF MULTICOLOR CAPS R-TRAIL NATURE · 300151.003",
+      "catalog_nad": 2928,
+      "subcategory": "caps",
+      "reason": "multipack cap at pack NAD, no unit USD known"
     }
   ]
 }

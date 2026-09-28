@@ -1,5 +1,6 @@
 import type { ListingItem } from "@/lib/listing-types";
 import { listingHay } from "@/lib/listing-core";
+import { isAvailable } from "@/lib/product-stock";
 import { DPO_TEST_CODE, dpoTestProduct } from "@/lib/dpo-test-product";
 
 let cached: ListingItem[] | null = null;
@@ -17,7 +18,7 @@ async function fetchListingIndex(): Promise<ListingItem[]> {
     res = await fetch("/listing-index.json", { cache: "no-store" });
   }
   if (!res.ok) throw new Error(`listing index ${res.status}`);
-  const rows = (await res.json()) as ListingItem[];
+  const rows = ((await res.json()) as ListingItem[]).filter(isAvailable);
   if (!rows.some((row) => row.code === DPO_TEST_CODE)) {
     rows.push({ ...dpoTestProduct });
   }
