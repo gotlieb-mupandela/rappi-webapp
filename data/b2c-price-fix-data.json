@@ -812,7 +812,7 @@
       "code": "RR500W2602",
       "name": "R.5000 2602 WHITE · RR500W2602",
       "pack_nad": 12236,
-      "source": "pack retail policy 2026-09-28 (pack-size flag, price unchanged)",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)",
       "pack_size": 8,
       "sell_as": "assortment"
     },
@@ -820,9 +820,1889 @@
       "code": "BF111JS2629V",
       "name": "CR111 JUNIOR BAREFOOT 2629 PINK · BF111JS2629V",
       "pack_nad": 5716,
-      "source": "pack retail policy 2026-09-28 (pack-size flag, price unchanged)",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)",
       "pack_size": 12,
       "sell_as": "assortment"
+    },
+    {
+      "code": "BF111JW2601V",
+      "name": "CR111 JUNIOR BAREFOOT 2601 BLACK · BF111JW2601V",
+      "pack_nad": 5716,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF111JW2612V",
+      "name": "CR111 JUNIOR BAREFOOT 2612 SILVER · BF111JW2612V",
+      "pack_nad": 5716,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF111JW2624V",
+      "name": "CR111 JUNIOR BAREFOOT 2624 BROWN · BF111JW2624V",
+      "pack_nad": 5716,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF1448LW2512",
+      "name": "1448 BAREFOOT LADY 2512 LIGHT GRAY · BF1448LW2512",
+      "pack_nad": 6264,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF1448W2503",
+      "name": "1448 BAREFOOT 2503 NAVY BLUE · BF1448W2503",
+      "pack_nad": 6264,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF1448W2512",
+      "name": "1448 BAREFOOT 2512 GRAY · BF1448W2512",
+      "pack_nad": 6264,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF1448W2624",
+      "name": "1448 BAREFOOT 2624 BROWN · BF1448W2624",
+      "pack_nad": 5951,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF144JW2512V",
+      "name": "1448 JUNIOR BAREFOOT 2512 LIGHT GRAY · BF144JW2512V",
+      "pack_nad": 4902,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BF144JW2526V",
+      "name": "1448 JUNIOR BAREFOOT 2526 LIGHT BROWN · BF144JW2526V",
+      "pack_nad": 4902,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCAKJW2513",
+      "name": "CAKE AISLATEX JR BAREFOOT 2513 LIGHT PINK · BFCAKJW2513",
+      "pack_nad": 5951,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCAKJW2515",
+      "name": "CAKE AISLATEX JR BAREFOOT 2515 GREEN · BFCAKJW2515",
+      "pack_nad": 5951,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALJS2613V",
+      "name": "CALPE JUNIOR BAREFOOT 2613 LIGHT PINK · BFCALJS2613V",
+      "pack_nad": 5324,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALJS2625V",
+      "name": "CALPE JUNIOR BAREFOOT 2625 BEIGE · BFCALJS2625V",
+      "pack_nad": 5324,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALJW2520V",
+      "name": "CALPE JUNIOR BAREFOOT 2520 BURGUNDY · BFCALJW2520V",
+      "pack_nad": 4902,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALJW2626V",
+      "name": "CALPE JUNIOR BAREFOOT 2626 LIGHT BROWN · BFCALJW2626V",
+      "pack_nad": 5324,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALLS2613",
+      "name": "CALPE LADY BAREFOOT 2613 PINK · BFCALLS2613",
+      "pack_nad": 5220,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALLW2520",
+      "name": "CALPE LADY BAREFOOT 2520 BURGUNDY · BFCALLW2520",
+      "pack_nad": 5951,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCALLW2625",
+      "name": "CALPE LADY BAREFOOT 2625 WHITE · BFCALLW2625",
+      "pack_nad": 5220,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCOCJW2503V",
+      "name": "COCO JUNIOR BAREFOOR 2503 NAVY BLUE · BFCOCJW2503V",
+      "pack_nad": 6421,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCOCJW2524V",
+      "name": "COCO JUNIOR BAREFOOR 2524 BROWN · BFCOCJW2524V",
+      "pack_nad": 6421,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFCROJW2628V",
+      "name": "SUPERCROSS JUNIOR BAREFOOT 2628 BEIGE · BFCROJW2628V",
+      "pack_nad": 4745,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFDEGJW2605V",
+      "name": "DEGASS JUNIOR BAREFOOT 2605 BLUE · BFDEGJW2605V",
+      "pack_nad": 4447,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFDEGJW2613V",
+      "name": "DEGASS JUNIOR BAREFOOT 2613 PINK · BFDEGJW2613V",
+      "pack_nad": 4447,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFENS2602",
+      "name": "FENIX BAREFOOT 2602 WHITE · BFFENS2602",
+      "pack_nad": 4541,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLEJS2613",
+      "name": "FLEXY JR BAREFOOT  2613 LIGHT PINK · BFFLEJS2613",
+      "pack_nad": 4280,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLEJW2624V",
+      "name": "FLEXY JR BAREFOOT  2624 BROWN · BFFLEJW2624V",
+      "pack_nad": 4776,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLELS2613",
+      "name": "C.FLEXYS LADY BAREFOOT 2613 PINK · BFFLELS2613",
+      "pack_nad": 5690,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLELW2502",
+      "name": "C.FLEXYS LADY 2502 PINK · BFFLELW2502",
+      "pack_nad": 5377,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLELW2529",
+      "name": "C.FLEXYS LADY 2529 BEIGE · BFFLELW2529",
+      "pack_nad": 5377,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLEXS2612",
+      "name": "FLEXY BAREFOOT 2612 LIGHT GRAY · BFFLEXS2612",
+      "pack_nad": 4907,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFFLEXS2625",
+      "name": "FLEXY BAREFOOT 2625 BEIGE · BFFLEXS2625",
+      "pack_nad": 4907,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFMUNJS2611V",
+      "name": "MUNDIAL JUNIOR BAREFOOT 2611 FLUOR GREEN · BFMUNJS2611V",
+      "pack_nad": 6421,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFR111W2601",
+      "name": "CR111 BAREFOOT 2601 BLACK · BFR111W2601",
+      "pack_nad": 5429,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFR111W2626",
+      "name": "CR111 BAREFOOT 2626 BROWN · BFR111W2626",
+      "pack_nad": 5429,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFR50JW2513V",
+      "name": "RT50 JUNIOR BAREFOOT 2513 LIGHT PINK · BFR50JW2513V",
+      "pack_nad": 4902,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFRT50W2624",
+      "name": "RT50 BAREFOOT 2624 BROWN · BFRT50W2624",
+      "pack_nad": 5429,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFSCROW2602",
+      "name": "SUPERCROSS BAREFOOT 2602 WHITE · BFSCROW2602",
+      "pack_nad": 4750,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFSIEJW2601V",
+      "name": "SIERRA JUNIOR BAREFOOT 2601 BLACK · BFSIEJW2601V",
+      "pack_nad": 5872,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFSIEW2615",
+      "name": "SIERRA BAREFOOT 2615 GREEN · BFSIEW2615",
+      "pack_nad": 6055,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFSIMJS2631V",
+      "name": "SIMA JUNIOR BAREFOOT 2631 BLACK · BFSIMJS2631V",
+      "pack_nad": 5872,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFSIMS2628",
+      "name": "SIMA BAREFOOT 2628 YELLOW · BFSIMS2628",
+      "pack_nad": 6055,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPEW2507",
+      "name": "VIPER MEN BAREFOOT 2507 CORAL · BFVIPEW2507",
+      "pack_nad": 5742,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPEW2603",
+      "name": "VIPER MEN BAREFOOT 2603 NAVY BLUE · BFVIPEW2603",
+      "pack_nad": 5533,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJS2603",
+      "name": "VIPER JUNIOR BAREFOOT 2603 NAVY BLUE · BFVIPJS2603",
+      "pack_nad": 4176,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJS2610",
+      "name": "VIPER JUNIOR BAREFOOT 2610 FUCHSIA · BFVIPJS2610",
+      "pack_nad": 4176,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJS2610V",
+      "name": "VIPER JUNIOR BAREFOOT 2610 FUCHSIA · BFVIPJS2610V",
+      "pack_nad": 6264,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJW2616",
+      "name": "VIPER JUNIOR BAREFOOT 2616 MULTI COLOR · BFVIPJW2616",
+      "pack_nad": 4176,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJW2616V",
+      "name": "VIPER JUNIOR BAREFOOT 2616 MULTI COLOR · BFVIPJW2616V",
+      "pack_nad": 6264,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJW2620",
+      "name": "VIPER JUNIOR BAREFOOT 2620 FUCHSIA · BFVIPJW2620",
+      "pack_nad": 4176,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFVIPJW2620V",
+      "name": "VIPER JUNIOR BAREFOOT 2620 FUCHSIA · BFVIPJW2620V",
+      "pack_nad": 6264,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "BFYARW2513",
+      "name": "YARIS LADY BAREFOOT 2513 PINK · BFYARW2513",
+      "pack_nad": 5846,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C1448LW2613",
+      "name": "C.1448 LADY 2613 LIGHT PINK · C1448LW2613",
+      "pack_nad": 6473,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C1992LS2626",
+      "name": "C.1992 LADY 2626 LIGHT BROWN · C1992LS2626",
+      "pack_nad": 8300,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C448LW2612",
+      "name": "C.448 LADY 2612 LIGHT GRAY · C448LW2612",
+      "pack_nad": 6117,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C448LW2625",
+      "name": "C.448 LADY 2625 BEIGE · C448LW2625",
+      "pack_nad": 6117,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C448LW2626",
+      "name": "C.448 LADY 2626 LIGHT BROWN · C448LW2626",
+      "pack_nad": 6117,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C448W2612",
+      "name": "C.448 MEN 2612 LIGHT GRAY · C448W2612",
+      "pack_nad": 6117,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C448W2624",
+      "name": "C.448 MEN 2624 BROWN · C448W2624",
+      "pack_nad": 6117,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C512LS2625",
+      "name": "C.512 LADY 2625 BEIGE · C512LS2625",
+      "pack_nad": 5533,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C520LS2602",
+      "name": "C.520 LADY 2602 WHITE BEIGE · C520LS2602",
+      "pack_nad": 5742,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C520LS2615",
+      "name": "C.520 LADY 2615 GREEN · C520LS2615",
+      "pack_nad": 5742,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C520LS2629",
+      "name": "C.520 LADY 2629 PINK · C520LS2629",
+      "pack_nad": 5742,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521LW2603",
+      "name": "C.521 LADY 2603 NAVY BLUE · C521LW2603",
+      "pack_nad": 4078,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521LW2629",
+      "name": "C.521 LADY 2629 PINK · C521LW2629",
+      "pack_nad": 4078,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521S2603",
+      "name": "C.521 MEN 2603 NAVY BLUE · C521S2603",
+      "pack_nad": 7047,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521S2623",
+      "name": "C.521 MEN 2623 KHAKI · C521S2623",
+      "pack_nad": 7047,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521W2601",
+      "name": "C.521 MEN 2601 BLACK · C521W2601",
+      "pack_nad": 4078,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521W2612",
+      "name": "C.521 MEN 2612 LIGHT GRAY · C521W2612",
+      "pack_nad": 4078,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C521W2617",
+      "name": "C.521 MEN 2617 PETROLEUM · C521W2617",
+      "pack_nad": 4078,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "C618W2603",
+      "name": "C.618 MEN 2603 NAVY BLUE · C618W2603",
+      "pack_nad": 6931,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CALLLW2603",
+      "name": "ALLY LADY 2603 NAVY BLUE · CALLLW2603",
+      "pack_nad": 5009,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CALLLW2613",
+      "name": "ALLY LADY 2613 LIGHT PINK · CALLLW2613",
+      "pack_nad": 5009,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CALLLW2625",
+      "name": "ALLY LADY 2625 BEIGE · CALLLW2625",
+      "pack_nad": 7514,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CANS2627IN",
+      "name": "CANCHA 2627 TURQUOISE INDOOR · CANS2627IN",
+      "pack_nad": 5951,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CANS2628IN",
+      "name": "CANCHA 2628 YELLOW INDOOR · CANS2628IN",
+      "pack_nad": 5951,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CATOW2621",
+      "name": "ATOLON MEN 2621 BLACK · CATOW2621",
+      "pack_nad": 4698,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CATOW2624",
+      "name": "ATOLON MEN 2624 BROWN · CATOW2624",
+      "pack_nad": 4698,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CAURLW2603",
+      "name": "AURA LADY 2603 NAVY BLUE · CAURLW2603",
+      "pack_nad": 5209,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CAURLW2621",
+      "name": "AURA LADY 2621 BLACK · CAURLW2621",
+      "pack_nad": 5209,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CBRILW2601",
+      "name": "BRISE LADY 2601 BLACK · CBRILW2601",
+      "pack_nad": 6533,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CBRILW2602",
+      "name": "BRISE LADY 2602 WHITE · CBRILW2602",
+      "pack_nad": 6533,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CBRILW2603",
+      "name": "BRISE LADY 2603 NAVY BLUE · CBRILW2603",
+      "pack_nad": 6533,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CBRILW2635",
+      "name": "BRISE LADY 2635 BEIGE · CBRILW2635",
+      "pack_nad": 6533,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCARLW2601",
+      "name": "CARLA LADY 2601 BLACK · CCARLW2601",
+      "pack_nad": 6574,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCARLW2624",
+      "name": "CARLA LADY 2624 PINK · CCARLW2624",
+      "pack_nad": 6574,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCARLW2625",
+      "name": "CARLA LADY 2625 BEIGE · CCARLW2625",
+      "pack_nad": 6574,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCASLW2601",
+      "name": "CASSANDRA LADY 2601 BLACK · CCASLW2601",
+      "pack_nad": 4673,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCASLW2613",
+      "name": "CASSANDRA LADY 2613 PINK · CCASLW2613",
+      "pack_nad": 4673,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCASLW2625",
+      "name": "CASSANDRA LADY 2625 BEIGE · CCASLW2625",
+      "pack_nad": 4673,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCORLS2605",
+      "name": "CORINTO LADY 2605 SKY BLUE · CCORLS2605",
+      "pack_nad": 5209,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCORS2612H",
+      "name": "CORINTO MEN 2612 LIGHT GRAY · CCORS2612H",
+      "pack_nad": 5209,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CCORW2603",
+      "name": "CORINTO MEN 2603 NAVY BLUE · CCORW2603",
+      "pack_nad": 5209,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CDOVEW2603",
+      "name": "DOVER MEN 2603 NAVY BLUE · CDOVEW2603",
+      "pack_nad": 6383,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CDOVEW2625",
+      "name": "DOVER MEN 2625 BEIGE · CDOVEW2625",
+      "pack_nad": 6383,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CDRAKW2603",
+      "name": "DRAKAR MEN 2603 NAVY BLUE · CDRAKW2603",
+      "pack_nad": 5638,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CEROW2603",
+      "name": "EROS MEN 2603 NAVY BLUE · CEROW2603",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CEROW2612",
+      "name": "EROS MEN 2612 LIGHT GRAY · CEROW2612",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CEROW2621",
+      "name": "EROS MEN 2621 BLACK · CEROW2621",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CGALLW2621",
+      "name": "GALACTIC LADY 2621 BLACK · CGALLW2621",
+      "pack_nad": 4345,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CGALLW2625",
+      "name": "GALACTIC LADY 2625 BEIGE · CGALLW2625",
+      "pack_nad": 4345,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CHEOW2621",
+      "name": "HEOS MEN 2621 BLACK · CHEOW2621",
+      "pack_nad": 5003,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CHEOW2622",
+      "name": "HEOS MEN 2622 DARK GRAY · CHEOW2622",
+      "pack_nad": 5003,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CIRONW2603",
+      "name": "IRON MEN 2603 NAVY BLUE · CIRONW2603",
+      "pack_nad": 4539,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CKRUMW2603",
+      "name": "KRUM MEN 2603 NAVY BLUE · CKRUMW2603",
+      "pack_nad": 4583,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CLAILW2621",
+      "name": "LAINA LADY 2621 BLACK · CLAILW2621",
+      "pack_nad": 4892,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CLAILW2626",
+      "name": "LAINA LADY 2626 LIGHT BROWN · CLAILW2626",
+      "pack_nad": 4892,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CLAILW2629",
+      "name": "LAINA LADY 2629 PINK · CLAILW2629",
+      "pack_nad": 4892,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CMARW2624",
+      "name": "MARAIS MEN 2624 BROWN · CMARW2624",
+      "pack_nad": 8035,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CMORLW2601",
+      "name": "MORGANA LADY 2601 BLACK · CMORLW2601",
+      "pack_nad": 5024,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CN10LS2625",
+      "name": "N-100 LADY 2625 BEIGE · CN10LS2625",
+      "pack_nad": 5234,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CN40LW2621V",
+      "name": "N-400 LADY 2621 BLACK · CN40LW2621V",
+      "pack_nad": 5951,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CNADLW2601",
+      "name": "NADIA LADY 2601 BLACK · CNADLW2601",
+      "pack_nad": 5414,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CNADLW2625",
+      "name": "NADIA LADY 2625 BEIGE · CNADLW2625",
+      "pack_nad": 5414,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CNADLW2626",
+      "name": "NADIA LADY 2626 LIGHT BROWN · CNADLW2626",
+      "pack_nad": 5414,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CNEROW2603",
+      "name": "NERON MEN 2603 NAVY BLUE · CNEROW2603",
+      "pack_nad": 5061,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CNEROW2621",
+      "name": "NERON MEN 2621 BLACK · CNEROW2621",
+      "pack_nad": 5061,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CNEROW2625",
+      "name": "NERON MEN 2625 BEIGE · CNEROW2625",
+      "pack_nad": 5061,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CORIGLS2612",
+      "name": "C.ORIGEN LADY 2612 SILVER · CORIGLS2612",
+      "pack_nad": 8300,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "COSIRS2623",
+      "name": "OSIRIS MEN 2623 KHAKI · COSIRS2623",
+      "pack_nad": 4627,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "COSIRW2603",
+      "name": "OSIRIS MEN 2603 NAVY BLUE · COSIRW2603",
+      "pack_nad": 4627,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CR111LS2602",
+      "name": "CR111 LADY 2602 WHITE · CR111LS2602",
+      "pack_nad": 7943,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CR111LS2625",
+      "name": "CR111 LADY 2625 BEIGE · CR111LS2625",
+      "pack_nad": 7943,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CR111LW2624",
+      "name": "CR111 LADY 2624 BROWN · CR111LW2624",
+      "pack_nad": 8804,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CR111LW2630",
+      "name": "CR111 LADY 2630 DARK GRAY · CR111LW2630",
+      "pack_nad": 5869,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CR111W2622",
+      "name": "CR111 MEN 2622 DARK GRAY · CR111W2622",
+      "pack_nad": 5869,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CRAYW2621",
+      "name": "RAYAN MEN 2621  BLACK · CRAYW2621",
+      "pack_nad": 4489,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CRAYW2634",
+      "name": "RAYAN MEN 2634 BROWN · CRAYW2634",
+      "pack_nad": 4489,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CRODEW2623",
+      "name": "RODEN MEN 2623 KHAKI · CRODEW2623",
+      "pack_nad": 6035,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CRODEW2624",
+      "name": "RODEN MEN 2624 BROWN · CRODEW2624",
+      "pack_nad": 6035,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CSARLW2601",
+      "name": "SARA LADY 2601 BLACK · CSARLW2601",
+      "pack_nad": 5585,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CSARLW2603",
+      "name": "SARA LADY 2603 NAVY BLUE · CSARLW2603",
+      "pack_nad": 5585,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CSARLW2625",
+      "name": "SARA LADY 2625 BEIGE · CSARLW2625",
+      "pack_nad": 5585,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CSELES2603",
+      "name": "SELENE MEN 2603 NAVY BLUE · CSELES2603",
+      "pack_nad": 5700,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CSELES2621",
+      "name": "SELENE MEN 2621 BLACK · CSELES2621",
+      "pack_nad": 5700,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CSINLW2613",
+      "name": "SINTRA LADY 2613 LIGHT PINK · CSINLW2613",
+      "pack_nad": 4141,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTABW2624",
+      "name": "TABAR MEN 2624 BROWN · CTABW2624",
+      "pack_nad": 4738,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTAVLW2601",
+      "name": "TAVIRA LADY 2601 BLACK · CTAVLW2601",
+      "pack_nad": 5923,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTAVLW2629",
+      "name": "TAVIRA LADY 2629 PINK · CTAVLW2629",
+      "pack_nad": 5923,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTESES2605",
+      "name": "TESEO MEN 2605 BLUE · CTESES2605",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTESES2621",
+      "name": "TESEO MEN 2621 BLACK · CTESES2621",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTESES2625",
+      "name": "TESEO MEN 2625 BEIGE · CTESES2625",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTESEW2612",
+      "name": "TESEO MEN 2612 LIGHT GRAY · CTESEW2612",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTESEW2624",
+      "name": "TESEO MEN 2624 BROWN · CTESEW2624",
+      "pack_nad": 5281,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTRITW2603",
+      "name": "TRITON MEN 2603 NAVY BLUE · CTRITW2603",
+      "pack_nad": 4690,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTRITW2623",
+      "name": "TRITON MEN 2623 KHAKI · CTRITW2623",
+      "pack_nad": 4690,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CTRITW2624",
+      "name": "TRITON MEN 2624 BROWN · CTRITW2624",
+      "pack_nad": 4690,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CZENS2621",
+      "name": "ZEN MEN 2621 BLACK · CZENS2621",
+      "pack_nad": 6330,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CZNDLW2621",
+      "name": "ZENDA LADY 2621 BLACK · CZNDLW2621",
+      "pack_nad": 4024,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "CZNDLW2625",
+      "name": "ZENDA LADY 2625 BEIGE · CZNDLW2625",
+      "pack_nad": 4024,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JAQUIS2601V",
+      "name": "AQUILES JR 2601 BLACK · JAQUIS2601V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JAQUIS2603V",
+      "name": "AQUILES JR 2603 NAVY BLUE · JAQUIS2603V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JATILW2601V",
+      "name": "ATILA JR 2601 BLACK · JATILW2601V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JATILW2603V",
+      "name": "ATILA JR 2603 NAVY BLUE · JATILW2603V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JATILW2604V",
+      "name": "ATILA JR 2604 ROYAL BLUE · JATILW2604V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JATILW2633V",
+      "name": "ATILA JR 2633 NAVY BLUE · JATILW2633V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JNOVAS2607V",
+      "name": "NOVA JR 2607 GREEN PINK · JNOVAS2607V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JRT50S2602",
+      "name": "RT 50 JR 2602 WHITE · JRT50S2602",
+      "pack_nad": 4072,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JRT50S2603",
+      "name": "RT 50 JR 2603 NAVY BLUE · JRT50S2603",
+      "pack_nad": 4072,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JRT50S2699",
+      "name": "RT 50 JR 2699 VIOLET · JRT50S2699",
+      "pack_nad": 4072,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JSPACW2605V",
+      "name": "SPACE JR 2605 BLUE · JSPACW2605V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "JSPACW2613V",
+      "name": "SPACE JR 2613 LIGHT PINK · JSPACW2613V",
+      "pack_nad": 4097,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RACTIW2633",
+      "name": "ACTIVE 2633 NAVY BLUE ORANGE · RACTIW2633",
+      "pack_nad": 5653,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RFENIW2615",
+      "name": "FENIX 2615 GREEN · RFENIW2615",
+      "pack_nad": 7095,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RFENIW2624",
+      "name": "FENIX 2624 BROWN · RFENIW2624",
+      "pack_nad": 7095,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RFENIW2631",
+      "name": "FENIX 2631 BLACK · RFENIW2631",
+      "pack_nad": 7095,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RHISPW2609",
+      "name": "HISPALIS 2609 FLUOR YELLOW · RHISPW2609",
+      "pack_nad": 8848,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RHISPW2625",
+      "name": "HISPALIS 2625 BEIGE · RHISPW2625",
+      "pack_nad": 8848,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RMETAW2601",
+      "name": "META MEN 2601 BLACK · RMETAW2601",
+      "pack_nad": 5143,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RMETAW2603",
+      "name": "META MEN 2603 NAVY BLUE · RMETAW2603",
+      "pack_nad": 5143,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RMETLW2629",
+      "name": "META LADY 2629 PINK · RMETLW2629",
+      "pack_nad": 5143,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RNEOW2603",
+      "name": "NEON MEN 2603 NAVY BLUE · RNEOW2603",
+      "pack_nad": 5572,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RNEOW2623",
+      "name": "NEON MEN 2623 KHAKI · RNEOW2623",
+      "pack_nad": 5572,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RNEOW2625",
+      "name": "NEON MEN 2625 BEIGE · RNEOW2625",
+      "pack_nad": 5572,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50LS2603",
+      "name": "RT50 LADY 2603 NAVY BLUE · RRT50LS2603",
+      "pack_nad": 7833,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50LS2612",
+      "name": "RT50 LADY 2612 GRAY · RRT50LS2612",
+      "pack_nad": 7833,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50LS2626",
+      "name": "RT50 LADY 2626 BEIGE · RRT50LS2626",
+      "pack_nad": 5222,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50LW2612",
+      "name": "RT50 LADY 2612 LIGHT GRAY · RRT50LW2612",
+      "pack_nad": 5099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50LW2625",
+      "name": "RT50 LADY 2625 BEIGE · RRT50LW2625",
+      "pack_nad": 5099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50W2601",
+      "name": "RT50 2601 BLACK · RRT50W2601",
+      "pack_nad": 5099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RRT50W2625",
+      "name": "RT50 2625 BEIGE · RRT50W2625",
+      "pack_nad": 5099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RSCROW2602",
+      "name": "SUPERCROSS MEN 2602 WHITE · RSCROW2602",
+      "pack_nad": 7099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RSCROW2627",
+      "name": "SUPERCROSS MEN 2627 TURQUOISE · RSCROW2627",
+      "pack_nad": 7099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RSCROW2641",
+      "name": "SUPERCROSS MEN 2641 BLACK · RSCROW2641",
+      "pack_nad": 7099,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RSPEEW2605",
+      "name": "SPEED 2605 BLUE · RSPEEW2605",
+      "pack_nad": 7229,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RSPEEW2607",
+      "name": "SPEED 2607 CORAL · RSPEEW2607",
+      "pack_nad": 4819,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RSPEEW2630",
+      "name": "SPEED 2630 MEDIUM GRAY · RSPEEW2630",
+      "pack_nad": 7229,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RVICTW2604",
+      "name": "VICTORY 7 2604 ROYAL BLUE · RVICTW2604",
+      "pack_nad": 8056,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RVICTW2607",
+      "name": "VICTORY 7 2607 CORAL · RVICTW2607",
+      "pack_nad": 8056,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RVICTW2612",
+      "name": "VICTORY 7 2612 LIGHT GRAY · RVICTW2612",
+      "pack_nad": 8056,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RVICTW2632",
+      "name": "VICTORY 7 2632 WHITE BLUE · RVICTW2632",
+      "pack_nad": 5370,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "RVITAW2633",
+      "name": "VITALY MEN 2633 NAVY BLUE · RVITAW2633",
+      "pack_nad": 5688,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "SAMALS2601V",
+      "name": "S.AMAIA LADY 2601 BLACK · SAMALS2601V",
+      "pack_nad": 4604,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "SAMALS2629V",
+      "name": "S.AMAIA LADY 2629 LIGHT PINK · SAMALS2629V",
+      "pack_nad": 4604,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "SLIBLS2615V",
+      "name": "SERIE LIBRA LADY 2615 GREEN · SLIBLS2615V",
+      "pack_nad": 4476,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "SLIBS2623V",
+      "name": "LIBRA MEN23 BLACK KHAKI · SLIBS2623V",
+      "pack_nad": 4476,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "SNEOJS2617V",
+      "name": "S.NEO JR 2617 PETROLEUM · SNEOJS2617V",
+      "pack_nad": 4858,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACELS2613AC",
+      "name": "T.ACE LADY 2613 PINK · TACELS2613AC",
+      "pack_nad": 8379,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACELS2613C",
+      "name": "T.ACE LADY 2613 PINK · TACELS2613C",
+      "pack_nad": 8379,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACELS2632AC",
+      "name": "T.ACE LADY 2632 WHITE PINK · TACELS2632AC",
+      "pack_nad": 8379,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACES2608AC",
+      "name": "ACE MEN 2608 FLUOR SAFFRON · TACES2608AC",
+      "pack_nad": 7870,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACLW2602AC",
+      "name": "ACE LADY 2602 WHITE · TACLW2602AC",
+      "pack_nad": 7870,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACLW2602C",
+      "name": "ACE LADY 2602 WHITE · TACLW2602C",
+      "pack_nad": 7870,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACLW2627AC",
+      "name": "ACE LADY 2627 TURQUOISE · TACLW2627AC",
+      "pack_nad": 7870,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TACLW2627C",
+      "name": "ACE LADY 2627 TURQUOISE · TACLW2627C",
+      "pack_nad": 7870,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TELCS2632AC",
+      "name": "ELECTRIC MEN 2632 WHITE RED · TELCS2632AC",
+      "pack_nad": 6859,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TELECW2603AC",
+      "name": "ELECTRIC MEN 2603 NAVY BLUE · TELECW2603AC",
+      "pack_nad": 6609,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TELECW2603C",
+      "name": "ELECTRIC MEN 2603 NAVY BLUE · TELECW2603C",
+      "pack_nad": 6609,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKKUBW2601",
+      "name": "KUBOR MEN 2601 BLACK · TKKUBW2601",
+      "pack_nad": 6414,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKRASW2601",
+      "name": "RASE MEN 2601 BLACK · TKRASW2601",
+      "pack_nad": 7001,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKRASW2625",
+      "name": "RASE MEN 2625 BEIGE · TKRASW2625",
+      "pack_nad": 7001,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKSHLW2609",
+      "name": "SHOCK LADY 2609 FLUOR YELLOW · TKSHLW2609",
+      "pack_nad": 6436,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKSILW2601",
+      "name": "SIERRA LADY 2601 BLACK · TKSILW2601",
+      "pack_nad": 6339,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKSIMW2601",
+      "name": "SIMA MEN 2601 BLACK · TKSIMW2601",
+      "pack_nad": 6339,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKSMLW2601",
+      "name": "SIMA LADY 2601 BLACK · TKSMLW2601",
+      "pack_nad": 6339,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKSMLW2610",
+      "name": "SIMA LADY 2610 FUCHSIA · TKSMLW2610",
+      "pack_nad": 9509,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKTR5S2617",
+      "name": "TR-5  2617 PETROLEUM · TKTR5S2617",
+      "pack_nad": 8918,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKTR6S2617",
+      "name": "TR-6 2617 PETROLEUM · TKTR6S2617",
+      "pack_nad": 12142,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKTR6W2601",
+      "name": "TR-6 MEN 2601 BLACK · TKTR6W2601",
+      "pack_nad": 12142,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKTR8S2617",
+      "name": "TR-8  2617 PETROLEUM · TKTR8S2617",
+      "pack_nad": 6755,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKTR9S2617",
+      "name": "TR-9 2617 PETROLEUM · TKTR9S2617",
+      "pack_nad": 7780,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TKTULW2625",
+      "name": "TUNDRA LADY 2625 BEIGE · TKTULW2625",
+      "pack_nad": 8654,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TM100W2605C",
+      "name": "MASTER 1000 MEN 2605 BLUE · TM100W2605C",
+      "pack_nad": 6305,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TM10LS2601C",
+      "name": "MASTER 1000 LADY 2601 BLACK · TM10LS2601C",
+      "pack_nad": 6305,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TM10LW2601C",
+      "name": "MASTER 1000 LADY 2601 BLACK · TM10LW2601C",
+      "pack_nad": 6305,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TM10LW2602C",
+      "name": "MASTER 1000 LADY 2602 WHITE · TM10LW2602C",
+      "pack_nad": 6305,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TPOIS2601AC",
+      "name": "POINT MEN 2601 BLACK · TPOIS2601AC",
+      "pack_nad": 7851,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TPOIS2601C",
+      "name": "POINT MEN 2601 BLACK · TPOIS2601C",
+      "pack_nad": 7851,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TPOIS2604AC",
+      "name": "POINT MEN 2604 ROYAL BLUE · TPOIS2604AC",
+      "pack_nad": 7851,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TPOIS2604C",
+      "name": "POINT MEN 2604 ROYAL BLUE · TPOIS2604C",
+      "pack_nad": 7851,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TPOIS2625AC",
+      "name": "POINT MEN 2625 BEIGE · TPOIS2625AC",
+      "pack_nad": 7851,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TPOIS2625C",
+      "name": "POINT MEN 2625 BEIGE · TPOIS2625C",
+      "pack_nad": 7851,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TRALS2602AC",
+      "name": "RAPID LADY 2602 WHITE · TRALS2602AC",
+      "pack_nad": 7120,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TROLLS2625AC",
+      "name": "ROLAND LADY 2625 BEIGE · TROLLS2625AC",
+      "pack_nad": 7095,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TROLLS2625C",
+      "name": "ROLAND LADY 2625 BEIGE · TROLLS2625C",
+      "pack_nad": 7095,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
+    },
+    {
+      "code": "TROLS2603AC",
+      "name": "ROLAND MEN 2603 NAVY BLUE ORANGE · TROLS2603AC",
+      "pack_nad": 7216,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     }
   ],
   "hidden_packs": [
