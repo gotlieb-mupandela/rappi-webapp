@@ -40,32 +40,23 @@ export const viewport = {
   viewportFit: "cover" as const,
 };
 
-export const metadata: Metadata = {
-  title: {
-    default: `RAPPI SPORTS HUB · ${TAGLINE}`,
-    template: "%s · RAPPI SPORTS HUB",
-  },
-  description:
-    "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.",
-  applicationName: "RAPPI SPORTS HUB",
-  openGraph: {
-    title: "RAPPI SPORTS HUB",
-    description: TAGLINE,
-    siteName: "RAPPI SPORTS HUB",
-  },
-};
-
-/** Locale-aware document description/OG (brand title stays shared). */
+/** Document metadata; description/OG localize, brand title stays shared. */
 export async function generateMetadata(): Promise<Metadata> {
   const market = await getMarket();
-  if (market !== "eu") return {};
   const description =
-    "RAPPI SPORTS HUB — catalogue sportif. Équipe-toi. Présente-toi. Dépasse-toi.";
+    market === "eu"
+      ? "RAPPI SPORTS HUB — catalogue sportif. Équipe-toi. Présente-toi. Dépasse-toi."
+      : "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.";
   return {
+    title: {
+      default: `RAPPI SPORTS HUB · ${TAGLINE}`,
+      template: "%s · RAPPI SPORTS HUB",
+    },
     description,
+    applicationName: "RAPPI SPORTS HUB",
     openGraph: {
       title: "RAPPI SPORTS HUB",
-      description,
+      description: market === "eu" ? description : TAGLINE,
       siteName: "RAPPI SPORTS HUB",
     },
   };
