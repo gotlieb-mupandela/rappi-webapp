@@ -1,4 +1,4 @@
-import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack, isFootwearSku } from "@/lib/assortment";
+import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack } from "@/lib/assortment";
 import type { AssortmentInfo } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
@@ -759,28 +759,47 @@ function applyRetailPrice<T extends Product>(product: T): T {
   return { ...product, price: rounded, unitPrice: rounded };
 }
 
+/** Remove a previously baked trailing pack suffix from display fields. */
+function stripPackSuffix<T extends Product>(product: T): T {
+  const strip = (s: string) =>
+    s
+      .replace(/\s*·\s*pack of \d+\s*$/i, "")
+      .replace(/\s*·\s*assortment pack\s*$/i, "")
+      .replace(/\s*·\s*multipack\s*$/i, "")
+      .replace(/\s*·\s*pack\s*$/i, "")
+      .trim();
+  const displayName = strip(product.displayName);
+  const title = strip(product.title);
+  if (displayName === product.displayName && title === product.title) return product;
+  return { ...product, displayName, title };
+}
+
 function applyPackTitle<T extends Product>(product: T): T {
-  const info = getAssortment(product);
-  if (!info?.packSize || info.packSize <= 1) return applyPackWordTitle(product, info);
+  // Strip previously baked pack suffixes first so SKUs that no longer
+  // qualify (e.g. removed price-threshold heuristics) lose stale wording;
+  // the branches below re-add whatever is still warranted (idempotent).
+  const stripped = stripPackSuffix(product);
+  const info = getAssortment(stripped);
+  if (!info?.packSize || info.packSize <= 1) return applyPackWordTitle(stripped, info);
   const n = info.packSize;
   const already = new RegExp(`\\bpack(?:\\s+of)?\\s+${n}\\b`, "i").test(
-    [product.displayName, product.title, product.name].join(" "),
+    [stripped.displayName, stripped.title, stripped.name].join(" "),
   );
-  if (already) return product;
-  const display = product.displayName.replace(/\s*·\s*pack of \d+/i, "").trim();
+  if (already) return stripped;
+  const display = stripped.displayName.replace(/\s*·\s*pack of \d+/i, "").trim();
   const labeled = `${display} · Pack of ${n}`;
   return {
-    ...product,
+    ...stripped,
     displayName: labeled,
-    title: new RegExp(`pack of ${n}`, "i").test(product.title) ? product.title : labeled,
+    title: new RegExp(`pack of ${n}`, "i").test(stripped.title) ? stripped.title : labeled,
   };
 }
 
 /**
  * Title suffix for packs without a known size ("· Pack" / "· Assortment pack" /
- * "· Multipack"). Scoped to explicit pack-policy flags, multipack kind, and
- * footwear wholesale assortments so unrelated SKUs keep existing titles. Idempotent
- * across repeated bakes: skips when the wording is already present.
+ * "· Multipack"). Scoped to explicit pack-policy flags and multipack kind so
+ * unrelated SKUs keep existing titles. Idempotent across repeated bakes:
+ * skips when the wording is already present.
  */
 function applyPackWordTitle<T extends Product>(product: T, info: AssortmentInfo | null): T {
   if (!info) return product;
@@ -791,9 +810,7 @@ function applyPackWordTitle<T extends Product>(product: T, info: AssortmentInfo 
         ? "Assortment pack"
         : info.kind === "pack"
           ? "Pack"
-          : info.kind === "wholesale" && isFootwearSku(product)
-            ? "Assortment pack"
-            : null;
+          : null;
   if (!suffix) return product;
   const hay = [product.displayName, product.title, product.name].join(" ");
   if (suffix === "Multipack") {
