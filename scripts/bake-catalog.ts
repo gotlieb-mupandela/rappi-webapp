@@ -5,6 +5,7 @@ import raw from "../data/products.json";
 import { productAudience } from "../lib/audience";
 import { withStorefrontCategories, withStorefrontMerchandising } from "../lib/classify";
 import { productCardImageCandidates, withProductImages } from "../lib/media";
+import { isAvailable } from "../lib/product-stock";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "../lib/taxonomy";
 import type { ListingItem } from "../lib/listing-types";
 import type { Product } from "../lib/types";
@@ -46,14 +47,16 @@ function toListingItem(product: Product): ListingItem {
 }
 
 function writeListingIndex(catalog: Product[]) {
-  const listingIndex = catalog.map(toListingItem);
+  const listingIndex = catalog.filter(isAvailable).map(toListingItem);
   mkdirSync(dirname(listingDest), { recursive: true });
   writeFileSync(listingDest, `${JSON.stringify(listingIndex)}\n`);
   console.log(`baked listing index (${listingIndex.length}) → ${listingDest}`);
 }
 
 if (listingOnly) {
-  writeListingIndex(withStorefrontCategories((raw as Product[]).map(withProductImages)));
+  writeListingIndex(
+    withStorefrontCategories((raw as Product[]).map(withProductImages)).filter(isAvailable),
+  );
   process.exit(0);
 }
 
