@@ -127,7 +127,7 @@ if (mapBChecked !== mapB.count) fail(`MAP B checked ${mapBChecked}, expected ${m
 
 // Former footwear-threshold SKUs: no baked Assortment/Pack size-run wording
 // (render localizes it); pack sizes recorded as flags, not invented.
-for (const [code, n] of [["RR500W2602", 8], ["BF111JS2629V", 12]]) {
+for (const [code, n, nad] of [["RR500W2602", 8, 12236], ["BF111JS2629V", 12, 5716]]) {
   const p = byCode.get(code);
   if (!p) {
     fail(`missing SKU ${code}`);
@@ -141,7 +141,22 @@ for (const [code, n] of [["RR500W2602", 8], ["BF111JS2629V", 12]]) {
   if (p.sellAs !== "assortment" || p.packSize !== n) {
     fail(`${code} flags sellAs=${p.sellAs} packSize=${p.packSize}, expected assortment/${n}`);
   }
+  if (p.price !== nad || p.unitPrice !== nad) {
+    fail(`${code} price ${p.price}/${p.unitPrice}, expected confirmed live NAD ${nad}/${nad}`);
+  }
   if (p.available === false) fail(`${code} should stay purchasable`);
+}
+
+// sell_as=assortment allowlist: flags may only exist where supplier-confirmed
+// (footwear Surtido boxes + wristband assortments + balls-bags assortment).
+// Anything else would mean a heuristic crept back in.
+for (const p of catalog) {
+  if (
+    p.sellAs === "assortment" &&
+    !["RR500W2602", "BF111JS2629V", "AH41800B0501", "400245.P04", "400300.P04", "TI41800B5101"].includes(p.code)
+  ) {
+    fail(`${p.code} unexpected sellAs=assortment`);
+  }
 }
 
 // No-EN-bake regression net: bake stores neutral base names, so no baked
