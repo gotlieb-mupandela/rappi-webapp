@@ -52,6 +52,9 @@ export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
       if (!missing.includes(code)) missing.push(code);
       continue;
     }
+    if ((product as { available?: boolean }).available === false) {
+      throw new CartResolveError(400, `Product ${code} is no longer sold.`);
+    }
 
     const sizeRow = buyableSizes(product).find((option) => option.size === size);
     if (!sizeRow) {

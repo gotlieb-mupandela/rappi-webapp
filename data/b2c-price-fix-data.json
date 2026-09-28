@@ -1,0 +1,213 @@
+{
+  "formula": {
+    "fx": 18,
+    "markup": 0.45,
+    "nad": "round(unit_usd * 18 * 1.45)"
+  },
+  "unit_price_overrides": [
+    {
+      "code": "401955.215",
+      "name": "INTER BALL WHITE BURGUNDY",
+      "pack_usd": 99,
+      "unit_usd": 8.25,
+      "pack_size": 12,
+      "new_nad": 215,
+      "source": "prior DOM capture: Price by unit 8.25"
+    },
+    {
+      "code": "401955.216",
+      "name": "INTER BALL WHITE TURQUOISE",
+      "pack_usd": 99,
+      "unit_usd": 8.25,
+      "pack_size": 12,
+      "new_nad": 215,
+      "source": "prior DOM capture: Price by unit 8.25"
+    },
+    {
+      "code": "401955.217",
+      "name": "INTER BALL WHITE FLUOR GREEN",
+      "pack_usd": 99,
+      "unit_usd": 8.25,
+      "pack_size": 12,
+      "new_nad": 215,
+      "source": "prior DOM capture: Price by unit 8.25"
+    }
+  ],
+  "pack_price_suspects_no_unit_yet": [
+    {
+      "code": "TI42305B1101",
+      "name": "HELLAS VERONA FC TRAINING WINTER HAT · TI42305B1101",
+      "catalog_nad": 5030,
+      "subcategory": "caps",
+      "reason": "hat at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400089.100",
+      "name": "CAP CLASSIC BLACK · 400089.100",
+      "catalog_nad": 2818,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400089.200",
+      "name": "CAP CLASSIC WHITE · 400089.200",
+      "catalog_nad": 2818,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400089.300",
+      "name": "CAP CLASSIC NAVY · 400089.300",
+      "catalog_nad": 2818,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400089.474",
+      "name": "CLASSIC CAP KHAKI · 400089.474",
+      "catalog_nad": 2818,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400089.600",
+      "name": "CAP CLASSIC RED · 400089.600",
+      "catalog_nad": 2818,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400089.700",
+      "name": "CAP CLASSIC ROYAL · 400089.700",
+      "catalog_nad": 2818,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "401504.100",
+      "name": "CLASSIC  CAP BLACK · 401504.100",
+      "catalog_nad": 2349,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "401504.200",
+      "name": "CLASSIC  CAP WHITE · 401504.200",
+      "catalog_nad": 2349,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "401504.331",
+      "name": "CLASSIC  CAP NAVY · 401504.331",
+      "catalog_nad": 2349,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "300267.001",
+      "name": "CAP ACCESSORIES MULTICOLOR · 300267.001",
+      "catalog_nad": 2276,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400635.000",
+      "name": "TORNEO VISOR CAP MULTICOLOR · 400635.000",
+      "catalog_nad": 2067,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400635.001",
+      "name": "TORNEO VISOR CAP MULTICOLOR · 400635.001",
+      "catalog_nad": 2067,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400635.002",
+      "name": "TORNEO VISOR CAP MULTICOLOR · 400635.002",
+      "catalog_nad": 2067,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400635.102",
+      "name": "TORNEO VISOR CAP BLACK WHITE · 400635.102",
+      "catalog_nad": 2067,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400580.001",
+      "name": "RUNNING NIGHT CAP MULTICOLOR · 400580.001",
+      "catalog_nad": 1921,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400580.100",
+      "name": "RUNNING NIGHT CAP BLACK · 400580.100",
+      "catalog_nad": 1921,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400580.200",
+      "name": "RUNNING NIGHT CAP WHITE · 400580.200",
+      "catalog_nad": 1921,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "401779.102",
+      "name": "TRAIL CAP BLACK WHITE · 401779.102",
+      "catalog_nad": 1777,
+      "subcategory": "caps",
+      "reason": "cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400056.100",
+      "name": "HAT REVERSIBLE BLACK · 400056.100",
+      "catalog_nad": 1762,
+      "subcategory": "caps",
+      "reason": "hat at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400360.100",
+      "name": "HAT BLACK · 400360.100",
+      "catalog_nad": 1409,
+      "subcategory": "caps",
+      "reason": "hat at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400360.280",
+      "name": "HAT MELANGE · 400360.280",
+      "catalog_nad": 1409,
+      "subcategory": "caps",
+      "reason": "hat at pack NAD, no unit USD known"
+    },
+    {
+      "code": "400360.331",
+      "name": "HAT NAVY · 400360.331",
+      "catalog_nad": 1409,
+      "subcategory": "caps",
+      "reason": "hat at pack NAD, no unit USD known"
+    },
+    {
+      "code": "401021.100",
+      "name": "SPLASH SWIMMING CAP BLACK · 401021.100",
+      "catalog_nad": 783,
+      "subcategory": "caps",
+      "reason": "cap suspect, no unit USD known"
+    },
+    {
+      "code": "401779.924",
+      "name": "TRAIL CAP YELLOW · 401779.924",
+      "catalog_nad": 533,
+      "subcategory": "caps",
+      "reason": "cap suspect, no unit USD known"
+    }
+  ]
+}

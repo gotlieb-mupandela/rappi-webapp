@@ -16,6 +16,14 @@ export const WHOLESALE_SHOE_ASSORTMENT_THRESHOLD_NAD = 4000;
  */
 export const WHOLESALE_APPAREL_ASSORTMENT_THRESHOLD_NAD = 700;
 
+/**
+ * Headwear (caps/hats/visors/beanies) and balls at/above these NAD sell
+ * prices are treated as wholesale packs, not silent single pieces.
+ * Pack size is unknown from the feed — do not divide into a unit price.
+ */
+export const WHOLESALE_HEADWEAR_THRESHOLD_NAD = 1000;
+export const WHOLESALE_BALL_THRESHOLD_NAD = 1000;
+
 /** Joma apparel size codes (not footwear EU sizes like S25/S28). */
 const CLOTHING_SIZE = /^S0[1-9]$|^S1[01]$/i;
 
@@ -70,7 +78,7 @@ export type AssortmentInfo = {
   pairHint: string | null;
   /** Keep the Joma size run (e.g. bib S01–S04) instead of collapsing to PACK. */
   preserveSizes?: boolean;
-  kind?: "named" | "multipack" | "wholesale";
+  kind?: "named" | "multipack" | "wholesale" | "wholesale-pack";
 };
 
 export const BIB_PACK_PRICE_NAD = 900;
@@ -149,6 +157,41 @@ export function isWholesaleApparelAssortment(product: Product) {
   if (!hasClothingSizeGrid(product)) return false;
   const price = product.price || product.unitPrice || 0;
   return price >= WHOLESALE_APPAREL_ASSORTMENT_THRESHOLD_NAD;
+}
+
+const HEADWEAR_RE = /\b(caps?|hats?|visors?|beanies?)\b/i;
+const HEADWEAR_NOT = /\bscrum\b/i;
+const BALL_RE = /\b(balls?|bal[oó]n)\b/i;
+const BALL_NOT = /\b(bag|backpack|pants)\b/i;
+
+export function isHeadwearSku(product: Product) {
+  if (product.subcategory === "caps") return true;
+  if (HEADWEAR_NOT.test(blob(product))) return false;
+  return HEADWEAR_RE.test(blob(product));
+}
+
+export function isBallSku(product: Product) {
+  if (product.subcategory === "balls") return true;
+  const text = blob(product);
+  if (BALL_NOT.test(text)) return false;
+  return BALL_RE.test(text);
+}
+
+/**
+ * Headwear / balls at pack-looking prices: never render as silent singles.
+ * No pack size is encoded in the feed, so packSize stays null and no
+ * per-unit division is shown — do not invent 6/8/12 math here.
+ */
+export function isWholesaleHeadwearPack(product: Product) {
+  if (!isHeadwearSku(product)) return false;
+  const price = product.price || product.unitPrice || 0;
+  return price >= WHOLESALE_HEADWEAR_THRESHOLD_NAD;
+}
+
+export function isWholesaleBallPack(product: Product) {
+  if (!isBallSku(product)) return false;
+  const price = product.price || product.unitPrice || 0;
+  return price >= WHOLESALE_BALL_THRESHOLD_NAD;
 }
 
 function namedPackInfo(
@@ -242,6 +285,16 @@ export function getAssortment(
     };
   }
 
+  if (isWholesaleHeadwearPack(product) || isWholesaleBallPack(product)) {
+    return {
+      isAssortment: true,
+      packSize: null,
+      label: "Wholesale pack",
+      pairHint: null,
+      kind: "wholesale-pack",
+    };
+  }
+
   return null;
 }
 
@@ -275,6 +328,13 @@ export function assortmentCopy(
     return {
       ...info,
       label: t("product.multipack"),
+      pairHint: null,
+    };
+  }
+  if (info.kind === "wholesale-pack") {
+    return {
+      ...info,
+      label: t("product.wholesalePack"),
       pairHint: null,
     };
   }

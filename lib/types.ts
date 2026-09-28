@@ -27,6 +27,8 @@ export type Product = {
   imageUrl: string;
   images: string[];
   description?: string;
+  /** False hides the SKU from the storefront and blocks purchase (pack-price guard). */
+  available?: boolean;
 };
 
 /** Product fields persisted on each cart line so the client never loads the catalog JSON. */

@@ -48,22 +48,23 @@ export function getProductByCode(code: string): Product | undefined {
 }
 
 export function productsInHub(slug: string): Product[] {
-  return productsByHub.get(slug) ?? [];
+  return (productsByHub.get(slug) ?? []).filter((p) => p.available !== false);
 }
 
 export function productsByCategory(slug: string, catalog: Product[] = offlineCatalog) {
   if (catalog === offlineCatalog) return productsInHub(slug);
-  return catalog.filter((p) => productInHub(p, slug));
+  return catalog.filter((p) => p.available !== false && productInHub(p, slug));
 }
 
 export function categoryCountsFrom(catalog: Product[] = offlineCatalog) {
   if (catalog === offlineCatalog) {
     return Object.fromEntries(
-      CATEGORIES.map((c) => [c.slug, productsByHub.get(c.slug)?.length ?? 0]),
+      CATEGORIES.map((c) => [c.slug, productsInHub(c.slug).length]),
     ) as Record<string, number>;
   }
+  const visible = catalog.filter((p) => p.available !== false);
   return Object.fromEntries(
-    CATEGORIES.map((c) => [c.slug, catalog.filter((p) => productInHub(p, c.slug)).length]),
+    CATEGORIES.map((c) => [c.slug, visible.filter((p) => productInHub(p, c.slug)).length]),
   ) as Record<string, number>;
 }
 

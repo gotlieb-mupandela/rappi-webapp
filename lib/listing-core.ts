@@ -121,7 +121,9 @@ export function searchListing(
   category?: string,
 ): ListingItem[] {
   const q = query.trim().toLowerCase();
-  let list = catalog.filter((p) => hasUsableProductImage(p as Product));
+  let list = catalog.filter(
+    (p) => (p as { available?: boolean }).available !== false && hasUsableProductImage(p as Product),
+  );
   if (category && category !== "all") {
     list = list.filter((p) => listingInHub(p, category));
   }
@@ -164,6 +166,9 @@ export function filterListing(
       list = list.filter((p) => listingInHub(p, scopedCat));
     }
   }
+  // Pack-price guard: hidden SKUs never surface in listings (covers the
+  // Joma folder path too, which bypasses searchListing).
+  list = list.filter((p) => (p as { available?: boolean }).available !== false);
 
   if (opts?.badges?.length) {
     const badges = new Set(opts.badges);

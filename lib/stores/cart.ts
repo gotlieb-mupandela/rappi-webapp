@@ -64,6 +64,9 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       lines: [],
       add: (product, size, qty): CartMessage => {
+        if ((product as { available?: boolean }).available === false) {
+          return { ok: false, messageKey: "cart.soldOut" };
+        }
         const available = sizeStock(product, size);
         if (available <= 0) {
           return { ok: false, messageKey: "cart.sizeNotInStock" };
