@@ -31,5 +31,5 @@ export function eurFromLegacyRetailNad(
 }
 
 export function isFixedBibPackPrice(code: string, price: number) {
-  return /^101686\./i.test(code) && price === 900;
+  return /^101686\./i.test(code) && price === 783;
 }

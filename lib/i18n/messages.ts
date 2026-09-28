@@ -367,6 +367,8 @@ export const en = {
       "Sold as a wholesale assortment pack, not a single piece. The {symbol} price is for the full pack (shirts, shorts, and other apparel boxes). Mixed sizes ship as packed by the supplier.",
     packWholesalePack:
       "Sold as a wholesale pack, not a single piece. The {symbol} price is the pack price.",
+    packAssortmentFootwear:
+      "Sold as an assortment pack (size run, about 8–12 pairs). The {symbol} price is the pack price.",
     packPdp: "Sold as a pack. The {symbol} price is for the full pack.",
     packAssortmentPack:
       "Sold as an assortment pack. The {symbol} price is for the full pack.",
@@ -387,9 +389,9 @@ export const en = {
     assortment: "Assortment",
     pairs: "pairs",
     pcs: "pcs",
-    wholesale: "Wholesale assortment (8–12 pairs)",
     wholesaleApparel: "Wholesale assortment",
     wholesalePack: "Wholesale pack",
+    assortmentFootwear: "Assortment pack (size run, ~8–12 pairs)",
     aboutEach: "About {amount} each",
     aboutPair: "About {amount} / pair",
     aboutPairRange: "About {eight} / pair (8) · {twelve} / pair (12)",
@@ -1175,6 +1177,8 @@ export const fr: Messages = {
       "Vendu en pack assortiment gros, pas à la pièce. Le prix {symbol} concerne le pack entier (tees, shorts et autres boxes textile). Tailles mixtes selon le fournisseur.",
     packWholesalePack:
       "Vendu en pack gros, pas à la pièce. Le prix {symbol} est le prix du pack.",
+    packAssortmentFootwear:
+      "Vendu en pack assortiment (pointures, environ 8–12 paires). Le prix {symbol} est le prix du pack.",
     packPdp: "Vendu par pack. Le prix {symbol} concerne le pack entier.",
     packAssortmentPack:
       "Vendu en pack assortiment. Le prix {symbol} concerne le pack entier.",
@@ -1195,9 +1199,9 @@ export const fr: Messages = {
     assortment: "Assortiment",
     pairs: "paires",
     pcs: "pcs",
-    wholesale: "Assortiment gros (8–12 paires)",
     wholesaleApparel: "Assortiment gros",
     wholesalePack: "Pack gros",
+    assortmentFootwear: "Pack assortiment (pointures, ~8–12 paires)",
     aboutEach: "Environ {amount} pièce",
     aboutPair: "Environ {amount} / paire",
     aboutPairRange: "Environ {eight} / paire (8) · {twelve} / paire (12)",

@@ -2,11 +2,13 @@
 /**
  * Guardrail for the pack-retail policy (code/data only, no supplier fetch).
  *
- * Driven by data/b2c-price-fix-data.json:
+ * Driven by data/b2c-price-fix-data.json + data/b2c-map-b.json:
  * - every pack_price_overrides row: catalog.price == pack_nad (literal),
  *   hidden rows stay available === false, live rows stay purchasable and
  *   match the public listing index, and baked titles carry pack wording.
  * - every hidden_packs row: available === false and absent from the index.
+ * - every MAP B row: catalog + index price == snapped NAD.
+ * - MAP C footwear samples: baked titles carry the Assortment pack cue.
  * - no unit-NAD leftovers on mapped codes, FX/markup unchanged (18 / 0.45).
  */
 import fs from "node:fs";
@@ -17,9 +19,11 @@ const catalogPath = path.join(root, "data", "products.json");
 const listingPath = path.join(root, "public", "listing-index.json");
 const markupPath = path.join(root, "data", "retail-markup.json");
 const fixPath = path.join(root, "data", "b2c-price-fix-data.json");
+const mapBPath = path.join(root, "data", "b2c-map-b.json");
 
 // Unit-retail NAD that must never reappear as a selling price on mapped codes.
-const UNIT_NAD = new Set([215, 783, 117, 176, 98, 78, 128, 74, 64]);
+// (783 excluded: it is the legitimate pack NAD for 101686.* bibs.)
+const UNIT_NAD = new Set([215, 117, 176, 98, 78, 128, 74, 64]);
 
 function fail(msg) {
   console.error(`FAIL ${msg}`);
@@ -53,7 +57,7 @@ function titleWording(o) {
   }
 }
 
-// A–F pack overrides: literal pack NAD, correct availability, index + titles.
+// Pack overrides: literal pack NAD, correct availability, index + titles.
 for (const o of fix.pack_price_overrides || []) {
   const p = byCode.get(o.code);
   if (!p) {
@@ -96,6 +100,37 @@ for (const s of fix.hidden_packs || []) {
   if (listingByCode.has(s.code)) fail(`hidden pack ${s.code} still appears in public listing index`);
 }
 
+// MAP B off-by-1 snaps: catalog + index must carry the exact integers.
+const mapB = JSON.parse(fs.readFileSync(mapBPath, "utf8"));
+let mapBChecked = 0;
+for (const [code, nad] of Object.entries(mapB.prices)) {
+  const p = byCode.get(code);
+  if (!p) {
+    fail(`MAP B SKU missing in catalog ${code}`);
+    continue;
+  }
+  if (p.price !== nad || p.unitPrice !== nad) {
+    fail(`MAP B ${code} price ${p.price}/${p.unitPrice}, expected ${nad}/${nad}`);
+  }
+  const indexed = listingByCode.get(code);
+  if (indexed && (indexed.price !== nad || indexed.unitPrice !== nad)) {
+    fail(`MAP B ${code} listing ${indexed.price}/${indexed.unitPrice}, expected ${nad}/${nad}`);
+  }
+  mapBChecked++;
+}
+if (mapBChecked !== mapB.count) fail(`MAP B checked ${mapBChecked}, expected ${mapB.count}`);
+
+// MAP C footwear samples: baked titles must carry the Assortment pack cue.
+for (const code of ["RR500W2602", "BF111JS2629V", "BF1448W2503", "C448W2612", "TM100W2602C"]) {
+  const p = byCode.get(code);
+  if (!p) {
+    fail(`MAP C sample missing ${code}`);
+    continue;
+  }
+  const hay = [p.displayName, p.title, p.name].join(" ");
+  if (!/assortment pack/i.test(hay)) fail(`MAP C ${code} title missing Assortment pack cue`);
+}
+
 // No unavailable catalog row should leak into any public browse index.
 for (const p of catalog) {
   if (p.available === false && listingByCode.has(p.code)) {
@@ -116,6 +151,10 @@ for (const [code, nad] of [
   ["400089.200", 2819],
   ["400056.100", 1762],
   ["400360.100", 1409],
+  ["101686.010", 783],
+  ["101686.200", 783],
+  ["400356.308", 3758],
+  ["TI41800B5101", 3495],
 ]) {
   const p = byCode.get(code);
   if (!p) fail(`missing SKU ${code}`);
@@ -131,5 +170,7 @@ if (Number(markup.fx) !== 18 || Number(markup.markup) !== 0.45) {
 if (process.exitCode) {
   console.error("pack-price guardrail FAILED");
 } else {
-  console.log("ok pack-price guardrail: pack NAD + pack UI + hidden SKUs absent from index + fx/markup 18/0.45");
+  console.log(
+    `ok pack-price guardrail: ${(fix.pack_price_overrides || []).length} pack overrides + ${mapBChecked} MAP B snaps + hidden SKUs absent from index + fx/markup 18/0.45`,
+  );
 }

@@ -10,7 +10,7 @@
  *   node scripts/reprice-markup.mjs --write      # apply to data/products.json
  *   node scripts/reprice-markup.mjs --write --bake  # also refresh listing-index
  *
- * Skips: price 0, fixed bib packs (101686.* @ N$900), DPO-TEST.
+ * Skips: price 0, fixed bib packs (101686.* @ N$783), DPO-TEST.
  * Prefer opening-sheet EUR from data/products-source.json when present;
  * otherwise recover EUR = NAD / (18 × 1.67).
  */
@@ -42,7 +42,7 @@ function eurFromMarkupNad(nad, markup) {
 }
 
 function isBibFixed(code, price) {
-  return /^101686\./i.test(code) && price === 900;
+  return /^101686\./i.test(code) && price === 783;
 }
 
 function isDpoTest(code) {
