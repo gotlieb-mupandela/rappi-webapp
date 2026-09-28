@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "@/components/product-image";
 import { AssortmentBadge } from "@/components/assortment-label";
+import { packTitleSuffix } from "@/lib/assortment";
 import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
@@ -35,7 +36,7 @@ export function ProductCard({
   const { t, format } = useLocale();
   const first = buyableSizes(product)[0];
   const soldOut = isSoldOut(product);
-  const title = product.displayName || product.item;
+  const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
   const cardSrc = productCardImageUrl(product);
   const cardSources = productCardImageCandidates(product);
 

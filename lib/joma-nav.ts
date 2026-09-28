@@ -4,6 +4,8 @@ export type JomaAudienceLink = { href: string; label: string };
 
 type LandingTileDef = {
   label: string;
+  /** i18n key resolving the label at render (falls back to label). */
+  labelKey?: string;
   href: string;
   /** Catalog hub used for product-sample cover fallbacks. */
   hub: string;
@@ -80,9 +82,13 @@ export function jomaAudienceLinks(audience: "men" | "women"): JomaAudienceLink[]
 /** Footwear first-view tiles — matches header Footwear dropdown order. */
 export type FootwearLandingTileDef = {
   label: string;
+  /** i18n key resolving the label at render (falls back to label). */
+  labelKey?: string;
   href: string;
   audience?: AudienceSlugForShoes;
   banner?: string;
+  /** i18n key resolving the banner at render (falls back to banner). */
+  bannerKey?: string;
 };
 
 type AudienceSlugForShoes = "men" | "women" | "kids";
@@ -90,13 +96,15 @@ type AudienceSlugForShoes = "men" | "women" | "kids";
 /** Exact Footwear first-view tiles (Joma B2B: MEN / WOMEN / KIDS / OUTLET). */
 export function jomaFootwearLandingTiles(): FootwearLandingTileDef[] {
   return [
-    { label: "MEN", href: "/shop/shoes?audience=men", audience: "men" },
-    { label: "WOMEN", href: "/shop/shoes?audience=women", audience: "women" },
-    { label: "KIDS", href: "/shop/shoes?audience=kids", audience: "kids" },
+    { label: "MEN", labelKey: "tiles.men", href: "/shop/shoes?audience=men", audience: "men" },
+    { label: "WOMEN", labelKey: "tiles.women", href: "/shop/shoes?audience=women", audience: "women" },
+    { label: "KIDS", labelKey: "tiles.kids", href: "/shop/shoes?audience=kids", audience: "kids" },
     {
       label: "OUTLET",
+      labelKey: "tiles.outlet",
       href: "/promotions",
       banner: "SPECIAL OFFERS",
+      bannerKey: "group.shoes.offersBanner",
     },
   ];
 }
@@ -346,6 +354,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
   return [
     {
       label: "POLYESTER",
+      labelKey: "tiles.teamPolyester",
       href: "/shop/sportswear?q=polyester",
       hub: "sportswear",
       match: "polyester|poli[eé]ster",
@@ -355,6 +364,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "COTTON",
+      labelKey: "tiles.teamCotton",
       href: "/shop/sportswear?q=cotton",
       hub: "sportswear",
       match: "cotton|algod[oó]n",
@@ -364,6 +374,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "OUTERWEAR",
+      labelKey: "tiles.teamOuterwear",
       href: "/shop/sportswear?group=jackets",
       hub: "sportswear",
       match: "jacket|anorak|puffer|park|outerwear|gala",
@@ -373,6 +384,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "SOCCER / FUTSAL",
+      labelKey: "tiles.teamSoccerFutsal",
       href: "/shop/football",
       hub: "football",
       prefer: "premier|interlock|campus|shirt|set|jersey",
@@ -381,6 +393,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "BASKETBALL",
+      labelKey: "tiles.teamBasketball",
       href: "/shop/basketball",
       hub: "basketball",
       match: "basket",
@@ -390,6 +403,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "RUGBY",
+      labelKey: "tiles.teamRugby",
       href: "/shop/rugby",
       hub: "rugby",
       prefer: "skrum|jersey|shirt",
@@ -398,6 +412,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "VOLLEYBALL",
+      labelKey: "tiles.teamVolleyball",
       href: "/shop/running-fitness?q=volley",
       hub: "running-fitness",
       match: "volley|volea|voleibol",
@@ -406,6 +421,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "HANDBALL",
+      labelKey: "tiles.teamHandball",
       href: "/shop/sportswear?q=handball",
       hub: "sportswear",
       match: "handball|balonmano",
@@ -414,6 +430,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "COACH",
+      labelKey: "tiles.teamCoach",
       href: "/shop/sportswear?q=staff",
       hub: "sportswear",
       match: "staff|coach|entrenador",
@@ -423,6 +440,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "REFEREE",
+      labelKey: "tiles.teamReferee",
       href: "/shop/sportswear?q=referee",
       hub: "sportswear",
       match: "referee|arbitro|[aá]rbitro",
@@ -432,6 +450,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "GOALIE",
+      labelKey: "tiles.teamGoalie",
       href: "/shop/football?q=goalkeeper",
       hub: "football",
       match: "goalkeeper|goalie|portero|\\bgk\\b",
@@ -441,6 +460,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "CRICKET",
+      labelKey: "tiles.teamCricket",
       href: "/shop/cricket",
       hub: "cricket",
       match: "cricket",
@@ -450,6 +470,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "SWIMMING",
+      labelKey: "tiles.teamSwimming",
       href: "/shop/swimming",
       hub: "swimming",
       prefer: "swim short|swimsuit|santa|shark",
@@ -457,6 +478,7 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
     },
     {
       label: "PANTS",
+      labelKey: "tiles.teamPants",
       href: "/shop/sportswear?group=pants",
       hub: "sportswear",
       prefer: "long pants|nilo|montana|cuff",

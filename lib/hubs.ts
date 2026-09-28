@@ -680,9 +680,11 @@ function footwearLandingImage(
 export function footwearLandingTiles(catalog: Product[] = bundled) {
   return jomaFootwearLandingTiles().map((tile) => ({
     label: tile.label,
+    labelKey: tile.labelKey,
     href: tile.href,
     imageSrc: footwearLandingImage(tile.audience, catalog, tile.label === "OUTLET"),
     banner: tile.banner,
+    bannerKey: tile.bannerKey,
     bannerTone: tile.banner ? ("magenta" as const) : undefined,
   }));
 }
@@ -786,6 +788,7 @@ export function teamsLandingTiles(catalog: Product[] = bundled) {
   const usedIds = new Set<string>();
   return jomaTeamsLandingTiles().map((tile) => ({
     label: tile.label,
+    labelKey: tile.labelKey,
     href: tile.href,
     imageSrc: teamsLandingImage(tile, catalog, usedUrls, usedIds),
   }));

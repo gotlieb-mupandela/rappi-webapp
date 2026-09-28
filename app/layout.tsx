@@ -55,6 +55,22 @@ export const metadata: Metadata = {
   },
 };
 
+/** Locale-aware document description/OG (brand title stays shared). */
+export async function generateMetadata(): Promise<Metadata> {
+  const market = await getMarket();
+  if (market !== "eu") return {};
+  const description =
+    "RAPPI SPORTS HUB — catalogue sportif. Équipe-toi. Présente-toi. Dépasse-toi.";
+  return {
+    description,
+    openGraph: {
+      title: "RAPPI SPORTS HUB",
+      description,
+      siteName: "RAPPI SPORTS HUB",
+    },
+  };
+}
+
 const nav = storefrontNav as {
   taxonomy: StorefrontTaxonomy;
   categoryCounts: Record<string, number>;

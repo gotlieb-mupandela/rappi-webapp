@@ -1,5 +1,5 @@
 import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
-import { getAssortment } from "@/lib/assortment";
+import { getAssortment, packTitleSuffix } from "@/lib/assortment";
 import type { Product } from "@/lib/types";
 import { currencySymbol } from "@/lib/i18n/currency";
 import type { Market } from "@/lib/i18n/config";
@@ -92,7 +92,11 @@ export function productDescription(
       bits.push(t ? t("product.descBibSizes") : "Sizes S01–S04 follow the Joma grid (3XS, XS, M, XL).");
     }
   } else if (pack?.isAssortment) {
-    const label = pack.label.toLowerCase();
+    // Localized pack wording: never inject the raw (English) assortment label.
+    const suffix = t ? packTitleSuffix(product, t) : null;
+    const label = suffix
+      ? suffix.replace(/^ · /, "").replace(/^./, (c) => c.toLowerCase())
+      : pack.label.toLowerCase();
     bits.push(
       t
         ? t("product.descPack", { label, symbol })
