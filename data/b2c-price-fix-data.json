@@ -490,7 +490,7 @@
       "code": "AH41800B0501",
       "name": "FED. FUTBOL RUMANÍA 1ST OPT E BALL · AH41800B0501",
       "pack_nad": 1954,
-      "pack_size": null,
+      "pack_size": 24,
       "sell_as": "assortment",
       "source": "pack retail policy 2026-09-28"
     },
@@ -538,7 +538,7 @@
       "code": "300151.003",
       "name": "MULTIPACK OF MULTICOLOR CAPS R-TRAIL NATURE · 300151.003",
       "pack_nad": 2928,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "multipack",
       "source": "pack retail policy 2026-09-28 (keep catalog pack NAD)"
     },
@@ -807,6 +807,22 @@
       "expect": "pack-of-100",
       "price_stable": true,
       "source": "pack retail policy 2026-09-28 (MAP B snap)"
+    },
+    {
+      "code": "RR500W2602",
+      "name": "R.5000 2602 WHITE · RR500W2602",
+      "pack_nad": 12236,
+      "source": "pack retail policy 2026-09-28 (pack-size flag, price unchanged)",
+      "pack_size": 8,
+      "sell_as": "assortment"
+    },
+    {
+      "code": "BF111JS2629V",
+      "name": "CR111 JUNIOR BAREFOOT 2629 PINK · BF111JS2629V",
+      "pack_nad": 5716,
+      "source": "pack retail policy 2026-09-28 (pack-size flag, price unchanged)",
+      "pack_size": 12,
+      "sell_as": "assortment"
     }
   ],
   "hidden_packs": [

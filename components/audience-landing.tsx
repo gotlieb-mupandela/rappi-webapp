@@ -1,13 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/components/locale-provider";
 
 export type AudienceLandingTile = {
   label: string;
+  /** i18n key resolving the label at render (falls back to label). */
+  labelKey?: string;
   href: string;
   /** Empty string = solid gray placeholder (Joma-style missing asset). */
   imageSrc: string;
   /** Optional strip overlaid on the image (e.g. OUTLET “SPECIAL OFFERS”). */
   banner?: string;
+  /** i18n key resolving the banner at render (falls back to banner). */
+  bannerKey?: string;
   bannerTone?: "green" | "magenta" | "red";
   /** Outlet graphic tiles: orange category or red price card. */
   outletKind?: "photo" | "category" | "price";
@@ -32,6 +39,7 @@ export function AudienceLandingGrid({
    */
   variant?: "audience" | "footwear" | "kits" | "kids" | "outlet";
 }) {
+  const { t } = useLocale();
   const isFootwear = variant === "footwear";
   const isKits = variant === "kits";
   const isKids = variant === "kids";
@@ -52,6 +60,8 @@ export function AudienceLandingGrid({
       {tiles.map((tile, index) => {
         const outletKind = tile.outletKind ?? (isOutlet ? "photo" : undefined);
         const isGraphic = outletKind === "category" || outletKind === "price";
+        const label = tile.labelKey ? t(tile.labelKey) : tile.label;
+        const banner = tile.bannerKey ? t(tile.bannerKey) : tile.banner;
         const bannerBg =
           tile.bannerTone === "green"
             ? "bg-[#7cb342]"
@@ -91,7 +101,7 @@ export function AudienceLandingGrid({
                     )}
                   >
                     <span className="text-center text-sm font-black uppercase tracking-[0.12em] text-white sm:text-base">
-                      OUTLET
+                      {t("tiles.outlet")}
                     </span>
                   </div>
                   <div
@@ -101,7 +111,7 @@ export function AudienceLandingGrid({
                     )}
                   >
                     <span className="text-center text-[10px] font-bold uppercase leading-snug tracking-[0.04em] text-white sm:text-[11px]">
-                      {tile.barLabel ?? tile.label}
+                      {tile.barLabel ?? label}
                     </span>
                   </div>
                 </div>
@@ -109,7 +119,7 @@ export function AudienceLandingGrid({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={tile.imageSrc}
-                  alt={tile.label}
+                  alt={label}
                   className={cn(
                     "absolute inset-0 h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
                     isFootwear
@@ -120,14 +130,14 @@ export function AudienceLandingGrid({
                   decoding="async"
                 />
               ) : null}
-              {tile.banner && !isGraphic ? (
+              {banner && !isGraphic ? (
                 <div
                   className={cn(
                     "absolute inset-x-0 bottom-0 px-2 py-1.5 text-center text-[10px] font-bold uppercase tracking-[0.06em] text-white sm:py-2 sm:text-xs",
                     bannerBg,
                   )}
                 >
-                  {tile.banner}
+                  {banner}
                 </div>
               ) : null}
             </div>
@@ -150,7 +160,7 @@ export function AudienceLandingGrid({
                       : "text-[10px] sm:text-[11px]",
                 )}
               >
-                {tile.label}
+                {label}
               </p>
             </div>
           </Link>

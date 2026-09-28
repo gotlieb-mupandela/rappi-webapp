@@ -1,5 +1,4 @@
-import { BIB_PACK_PRICE_NAD, getAssortment, isFixedBibPack } from "@/lib/assortment";
-import type { AssortmentInfo } from "@/lib/assortment";
+import { BIB_PACK_PRICE_NAD, isFixedBibPack } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
 import { isSportHub, jomaLeafHub, productInHub } from "@/lib/hub-membership";
@@ -775,55 +774,12 @@ function stripPackSuffix<T extends Product>(product: T): T {
 }
 
 function applyPackTitle<T extends Product>(product: T): T {
-  // Strip previously baked pack suffixes first so SKUs that no longer
-  // qualify (e.g. removed price-threshold heuristics) lose stale wording;
-  // the branches below re-add whatever is still warranted (idempotent).
-  const stripped = stripPackSuffix(product);
-  const info = getAssortment(stripped);
-  if (!info?.packSize || info.packSize <= 1) return applyPackWordTitle(stripped, info);
-  const n = info.packSize;
-  const already = new RegExp(`\\bpack(?:\\s+of)?\\s+${n}\\b`, "i").test(
-    [stripped.displayName, stripped.title, stripped.name].join(" "),
-  );
-  if (already) return stripped;
-  const display = stripped.displayName.replace(/\s*·\s*pack of \d+/i, "").trim();
-  const labeled = `${display} · Pack of ${n}`;
-  return {
-    ...stripped,
-    displayName: labeled,
-    title: new RegExp(`pack of ${n}`, "i").test(stripped.title) ? stripped.title : labeled,
-  };
+  // Bake stores locale-neutral base names only: strip any previously baked
+  // pack suffix so FR/EN render paths (packTitleSuffix) own the wording.
+  // Idempotent across repeated bakes.
+  return stripPackSuffix(product);
 }
 
-/**
- * Title suffix for packs without a known size ("· Pack" / "· Assortment pack" /
- * "· Multipack"). Scoped to explicit pack-policy flags and multipack kind so
- * unrelated SKUs keep existing titles. Idempotent across repeated bakes:
- * skips when the wording is already present.
- */
-function applyPackWordTitle<T extends Product>(product: T, info: AssortmentInfo | null): T {
-  if (!info) return product;
-  const suffix =
-    info.kind === "multipack"
-      ? "Multipack"
-      : info.kind === "assortment"
-        ? "Assortment pack"
-        : info.kind === "pack"
-          ? "Pack"
-          : null;
-  if (!suffix) return product;
-  const hay = [product.displayName, product.title, product.name].join(" ");
-  if (suffix === "Multipack") {
-    if (/\bmultipack\b/i.test(hay)) return product;
-  } else if (suffix === "Assortment pack") {
-    if (/assortment pack/i.test(hay)) return product;
-  } else if (/\bpack(\s+of\s+\d+)?\b/i.test(hay)) {
-    return product;
-  }
-  const display = product.displayName.trim();
-  const labeled = `${display} · ${suffix}`;
-  return { ...product, displayName: labeled, title: labeled };
-}
 
 export function withStorefrontMerchandising<T extends Product>(product: T): T {
   const category = classifyStorefrontCategory(product);

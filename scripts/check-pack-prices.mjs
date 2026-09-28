@@ -5,10 +5,10 @@
  * Driven by data/b2c-price-fix-data.json + data/b2c-map-b.json:
  * - every pack_price_overrides row: catalog.price == pack_nad (literal),
  *   hidden rows stay available === false, live rows stay purchasable and
- *   match the public listing index, and baked titles carry pack wording.
+ *   match the public listing index (flags carried for client render).
+ * - baked displayName/title carry no pack suffix (render localizes it).
  * - every hidden_packs row: available === false and absent from the index.
  * - every MAP B row: catalog + index price == snapped NAD.
- * - MAP C footwear samples: baked titles carry the Assortment pack cue.
  * - no unit-NAD leftovers on mapped codes, FX/markup unchanged (18 / 0.45).
  */
 import fs from "node:fs";
@@ -38,22 +38,18 @@ const fix = JSON.parse(fs.readFileSync(fixPath, "utf8"));
 const hidden = new Set((fix.hidden_packs || []).map((s) => s.code));
 
 function titleWording(o) {
+  // Bake stores locale-neutral base names: no EN pack suffix may be baked
+  // into displayName/title (render adds it per locale via packTitleSuffix).
   const p = byCode.get(o.code);
-  const hay = [p.displayName, p.title, p.name].join(" ");
-  if (o.pack_size && o.pack_size > 1) {
-    if (!new RegExp(`pack of ${o.pack_size}`, "i").test(hay)) {
-      fail(`${o.code} title missing Pack of ${o.pack_size}`);
+  for (const field of [p.displayName, p.title]) {
+    if (/\s*·\s*(pack of \d+|pack|assortment pack|multipack)\s*$/i.test(field || "")) {
+      fail(`${o.code} baked EN pack suffix in title`);
     }
-    return;
   }
-  if (o.sell_as === "assortment") {
-    if (!/assortment pack/i.test(hay)) fail(`${o.code} title missing Assortment pack`);
-  } else if (o.sell_as === "multipack") {
-    if (!/\bmultipack\b/i.test(hay)) fail(`${o.code} title missing Multipack`);
-  } else if (o.sell_as === "pack") {
-    if (!/[·.] Pack\b/i.test(hay) || /pack of \d+/i.test(hay)) {
-      fail(`${o.code} title missing Pack wording`);
-    }
+  // ...but multipack wording must still be discoverable in the base name.
+  if (o.sell_as === "multipack") {
+    const hay = [p.displayName, p.title, p.name].join(" ");
+    if (!/\bmultipack\b/i.test(hay)) fail(`${o.code} base name missing Multipack`);
   }
 }
 
@@ -83,8 +79,17 @@ for (const o of fix.pack_price_overrides || []) {
   if (p.available === false) fail(`${o.code} should be purchasable at pack NAD ${o.pack_nad}`);
   const indexed = listingByCode.get(o.code);
   if (!indexed) fail(`${o.code} missing from public listing index`);
-  else if (indexed.price !== o.pack_nad || indexed.unitPrice !== o.pack_nad) {
-    fail(`${o.code} listing price ${indexed.price}/${indexed.unitPrice}, expected ${o.pack_nad}/${o.pack_nad}`);
+  else {
+    if (indexed.price !== o.pack_nad || indexed.unitPrice !== o.pack_nad) {
+      fail(`${o.code} listing price ${indexed.price}/${indexed.unitPrice}, expected ${o.pack_nad}/${o.pack_nad}`);
+    }
+    // Client render needs the flags (badge/title localize from these).
+    if (o.sell_as && indexed.sellAs !== o.sell_as) {
+      fail(`${o.code} listing missing sellAs=${o.sell_as}`);
+    }
+    if (o.pack_size && o.pack_size > 1 && indexed.packSize !== o.pack_size) {
+      fail(`${o.code} listing missing packSize=${o.pack_size}`);
+    }
   }
   titleWording(o);
 }
@@ -120,51 +125,33 @@ for (const [code, nad] of Object.entries(mapB.prices)) {
 }
 if (mapBChecked !== mapB.count) fail(`MAP B checked ${mapBChecked}, expected ${mapB.count}`);
 
-// Former footwear-threshold SKUs: never Assortment/Pack size-run UI.
-for (const code of ["RR500W2602", "BF111JS2629V"]) {
+// Former footwear-threshold SKUs: no baked Assortment/Pack size-run wording
+// (render localizes it); pack sizes recorded as flags, not invented.
+for (const [code, n] of [["RR500W2602", 8], ["BF111JS2629V", 12]]) {
   const p = byCode.get(code);
   if (!p) {
     fail(`missing SKU ${code}`);
     continue;
   }
-  if (p.sellAs) fail(`${code} unexpectedly carries sellAs=${p.sellAs}`);
+  // Baked base names stay neutral; pack counts live in flags for render.
   const hay = [p.displayName, p.title, p.name].join(" ");
   if (/assortment pack|pack of \d+|\bmultipack\b|wholesale assortment|size run/i.test(hay)) {
     fail(`${code} still shows assortment/pack wording`);
   }
+  if (p.sellAs !== "assortment" || p.packSize !== n) {
+    fail(`${code} flags sellAs=${p.sellAs} packSize=${p.packSize}, expected assortment/${n}`);
+  }
   if (p.available === false) fail(`${code} should stay purchasable`);
 }
 
-// Title-wording regression net: every baked pack suffix must be justified by
-// explicit sell_as metadata or name/code evidence (named Pack of N, multipack,
-// Eventos 105463.*, bib 101686.*). Price-threshold heuristics must never
-// leave wording behind.
+// No-EN-bake regression net: bake stores neutral base names, so no baked
+// displayName/title may end with a pack suffix in any language. Render adds
+// the wording per locale via packTitleSuffix.
 for (const p of catalog) {
-  const shown = [p.displayName, p.title].join(" ");
-  const mPack = shown.match(/·\s*pack of (\d+)\s*$/i);
-  const mBare = !mPack && /·\s*pack\s*$/i.test(shown);
-  const mAssort = /·\s*assortment pack\s*$/i.test(shown);
-  const mMulti = /·\s*multipack\s*$/i.test(shown);
-  if (!mPack && !mBare && !mAssort && !mMulti) continue;
-  const blob = [p.displayName, p.name, p.title, p.item, p.sheetCategory].filter(Boolean).join(" ");
-  const trainingBib =
-    /\btraining bib/i.test(blob) && (p.sizeOptions || []).some((s) => /^S0\d$/i.test(s));
-  const namedOk =
-    /\bpack(?:\s+of)?\s+(\d+)\b/i.test(p.name || "") ||
-    /\bbox of\s+(\d+)\b/i.test(p.name || "") ||
-    /^105463\./i.test(p.code) ||
-    trainingBib;
-  if (mPack && !(p.packSize === Number(mPack[1]) || namedOk)) {
-    fail(`${p.code} unjustified Pack-of-N title`);
-  }
-  if (mBare && !(p.sellAs === "pack" && (p.packSize ?? null) === null)) {
-    fail(`${p.code} unjustified bare Pack title`);
-  }
-  if (mAssort && p.sellAs !== "assortment") {
-    fail(`${p.code} unjustified Assortment pack title`);
-  }
-  if (mMulti && !(p.sellAs === "multipack" || /\bmultipack\b/i.test(blob))) {
-    fail(`${p.code} unjustified Multipack title`);
+  for (const field of [p.displayName, p.title]) {
+    if (/\s*·\s*(pack of \d+|pack|assortment pack|multipack)\s*$/i.test(field || "")) {
+      fail(`${p.code} baked EN pack suffix in title`);
+    }
   }
 }
 

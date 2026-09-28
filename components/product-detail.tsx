@@ -8,7 +8,7 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment } from "@/lib/assortment";
+import { getAssortment, packTitleSuffix } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -39,7 +39,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const stock = sizeStock(product, size);
   const soldOut = isSoldOut(product);
   const catName = hubName(product.category, t);
-  const title = product.displayName || product.item;
+  const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
   const assortment = getAssortment(product);
   const details = productDescription(product, { t, market });
   const showPicker = hasVisibleSizePicker(product);

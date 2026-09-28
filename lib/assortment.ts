@@ -323,9 +323,32 @@ export function assortmentCopy(
     };
   }
   if (info.kind === "assortment") {
+    if (info.packSize && info.packSize > 1) {
+      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+      return {
+        ...info,
+        label: t("product.assortmentNamed", { n: info.packSize, unit }),
+        pairHint: null,
+      };
+    }
     return {
       ...info,
       label: t("product.assortment"),
+      pairHint: null,
+    };
+  }
+  if (info.kind === "multipack") {
+    if (info.packSize && info.packSize > 1) {
+      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+      return {
+        ...info,
+        label: t("product.multipackNamed", { n: info.packSize, unit }),
+        pairHint: null,
+      };
+    }
+    return {
+      ...info,
+      label: t("product.multipack"),
       pairHint: null,
     };
   }
@@ -341,13 +364,6 @@ export function assortmentCopy(
         : t("product.aboutEach", { amount: format(price / info.packSize) }),
     };
   }
-  if (info.kind === "multipack") {
-    return {
-      ...info,
-      label: t("product.multipack"),
-      pairHint: null,
-    };
-  }
   if (info.kind === "wholesale-pack") {
     return {
       ...info,
@@ -358,5 +374,31 @@ export function assortmentCopy(
   // No remaining kind reaches here: footwear/apparel price-threshold
   // heuristics were removed, so packs are only named, multipack,
   // wholesale-pack, or explicit sell_as metadata.
+  return null;
+}
+
+/**
+ * Localized pack title suffix for render (cards, PDP, search).
+ * Bake stores neutral base names only — this adds the pack wording in the
+ * shopper's locale: "· Pack of 12" / "· pack de 12", "· Assortment · 8 pairs",
+ * "· Multipack", … Returns null when the product is not sold as a pack.
+ */
+export function packTitleSuffix(product: Product, t: TFunction): string | null {
+  const info = getAssortment(product);
+  if (!info) return null;
+  if (info.packSize && info.packSize > 1) {
+    if (info.kind === "assortment") {
+      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+      return ` · ${t("product.assortmentNamed", { n: info.packSize, unit })}`;
+    }
+    if (info.kind === "multipack") {
+      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+      return ` · ${t("product.multipackNamed", { n: info.packSize, unit })}`;
+    }
+    return ` · ${t("product.titlePackNamed", { n: info.packSize })}`;
+  }
+  if (info.kind === "multipack") return ` · ${t("product.multipack")}`;
+  if (info.kind === "assortment") return ` · ${t("product.assortmentPack")}`;
+  if (info.kind === "pack") return ` · ${t("product.pack")}`;
   return null;
 }
