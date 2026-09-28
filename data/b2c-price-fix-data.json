@@ -31,6 +31,354 @@
       "pack_size": 12,
       "new_nad": 215,
       "source": "prior DOM capture: Price by unit 8.25"
+    },
+    {
+      "code": "400855.220",
+      "name": "FLAME III BALL WHITE ORANGE",
+      "new_nad": 783,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401724.204",
+      "name": "GIOCO III BALL WHITE GREEN",
+      "new_nad": 626,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401725.063",
+      "name": "W-Gioco BALL FLUOR YELLOW NAVY BLUE",
+      "new_nad": 626,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401581.903",
+      "name": "J-PRO Handball BALL YELLOW DARK NAVY",
+      "new_nad": 539,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401581.906",
+      "name": "J-PRO Handball BALL YELLOW RED",
+      "new_nad": 539,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401581.916",
+      "name": "J-PRO Handball BALL YELLOW Turquoise",
+      "new_nad": 539,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401581.918",
+      "name": "J-PRO Handball BALL YELLOW FLUOR PINK",
+      "new_nad": 539,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401728.207",
+      "name": "URANUS III BALL WHITE ROYAL BLUE",
+      "new_nad": 539,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401647.216",
+      "name": "S-GRIP BALL WHITE Turquoise",
+      "new_nad": 489,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401647.217",
+      "name": "S-GRIP BALL WHITE FLUOR GREEN",
+      "new_nad": 489,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401647.218",
+      "name": "S-GRIP BALL WHITE FLUOR PINK",
+      "new_nad": 489,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400854.216",
+      "name": "Iceberg III BALL WHITE Turquoise",
+      "new_nad": 453,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401494.116",
+      "name": "Pentaforce BALL Turquoise NAVY",
+      "new_nad": 453,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401483.814",
+      "name": "Evolution IV BALL FLUOR ORANGE ROYAL",
+      "new_nad": 428,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400906.206",
+      "name": "Neptune II BALL WHITE RED",
+      "new_nad": 416,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401495.023",
+      "name": "Dinamic IV BALL FLUOR GREEN NAVY",
+      "new_nad": 405,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401957.206",
+      "name": "J-PRO BALL WHITE RED",
+      "new_nad": 392,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401957.207",
+      "name": "J-PRO BALL WHITE BLUE",
+      "new_nad": 392,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401413.117",
+      "name": "EGEO II BALL BLACK FLUOR GREEN",
+      "new_nad": 380,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401413.268",
+      "name": "EGEO II BALL LIGHT GREY FLUOR CORAL",
+      "new_nad": 380,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401240.061",
+      "name": "Evolution III BALL YELLOW BLACK",
+      "new_nad": 368,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401959.015",
+      "name": "Pentaforce BALL Turquoise PINK",
+      "new_nad": 343,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401243.207",
+      "name": "U-Light BALL WHITE BLUE",
+      "new_nad": 331,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401243.220",
+      "name": "U-Light BALL WHITE FLUOR ORANGE",
+      "new_nad": 331,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401244.206",
+      "name": "LIGHT BALL WHITE RED",
+      "new_nad": 331,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401953.057",
+      "name": "Evolution V BALL FLUOR YELLOW PURPLE",
+      "new_nad": 324,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401726.217",
+      "name": "HALLEY II BALL WHITE FLUOR GREEN",
+      "new_nad": 313,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401727.218",
+      "name": "HALLEY II BALL WHITE FLUOR PINK",
+      "new_nad": 313,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401952.205",
+      "name": "Dinamic V BALL WHITE PINK",
+      "new_nad": 313,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400649.061",
+      "name": "DALI II BALL FLUOR YELLOW",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400649.203",
+      "name": "DALI II BALL Fuchsia RED FLUOR",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400649.211",
+      "name": "DALI II BALL GREY GREEN",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400649.214",
+      "name": "DALI II BALL WHITE FLUOR ORANGE",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400649.216",
+      "name": "DALI II BALL WHITE FLUOR Turquoise",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400649.497",
+      "name": "DALI II BALL Fuchsia Turquoise",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401412.047",
+      "name": "DALI III BALL FLUOR Turquoise FLUOR CORAL",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401412.206",
+      "name": "DALI III BALL RED FLUOR GREEN",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401412.216",
+      "name": "DALI III BALL YELLOW",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401412.334",
+      "name": "DALI III BALL FLUOR GREEN FLUOR PINK NAVY",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401412.920",
+      "name": "DALI III BALL FLUOR YELLOW FLUOR Turquoise",
+      "new_nad": 312,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401951.219",
+      "name": "Neptune III BALL WHITE FLUOR CORAL",
+      "new_nad": 294,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401956.067",
+      "name": "S-GRIP BALL FLUOR YELLOW BLUE",
+      "new_nad": 294,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401963.211",
+      "name": "Victory IV JR BALL WHITE GRAY",
+      "new_nad": 294,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401484.207",
+      "name": "Challenge III BALL WHITE ROYAL",
+      "new_nad": 282,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401484.217",
+      "name": "Challenge III BALL WHITE FLUOR GREEN",
+      "new_nad": 282,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401954.067",
+      "name": "DALI IV BALL FLUOR YELLOW BLUE",
+      "new_nad": 245,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401954.211",
+      "name": "DALI IV BALL WHITE GRAY",
+      "new_nad": 245,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401954.216",
+      "name": "DALI IV BALL WHITE FLUOR Turquoise",
+      "new_nad": 245,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401954.219",
+      "name": "DALI IV BALL WHITE FLUOR CORAL",
+      "new_nad": 245,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401954.221",
+      "name": "DALI IV BALL WHITE FLUOR YELLOW",
+      "new_nad": 245,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400851.216",
+      "name": "Challenge II BALL WHITE Turquoise",
+      "new_nad": 221,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401962.206",
+      "name": "Challenge IV BALL WHITE RED",
+      "new_nad": 196,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401962.207",
+      "name": "Challenge IV BALL WHITE BLUE",
+      "new_nad": 196,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "401962.221",
+      "name": "Challenge IV BALL WHITE FLUOR YELLOW",
+      "new_nad": 196,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400089.100",
+      "name": "CAP Classic BLACK",
+      "new_nad": 117,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400089.200",
+      "name": "CAP Classic WHITE",
+      "new_nad": 117,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400056.100",
+      "name": "HAT Reversible BLACK",
+      "new_nad": 176,
+      "source": "supplier B2B exact NAD map 2026-09-28"
+    },
+    {
+      "code": "400360.100",
+      "name": "HAT BLACK",
+      "new_nad": 117,
+      "source": "supplier B2B exact NAD map 2026-09-28"
     }
   ],
   "pack_price_suspects_no_unit_yet": [
@@ -40,20 +388,6 @@
       "catalog_nad": 5030,
       "subcategory": "caps",
       "reason": "hat at pack NAD, no unit USD known"
-    },
-    {
-      "code": "400089.100",
-      "name": "CAP CLASSIC BLACK · 400089.100",
-      "catalog_nad": 2818,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
-    },
-    {
-      "code": "400089.200",
-      "name": "CAP CLASSIC WHITE · 400089.200",
-      "catalog_nad": 2818,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known"
     },
     {
       "code": "400089.300",
@@ -168,20 +502,6 @@
       "reason": "cap at pack NAD, no unit USD known"
     },
     {
-      "code": "400056.100",
-      "name": "HAT REVERSIBLE BLACK · 400056.100",
-      "catalog_nad": 1762,
-      "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known"
-    },
-    {
-      "code": "400360.100",
-      "name": "HAT BLACK · 400360.100",
-      "catalog_nad": 1409,
-      "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known"
-    },
-    {
       "code": "400360.280",
       "name": "HAT MELANGE · 400360.280",
       "catalog_nad": 1409,
@@ -215,6 +535,48 @@
       "catalog_nad": 2928,
       "subcategory": "caps",
       "reason": "multipack cap at pack NAD, no unit USD known"
+    },
+    {
+      "code": "401731.204",
+      "name": "VICTORY BALL WHITE GREEN · 401731.204",
+      "catalog_nad": 4416,
+      "subcategory": "balls",
+      "reason": "ball pack suspect, no unit USD known"
+    },
+    {
+      "code": "401268.214",
+      "name": "HALLEY II BALL WHITE FLUOR TURQUOISE · 401268.214",
+      "catalog_nad": 3978,
+      "subcategory": "balls",
+      "reason": "ball pack suspect, no unit USD known"
+    },
+    {
+      "code": "400356.308",
+      "name": "ERIS HYBRID SOCCER BALL WHITE-GREEN-ORANGE SIZE 62 · 400356.308",
+      "catalog_nad": 3759,
+      "subcategory": "balls",
+      "reason": "ball pack suspect, no unit USD known"
+    },
+    {
+      "code": "AH41800B0501",
+      "name": "FED. FUTBOL RUMANÍA 1ST OPT E BALL · AH41800B0501",
+      "catalog_nad": 1954,
+      "subcategory": "balls",
+      "reason": "ball pack suspect, no unit USD known"
+    },
+    {
+      "code": "TI41800B5101",
+      "name": "HELLAS VERONA FC REPLICA BALL · TI41800B5101",
+      "catalog_nad": 3496,
+      "subcategory": "balls",
+      "reason": "ball pack suspect, no unit USD known"
+    },
+    {
+      "code": "300249.001",
+      "name": "MULTIPACK OF VISORS MULTICOLOR · 300249.001",
+      "catalog_nad": 1083,
+      "subcategory": "general",
+      "reason": "multipack visor at pack NAD, no unit USD known"
     }
   ]
 }
