@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { AssortmentBadge } from "@/components/assortment-label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +19,7 @@ import { feedVariantId } from "@/lib/meta/ids";
 import { trackMeta } from "@/lib/meta/pixel";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
-import type { Order } from "@/lib/types";
+import type { Product } from "@/lib/types";
 import { defaultVatCountry, formatVatRate, quoteVat, VAT_COUNTRIES } from "@/lib/vat";
 
 type ShippingRow = { id: string; name: string; cost: number };
@@ -105,7 +106,9 @@ export default function CheckoutPage() {
         size: line.size,
         qty: line.qty,
         price: line.price,
-      })) as Order["items"],
+        sellAs: line.sellAs,
+        packSize: line.packSize ?? null,
+      })),
     [lines],
   );
 
@@ -283,6 +286,18 @@ export default function CheckoutPage() {
                 <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
                   <span className="break-all">
                     {r.code} · {sizeDisplayLabel(r.size, t)} × {r.qty}
+                    {r.sellAs ? (
+                      <span className="mt-1 block text-xs normal-case tracking-normal text-[var(--muted)]">
+                        {r.name}
+                      </span>
+                    ) : null}
+                    {r.sellAs ? (
+                      <span className="mt-1 block">
+                        <AssortmentBadge
+                          product={{ code: r.code, sellAs: r.sellAs, packSize: r.packSize } as Product}
+                        />
+                      </span>
+                    ) : null}
                   </span>
                   <span className="shrink-0">{format(r.price * r.qty)}</span>
                 </li>
@@ -414,17 +429,29 @@ export default function CheckoutPage() {
 
         <aside className="h-fit rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-soft)] lg:sticky lg:top-28">
           <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.summary")}</h2>
-          <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
-            {rows.map((r) => (
-              <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
-                <span className="break-all">
+            <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
+              {rows.map((r) => (
+                <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
+                  <span className="break-all">
                     {r.code} · {sizeDisplayLabel(r.size, t)} × {r.qty}
-                </span>
-                <span className="shrink-0">{format(r.price * r.qty)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 space-y-1 text-sm">
+                    {r.sellAs ? (
+                      <span className="mt-1 block text-xs normal-case tracking-normal text-[var(--muted)]">
+                        {r.name}
+                      </span>
+                    ) : null}
+                    {r.sellAs ? (
+                      <span className="mt-1 block">
+                        <AssortmentBadge
+                          product={{ code: r.code, sellAs: r.sellAs, packSize: r.packSize } as Product}
+                        />
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0">{format(r.price * r.qty)}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 space-y-1 text-sm">
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.merchandise")}</span>
               <span>{format(subtotal)}</span>

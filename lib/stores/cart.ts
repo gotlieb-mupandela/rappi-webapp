@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { feedVariantId } from "@/lib/meta/ids";
 import { trackMeta } from "@/lib/meta/pixel";
 import type { CartLine, CartLineSnapshot, Product } from "@/lib/types";
+import { getAssortment } from "@/lib/assortment";
 import { sizeDisplayLabel, sizeStock, skuStock } from "@/lib/product-stock";
 
 type CartMessage = {
@@ -22,9 +23,12 @@ type CartState = {
 };
 
 function snapshotFromProduct(product: Product, size: string): CartLineSnapshot {
+  const pack = getAssortment(product);
   return {
     id: product.id,
-    name: product.name,
+    // Pack lines keep their baked pack wording ("· Pack of 12", "· Pack", …)
+    // so cart, checkout and order records never read as single units.
+    name: pack?.isAssortment ? product.displayName : product.name,
     displayName: product.displayName,
     title: product.title,
     item: product.item,
@@ -37,6 +41,8 @@ function snapshotFromProduct(product: Product, size: string): CartLineSnapshot {
     subcategory: product.subcategory,
     gender: product.gender,
     badge: product.badge,
+    sellAs: product.sellAs,
+    packSize: product.packSize ?? null,
   };
 }
 
@@ -183,6 +189,8 @@ export function cartLineAsProduct(line: CartLine): Product {
     totalQty: line.stockQty,
     stockQty: line.stockQty,
     badge: line.badge,
+    sellAs: line.sellAs,
+    packSize: line.packSize ?? null,
     sizeOptions: [line.size],
     sizes: [{ size: line.size, stock: line.sizeStock }],
     imageUrl: line.imageUrl,

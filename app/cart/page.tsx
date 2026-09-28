@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { AssortmentBadge } from "@/components/assortment-label";
 import { ProductImage } from "@/components/product-image";
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/components/locale-provider";
@@ -93,6 +94,9 @@ export default function CartPage() {
                 <p className="mt-0.5 line-clamp-2 text-xs uppercase tracking-wider text-[var(--muted)]">
                   {product.name}
                 </p>
+                <div className="mt-1.5">
+                  <AssortmentBadge product={product} />
+                </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">
                   {t("cart.size")}{" "}
                   <span className="font-semibold text-ink">{sizeDisplayLabel(line.size, t)}</span>

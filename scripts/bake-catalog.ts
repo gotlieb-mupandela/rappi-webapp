@@ -29,6 +29,8 @@ function toListingItem(product: Product): ListingItem {
     displayName: product.displayName,
     category: product.category,
     ...(product.hubs?.length ? { hubs: product.hubs } : {}),
+    ...(product.sellAs ? { sellAs: product.sellAs } : {}),
+    ...(product.packSize && product.packSize > 1 ? { packSize: product.packSize } : {}),
     subcategory: product.subcategory,
     gender: product.gender,
     audience: productAudience(product),
