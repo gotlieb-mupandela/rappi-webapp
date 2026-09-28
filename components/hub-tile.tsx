@@ -36,6 +36,8 @@ export function HubTile({
   labelPosition = "bottom",
   showLabel = true,
   priority = false,
+  /** Joma catalog folder: label under image + hover border. Bento stays default. */
+  variant = "bento",
   className,
 }: {
   slug: string;
@@ -43,7 +45,7 @@ export function HubTile({
   nameHub?: string;
   nameAudience?: string;
   nameSubcategory?: string;
-  nameGroup?: { kind: "shoes" | "kids" | "rugby" | "brama"; key: string };
+  nameGroup?: { kind: "shoes" | "kids" | "rugby" | "brama" | "footwear" | "apparel"; key: string };
   nameKey?: string;
   count?: number;
   href?: string;
@@ -62,6 +64,7 @@ export function HubTile({
   labelPosition?: "bottom" | "center";
   showLabel?: boolean;
   priority?: boolean;
+  variant?: "bento" | "folder";
   className?: string;
 }) {
   const n = count ?? 0;
@@ -76,7 +79,10 @@ export function HubTile({
         : nameHub
           ? hubName(nameHub, t)
           : nameGroup
-            ? groupName(nameGroup.kind, nameGroup.key, t)
+            ? (() => {
+                const g = groupName(nameGroup.kind, nameGroup.key, t);
+                return g !== nameGroup.key ? g : (name ?? nameGroup.key);
+              })()
             : (name ?? slug);
   const contain = imageFit === "contain";
   const productSrc = product ? productCardImageUrl(product) : "";
@@ -85,8 +91,9 @@ export function HubTile({
   const useProductPhoto = Boolean(product && coverSrc && !imageSrc);
   const hasCover = Boolean(coverSrc);
   const light = tone === "light";
+  const folder = variant === "folder";
+
   const imageClassName = cn(
-    // max-w-none: global `img { max-width:100% }` breaks object-fit on absolute fill images
     "bento-tile__media absolute inset-0 h-full w-full min-h-full min-w-full max-w-none motion-reduce:transition-none",
     contain ? "object-contain" : "object-cover",
     imagePosition,
@@ -100,6 +107,68 @@ export function HubTile({
         : shape === "square" || compact
           ? "aspect-square"
           : "aspect-[3/4]";
+
+  if (folder) {
+    return (
+      <Link
+        href={to}
+        className={cn(
+          "joma-folder group relative block w-full bg-white",
+          "outline-solid outline-1 outline-transparent -outline-offset-1",
+          "transition-[outline-color] duration-150",
+          "hover:outline-accent focus-visible:outline-accent",
+          className,
+        )}
+      >
+        <div
+          className={cn("relative overflow-hidden bg-[#eceff1]", sizeClass)}
+          style={
+            hasCover
+              ? undefined
+              : {
+                  backgroundImage:
+                    "linear-gradient(160deg, var(--visual-from) 0%, var(--tile-mid) 58%, var(--tile-end) 100%)",
+                }
+          }
+        >
+          {useProductPhoto && product ? (
+            <ProductImage
+              product={product}
+              src={coverSrc}
+              alt={productImageAlt(product)}
+              priority={priority}
+              className={imageClassName}
+              fallbackClassName="absolute inset-0 h-full w-full"
+            />
+          ) : imageSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageSrc}
+              alt={label}
+              className={imageClassName}
+              loading={priority ? "eager" : "lazy"}
+              decoding="async"
+              fetchPriority={priority ? "high" : "auto"}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[var(--surface-2)]" />
+          )}
+          {banner || bannerKey ? (
+            <div className="absolute inset-x-0 top-0 bg-[var(--danger)] py-1 text-center text-[9px] font-bold uppercase tracking-[0.14em] text-white">
+              {bannerKey ? t(bannerKey) : banner}
+            </div>
+          ) : null}
+        </div>
+        {showLabel ? (
+          <div className="flex min-h-9 items-center justify-center border-t border-[#e8eaed] bg-white px-1.5 py-2 sm:min-h-10">
+            <p className="text-center text-[10px] font-bold uppercase leading-snug tracking-[0.04em] text-[#1a1a2e] sm:text-[11px]">
+              {label}
+            </p>
+          </div>
+        ) : null}
+      </Link>
+    );
+  }
 
   return (
     <Link href={to} className={cn("bento-tile group block h-full min-h-0", className)}>
@@ -157,34 +226,34 @@ export function HubTile({
           </div>
         ) : null}
         {showLabel ? (
-        <div
-          className={cn(
-            "absolute inset-x-0 p-4 sm:p-5",
-            labelPosition === "center" ? "bottom-0 top-0 flex flex-col justify-center" : "bottom-0",
-          )}
-        >
-          {n > 0 ? (
-            <p
-              className={cn(
-                "text-[10px] font-medium uppercase tracking-[0.2em]",
-                light ? "text-[var(--muted)]" : "text-white/75",
-              )}
-            >
-              {t.plural("count.pieces", n)}
-            </p>
-          ) : null}
-          <p
+          <div
             className={cn(
-              "mt-0.5 font-[family-name:var(--font-oswald)] font-bold uppercase tracking-wide",
-              light ? "text-[var(--text-secondary)]" : "text-white",
-              size === "large" || fill
-                ? "text-lg sm:text-xl lg:text-2xl xl:text-[1.65rem]"
-                : "text-sm sm:text-base lg:text-lg",
+              "absolute inset-x-0 p-4 sm:p-5",
+              labelPosition === "center" ? "bottom-0 top-0 flex flex-col justify-center" : "bottom-0",
             )}
           >
-            {label}
-          </p>
-        </div>
+            {n > 0 ? (
+              <p
+                className={cn(
+                  "text-[10px] font-medium uppercase tracking-[0.2em]",
+                  light ? "text-[var(--muted)]" : "text-white/75",
+                )}
+              >
+                {t.plural("count.pieces", n)}
+              </p>
+            ) : null}
+            <p
+              className={cn(
+                "mt-0.5 font-[family-name:var(--font-oswald)] font-bold uppercase tracking-wide",
+                light ? "text-[var(--text-secondary)]" : "text-white",
+                size === "large" || fill
+                  ? "text-lg sm:text-xl lg:text-2xl xl:text-[1.65rem]"
+                  : "text-sm sm:text-base lg:text-lg",
+              )}
+            >
+              {label}
+            </p>
+          </div>
         ) : null}
       </div>
     </Link>

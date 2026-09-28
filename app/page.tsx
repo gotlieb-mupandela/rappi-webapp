@@ -3,9 +3,7 @@ import { HUB_COVERS } from "@/lib/hubs";
 
 export const revalidate = 3600;
 
-// Homepage tiles render static local covers (HUB_COVERS) — no catalog scan.
-// Loading the 11k-row catalog here cost ~6s of server time for zero
-// rendered pixels (HubTile prefers imageSrc over the product photo).
+/** Homepage is hero-only — no featured / shop-by sections below. */
 export default async function HomePage() {
   return (
     <HomeHero

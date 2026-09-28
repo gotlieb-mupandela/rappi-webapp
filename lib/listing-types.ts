@@ -7,6 +7,8 @@ export const LISTING_PAGE_SIZE = 24;
 export type ListingItem = Product & {
   audience?: ListingAudience;
   hay?: string;
+  /** Precomputed at catalog load — avoids re-scanning image URLs per request. */
+  hasImage?: boolean;
 };
 
 export type ListingFilterOpts = {

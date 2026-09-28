@@ -19,27 +19,22 @@ type LandingTileDef = {
   productIds?: string[];
 };
 
-function audienceQuery(audience: "men" | "women") {
-  return `audience=${audience}`;
-}
-
 function destinations(audience: "men" | "women") {
-  const q = audienceQuery(audience);
   return {
-    teamwearPro: `/shop/teampro-2026?${q}`,
-    teamwear: "/teamwear",
-    running: `/shop/running-fitness?${q}`,
-    cycling: `/shop/sportswear?${q}`,
-    racket: `/shop/padel?${q}`,
-    hiking: `/shop/hiking?${q}`,
-    fitness: `/shop/running-fitness?${q}`,
-    aguila: `/shop/football?${q}`,
-    resort: `/shop/resort?${q}`,
-    lifestyle: `/shop/lifestyle?${q}`,
-    beachwear: `/shop/swimming?${q}`,
-    brama: `/shop/brama?${q}`,
-    combat: `/shop/boxing?${q}`,
-    elite: "/teamwear",
+    teamwearPro: `/shop/${audience}?group=teamwear-pro-2026`,
+    teamwear: `/shop/${audience}?group=teamwear`,
+    running: `/shop/${audience}?group=running-trail`,
+    cycling: `/shop/${audience}?group=cycling`,
+    racket: `/shop/${audience}?group=racket-sports`,
+    hiking: `/shop/${audience}?group=hiking-outdoor`,
+    fitness: `/shop/${audience}?group=fitness-gym`,
+    aguila: `/shop/${audience}?group=aguila-line`,
+    resort: `/shop/${audience}?group=resort`,
+    lifestyle: `/shop/${audience}?group=lifestyle-apparel`,
+    beachwear: `/shop/${audience}?group=beachwear`,
+    brama: `/shop/${audience}?group=underwear-brama`,
+    combat: `/shop/${audience}?group=athletes-combat`,
+    elite: `/shop/${audience}?group=elite-club`,
   } as const;
 }
 
@@ -92,12 +87,12 @@ export type FootwearLandingTileDef = {
 
 type AudienceSlugForShoes = "men" | "women" | "kids";
 
-/** Exact Footwear dropdown destinations shared by header + footwear landing. */
+/** Exact Footwear first-view tiles (Joma B2B: MEN / WOMEN / KIDS / OUTLET). */
 export function jomaFootwearLandingTiles(): FootwearLandingTileDef[] {
   return [
-    { label: "MAN", href: "/shop/shoes?audience=men", audience: "men" },
-    { label: "WOMAN", href: "/shop/shoes?audience=women", audience: "women" },
-    { label: "JUNIOR", href: "/shop/shoes?audience=kids", audience: "kids" },
+    { label: "MEN", href: "/shop/shoes?audience=men", audience: "men" },
+    { label: "WOMEN", href: "/shop/shoes?audience=women", audience: "women" },
+    { label: "KIDS", href: "/shop/shoes?audience=kids", audience: "kids" },
     {
       label: "OUTLET",
       href: "/promotions",
@@ -129,16 +124,15 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
         cover: "/brand/audience-women-jersey-navy.png?v=2",
       },
       {
-        label: "RUNNING / TRAIL",
+        label: "RUNNING / TRAILRUNNING",
         href: d.running,
         hub: "running-fitness",
         cover: "/brand/audience-women-field.png?v=2",
       },
       {
-        label: "CYCLING / TRIATHLON",
+        label: "CYCLING",
         href: d.cycling,
         hub: "sportswear",
-        // Man uses hub-sportswear lifestyle; Woman uses category packshots (no duplicate model).
       },
       { label: "RACKET SPORTS", href: d.racket, hub: "padel" },
       {
@@ -154,8 +148,8 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
         hub: "lifestyle",
         cover: "/brand/audience-women-lifestyle.png?v=2",
       },
-      { label: "ÁGUILA LINE", href: d.aguila, hub: "football" },
-      { label: "RESORT", href: d.resort, hub: "resort" },
+      { label: "EAGLE LINE", href: d.aguila, hub: "football" },
+      { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
       { label: "BEACHWEAR", href: d.beachwear, hub: "swimming" },
       { label: "UNDERWEAR / BRAMA", href: d.brama, hub: "brama" },
       { label: "ATHLETES / COMBAT", href: d.combat, hub: "boxing" },
@@ -176,13 +170,13 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
       cover: "/brand/hub-teampro-2026.png",
     },
     {
-      label: "RUNNING / TRAIL",
+      label: "RUNNING / TRAILRUNNING",
       href: d.running,
       hub: "running-fitness",
       cover: "/brand/hero-athlete.png?v=2",
     },
     {
-      label: "CYCLING / TRIATHLON",
+      label: "CYCLING",
       href: d.cycling,
       hub: "sportswear",
       cover: "/brand/hub-sportswear.png?v=5",
@@ -201,8 +195,9 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
       hub: "lifestyle",
       cover: "/brand/hub-lifestyle.png?v=4",
     },
-    { label: "ÁGUILA LINE", href: d.aguila, hub: "football" },
-    { label: "RESORT", href: d.resort, hub: "resort" },
+    { label: "EAGLE LINE", href: d.aguila, hub: "football" },
+    /** Empty cover → gray plate like live Joma RESORT tile. */
+    { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
     { label: "BEACHWEAR", href: d.beachwear, hub: "swimming" },
     { label: "UNDERWEAR / BRAMA", href: d.brama, hub: "brama" },
     { label: "ATHLETES / COMBAT", href: d.combat, hub: "boxing" },

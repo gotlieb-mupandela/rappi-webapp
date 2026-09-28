@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CATEGORIES, HIDDEN_TYPE_FOLDERS, SUBCATEGORY_LABELS } from "@/lib/catalog";
+import {
+  CATEGORIES,
+  HIDDEN_TYPE_FOLDERS,
+  SUBCATEGORY_LABELS,
+  TYPE_FOLDERS,
+  typeFolderForSubcategory,
+} from "@/lib/catalog";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
@@ -20,13 +26,20 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
 
   if (!slug) return null;
 
+  const activeSub = params.get("sub");
+  const viewAll = params.get("view") === "all";
+  const onShop = pathname.startsWith(`/shop/${slug}`);
+
+  // Footwear folder landings (audience tiles + sport folders) have no type strip.
+  // Show Boots / Sneakers / … only on product lists (`sub` or `view=all`).
+  if (slug === "shoes" && onShop && !activeSub && !viewAll) {
+    return null;
+  }
+
   const subs = (taxonomy[slug] ?? []).filter(
     (s) => s.count > 0 && SUBCATEGORY_LABELS[s.slug] && !HIDDEN_TYPE_FOLDERS.has(s.slug),
   );
   if (subs.length < 2) return null;
-
-  const active = params.get("sub");
-  const onShop = pathname.startsWith(`/shop/${slug}`);
 
   return (
     <nav className="border-t border-black/8 bg-white">
@@ -35,29 +48,36 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
           <li className="shrink-0">
             <Link
               href={`/shop/${slug}`}
-              data-active={onShop && !active ? "true" : undefined}
+              data-active={onShop && viewAll && !activeSub ? "true" : undefined}
               className={cn(
                 "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
-                onShop && !active && "text-black",
+                onShop && viewAll && !activeSub && "text-black",
               )}
             >
               {t("common.all")}
             </Link>
           </li>
-          {subs.map((s) => (
-            <li key={s.slug} className="shrink-0">
-              <Link
-                href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}`}
-                data-active={active === s.slug ? "true" : undefined}
-                className={cn(
-                  "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
-                  active === s.slug && "text-black",
-                )}
-              >
-                {subName(s.slug, t)}
-              </Link>
-            </li>
-          ))}
+          {subs.map((s) => {
+            const folder = typeFolderForSubcategory(s.slug);
+            const groupParam =
+              TYPE_FOLDERS[folder] && folder !== s.slug
+                ? `&group=${encodeURIComponent(folder)}`
+                : "";
+            return (
+              <li key={s.slug} className="shrink-0">
+                <Link
+                  href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}${groupParam}`}
+                  data-active={activeSub === s.slug ? "true" : undefined}
+                  className={cn(
+                    "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
+                    activeSub === s.slug && "text-black",
+                  )}
+                >
+                  {subName(s.slug, t)}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </ScrollArea>
     </nav>

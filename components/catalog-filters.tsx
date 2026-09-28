@@ -32,6 +32,8 @@ export function CatalogFilters({
   children,
   onNavigate,
   showLayoutToggle,
+  /** Joma Soft Shell listing: full-width grid, no left filter rail. */
+  hideFilters = false,
 }: {
   listing: ListingResult;
   query?: ListingQuery;
@@ -45,6 +47,7 @@ export function CatalogFilters({
   children?: ReactNode;
   onNavigate?: (href: string) => void;
   showLayoutToggle?: boolean;
+  hideFilters?: boolean;
 }) {
   const router = useRouter();
   const { t, market } = useLocale();
@@ -107,7 +110,15 @@ export function CatalogFilters({
   }
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(13.5rem,15rem)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
+    <div
+      className={cn(
+        hideFilters
+          ? "min-w-0"
+          : "grid items-start gap-6 lg:grid-cols-[minmax(13.5rem,15rem)_minmax(0,1fr)] lg:gap-8 xl:gap-10",
+      )}
+    >
+      {!hideFilters ? (
+        <>
       <div className="lg:hidden">
         <Button
           type="button"
@@ -259,24 +270,30 @@ export function CatalogFilters({
           {t("filters.clear")}
         </Button>
       </aside>
+        </>
+      ) : null}
 
       <div className={cn("min-w-0 transition-opacity duration-300", pending && "opacity-50")}>
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-            {t.plural("count.pieces", listing.total)}
-            {listing.pageCount > 1
-              ? t("filters.pageOf", { page: listing.page, pageCount: listing.pageCount })
-              : ""}
-          </p>
-          {layoutToggle ? (
-            <div className="flex items-center gap-1">
+        {layoutToggle ? (
+          <div className={cn("mb-4 flex items-center gap-3", hideFilters ? "justify-end" : "justify-between")}>
+            {!hideFilters ? (
+              <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
+                <span className="font-semibold text-[var(--accent)]">
+                  {t.plural("count.pieces", listing.total)}
+                </span>
+                {listing.pageCount > 1
+                  ? t("filters.pageOf", { page: listing.page, pageCount: listing.pageCount })
+                  : null}
+              </p>
+            ) : null}
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 aria-label={t("common.gridView")}
                 onClick={() => setLayout("grid")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
-                  layout === "grid" ? "bg-[var(--hover-strong)] text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
+                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  layout === "grid" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -286,21 +303,21 @@ export function CatalogFilters({
                 aria-label={t("common.listView")}
                 onClick={() => setLayout("list")}
                 className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
-                  layout === "list" ? "bg-[var(--hover-strong)] text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
+                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  layout === "list" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
                 <List className="h-4 w-4" />
               </button>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
         {listing.total === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
-            <p className="text-lg font-semibold text-ink">
+          <div className="border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-20 text-center">
+            <p className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase tracking-wide text-ink">
               {emptyTitle ?? t("search.noProducts")}
             </p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
+            <p className="mx-auto mt-3 max-w-sm text-sm text-[var(--muted)]">
               {emptyBody ?? t("search.noProductsBody")}
             </p>
           </div>

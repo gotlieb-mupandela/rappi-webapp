@@ -62,7 +62,7 @@ export function HomeHero({
           <HubTile
             slug="sportswear"
             name={hubNav("sportswear", t)}
-            href="/shop/sportswear"
+            href="/category/sportswear"
             product={sportswearProduct}
             imageSrc={sportswearCover}
             size="medium"
@@ -88,7 +88,7 @@ export function HomeHero({
           <HubTile
             slug="lifestyle"
             nameHub="lifestyle"
-            href="/shop/lifestyle"
+            href="/category/lifestyle"
             product={lifestyleProduct}
             imageSrc={lifestyleCover}
             size="medium"
@@ -101,7 +101,7 @@ export function HomeHero({
           <HubTile
             slug="shoes"
             nameHub="shoes"
-            href="/shop/shoes"
+            href="/category/shoes"
             product={shoesProduct}
             imageSrc={shoesCover}
             size="medium"

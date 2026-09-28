@@ -36,6 +36,10 @@ export function audienceBlurb(slug: string, t: TFunction) {
 export function subName(slug: string, t: TFunction) {
   const translated = t(`sub.${slug}`);
   if (translated !== `sub.${slug}`) return translated;
+  for (const kind of ["apparel", "footwear", "kids"] as const) {
+    const g = t(`group.${kind}.${slug}`);
+    if (!g.startsWith("group.")) return g;
+  }
   return SUBCATEGORY_LABELS[slug] ?? slug;
 }
 
@@ -50,7 +54,11 @@ export function translateStoredShipping(label: string, t: TFunction) {
   return label;
 }
 
-export function groupName(kind: "shoes" | "kids" | "rugby" | "brama", key: string, t: TFunction) {
+export function groupName(
+  kind: "shoes" | "kids" | "rugby" | "brama" | "footwear" | "apparel",
+  key: string,
+  t: TFunction,
+) {
   const translated = t(`group.${kind}.${key}`);
   return translated.startsWith("group.") ? key : translated;
 }

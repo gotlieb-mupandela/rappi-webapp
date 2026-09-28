@@ -3,8 +3,9 @@ import "server-only";
 import { cache } from "react";
 import { productAudience } from "@/lib/audience";
 import { CATEGORIES } from "@/lib/catalog";
-import { withStorefrontCategories } from "@/lib/classify";
+import { hasUsableProductImage, withStorefrontCategories } from "@/lib/classify";
 import { productHubs, productInHub } from "@/lib/hub-membership";
+import { indexCatalogIntoJomaFolders } from "@/lib/joma-tree";
 import { listingHay, type ListingItem } from "@/lib/listing-core";
 import { withProductImages } from "@/lib/media";
 import type { Product } from "@/lib/types";
@@ -21,7 +22,15 @@ for (const product of offlineCatalog) {
   const item = product as ListingItem;
   item.hay = listingHay(item);
   item.audience = productAudience(product);
+  item.hasImage = hasUsableProductImage(product);
 }
+
+/** Catalog rows with a usable storefront image (skip silhouette-only SKUs on browse). */
+export const offlineCatalogImaged: Product[] = offlineCatalog.filter(
+  (p) => (p as ListingItem).hasImage,
+);
+
+indexCatalogIntoJomaFolders(offlineCatalog);
 
 export const productsByCode = new Map(offlineCatalog.map((p) => [p.code, p]));
 

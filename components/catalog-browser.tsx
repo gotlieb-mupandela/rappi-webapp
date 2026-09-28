@@ -30,6 +30,7 @@ export function CatalogBrowser({
   showCategoryFilter = false,
   showAudienceFilter = true,
   showLayoutToggle,
+  hideFilters = false,
   emptyTitle,
   emptyBody,
   emptyTitleKey,
@@ -48,6 +49,7 @@ export function CatalogBrowser({
   showCategoryFilter?: boolean;
   showAudienceFilter?: boolean;
   showLayoutToggle?: boolean;
+  hideFilters?: boolean;
   emptyTitle?: string;
   emptyBody?: string;
   emptyTitleKey?: string;
@@ -147,6 +149,7 @@ export function CatalogBrowser({
       showCategoryFilter={showCategoryFilter}
       showAudienceFilter={showAudienceFilter}
       showLayoutToggle={showLayoutToggle}
+      hideFilters={hideFilters}
       emptyTitle={
         emptyTitleKey
           ? t(emptyTitleKey, {

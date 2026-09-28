@@ -286,6 +286,37 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
     test: (name, family) => /\b(goalkeeper glove|gk glove)\b/.test(name) || family === "gloves",
   },
   {
+    slug: "futsal",
+    test: (name, family) =>
+      family === "futsal" ||
+      family === "football / futsal" ||
+      (/\bfutsal\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "turf",
+    test: (name, family) =>
+      family === "turf" || (/\bturf\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "football-fg",
+    test: (name, family) =>
+      /semi-dry|hard terrain|firm ground/.test(family) ||
+      (/\b(semi[- ]?dry|firm ground|\bfg\b)\b/.test(name) &&
+        (isFootballBootName(name) || FOOTWEAR_NAME_RE.test(name))),
+  },
+  {
+    slug: "football-ag",
+    test: (name, family) =>
+      family === "artificial grass" ||
+      (/\b(artificial grass|\bag\b)\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "football-sg",
+    test: (name, family) =>
+      family === "soft ground" ||
+      (/\b(soft ground|\bsg\b)\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
     slug: "boots",
     test: (name, family) =>
       isFootballBootFamily(family) ||
@@ -307,6 +338,83 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
     test: (name, family) => /\b(sandal|summer shoe|playa|s\.playa|s\.costa)\b/.test(`${name} ${family}`),
   },
   {
+    slug: "trail-running",
+    test: (name, family) =>
+      /^(trail running|trail man|trail woman|r-trail)/.test(family) ||
+      (/\b(trail running|r-trail)\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "tennis-shoes",
+    test: (name, family) =>
+      family === "tennis" ||
+      (/\btennis\b/.test(`${name} ${family}`) && !isApparelName(name) && !/\bpadel\b/.test(family)),
+  },
+  {
+    slug: "padel-shoes",
+    test: (name, family) =>
+      /padel/.test(family) ||
+      (/\b(padel|p[aá]del)\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "pickleball-shoes",
+    test: (name, family) =>
+      /\bpickleball\b/.test(`${name} ${family}`) && !isApparelName(name),
+  },
+  {
+    slug: "handball-shoes",
+    test: (name, family) =>
+      family === "handball" ||
+      (/\bhandball\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "badminton-shoes",
+    test: (name, family) =>
+      /\bbadminton\b/.test(`${name} ${family}`) && !isApparelName(name),
+  },
+  {
+    slug: "basketball-shoes",
+    test: (name, family) =>
+      /^(basketball|basket)$/.test(family) ||
+      (/\bbasket(ball)?\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "outdoor-shoes",
+    test: (name, family) =>
+      family === "outdoor" ||
+      (/\boutdoor\b/.test(family) && !isApparelName(name)),
+  },
+  {
+    slug: "hockey-shoes",
+    test: (name, family) =>
+      family === "hockey" ||
+      (/\bhockey\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "volleyball-shoes",
+    test: (name, family) =>
+      /volley/.test(family) ||
+      (/\bvolley(ball)?\b/.test(`${name} ${family}`) && !isApparelName(name)),
+  },
+  {
+    slug: "comfort-shoes",
+    test: (name, family) =>
+      /^(comfort|comfort man|comfort woman|confort)/.test(family) ||
+      (/\b(comfort|confort)\b/.test(family) && !isApparelName(name)),
+  },
+  {
+    slug: "joma-flow",
+    test: (name, family) => /\bjoma flow\b/.test(`${name} ${family}`),
+  },
+  {
+    slug: "summer-shoes",
+    test: (name, family) =>
+      /\bsummer shoes?\b/.test(`${name} ${family}`) && !/\bsandal\b/.test(name),
+  },
+  {
+    slug: "forloz",
+    test: (name, family) => /\bforloz\b/.test(`${name} ${family}`),
+  },
+  {
     slug: "court-shoes",
     test: (name, family) =>
       /\b(tennis|padel|volley|indoor|court|cancha)\b/.test(`${name} ${family}`) &&
@@ -315,8 +423,16 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   {
     slug: "running-shoes",
     test: (name, family) =>
-      /\b(trail|running|trainer)\b/.test(`${name} ${family}`) &&
-      !isApparelName(name),
+      /\b(running|trainer|r-city|r-night|r-nature)\b/.test(`${name} ${family}`) &&
+      !isApparelName(name) &&
+      !/\btrail\b/.test(family),
+  },
+  {
+    slug: "training-shoes",
+    test: (name, family) =>
+      /^(training|gym|sport|sports)$/.test(family) ||
+      (/\b(training|gym)\b/.test(family) &&
+        (isFootwearName(name) || isDedicatedShoeFamily(family))),
   },
   {
     slug: "sneakers",
@@ -459,13 +575,42 @@ export function classifyStorefrontSubcategory(
 
   for (const rule of SUB_RULES) {
     if (rule.test(name, family)) {
-      if (rule.slug === "sneakers" && category !== "shoes") continue;
+      const shoeOnly = new Set([
+        "sneakers",
+        "kids-shoes",
+        "barefoot",
+        "sandals",
+        "court-shoes",
+        "running-shoes",
+        "trail-running",
+        "training-shoes",
+        "tennis-shoes",
+        "padel-shoes",
+        "pickleball-shoes",
+        "handball-shoes",
+        "badminton-shoes",
+        "basketball-shoes",
+        "outdoor-shoes",
+        "hockey-shoes",
+        "volleyball-shoes",
+        "comfort-shoes",
+        "joma-flow",
+        "summer-shoes",
+        "forloz",
+        "futsal",
+        "turf",
+        "football-fg",
+        "football-ag",
+        "football-sg",
+      ]);
+      if (shoeOnly.has(rule.slug) && category !== "shoes" && category !== "football") {
+        if (rule.slug.startsWith("football") || rule.slug === "futsal" || rule.slug === "turf") {
+          if (category !== "football" && category !== "shoes") continue;
+        } else if (category !== "shoes") {
+          continue;
+        }
+      }
       if (rule.slug === "boots" && category !== "football" && category !== "shoes") continue;
-      if (rule.slug === "kids-shoes" && category !== "shoes") continue;
-      if (rule.slug === "barefoot" && category !== "shoes") continue;
-      if (rule.slug === "sandals" && category !== "shoes") continue;
-      if (rule.slug === "court-shoes" && category !== "shoes") continue;
-      if (rule.slug === "running-shoes" && category !== "shoes") continue;
       return rule.slug;
     }
   }
@@ -661,7 +806,31 @@ export function isStorefrontFootwear(product: Product) {
   const family = itemFamily(product.item || "");
   const name = `${product.displayName} ${product.name}`.toLowerCase();
   if (isBagName(name) || isApparelOnly(name)) return false;
-  if (product.subcategory === "boots" || product.subcategory === "kids-shoes") return true;
+  if (
+    product.subcategory === "boots" ||
+    product.subcategory === "kids-shoes" ||
+    product.subcategory === "futsal" ||
+    product.subcategory === "turf" ||
+    product.subcategory === "football-fg" ||
+    product.subcategory === "football-ag" ||
+    product.subcategory === "football-sg" ||
+    product.subcategory === "trail-running" ||
+    product.subcategory === "tennis-shoes" ||
+    product.subcategory === "padel-shoes" ||
+    product.subcategory === "pickleball-shoes" ||
+    product.subcategory === "handball-shoes" ||
+    product.subcategory === "badminton-shoes" ||
+    product.subcategory === "basketball-shoes" ||
+    product.subcategory === "outdoor-shoes" ||
+    product.subcategory === "hockey-shoes" ||
+    product.subcategory === "volleyball-shoes" ||
+    product.subcategory === "comfort-shoes" ||
+    product.subcategory === "joma-flow" ||
+    product.subcategory === "summer-shoes" ||
+    product.subcategory === "forloz"
+  ) {
+    return true;
+  }
   if (product.category === "shoes") return true;
   return (
     isFootwearFamily(family) ||
@@ -735,13 +904,23 @@ export function sampleForCategory(
   catalog: Product[],
   slug: string,
 ): Product | undefined {
+  let bySlug = sampleCategoryCache.get(catalog);
+  if (!bySlug) {
+    bySlug = new Map();
+    sampleCategoryCache.set(catalog, bySlug);
+  }
+  if (bySlug.has(slug)) return bySlug.get(slug);
+
   let inHub = catalog.filter((p) => productInHub(p, slug) && hasUsableProductImage(p));
   if (slug === "shoes") {
     inHub = inHub.filter(isStorefrontFootwear);
   }
-  if (!inHub.length) return undefined;
-  return sampleFromList(inHub, slug);
+  const sample = inHub.length ? sampleFromList(inHub, slug) : undefined;
+  bySlug.set(slug, sample);
+  return sample;
 }
+
+const sampleCategoryCache = new WeakMap<Product[], Map<string, Product | undefined>>();
 
 export function firstImagedProduct(list: Product[]) {
   return list.find(hasUsableProductImage);
