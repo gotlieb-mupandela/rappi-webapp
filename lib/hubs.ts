@@ -641,6 +641,7 @@ export function audienceLandingTiles(
 ) {
   return jomaAudienceLandingTiles(audience).map((tile) => ({
     label: tile.label,
+    labelKey: tile.labelKey,
     href: tile.href,
     imageSrc: landingTileImage(tile.hub, tile.cover, audience, catalog),
   }));
@@ -693,6 +694,7 @@ export function footwearLandingTiles(catalog: Product[] = bundled) {
 export function kidsLandingTiles(catalog: Product[] = bundled) {
   return jomaKidsLandingTiles().map((tile, index) => ({
     label: tile.label,
+    labelKey: tile.labelKey,
     href: tile.href,
     imageSrc: kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
   }));
@@ -798,6 +800,7 @@ export function teamsLandingTiles(catalog: Product[] = bundled) {
 export function officialKitsLandingTiles(catalog: Product[] = bundled) {
   return jomaOfficialKitsLandingTiles().map((tile) => ({
     label: tile.label,
+    labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
       tile.cover ??
@@ -825,12 +828,15 @@ export function outletLandingTiles(catalog: Product[] = bundled) {
     }
     return {
       label: tile.label,
+      labelKey: tile.labelKey,
       href: tile.href,
       imageSrc,
       banner: tile.banner,
+      bannerKey: tile.bannerKey,
       bannerTone: tile.bannerTone,
       outletKind: tile.kind,
       barLabel: tile.barLabel,
+      barLabelKey: tile.barLabelKey,
       key: `${tile.label}-${index}`,
     };
   });
@@ -872,6 +878,7 @@ function accessoriesLandingTileImage(
 export function accessoriesLandingTiles(catalog: Product[] = bundled) {
   return jomaAccessoriesLandingTiles().map((tile, index) => ({
     label: tile.label,
+    labelKey: tile.labelKey,
     href: tile.href,
     imageSrc: accessoriesLandingTileImage(tile, catalog, index),
   }));

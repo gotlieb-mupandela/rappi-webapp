@@ -20,6 +20,8 @@ export type AudienceLandingTile = {
   outletKind?: "photo" | "category" | "price";
   /** Text on the colored bar for outlet graphic tiles. */
   barLabel?: string;
+  /** i18n key resolving the bar label at render (falls back to barLabel). */
+  barLabelKey?: string;
 };
 
 /** Joma B2B dense subcategory grid: portrait plate + white uppercase label bar. */
@@ -62,6 +64,7 @@ export function AudienceLandingGrid({
         const isGraphic = outletKind === "category" || outletKind === "price";
         const label = tile.labelKey ? t(tile.labelKey) : tile.label;
         const banner = tile.bannerKey ? t(tile.bannerKey) : tile.banner;
+        const barLabel = tile.barLabelKey ? t(tile.barLabelKey) : (tile.barLabel ?? label);
         const bannerBg =
           tile.bannerTone === "green"
             ? "bg-[#7cb342]"
@@ -111,7 +114,7 @@ export function AudienceLandingGrid({
                     )}
                   >
                     <span className="text-center text-[10px] font-bold uppercase leading-snug tracking-[0.04em] text-white sm:text-[11px]">
-                      {tile.barLabel ?? label}
+                      {barLabel}
                     </span>
                   </div>
                 </div>
