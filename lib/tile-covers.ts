@@ -26,11 +26,18 @@ const TILE_PRODUCT_CODES: Record<string, string> = {
   "/shop/men?group=resort": "104657.100",
   "/shop/men?group=beachwear": "105382.585",
   "/shop/men?group=elite-club": "104798.200",
-  "/shop/women?group=cycling": "AA90403B0102",
+  // Crono jersey — the athletics-federation "cycling shorts" are not this folder.
+  "/shop/women?group=cycling": "105427.100",
   "/shop/women?group=fitness-gym-woman": "102968.008",
-  "/shop/women?group=aguila-line": "CAGUILW2529",
+  // Águila Line apparel. C.aguila LADY is a shoe filed under Previous seasons.
+  "/shop/women?group=aguila-line": "105681.576",
   "/shop/women?group=resort": "104657.100",
-  "/shop/women?group=beachwear": "105382.585",
+  // Women's beachwear tile: bikini from the Beachwear family (men stay on swim shorts).
+  "/shop/women?group=beachwear": "903276.740",
+  // Woman landing hrefs use the audience-scoped folder key.
+  "/shop/women?group=running-trail-woman": "104129.100",
+  "/shop/women?group=racket-sports-woman": "103538.837",
+  "/shop/women?group=lifestyle-apparel-woman": "104736.324",
   "/shop/women?group=elite-club": "104798.200",
 
   // Children age bands — catalog age families, not the adult kids plate.
@@ -45,11 +52,12 @@ const TILE_PRODUCT_CODES: Record<string, string> = {
 
   // Teamwear hero: in-folder sample is a goalkeeper base layer.
   teamwear: "104594.102",
-  // Women's running folder is empty and was wearing a shoe plate.
-  "running-trail-woman": "102223.013",
+  // R-Trail sweatshirt. Record II is a generic training tee, not this folder.
+  "running-trail-woman": "104129.100",
   "fitness-gym-woman": "102968.008",
-  "lifestyle-apparel-woman": "100818.200",
-  "racket-sports-woman": "SW10601D0101",
+  "lifestyle-apparel-woman": "104736.324",
+  // Smash is a Woman racket collection. The FITP federation polo is not.
+  "racket-sports-woman": "103538.837",
   "underwear-brama-woman": "101015.200",
   beachwear: "105382.585",
 
@@ -73,11 +81,11 @@ const TILE_PRODUCT_CODES: Record<string, string> = {
   "acc-medias": "400022.100",
   "/shop/balls-bags?group=acc-tiendas": "JOM-019",
   "acc-tiendas": "JOM-019",
-  // Match pass: jacket / team shirt / paddle were the wrong product type.
-  "/shop/hiking?group=acc-outdoor": "300119.001",
-  "acc-outdoor": "300119.001",
-  "/shop/sportswear?group=acc-teamwear": "400001.100",
-  "acc-teamwear": "400001.100",
+  // Outdoor backpack (trail socks are running). Teamwear gloves (a shoe bag is not teamwear).
+  "/shop/hiking?group=acc-outdoor": "401970.477",
+  "acc-outdoor": "401970.477",
+  "/shop/sportswear?group=acc-teamwear": "400024.100",
+  "acc-teamwear": "400024.100",
   "/shop/sportswear?group=acc-racket": "401845.100",
   "acc-racket": "401845.100",
 
@@ -88,7 +96,8 @@ const TILE_PRODUCT_CODES: Record<string, string> = {
   "/promotions?group=outlet-tshirt-top": "101588.200",
   "/promotions?group=outlet-pants-shorts": "102841.100",
   "/promotions?group=outlet-anorak": "500764.100",
-  "/promotions?group=outlet-tracksuit": "101966.117",
+  // No Tracksuit SKU is filed on the Outlet tracksuit leaf (Academy IV is a
+  // different collection). That tile stays a graphic card.
   "/promotions?group=outlet-junior": "500804.435",
   "/promotions?group=outlet-price-199-299": "900935.027",
   "/promotions?group=outlet-price-399-499": "101291.452",

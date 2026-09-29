@@ -644,7 +644,9 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
       label: "Tracksuit",
       labelKey: "tiles.tracksuit",
       href: "/promotions?group=outlet-tracksuit",
-      kind: "photo",
+      // No catalog SKU is filed as an Outlet tracksuit. A photo here would be
+      // another collection (Academy IV) or a shoe fallback.
+      kind: "category",
       barLabel: "TRACKSUIT",
       barLabelKey: "tiles.tracksuit",
       hub: "sportswear",
