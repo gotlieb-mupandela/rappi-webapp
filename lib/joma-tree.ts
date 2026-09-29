@@ -2512,8 +2512,16 @@ export function isOutletFolderKey(key: string) {
   return false;
 }
 
-/** Woman footwear omits Part B extras that only exist on the Man shoe tree. */
-const WOMAN_FOOTWEAR_OMIT = new Set(["badminton", "basketball-shoes", "joma-flow"]);
+/**
+ * Woman footwear omits Part B extras that only exist on the Man shoe tree,
+ * plus Outlet. Part B lists Outlet once, under the Footwear root.
+ */
+const WOMAN_FOOTWEAR_OMIT = new Set([
+  "badminton",
+  "basketball-shoes",
+  "joma-flow",
+  "footwear-outlet",
+]);
 
 export function footwearFoldersForAudience(audience: string | null | undefined) {
   if (audience === "women") {

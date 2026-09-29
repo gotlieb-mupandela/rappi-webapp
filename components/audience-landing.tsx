@@ -11,7 +11,7 @@ export type AudienceLandingTile = {
   href: string;
   /** Empty string = solid gray placeholder (Joma-style missing asset). */
   imageSrc: string;
-  /** Optional strip overlaid on the image (e.g. OUTLET “SPECIAL OFFERS”). */
+  /** Optional strip overlaid on the image. */
   banner?: string;
   /** i18n key resolving the banner at render (falls back to banner). */
   bannerKey?: string;
@@ -96,27 +96,10 @@ export function AudienceLandingGrid({
               )}
             >
               {isGraphic ? (
-                <div className="absolute inset-0 flex flex-col">
-                  <div
-                    className={cn(
-                      "flex flex-[1.15] items-center justify-center px-2",
-                      outletKind === "category" ? "bg-[#f18a1f]" : "bg-[#e85a4f]",
-                    )}
-                  >
-                    <span className="text-center text-sm font-black uppercase tracking-[0.12em] text-white sm:text-base">
-                      {t("tiles.outlet")}
-                    </span>
-                  </div>
-                  <div
-                    className={cn(
-                      "flex flex-1 items-center justify-center px-2 py-2",
-                      outletKind === "category" ? "bg-[#e07112]" : "bg-[#d4453a]",
-                    )}
-                  >
-                    <span className="text-center text-[10px] font-bold uppercase leading-snug tracking-[0.04em] text-white sm:text-[11px]">
-                      {barLabel}
-                    </span>
-                  </div>
+                <div className="absolute inset-0 flex items-center justify-center px-3">
+                  <span className="text-center text-xs font-black uppercase leading-snug tracking-[0.06em] text-white sm:text-sm">
+                    {barLabel}
+                  </span>
                 </div>
               ) : tile.imageSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
