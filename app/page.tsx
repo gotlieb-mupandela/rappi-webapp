@@ -1,6 +1,6 @@
 import { HomeHero } from "@/components/home-hero";
 import { HUB_COVERS } from "@/lib/hubs";
-import { coverUrlForKey } from "@/lib/tile-covers";
+import { productForPin } from "@/lib/tile-covers";
 
 export const revalidate = 3600;
 
@@ -10,9 +10,9 @@ export default async function HomePage() {
     <HomeHero
       sportswearCover={HUB_COVERS.sportswear}
       shoesCover={HUB_COVERS.shoes}
-      lifestyleCover={coverUrlForKey("home:lifestyle")}
+      lifestyleProduct={productForPin("home:lifestyle") ?? undefined}
       runningCover={HUB_COVERS["running-fitness"]}
-      kidsCover={coverUrlForKey("home:kids")}
+      kidsProduct={productForPin("home:kids") ?? undefined}
       kidsHref="/shop/kids"
     />
   );

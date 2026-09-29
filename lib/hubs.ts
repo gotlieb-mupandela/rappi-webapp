@@ -53,11 +53,10 @@ import {
 import { productCardImageUrl } from "@/lib/media";
 import { productInHub } from "@/lib/hub-membership";
 import {
-  applyTileCover,
   brandCoverIfSafe,
-  coverUrlForKey,
-  emptyFolderCoverUrl,
-  familyChromeUrl,
+  emptyFolderProduct,
+  familyChromeProduct,
+  productForPin,
   usableCatalogImageUrl,
 } from "@/lib/tile-covers";
 export { isKidsProduct, isKidsShoe, matchesAudience, productAudience };
@@ -91,24 +90,23 @@ function imagedSample(product: Product | null | undefined) {
 }
 
 /**
- * Pinned catalog photo, else the in-folder sample (caller passes it separately),
- * else a safe brand plate, else an exact item-family photo from the catalog.
- * `cover` is only set when it should win over the sample in HubTile.
+ * Picture for a folder tile. A pinned or in-folder product is the `sample`
+ * so HubTile uses `productCardImageUrl`. `cover` is only a /brand plate,
+ * and only when there is no product photo.
  */
-function folderTileCover(
+function folderTilePicture(
   folder: JomaFolderDef,
   kind: "footwear" | "apparel" | "kids",
-  sample: Product | null,
-) {
-  const pinned = coverUrlForKey(folder.key);
-  if (pinned) return pinned;
-  if (sample) return undefined;
-  return (
-    emptyFolderCoverUrl(folder.key) ||
-    brandCoverIfSafe(folder.cover, kind) ||
-    familyChromeUrl(folder, bundled) ||
-    undefined
-  );
+  inFolder: Product | null,
+): { sample: Product | null; cover?: string } {
+  const sample =
+    productForPin(folder.key) ??
+    inFolder ??
+    emptyFolderProduct(folder.key) ??
+    familyChromeProduct(folder, bundled);
+  if (sample) return { sample };
+  const cover = brandCoverIfSafe(folder.cover, kind);
+  return { sample: null, cover: cover || undefined };
 }
 function tilesFromJomaFolders(
   folders: readonly JomaFolderDef[],
@@ -126,7 +124,7 @@ function tilesFromJomaFolders(
       const items = poolSet
         ? productsInJomaFolder(folder.key).filter((p) => poolSet.has(p))
         : pool.filter((p) => folderMatchesProduct(folder, p));
-      const sample = imagedSample(
+      const inFolder = imagedSample(
         sampleForTypeFolder(
           items,
           folder.sub && (TYPE_FOLDERS.shoes as readonly string[]).includes(folder.sub)
@@ -135,13 +133,14 @@ function tilesFromJomaFolders(
           sampleHub,
         ) ?? firstImagedProduct(items),
       );
+      const picture = folderTilePicture(folder, kind, inFolder);
       return {
         key: folder.key,
         name: folder.label,
         count: items.length,
         href: hrefFor(folder),
-        sample,
-        cover: folderTileCover(folder, kind, sample),
+        sample: picture.sample,
+        cover: picture.cover,
         nameGroup: { kind: groupKind, key: folder.key },
       } satisfies HubFolderTile;
     })
@@ -656,12 +655,21 @@ function kidsLandingTileImage(
     const url = productCardImageUrl(sample);
     if (url) return url;
   }
-  return (
-    HUB_COVERS[hub] ??
-    coverUrlForKey("home:kids") ??
-    AUDIENCE_COVERS.kids ??
-    ""
-  );
+  return HUB_COVERS[hub] ?? "";
+}
+
+/** `productCardImageUrl` for a pinned catalog id or code. Skips `default.jpg`. */
+function imageForProductIds(ids: string[] | undefined, catalog: Product[]) {
+  if (!ids?.length) return "";
+  for (const id of ids) {
+    const product = catalog.find((row) => row.id === id || row.code === id);
+    if (!product) continue;
+    const url = productCardImageUrl(product);
+    if (url && !/\/default\.jpe?g(\?|$)/i.test(url)) return url;
+    const fallback = usableCatalogImageUrl(product);
+    if (fallback) return fallback;
+  }
+  return "";
 }
 
 /** Man / Woman first-view tiles: image + uppercase label, Joma B2B order. */
@@ -673,11 +681,9 @@ export function audienceLandingTiles(
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
-    imageSrc: applyTileCover(
-      tile.href,
+    imageSrc:
+      imageForProductIds(tile.productIds, catalog) ||
       landingTileImage(tile.hub, tile.cover, audience, catalog),
-      catalog,
-    ),
   }));
 }
 
@@ -717,11 +723,9 @@ export function footwearLandingTiles(catalog: Product[] = bundled) {
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
-    imageSrc: applyTileCover(
-      tile.href,
+    imageSrc:
+      imageForProductIds(tile.productIds, catalog) ||
       footwearLandingImage(tile.audience, catalog, tile.label === "OUTLET"),
-      catalog,
-    ),
     banner: tile.banner,
     bannerKey: tile.bannerKey,
     bannerTone: tile.banner ? ("magenta" as const) : undefined,
@@ -734,11 +738,9 @@ export function kidsLandingTiles(catalog: Product[] = bundled) {
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
-    imageSrc: applyTileCover(
-      tile.href,
+    imageSrc:
+      imageForProductIds(tile.productIds, catalog) ||
       kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
-      catalog,
-    ),
   }));
 }
 
@@ -844,11 +846,10 @@ export function officialKitsLandingTiles(catalog: Product[] = bundled) {
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
-    imageSrc: applyTileCover(
-      tile.href,
-      tile.cover ?? landingTileImage(tile.hub, undefined, "men", catalog),
-      catalog,
-    ),
+    imageSrc:
+      imageForProductIds(tile.productIds, catalog) ||
+      tile.cover ||
+      landingTileImage(tile.hub, undefined, "men", catalog),
   }));
 }
 
@@ -857,20 +858,16 @@ export function outletLandingTiles(catalog: Product[] = bundled) {
   return jomaOutletLandingTiles().map((tile, index) => {
     let imageSrc = "";
     if (tile.kind === "photo") {
-      if (tile.hub === "shoes") {
-        imageSrc = footwearLandingImage(
-          undefined,
-          catalog,
-          tile.label === "FOOTWEAR" || tile.label === "PROMOTIONS",
-        );
-      } else if (tile.hub) {
+      imageSrc = imageForProductIds(tile.productIds, catalog);
+      if (!imageSrc && tile.hub === "shoes") {
+        imageSrc = footwearLandingImage(undefined, catalog, tile.label === "FOOTWEAR");
+      } else if (!imageSrc && tile.hub) {
         imageSrc = landingTileImage(tile.hub, undefined, "men", catalog);
       }
       if (!imageSrc) {
         imageSrc = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
       }
     }
-    imageSrc = applyTileCover(tile.href, imageSrc, catalog);
     return {
       label: tile.label,
       labelKey: tile.labelKey,
@@ -925,11 +922,9 @@ export function accessoriesLandingTiles(catalog: Product[] = bundled) {
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
-    imageSrc: applyTileCover(
-      tile.href,
+    imageSrc:
+      imageForProductIds(tile.productIds, catalog) ||
       accessoriesLandingTileImage(tile, catalog, index),
-      catalog,
-    ),
   }));
 }
 export function audienceTiles(
@@ -960,8 +955,7 @@ export function audienceTiles(
       count: items.length,
       href,
       sample: audienceSample(items, a.slug),
-      cover:
-        a.slug === "kids" ? coverUrlForKey("home:kids") : AUDIENCE_COVERS[a.slug],
+      cover: AUDIENCE_COVERS[a.slug],
     };
   }).filter((g) => g.count > 0);
 }
