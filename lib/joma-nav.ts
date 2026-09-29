@@ -164,7 +164,7 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
       },
       { label: "EAGLE LINE", href: d.aguila, hub: "football" },
       { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
-      { label: "BEACHWEAR", href: d.beachwear, hub: "swimming" },
+      { label: "BEACHWEAR", labelKey: "tiles.beachwear", href: d.beachwear, hub: "swimming" },
       { label: "UNDERWEAR / BRAMA", labelKey: "tiles.underwearBrama", href: d.brama, hub: "brama" },
       { label: "ATHLETES / COMBAT", labelKey: "tiles.athletesCombat", href: d.combat, hub: "boxing" },
       { label: "ELITE CLUB", href: d.elite, hub: "football" },
@@ -218,7 +218,7 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
     { label: "EAGLE LINE", href: d.aguila, hub: "football" },
     /** Empty cover → gray plate like live Joma RESORT tile. */
     { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
-    { label: "BEACHWEAR", href: d.beachwear, hub: "swimming" },
+    { label: "BEACHWEAR", labelKey: "tiles.beachwear", href: d.beachwear, hub: "swimming" },
     { label: "UNDERWEAR / BRAMA", labelKey: "tiles.underwearBrama", href: d.brama, hub: "brama" },
     { label: "ATHLETES / COMBAT", labelKey: "tiles.athletesCombat", href: d.combat, hub: "boxing" },
     { label: "ELITE CLUB", href: d.elite, hub: "football" },
@@ -548,6 +548,14 @@ export function jomaOfficialKitsLandingTiles(): LandingTileDef[] {
       cover: "/brand/hub-lifestyle.png?v=4",
     },
   ];
+}
+
+/**
+ * Shared Official Kits dropdown links (header hover + mobile) — same
+ * drill-down targets as the kits landing tiles so the two cannot drift.
+ */
+export function jomaOfficialKitsLinks(): JomaAudienceLink[] {
+  return jomaOfficialKitsLandingTiles().map(({ label, href }) => ({ label, href }));
 }
 
 /** Outlet first-view tiles — live `#link=66` order (photo + orange category + red price). */
