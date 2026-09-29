@@ -50,7 +50,7 @@ export function jomaAudienceLinks(audience: "men" | "women"): JomaAudienceLink[]
       { label: "Teamwear", href: d.teamwear },
       { label: "Teamwear Pro 2026", href: d.teamwearPro },
       { label: "Running / Trail", href: d.running },
-      { label: "Cycling / Triathlon", href: d.cycling },
+      { label: "Cycling", href: d.cycling },
       { label: "Racket sports", href: d.racket },
       { label: "Fitness / Gym", href: d.fitness },
       { label: "Hiking / Outdoor", href: d.hiking },
@@ -67,7 +67,7 @@ export function jomaAudienceLinks(audience: "men" | "women"): JomaAudienceLink[]
     { label: "Teamwear Pro 2026", href: d.teamwearPro },
     { label: "Teamwear", href: d.teamwear },
     { label: "Running / Trail", href: d.running },
-    { label: "Cycling / Triathlon", href: d.cycling },
+    { label: "Cycling", href: d.cycling },
     { label: "Racket sports", href: d.racket },
     { label: "Hiking / Outdoor", href: d.hiking },
     { label: "Fitness / Gym", href: d.fitness },
@@ -164,7 +164,7 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
         hub: "lifestyle",
         cover: "/brand/audience-women-lifestyle.png?v=2",
       },
-      { label: "EAGLE LINE", href: d.aguila, hub: "football" },
+      { label: "Águila Line", href: d.aguila, hub: "football" },
       { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
       { label: "BEACHWEAR", labelKey: "tiles.beachwear", href: d.beachwear, hub: "swimming" },
       { label: "UNDERWEAR / BRAMA", labelKey: "tiles.underwearBrama", href: d.brama, hub: "brama" },
@@ -217,7 +217,7 @@ export function jomaAudienceLandingTiles(audience: "men" | "women"): LandingTile
       hub: "lifestyle",
       cover: "/brand/hub-lifestyle.png?v=4",
     },
-    { label: "EAGLE LINE", href: d.aguila, hub: "football" },
+    { label: "Águila Line", href: d.aguila, hub: "football" },
     /** Empty cover → gray plate like live Joma RESORT tile. */
     { label: "RESORT", href: d.resort, hub: "resort", cover: "" },
     { label: "BEACHWEAR", labelKey: "tiles.beachwear", href: d.beachwear, hub: "swimming" },
@@ -596,21 +596,15 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
     {
       label: "PROMOTIONS",
       labelKey: "tiles.promotions",
-      href: "/promotions?view=all",
+      href: "/promotions?group=outlet-promotions",
       kind: "photo",
-      banner: "LIMITED TIME",
-      bannerKey: "tiles.limitedTime",
-      bannerTone: "green",
       hub: "shoes",
     },
     {
       label: "FOOTWEAR",
       labelKey: "tiles.footwear",
-      href: "/shop/shoes?group=footwear-outlet",
+      href: "/shop/shoes?group=outlet-footwear",
       kind: "photo",
-      banner: "SPECIAL OFFERS",
-      bannerKey: "group.shoes.offersBanner",
-      bannerTone: "magenta",
       hub: "shoes",
     },
     {
@@ -676,15 +670,15 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
       barLabelKey: "tiles.junior",
       hub: "sportswear",
     },
-    { label: "1.99 - 2.99", href: "/promotions?max=3&view=all", kind: "price", barLabel: "1.99 - 2.99" },
-    { label: "2.99 - 3.99", href: "/promotions?max=4&view=all", kind: "price", barLabel: "2.99 - 3.99" },
-    { label: "3.99 - 4.99", href: "/promotions?max=5&view=all", kind: "price", barLabel: "3.99 - 4.99" },
-    { label: "4.99 - 5.99", href: "/promotions?max=6&view=all", kind: "price", barLabel: "4.99 - 5.99" },
-    { label: "5.99 - 6.99", href: "/promotions?max=7&view=all", kind: "price", barLabel: "5.99 - 6.99" },
-    { label: "6.99 - 7.99", href: "/promotions?max=8&view=all", kind: "price", barLabel: "6.99 - 7.99" },
-    { label: "7.99 - 10.99", href: "/promotions?max=11&view=all", kind: "price", barLabel: "7.99 - 10.99" },
-    { label: "10.99 - 15.99", href: "/promotions?max=16&view=all", kind: "price", barLabel: "10.99 - 15.99" },
-    { label: "FROM 15.99", labelKey: "tiles.from1599", href: "/promotions?max=999&view=all", kind: "price", barLabel: "FROM 15.99", barLabelKey: "tiles.from1599" },
+    { label: "1.99 - 2.99", href: "/promotions?group=outlet-price-199-299", kind: "price", barLabel: "1.99 - 2.99" },
+    { label: "2.99 - 3.99", href: "/promotions?group=outlet-price-299-399", kind: "price", barLabel: "2.99 - 3.99" },
+    { label: "3.99 - 4.99", href: "/promotions?group=outlet-price-399-499", kind: "price", barLabel: "3.99 - 4.99" },
+    { label: "4.99 - 5.99", href: "/promotions?group=outlet-price-499-599", kind: "price", barLabel: "4.99 - 5.99" },
+    { label: "5.99 - 6.99", href: "/promotions?group=outlet-price-599-699", kind: "price", barLabel: "5.99 - 6.99" },
+    { label: "6.99 - 7.99", href: "/promotions?group=outlet-price-699-799", kind: "price", barLabel: "6.99 - 7.99" },
+    { label: "7.99 - 10.99", href: "/promotions?group=outlet-price-799-1099", kind: "price", barLabel: "7.99 - 10.99" },
+    { label: "10.99 - 15.99", href: "/promotions?group=outlet-price-1099-1599", kind: "price", barLabel: "10.99 - 15.99" },
+    { label: "FROM 15.99", labelKey: "tiles.from1599", href: "/promotions?group=outlet-price-from-1599", kind: "price", barLabel: "FROM 15.99", barLabelKey: "tiles.from1599" },
   ];
 }
 
@@ -692,10 +686,32 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
  * Shared Outlet dropdown entries (header + landing destinations) — Part B
  * order/labels; non-band children open real `outlet-*` folder keys.
  */
+/**
+ * Old Outlet price tiles used `max` as a wholesale-EUR ceiling. Listing
+ * compares `max` to NAD retail, so those links emptied the page. Map them
+ * onto the Part B price-band folder keys.
+ */
+const LEGACY_OUTLET_MAX_GROUP: Record<string, string> = {
+  "3": "outlet-price-199-299",
+  "4": "outlet-price-299-399",
+  "5": "outlet-price-399-499",
+  "6": "outlet-price-499-599",
+  "7": "outlet-price-599-699",
+  "8": "outlet-price-699-799",
+  "11": "outlet-price-799-1099",
+  "16": "outlet-price-1099-1599",
+  "999": "outlet-price-from-1599",
+};
+
+export function outletGroupForLegacyMax(max: string | undefined) {
+  if (!max) return undefined;
+  return LEGACY_OUTLET_MAX_GROUP[max];
+}
+
 export function jomaOutletLinks(): JomaAudienceLink[] {
   return [
-    { label: "Promotions", href: "/promotions?view=all" },
-    { label: "Footwear", href: "/shop/shoes?group=footwear-outlet" },
+    { label: "Promotions", href: "/promotions?group=outlet-promotions" },
+    { label: "Footwear", href: "/shop/shoes?group=outlet-footwear" },
     { label: "Apparel of byear", href: "/promotions?group=outlet-apparel-byear" },
     { label: "Sweatshirt / Jacket", href: "/promotions?group=outlet-sweatshirt-jacket" },
     { label: "T-shirt / Top", href: "/promotions?group=outlet-tshirt-top" },
@@ -703,14 +719,14 @@ export function jomaOutletLinks(): JomaAudienceLink[] {
     { label: "Anorak", href: "/promotions?group=outlet-anorak" },
     { label: "Tracksuit", href: "/promotions?group=outlet-tracksuit" },
     { label: "Junior", href: "/promotions?group=outlet-junior" },
-    { label: "1.99 - 2.99", href: "/promotions?max=3&view=all" },
-    { label: "2.99 - 3.99", href: "/promotions?max=4&view=all" },
-    { label: "3.99 - 4.99", href: "/promotions?max=5&view=all" },
-    { label: "4.99 - 5.99", href: "/promotions?max=6&view=all" },
-    { label: "5.99 - 6.99", href: "/promotions?max=7&view=all" },
-    { label: "6.99 - 7.99", href: "/promotions?max=8&view=all" },
-    { label: "7.99 - 10.99", href: "/promotions?max=11&view=all" },
-    { label: "10.99 - 15.99", href: "/promotions?max=16&view=all" },
-    { label: "From 15.99", href: "/promotions?max=999&view=all" },
+    { label: "1.99 - 2.99", href: "/promotions?group=outlet-price-199-299" },
+    { label: "2.99 - 3.99", href: "/promotions?group=outlet-price-299-399" },
+    { label: "3.99 - 4.99", href: "/promotions?group=outlet-price-399-499" },
+    { label: "4.99 - 5.99", href: "/promotions?group=outlet-price-499-599" },
+    { label: "5.99 - 6.99", href: "/promotions?group=outlet-price-599-699" },
+    { label: "6.99 - 7.99", href: "/promotions?group=outlet-price-699-799" },
+    { label: "7.99 - 10.99", href: "/promotions?group=outlet-price-799-1099" },
+    { label: "10.99 - 15.99", href: "/promotions?group=outlet-price-1099-1599" },
+    { label: "From 15.99", href: "/promotions?group=outlet-price-from-1599" },
   ];
 }

@@ -1,18 +1,14 @@
+import { redirect } from "next/navigation";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { PageHeader } from "@/components/page-header";
-import { Translated } from "@/components/translated";
 import { outletLandingTiles } from "@/lib/hubs";
-import {
-  buildListing,
-  listingQueryIsActive,
-  parseListingQuery,
-} from "@/lib/listing-core";
+import { isJomaBrowseFolder, isOutletFolderKey, jomaFolderAncestorKeys } from "@/lib/joma-tree";
+import { outletGroupForLegacyMax } from "@/lib/joma-nav";
+import { buildListing, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const revalidate = 3600;
-
-const PROMO_BADGES = ["offer", "new"] as const;
 
 function firstSearchParam(value: string | string[] | undefined) {
   if (Array.isArray(value)) return value[0];
@@ -25,21 +21,26 @@ export default async function PromotionsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const sp = await searchParams;
-  const catalog = await getCatalog();
-  const query = parseListingQuery({
-    q: firstSearchParam(sp.q),
-    cat: firstSearchParam(sp.cat),
-    sub: firstSearchParam(sp.sub),
-    group: firstSearchParam(sp.group),
-    size: firstSearchParam(sp.size),
-    max: firstSearchParam(sp.max),
-    audience: firstSearchParam(sp.audience),
-    page: firstSearchParam(sp.page),
-  });
-  const showListing =
-    firstSearchParam(sp.view) === "all" || listingQueryIsActive(query);
+  const groupParam = firstSearchParam(sp.group) ?? "";
+  const maxParam = firstSearchParam(sp.max);
+  const viewAll = firstSearchParam(sp.view) === "all";
 
-  if (!showListing) {
+  // Legacy `?view=all` and `?max=N` links used to render the New Collections
+  // hub (badge filter, NAD max). Send them to the Part B outlet folder.
+  if (!groupParam || groupParam === "all") {
+    const legacyGroup = outletGroupForLegacyMax(maxParam);
+    if (legacyGroup) redirect(`/promotions?group=${legacyGroup}`);
+    if (viewAll || maxParam) redirect("/promotions?group=outlet-promotions");
+  }
+
+  const folderKey =
+    groupParam && groupParam !== "all" && isJomaBrowseFolder(groupParam) && isOutletFolderKey(groupParam)
+      ? groupParam
+      : "";
+
+  const catalog = await getCatalog();
+
+  if (!folderKey) {
     const tiles = outletLandingTiles(catalog);
     return (
       <div className="bg-white">
@@ -54,33 +55,46 @@ export default async function PromotionsPage({
     );
   }
 
-  const listing = buildListing(catalog, query, { badges: [...PROMO_BADGES] });
+  const query = parseListingQuery({
+    q: firstSearchParam(sp.q),
+    sub: firstSearchParam(sp.sub),
+    group: folderKey,
+    size: firstSearchParam(sp.size),
+    audience: firstSearchParam(sp.audience),
+    page: firstSearchParam(sp.page),
+  });
+  // Folder membership is the filter. Do not also require badge offer/new —
+  // this catalog has none, which made every outlet child an empty New Collections page.
+  const listing = buildListing(catalog, query);
+  const ancestors = jomaFolderAncestorKeys(folderKey);
 
   return (
     <div>
       <PageHeader
+        compact
         crumbs={[
           { href: "/", key: "common.home" },
           { href: "/promotions", key: "nav.outlet" },
-          { key: "promotions.crumb" },
+          ...ancestors.map((key) => ({
+            href: `/promotions?group=${encodeURIComponent(key)}`,
+            sub: key,
+          })),
+          { sub: folderKey },
         ]}
-        eyebrowKey="promotions.eyebrow"
-        titleKey="promotions.title"
-        descriptionKey="promotions.description"
+        titleSub={folderKey}
+        titleCount={listing.total}
       />
-      <div className="page-shell py-10 lg:py-14">
-        {listing.total === 0 ? (
-          <p className="text-sm text-[var(--muted)]">
-            <Translated k="promotions.none" />
-          </p>
-        ) : (
-          <CatalogBrowser
-            initialListing={listing}
-            basePath="/promotions"
-            grouped
-            badges={[...PROMO_BADGES]}
-          />
-        )}
+      <div className="page-shell pb-10 pt-1">
+        <CatalogBrowser
+          initialListing={listing}
+          basePath="/promotions"
+          grouped
+          hideFilters
+          showCategoryFilter={false}
+          showAudienceFilter={false}
+          showLayoutToggle
+          emptyBodyKey="shop.emptyBody"
+        />
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ import {
   KIDS_APPAREL_FOLDERS,
   KIDS_FOOTWEAR_FOLDERS,
   apparelFoldersForAudience,
+  footwearFoldersForAudience,
   folderMatchesProduct,
   hasJomaFolderIndex,
   jomaFolderByKey,
@@ -511,7 +512,8 @@ export function audienceHubGroups(
   const items = scoped.filter((p) => matchesAudience(p, audience));
   if (hubSlug === "shoes") {
     const shoes = footwearOnly(items);
-    const folders = audience === "kids" ? KIDS_FOOTWEAR_FOLDERS : FOOTWEAR_FOLDERS;
+    const folders =
+      audience === "kids" ? KIDS_FOOTWEAR_FOLDERS : footwearFoldersForAudience(audience);
     return tilesFromJomaFolders(
       folders,
       shoes,

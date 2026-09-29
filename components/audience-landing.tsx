@@ -144,28 +144,30 @@ export function AudienceLandingGrid({
                 </div>
               ) : null}
             </div>
-            <div
-              className={cn(
-                "flex items-center justify-center bg-white px-1.5",
-                isDense
-                  ? "min-h-9 border-t border-[#e8eaed] py-2 sm:min-h-10"
-                  : "mt-2 min-h-0 py-0",
-                isKids && "mt-2 border-0",
-              )}
-            >
-              <p
+            {isGraphic ? null : (
+              <div
                 className={cn(
-                  "text-center font-bold uppercase leading-snug tracking-[0.04em] text-[#1a1a2e]",
-                  isKits
-                    ? "text-xs sm:text-sm"
-                    : isKids
-                      ? "text-[11px] sm:text-xs"
-                      : "text-[10px] sm:text-[11px]",
+                  "flex items-center justify-center bg-white px-1.5",
+                  isDense
+                    ? "min-h-9 border-t border-[#e8eaed] py-2 sm:min-h-10"
+                    : "mt-2 min-h-0 py-0",
+                  isKids && "mt-2 border-0",
                 )}
               >
-                {label}
-              </p>
-            </div>
+                <p
+                  className={cn(
+                    "text-center font-bold uppercase leading-snug tracking-[0.04em] text-[#1a1a2e]",
+                    isKits
+                      ? "text-xs sm:text-sm"
+                      : isKids
+                        ? "text-[11px] sm:text-xs"
+                        : "text-[10px] sm:text-[11px]",
+                  )}
+                >
+                  {label}
+                </p>
+              </div>
+            )}
           </Link>
         );
       })}

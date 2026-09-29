@@ -26,8 +26,21 @@ export type JomaFolderDef = {
   label: string;
   /** Exact item families (normalized) that belong in this leaf. */
   families?: readonly string[];
+  /**
+   * Item families that must match the whole family string.
+   * `families` also allows a prefix/suffix hit (`junior` → `junior football`),
+   * which is right for sport folders and wrong for Outlet leaves.
+   */
+  exactFamilies?: readonly string[];
   /** Extra regex against family + display + name. */
   pattern?: RegExp;
+  /**
+   * When set, `pattern` applies only if the item family is in this list.
+   * Exact `families` still match on their own. Outlet type leaves use this
+   * so SKUs filed under the generic Outlet bucket can join a type leaf
+   * without the pattern swallowing every jacket or tee in the catalog.
+   */
+  patternFamilies?: readonly string[];
   /** Storefront subcategory slug when classification maps here. */
   sub?: string;
   /**
@@ -49,6 +62,12 @@ function familyIn(fam: string, list: readonly string[] | undefined) {
   });
 }
 
+function exactFamilyIn(fam: string, list: readonly string[] | undefined) {
+  if (!list?.length) return false;
+  const n = normLabel(fam);
+  return list.some((f) => normLabel(f) === n);
+}
+
 function leafMatchesProduct(
   folder: JomaFolderDef,
   product: Product,
@@ -57,8 +76,12 @@ function leafMatchesProduct(
 ): boolean {
   if (folder.category && product.category !== folder.category) return false;
   if (folder.sub && product.subcategory === folder.sub) return true;
+  if (exactFamilyIn(fam, folder.exactFamilies)) return true;
   if (familyIn(fam, folder.families)) return true;
-  if (folder.pattern?.test(blob)) return true;
+  if (folder.pattern) {
+    const gate = folder.patternFamilies;
+    if ((!gate?.length || exactFamilyIn(fam, gate)) && folder.pattern.test(blob)) return true;
+  }
   // Category-only leaf (e.g. catch-all under a campaign hub).
   if (folder.category && !folder.families?.length && !folder.pattern && !folder.sub) {
     return true;
@@ -385,8 +408,10 @@ export const FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "footwear-outlet",
     label: "Outlet",
-    families: ["outlet"],
-    pattern: /\boutlet\b/,
+    // Same filing as Outlet → Footwear: item family "Footwear".
+    // A name-wide "outlet" pattern pulled apparel into this leaf and still
+    // missed the shoes actually filed here.
+    exactFamilies: ["footwear"],
   },
 ];
 
@@ -2010,7 +2035,13 @@ export const KIDS_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
           { key: "k610-tw-outlet", label: "Outlet" },
         ],
       },
-      { key: "k610-outerwear", label: "Outerwear" },
+      {
+        key: "k610-outerwear",
+        label: "Outerwear",
+        // Part B 6–10 Outerwear is a product leaf. Catalog SKUs filed in
+        // that leaf use item family "Outerwear" (not the 1–4 / 12–14 child names).
+        exactFamilies: ["outerwear"],
+      },
       { key: "k610-tshirts-polos", label: "T-Shirts & Polos" },
       { key: "k610-jackets-sweatshirts", label: "Jackets & Sweatshirts" },
       { key: "k610-set", label: "Set" },
@@ -2019,9 +2050,14 @@ export const KIDS_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
       {
         key: "k610-pants-tights",
         label: "Pants & Tights",
-        children: kidsLeaves("k610-pants-tights", ["Pants corto", "Pants largo", "Leggings", "Pants largo cotton"]),
+        children: kidsLeaves("k610-pants-tights", [
+          "Pants corto",
+          "Pants largo",
+          "Leggings",
+          "Pants largo cotton",
+          "Outlet",
+        ]),
       },
-      { key: "k610-outlet", label: "Outlet" },
       { key: "k610-beachwear", label: "Beachwear" },
       { key: "k610-accessories", label: "Accessories" },
       { key: "k610-previous-seasons", label: "Previous seasons" },
@@ -2183,24 +2219,64 @@ export const OUTLET_FOLDERS: readonly JomaFolderDef[] = [
     key: "outlet",
     label: "Outlet",
     children: [
-      { key: "outlet-promotions", label: "Promotions" },
-      { key: "outlet-footwear", label: "Footwear", families: ["outlet"], pattern: /\boutlet\b/ },
-      { key: "outlet-apparel-byear", label: "Apparel of byear" },
-      { key: "outlet-sweatshirt-jacket", label: "Sweatshirt / Jacket", pattern: /\b(sweatshirts?|hoodie|jackets?)\b/ },
-      { key: "outlet-tshirt-top", label: "T-shirt / Top", pattern: /\b(t-shirts?|tees?|tops?|polos?|jerseys?)\b/ },
-      { key: "outlet-pants-shorts", label: "Pants / Shorts", pattern: /\b(pants|shorts|bermuda)\b/ },
-      { key: "outlet-anorak", label: "Anorak", pattern: /\banoraks?\b/ },
-      { key: "outlet-tracksuit", label: "Tracksuit", pattern: /\btracksuits?\b/ },
-      { key: "outlet-junior", label: "Junior", pattern: /\b(junior|kids|child)\b/ },
-      { key: "outlet-price-199-299", label: "1.99 - 2.99" },
-      { key: "outlet-price-299-399", label: "2.99 - 3.99" },
-      { key: "outlet-price-399-499", label: "3.99 - 4.99" },
-      { key: "outlet-price-499-599", label: "4.99 - 5.99" },
-      { key: "outlet-price-599-699", label: "5.99 - 6.99" },
-      { key: "outlet-price-699-799", label: "6.99 - 7.99" },
-      { key: "outlet-price-799-1099", label: "7.99 - 10.99" },
-      { key: "outlet-price-1099-1599", label: "10.99 - 15.99" },
-      { key: "outlet-price-from-1599", label: "From 15.99" },
+      // Membership is the B2B folder the SKU was filed in (`item` / sheet
+      // category), not a catalog-wide name regex and not the offer/new badge
+      // (this bake has neither). `patternFamilies: ["outlet"]` only pulls
+      // generic Outlet-bucket SKUs into the matching type leaf.
+      { key: "outlet-promotions", label: "Promotions", exactFamilies: ["promotions", "outlet"] },
+      { key: "outlet-footwear", label: "Footwear", exactFamilies: ["footwear"] },
+      { key: "outlet-apparel-byear", label: "Apparel of byear", exactFamilies: ["apparel of byear"] },
+      {
+        key: "outlet-sweatshirt-jacket",
+        label: "Sweatshirt / Jacket",
+        exactFamilies: ["sweatshirt / jacket"],
+        patternFamilies: ["outlet"],
+        pattern: /\b(sweatshirts?|hoodies?|hoodie|fleece|jackets?)\b/,
+      },
+      {
+        key: "outlet-tshirt-top",
+        label: "T-shirt / Top",
+        exactFamilies: ["t-shirt / top"],
+        patternFamilies: ["outlet"],
+        pattern: /\b(polos?|t-shirts?|tees?)\b/,
+      },
+      {
+        key: "outlet-pants-shorts",
+        label: "Pants / Shorts",
+        exactFamilies: ["pants / shorts"],
+        patternFamilies: ["outlet"],
+        pattern: /\b(pants|shorts|bermuda)\b/,
+      },
+      {
+        key: "outlet-anorak",
+        label: "Anorak",
+        exactFamilies: ["anorak"],
+        patternFamilies: ["outlet"],
+        pattern: /\banoraks?\b/,
+      },
+      {
+        key: "outlet-tracksuit",
+        label: "Tracksuit",
+        exactFamilies: ["tracksuit"],
+        patternFamilies: ["outlet"],
+        pattern: /\btracksuits?\b/,
+      },
+      {
+        key: "outlet-junior",
+        label: "Junior",
+        exactFamilies: ["junior"],
+        patternFamilies: ["outlet"],
+        pattern: /\b(junior|kids)\b/,
+      },
+      { key: "outlet-price-199-299", label: "1.99 - 2.99", exactFamilies: ["1.99 - 2.99"] },
+      { key: "outlet-price-299-399", label: "2.99 - 3.99", exactFamilies: ["2.99 - 3.99"] },
+      { key: "outlet-price-399-499", label: "3.99 - 4.99", exactFamilies: ["3.99 - 4.99"] },
+      { key: "outlet-price-499-599", label: "4.99 - 5.99", exactFamilies: ["4.99 - 5.99"] },
+      { key: "outlet-price-599-699", label: "5.99 - 6.99", exactFamilies: ["5.99 - 6.99"] },
+      { key: "outlet-price-699-799", label: "6.99 - 7.99", exactFamilies: ["6.99 - 7.99"] },
+      { key: "outlet-price-799-1099", label: "7.99 - 10.99", exactFamilies: ["7.99 - 10.99"] },
+      { key: "outlet-price-1099-1599", label: "10.99 - 15.99", exactFamilies: ["10.99 - 15.99"] },
+      { key: "outlet-price-from-1599", label: "From 15.99", exactFamilies: ["from 15.99"] },
     ],
   },
 ];
@@ -2330,6 +2406,27 @@ for (const f of OUTLET_FOLDERS) indexParents(f);
 /** All known Joma browse folder keys (for listing filters). */
 export function isJomaBrowseFolder(key: string) {
   return JOMA_FOLDER_BY_KEY.has(key);
+}
+
+/** True for the Outlet root and its Part B children (`outlet-*`). */
+export function isOutletFolderKey(key: string) {
+  if (key === "outlet") return true;
+  let cur = JOMA_FOLDER_PARENT.get(key);
+  while (cur) {
+    if (cur === "outlet") return true;
+    cur = JOMA_FOLDER_PARENT.get(cur);
+  }
+  return false;
+}
+
+/** Woman footwear omits Part B extras that only exist on the Man shoe tree. */
+const WOMAN_FOOTWEAR_OMIT = new Set(["badminton", "basketball-shoes", "joma-flow"]);
+
+export function footwearFoldersForAudience(audience: string | null | undefined) {
+  if (audience === "women") {
+    return FOOTWEAR_FOLDERS.filter((folder) => !WOMAN_FOOTWEAR_OMIT.has(folder.key));
+  }
+  return FOOTWEAR_FOLDERS;
 }
 
 /** Immediate parent folder key, if any. */
