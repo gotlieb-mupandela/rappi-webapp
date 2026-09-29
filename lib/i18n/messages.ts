@@ -44,7 +44,7 @@ export const en = {
     men: "Men",
     women: "Women",
     kids: "Kids",
-    outlet: "Destockage",
+    outlet: "Outlet",
     teamPolyester: "Polyester",
     teamCotton: "Cotton",
     teamOuterwear: "Outerwear",
