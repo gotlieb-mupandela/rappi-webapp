@@ -178,8 +178,28 @@ export const FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "special-editions",
     label: "Special Editions",
-    families: ["special editions", "special editions ss27", "superman collection", "team trail"],
-    pattern: /\b(special edition|superman collection|cristina pedroche|retro mundial)\b/,
+    // Part B parent: membership resolves via children below (own matchers
+    // would be ignored for parents, so none are kept here).
+    children: [
+      {
+        key: "se-football-futsal",
+        label: "Football / Futsal",
+        families: ["football / futsal", "football", "futsal"],
+        pattern: /\b(football|futsal)\b/,
+      },
+      {
+        key: "se-running",
+        label: "Running",
+        families: ["running"],
+        pattern: /\brunning\b/,
+      },
+      {
+        key: "se-padel",
+        label: "Pádel",
+        families: ["padel"],
+        pattern: /\b(padel|p[aá]del)\b/,
+      },
+    ],
     cover: "/brand/hub-shoes.png",
   },
   {
@@ -362,6 +382,12 @@ export const FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
     families: ["previous seasons", "previous collections"],
     pattern: /\bprevious (seasons|collections)\b/,
   },
+  {
+    key: "footwear-outlet",
+    label: "Outlet",
+    families: ["outlet"],
+    pattern: /\boutlet\b/,
+  },
 ];
 
 /** Kids Footwear folders from the PDF. */
@@ -462,6 +488,12 @@ export const KIDS_FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
     families: ["baby"],
     pattern: /\bbaby\b/,
   },
+  {
+    key: "kids-outlet",
+    label: "Outlet",
+    families: ["outlet"],
+    pattern: /\boutlet\b/,
+  },
 ];
 
 /* ─── Apparel mid folders (PDF Man / Woman) ─── */
@@ -517,6 +549,12 @@ const POLYESTER_COLLECTIONS = collectionLeaves("poly", [
   { key: "gala", label: "Gala", families: ["gala"] },
   { key: "doha", label: "Doha", families: ["doha"] },
   { key: "tactica", label: "Táctica", families: ["tactica", "táctica"] },
+  {
+    key: "pants",
+    label: "Pants",
+    families: ["pants", "long pants", "pants / shorts"],
+    pattern: /\bpants\b/,
+  },
 ]);
 
 const COTTON_COLLECTIONS = collectionLeaves("cotton", [
@@ -536,21 +574,13 @@ const COTTON_COLLECTIONS = collectionLeaves("cotton", [
   { key: "jungle", label: "Jungle", families: ["jungle"] },
   { key: "lille", label: "Lille", families: ["lille"] },
   { key: "pasarela-travel", label: "Pasarela travel", families: ["pasarela travel", "pasarela"] },
-  { key: "oasis", label: "Oasis", families: ["oasis", "oasis ii"] },
+  {
+    key: "pants",
+    label: "Pants",
+    families: ["pants", "long pants", "pants / shorts"],
+    pattern: /\bpants\b/,
+  },
 ]);
-
-/* ─── Teamwear Set collections (PDF Man Teamwear → Set) ─── */
-
-const TEAMWEAR_SET_COLLECTIONS: readonly JomaFolderDef[] = [
-  { key: "tw-set-new-area", label: "Set New Area", families: ["set new area"], pattern: /\bset new area\b/ },
-  { key: "tw-set-phoenix-iii", label: "Set Phoenix III", families: ["set phoenix iii", "phoenix iii set"], pattern: /\b(set phoenix iii|phoenix iii set)\b/ },
-  { key: "tw-set-lider", label: "Set Lider", families: ["set lider", "lider set"], pattern: /\b(set lider|lider set)\b/ },
-  { key: "tw-set-liga-pro", label: "Set Liga Pro", families: ["set liga pro", "liga pro"], pattern: /\b(set liga pro|liga pro)\b/ },
-  { key: "tw-set-victory", label: "Set Victory", families: ["set victory", "victory set"], pattern: /\b(set victory|victory set)\b/ },
-  { key: "tw-set-danubio-iii", label: "Set Danubio III", families: ["set danubio iii", "danubio iii set"], pattern: /\b(set danubio iii|danubio iii set)\b/ },
-  { key: "tw-set-inter-classic", label: "Set Inter Classic", families: ["set inter classic", "inter classic"], pattern: /\b(set inter classic|inter classic)\b/ },
-  { key: "tw-set-phoenix", label: "Set Phoenix", families: ["set phoenix", "phoenix set"], pattern: /\b(set phoenix|phoenix set)\b/ },
-];
 
 /* ─── Entrenador children (PDF Man Teamwear → Entrenador) ─── */
 
@@ -560,14 +590,6 @@ const COACH_CHILDREN: readonly JomaFolderDef[] = [
   { key: "coach-confort-classic", label: "Confort classic", families: ["confort classic"], pattern: /\bconfort classic\b/ },
   { key: "coach-bali-iii", label: "Bali III", families: ["bali iii"], pattern: /\bbali iii\b/ },
   { key: "coach-hobby", label: "Hobby", families: ["hobby"], pattern: /\bhobby\b/ },
-  {
-    key: "coach-arbitro",
-    label: "Árbitro",
-    families: ["arbitro", "referee"],
-    // Catch-all preserves the previous flat Entrenador matches (coach/entrenador
-    // products without a more specific collection below).
-    pattern: /\b(arbitro|árbitro|referee|coach|entrenador)\b/,
-  },
 ];
 
 /* ─── Portero children (PDF Man Teamwear → Portero) ─── */
@@ -679,7 +701,7 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
       },
       {
         key: "raincoats-windbreakers",
-        label: "Raincoats/Windbreakers",
+        label: "Chubasqueros/Windbreakers",
         families: ["chubasqueros", "windbreakers", "raincoat", "rain jacket", "cortavientos"],
         pattern: /\b(raincoat|windbreaker|chubasquero|cortavientos|rain jacket)\b/,
       },
@@ -714,66 +736,121 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
         label: "Set",
         children: FOOTBALL_SET_COLLECTIONS,
       },
+      {
+        key: "tw-football-outlet",
+        label: "Outlet",
+        families: ["outlet"],
+        pattern: /\boutlet\b/,
+      },
+      {
+        key: "tw-pants-corto",
+        label: "Pants corto",
+        families: ["pants corto"],
+        pattern: /\bpants corto\b/,
+      },
+      {
+        key: "tw-medias",
+        label: "Medias",
+        families: ["medias"],
+        pattern: /\bmedias\b/,
+      },
+      {
+        key: "tw-accessories",
+        label: "Accessories",
+        children: [
+          {
+            key: "tw-football-balls",
+            label: "Balls",
+            families: ["balls"],
+            pattern: /\bballs?\b/,
+          },
+          {
+            key: "tw-football-acc-football",
+            label: "Accessories of Football",
+            families: ["accessories of football"],
+            pattern: /\baccessories of football\b/,
+          },
+        ],
+      },
     ],
-  },
-  {
-    key: "tw-set",
-    label: "Set",
-    children: TEAMWEAR_SET_COLLECTIONS,
-  },
-  {
-    key: "tw-pants-corto",
-    label: "Pants corto",
-    families: ["pants corto"],
-    pattern: /\bpants corto\b/,
-  },
-  {
-    key: "tw-medias",
-    label: "Medias",
-    families: ["medias"],
-    pattern: /\bmedias\b/,
-  },
-  {
-    key: "tw-accessories",
-    label: "Accessories",
-    pattern: /\b(cap|hat|visor|beanie|glove|socks)\b/,
   },
   {
     key: "tw-basketball",
     label: "Basketball",
-    families: [
-      "cancha",
-      "cancha iii",
-      "final four set",
-      "atlanta set",
-      "kansas set",
-      "aro",
-    ],
-    pattern: /\b(cancha|final four|kansas|atlanta set|basketball)\b/,
+    children: collectionLeaves("twb", [
+      { key: "phoenix-iii", label: "Phoenix III", families: ["phoenix iii"] },
+      { key: "final-four-set", label: "Final Four Set", families: ["final four set"] },
+      { key: "lider-set", label: "Lider Set", families: ["lider set", "líder set"] },
+      { key: "cancha", label: "Cancha", families: ["cancha"] },
+      { key: "final-ii-set", label: "Final II Set", families: ["final ii set"] },
+      { key: "atlanta-set", label: "Atlanta Set", families: ["atlanta set"] },
+      { key: "cancha-iii", label: "Cancha III", families: ["cancha iii"] },
+      { key: "kansas-set", label: "Kansas Set (reversible)", families: ["kansas set", "kansas"] },
+      { key: "olimpiada-set", label: "Olimpiada Set", families: ["olimpiada set"] },
+      { key: "aro", label: "Aro (reversible)", families: ["aro"] },
+      { key: "combi", label: "Combi", families: ["combi"] },
+      { key: "pants", label: "Pants", families: ["pants", "long pants"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
   },
   {
     key: "tw-rugby",
     label: "Rugby",
-    families: ["myskin iii", "stimulus", "nation", "teamwork", "skrum", "strong", "rugby"],
-    pattern: /\b(rugby|myskin|skrum|stimulus|nation|teamwork)\b/,
+    children: collectionLeaves("twr", [
+      { key: "phoenix-iii", label: "Phoenix III", families: ["phoenix iii"] },
+      { key: "myskin-iii", label: "Myskin III", families: ["myskin iii"] },
+      { key: "stimulus", label: "Stimulus", families: ["stimulus"] },
+      { key: "nation", label: "Nation", families: ["nation"] },
+      { key: "teamwork", label: "Teamwork", families: ["teamwork"] },
+      { key: "skrum", label: "Skrum", families: ["skrum"] },
+      { key: "olimpiada", label: "Olimpiada", families: ["olimpiada"] },
+      { key: "strong", label: "Strong", families: ["strong"] },
+      { key: "pants", label: "Pants", families: ["pants", "long pants"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
     cover: "/brand/hub-rugby.png?v=1",
   },
   {
     key: "tw-volleyball",
     label: "Volleyball",
-    families: ["volleyball", "volley"],
-    pattern: /\bvolley(ball)?\b/,
+    children: collectionLeaves("twv", [
+      { key: "championship-20", label: "Championship 20", families: ["championship 20"] },
+      { key: "winner-iv", label: "Winner IV", families: ["winner iv"] },
+      { key: "championship-viii", label: "Championship VIII", families: ["championship viii"] },
+      { key: "academy-iii", label: "Academy III", families: ["academy iii"] },
+      { key: "academy-iv", label: "Academy IV", families: ["academy iv"] },
+      { key: "combi-premium", label: "Combi premium", families: ["combi premium"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
   },
   {
     key: "tw-handball",
     label: "Handball",
-    families: ["handball", "hispa v", "dinamo ii"],
-    pattern: /\b(handball|hispa)\b/,
+    children: collectionLeaves("twh", [
+      { key: "phoenix-iii", label: "Phoenix III", families: ["phoenix iii"] },
+      { key: "winner-iv", label: "Winner IV", families: ["winner iv"] },
+      { key: "championship-viii", label: "Championship VIII", families: ["championship viii"] },
+      { key: "dinamo-ii", label: "Dinamo II", families: ["dinamo ii"] },
+      { key: "dinamo", label: "Dinamo", families: ["dinamo"] },
+      { key: "hispa-v", label: "Hispa V", families: ["hispa v"] },
+      { key: "teamwork", label: "Teamwork", families: ["teamwork"] },
+      { key: "championship-vii", label: "Championship VII", families: ["championship vii"] },
+      { key: "olimpiada", label: "Olimpiada", families: ["olimpiada"] },
+      { key: "strong", label: "Strong", families: ["strong"] },
+      { key: "combi-premium", label: "Combi premium", families: ["combi premium"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
   },
   {
     key: "tw-coach",
     label: "Entrenador",
     children: COACH_CHILDREN,
+  },
+  {
+    key: "tw-arbitro",
+    label: "Árbitro",
+    families: ["arbitro", "referee"],
+    pattern: /\b(arbitro|árbitro|referee)\b/,
   },
   {
     key: "tw-keeper",
@@ -794,6 +871,271 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
   },
   {
     key: "tw-pants",
+    label: "Pants",
+    families: ["pants", "long pants", "pants / shorts", "shorts"],
+    pattern: /\b(pants|trousers|shorts|bermuda)\b/,
+  },
+];
+
+/* ─── Woman Teamwear (PDF Woman — audience-scoped, `wtw`/`w`-prefixed keys) ─── */
+
+const WOMAN_POLYESTER_COLLECTIONS = collectionLeaves("wpoly", [
+  { key: "championship-2-0", label: "Championship 2.0", families: ["championship 2.0"] },
+  { key: "heroic", label: "Heroic", families: ["heroic"] },
+  { key: "picasho-city", label: "Picasho city", families: ["picasho city", "picasho"] },
+  { key: "toletum-vii", label: "Toletum VII", families: ["toletum vii"] },
+  { key: "tiger-viii", label: "Tiger VIII", families: ["tiger viii"] },
+  { key: "new-area-set", label: "New area set", families: ["new area set", "set new area"] },
+  { key: "phoenix-iii-set", label: "Phoenix III set", families: ["phoenix iii set", "set phoenix iii"] },
+  { key: "winner-iv", label: "Winner IV", families: ["winner iv"] },
+  { key: "inter-vi", label: "Inter VI", families: ["inter vi"] },
+  { key: "championship-viii", label: "Championship VIII", families: ["championship viii"] },
+  { key: "eco-retro", label: "Eco-retro", families: ["eco-retro", "eco retro"] },
+  { key: "lider", label: "Lider", families: ["lider", "líder"] },
+  { key: "crew-v", label: "Crew V", families: ["crew v"] },
+  { key: "eco-championship", label: "Eco Championship", families: ["eco championship"] },
+  { key: "eco-supernova", label: "Eco Supernova", families: ["eco supernova"] },
+  { key: "winner-ii", label: "Winner II", families: ["winner ii"] },
+  { key: "supenova-iii", label: "Supenova III", families: ["supenova iii"] },
+  { key: "siena-diana", label: "Siena & Diana", families: ["siena", "diana"] },
+  { key: "combi", label: "Combi", families: ["combi"] },
+  { key: "combi-premium", label: "Combi premium", families: ["combi premium"] },
+  { key: "academy-iv", label: "Academy IV", families: ["academy iv"] },
+  { key: "hobby", label: "Hobby", families: ["hobby"] },
+  { key: "phoenix-set", label: "Phoenix set", families: ["phoenix set", "set phoenix"] },
+  {
+    key: "pants",
+    label: "Pants",
+    families: ["pants", "long pants", "pants / shorts"],
+    pattern: /\bpants\b/,
+  },
+]);
+
+const WOMAN_COTTON_COLLECTIONS = collectionLeaves("wcotton", [
+  { key: "heroic", label: "Heroic", families: ["heroic"] },
+  { key: "oasis", label: "Oasis", families: ["oasis"] },
+  { key: "versalles", label: "Versalles", families: ["versalles"] },
+  { key: "bali-ii", label: "Bali II", families: ["bali ii"] },
+  { key: "bali-iii", label: "Bali III", families: ["bali iii"] },
+  { key: "oasis-ii", label: "Oasis II", families: ["oasis ii"] },
+  { key: "desert", label: "Desert", families: ["desert"] },
+  { key: "olimpiada", label: "Olimpiada", families: ["olimpiada"] },
+  { key: "sweatshirts", label: "Sweatshirts", families: ["sweatshirts", "sweatshirt"] },
+  {
+    key: "pants",
+    label: "Pants",
+    families: ["pants", "long pants", "pants / shorts"],
+    pattern: /\bpants\b/,
+  },
+]);
+
+const WOMAN_JERSEYS_SET_COLLECTIONS = collectionLeaves("wfbj", [
+  { key: "championship-20", label: "Championship 20", families: ["championship 20"] },
+  { key: "toletum-vii", label: "Toletum VII", families: ["toletum vii"] },
+  { key: "heroic", label: "Heroic", families: ["heroic"] },
+  { key: "picasho-city", label: "Picasho City", families: ["picasho city", "picasho"] },
+  { key: "championship-viii", label: "Championship VIII", families: ["championship viii"] },
+  { key: "set-lider", label: "Set Lider", families: ["set lider", "lider set"] },
+  { key: "eco-championship", label: "Eco Championship", families: ["eco championship"] },
+  { key: "crew-v", label: "Crew V", families: ["crew v"] },
+  { key: "supernova-iv", label: "Supernova IV", families: ["supernova iv"] },
+  { key: "winner-ii", label: "Winner II", families: ["winner ii"] },
+  { key: "championship-vi", label: "Championship VI", families: ["championship vi"] },
+  { key: "combi-premium", label: "Combi Premium", families: ["combi premium"] },
+  { key: "academy-iv", label: "Academy IV", families: ["academy iv"] },
+  { key: "academy-iii", label: "Academy III", families: ["academy iii"] },
+  { key: "combi", label: "Combi", families: ["combi"] },
+  { key: "set-phoenix", label: "Set Phoenix", families: ["set phoenix", "phoenix set"] },
+]);
+
+const WOMAN_KEEPER_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wk-set",
+    label: "Set",
+    families: ["keeper set"],
+    pattern: /\bkeeper set\b|\bset\b.{0,24}\b(keeper|portero|goalkeeper|goalie)\b|\b(keeper|portero|goalkeeper|goalie)\b.{0,24}\bset\b/,
+  },
+  {
+    key: "wk-gloves",
+    label: "Gloves",
+    sub: "gk-gloves",
+    families: ["gloves", "goalkeeper gloves"],
+    pattern: /\b(glove|goalkeeper)\b/,
+  },
+  {
+    key: "wk-accessories",
+    label: "Accessories",
+    pattern: /\b(portero|portera|goalkeeper|goalie)\b/,
+  },
+];
+
+const WOMAN_TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wtw-polyester",
+    label: "Training Polyester",
+    children: WOMAN_POLYESTER_COLLECTIONS,
+  },
+  {
+    key: "wtw-cotton",
+    label: "Training Cotton",
+    children: WOMAN_COTTON_COLLECTIONS,
+  },
+  {
+    key: "wtw-outerwear",
+    label: "Outerwear",
+    children: [
+      {
+        key: "wouter-anoraks",
+        label: "Anoraks/Jackets",
+        families: ["anorak", "jackets", "jacket", "parka", "puffer"],
+        pattern: /\b(anorak|parka|puffer|down jacket|bomber)\b/,
+      },
+      {
+        key: "wouter-chubasqueros",
+        label: "Chubasqueros",
+        families: ["chubasqueros", "windbreakers", "raincoat", "rain jacket", "cortavientos"],
+        pattern: /\b(raincoat|windbreaker|chubasquero|cortavientos|rain jacket)\b/,
+      },
+    ],
+  },
+  {
+    key: "wtw-football",
+    label: "Football/Futsal",
+    children: [
+      {
+        key: "wtw-jerseys-set",
+        label: "Jerseys & Set",
+        children: WOMAN_JERSEYS_SET_COLLECTIONS,
+      },
+      {
+        key: "wtw-pants-corto",
+        label: "Pants corto",
+        families: ["pants corto"],
+        pattern: /\bpants corto\b/,
+      },
+      {
+        key: "wtw-medias",
+        label: "Medias",
+        families: ["medias"],
+        pattern: /\bmedias\b/,
+      },
+      {
+        key: "wtw-accessories",
+        label: "Accessories",
+        children: [
+          {
+            key: "wtw-football-balls",
+            label: "Balls",
+            families: ["balls"],
+            pattern: /\bballs?\b/,
+          },
+          {
+            key: "wtw-football-acc-football",
+            label: "Accessories of Football",
+            families: ["accessories of football"],
+            pattern: /\baccessories of football\b/,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    key: "wtw-basketball",
+    label: "Basketball",
+    children: collectionLeaves("wb", [
+      { key: "championship-20", label: "Championship 20", families: ["championship 20"] },
+      { key: "final-four-set", label: "Final four set", families: ["final four set"] },
+      { key: "lider-set", label: "Lider Set", families: ["lider set", "líder set"] },
+      { key: "cancha", label: "Cancha", families: ["cancha"] },
+      { key: "final-ii-set", label: "Final II set", families: ["final ii set"] },
+      { key: "cancha-iii", label: "Cancha III", families: ["cancha iii"] },
+      { key: "phoenix-iii", label: "Phoenix III", families: ["phoenix iii"] },
+      { key: "combi", label: "Combi", families: ["combi"] },
+      { key: "kansas-set", label: "Kansas set reversible", families: ["kansas set", "kansas"] },
+      { key: "aro", label: "Aro reversible", families: ["aro"] },
+      { key: "olimpiada-set", label: "Olimpiada set", families: ["olimpiada set"] },
+      { key: "pants-corto", label: "Pants corto", families: ["pants corto"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
+  },
+  {
+    key: "wtw-rugby",
+    label: "Rugby",
+    children: collectionLeaves("wr", [
+      { key: "phoenix-iii", label: "Phoenix III", families: ["phoenix iii"] },
+      { key: "myskin-iii", label: "Myskin III", families: ["myskin iii"] },
+      { key: "stimulus", label: "Stimulus", families: ["stimulus"] },
+      { key: "nation", label: "Nation", families: ["nation"] },
+      { key: "teamwork", label: "Teamwork", families: ["teamwork"] },
+      { key: "skrum", label: "Skrum", families: ["skrum"] },
+      { key: "olimpiada", label: "Olimpiada", families: ["olimpiada"] },
+      { key: "strong", label: "Strong", families: ["strong"] },
+      { key: "pants", label: "Pants", families: ["pants", "long pants"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
+  },
+  {
+    key: "wtw-volleyball",
+    label: "Volleyball",
+    children: collectionLeaves("wv", [
+      { key: "championship-20", label: "Championship 20", families: ["championship 20"] },
+      { key: "winner-iv", label: "Winner IV", families: ["winner iv"] },
+      { key: "championship-viii", label: "Championship VIII", families: ["championship viii"] },
+      { key: "dinamo", label: "Dinamo", families: ["dinamo"] },
+      { key: "academy-iv", label: "Academy IV", families: ["academy iv"] },
+      { key: "academy", label: "Academy", families: ["academy"] },
+      { key: "combi-premium", label: "Combi premium", families: ["combi premium"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
+  },
+  {
+    key: "wtw-handball",
+    label: "Handball",
+    children: collectionLeaves("wh", [
+      { key: "championship-20", label: "Championship 20", families: ["championship 20"] },
+      { key: "phoenix-iii-set", label: "Phoenix III set", families: ["phoenix iii set"] },
+      { key: "winner-iv", label: "Winner IV", families: ["winner iv"] },
+      { key: "championship-viii", label: "Championship VIII", families: ["championship viii"] },
+      { key: "dinamo-ii", label: "Dinamo II", families: ["dinamo ii"] },
+      { key: "dinamo", label: "Dinamo", families: ["dinamo"] },
+      { key: "hispa-v", label: "Hispa V", families: ["hispa v"] },
+      { key: "teamwork", label: "Teamwork", families: ["teamwork"] },
+      { key: "olimpiada", label: "Olimpiada", families: ["olimpiada"] },
+      { key: "combi-premium", label: "Combi premium", families: ["combi premium"] },
+      { key: "accessories", label: "Accessories", families: ["accessories"] },
+    ]),
+  },
+  {
+    key: "wtw-cricket",
+    label: "Cricket",
+    families: ["cricket"],
+    pattern: /\bcricket\b/,
+  },
+  {
+    key: "wtw-keeper",
+    label: "Portero",
+    children: WOMAN_KEEPER_CHILDREN,
+  },
+  {
+    key: "wtw-arbitro",
+    label: "Árbitro",
+    families: ["arbitro", "referee"],
+    pattern: /\b(arbitro|árbitro|referee)\b/,
+  },
+  {
+    key: "wtw-coach",
+    label: "Entrenador",
+    families: ["coach", "entrenador"],
+    pattern: /\b(coach|entrenador)\b/,
+  },
+  {
+    key: "wtw-swimming",
+    label: "Swimming",
+    families: ["swimming", "swimwear"],
+    pattern: /\b(swim|swimming)\b/,
+  },
+  {
+    key: "wtw-pants",
     label: "Pants",
     families: ["pants", "long pants", "pants / shorts", "shorts"],
     pattern: /\b(pants|trousers|shorts|bermuda)\b/,
@@ -1086,24 +1428,17 @@ const LIFESTYLE_CHILDREN: readonly JomaFolderDef[] = [
       { key: "versalles", label: "Versalles", families: ["versalles"] },
       { key: "montana", label: "Montana", families: ["montana"] },
       { key: "pasarela", label: "Pasarela", families: ["pasarela", "pasarela travel"] },
-      { key: "oasis", label: "Oasis / Desert", families: ["oasis", "oasis ii", "desert"] },
     ]),
   },
 ];
 
-/** Underwear / Brama (PDF). */
+/** Underwear / Brama (PDF Man: BRAMA LINE + INTIMI only). */
 const BRAMA_CHILDREN: readonly JomaFolderDef[] = [
   {
     key: "brama-line",
     label: "Brama Line",
     families: ["brama", "brama line"],
     pattern: /\bbrama\b/,
-  },
-  {
-    key: "brama-sujetadores",
-    label: "Sujetadores deportivos",
-    families: ["sujetadores deportivos", "sujetador"],
-    pattern: /\bsujetador/,
   },
   {
     key: "brama-intimi",
@@ -1195,32 +1530,678 @@ export const APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   },
 ];
 
-/** Children top-level age bands from the PDF. */
+/* ─── Woman mid folders (PDF Woman — audience-scoped, `w`-prefixed keys) ─── */
+
+const WOMAN_RUNNING_TRAIL_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wrt-new",
+    label: "New collections",
+    children: collectionLeaves("wrt-new", [
+      { key: "r-city", label: "R-City", families: ["r-city"], pattern: /\br-city\b/ },
+      { key: "r-trail", label: "R-Trail", families: ["r-trail"], pattern: /\br-trail\b/ },
+    ]),
+  },
+  {
+    key: "wrt-in-stock",
+    label: "In stock",
+    children: collectionLeaves("wrt-stock", [
+      { key: "r-city-fall", label: "R-City Fall", families: ["r-city fall"], pattern: /\br-city fall\b/ },
+      { key: "r-city-winter", label: "R-City Winter", families: ["r-city winter"], pattern: /\br-city winter\b/ },
+      { key: "r-night", label: "R-Night", families: ["r-night"], pattern: /\br-night\b/ },
+      { key: "r-nature", label: "R-Nature", families: ["r-nature"], pattern: /\br-nature\b/ },
+    ]),
+  },
+  {
+    key: "wrt-previous",
+    label: "Previous collections",
+    children: collectionLeaves("wrt-prev", [
+      { key: "r-nature", label: "R-Nature", families: ["r-nature"], pattern: /\br-nature\b/ },
+      { key: "r-city", label: "R-City", families: ["r-city"], pattern: /\br-city\b/ },
+      { key: "r-night", label: "R-Night", families: ["r-night"], pattern: /\br-night\b/ },
+    ]),
+  },
+  {
+    key: "wrt-teamwear-collections",
+    label: "Teamwear collections",
+    children: collectionLeaves("wrt-tw", [
+      { key: "picasho-city", label: "Picasho city", families: ["picasho city", "picasho"] },
+      { key: "record-pro", label: "Record pro", families: ["record pro"] },
+      { key: "elite-xi", label: "Elite XI", families: ["elite xi", "élite xi"] },
+      { key: "elite-x", label: "Elite X", families: ["elite x", "élite x"] },
+      { key: "elite-ix", label: "Elite IX", families: ["elite ix", "élite ix"] },
+      { key: "elite-vii-viii", label: "Elite VII & VIII", families: ["elite vii", "elite viii"] },
+      { key: "winner-ii", label: "Winner II", families: ["winner ii"] },
+      { key: "record-ii", label: "Record II", families: ["record ii"] },
+    ]),
+  },
+];
+
+const WOMAN_RACKET_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wrk-new",
+    label: "New collections",
+    children: collectionLeaves("wrk-new", [
+      { key: "challenge", label: "Challenge", families: ["challenge"] },
+      { key: "smash", label: "Smash", families: ["smash"] },
+      { key: "torneo", label: "Torneo", families: ["torneo"] },
+    ]),
+  },
+  {
+    key: "wrk-in-stock",
+    label: "In stock",
+    children: collectionLeaves("wrk-stock", [
+      { key: "challenge", label: "Challenge", families: ["challenge"] },
+      { key: "smash", label: "Smash", families: ["smash"] },
+    ]),
+  },
+  {
+    key: "wrk-previous",
+    label: "Previous collections",
+    children: collectionLeaves("wrk-prev", [
+      { key: "challenge", label: "Challenge", families: ["challenge"] },
+      { key: "torneo", label: "Torneo", families: ["torneo"] },
+      { key: "smash", label: "Smash", families: ["smash"] },
+    ]),
+  },
+  {
+    key: "wrk-teamwear-collections",
+    label: "Teamwear collections",
+    children: collectionLeaves("wrk-tw", [
+      { key: "terra", label: "Terra", families: ["terra"] },
+      { key: "montreal-26", label: "Montreal 26", families: ["montreal 26", "montreal 2026"] },
+      { key: "montreal-25", label: "Montreal 25", families: ["montreal 25", "montreal 2025"] },
+      { key: "court", label: "Court", families: ["court"] },
+      { key: "skirts-dresses", label: "Skirts & Dresses", families: ["skirts", "dresses"] },
+      { key: "basicos", label: "Básicos", families: ["basicos", "básicos"] },
+    ]),
+  },
+];
+
+const WOMAN_FITNESS_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wfit-new",
+    label: "New collections",
+    children: collectionLeaves("wfit-new", [
+      { key: "fitness-gym", label: "Fitness / Gym", families: ["fitness / gym", "fitness", "gym"], pattern: /\b(fitness|gym)\b/ },
+      { key: "soft", label: "Soft", pattern: /\bsoft\b(?![\s-]*shell)/ },
+    ]),
+  },
+  {
+    key: "wfit-in-stock",
+    label: "In stock",
+    children: collectionLeaves("wfit-stock", [
+      { key: "indoor-gym", label: "Indoor gym", families: ["indoor gym", "indoor"], pattern: /\b(indoor gym|r-indoor)\b/ },
+      { key: "soft", label: "Soft", pattern: /\bsoft\b(?![\s-]*shell)/ },
+    ]),
+  },
+  {
+    key: "wfit-previous",
+    label: "Previous collections",
+    children: collectionLeaves("wfit-prev", [
+      { key: "r-indoor", label: "R-Indoor", families: ["r-indoor"], pattern: /\br-indoor\b/ },
+      { key: "soft", label: "Soft", pattern: /\bsoft\b(?![\s-]*shell)/ },
+    ]),
+  },
+];
+
+const WOMAN_LIFESTYLE_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wls-ss27",
+    label: "Spring Summer 2027",
+    families: ["spring summer 2027", "ss27"],
+    pattern: /\b(spring summer 2027|ss\s*27)\b/,
+  },
+  {
+    key: "wls-in-stock",
+    label: "In stock",
+    children: collectionLeaves("wls-stock", [
+      { key: "mimetic", label: "Mimetic", families: ["mimetic"], pattern: /\bmimetic\b/ },
+      { key: "step", label: "Step", families: ["step"], pattern: /\bstep\b/ },
+      { key: "urban-aesthetics", label: "Urban aesthetics", families: ["urban aesthetics"], pattern: /\burban aesthetics\b/ },
+    ]),
+  },
+  {
+    key: "wls-previous",
+    label: "Previous season",
+    families: ["previous season"],
+    pattern: /\bprevious season\b/,
+  },
+  {
+    key: "wls-basicos",
+    label: "Basicos",
+    children: collectionLeaves("wls-bas", [
+      { key: "montana", label: "Montana", families: ["montana"] },
+      { key: "oasis-desert", label: "Oasis / Desert", families: ["oasis", "oasis ii", "desert"] },
+      { key: "versalles", label: "Versalles", families: ["versalles"] },
+    ]),
+  },
+];
+
+const WOMAN_BRAMA_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "wbrama-line",
+    label: "BRAMA LINE",
+    families: ["brama", "brama line"],
+    pattern: /\bbrama\b/,
+  },
+  {
+    key: "wbrama-sujetadores",
+    label: "SUJETADORES DEPORTIVOS",
+    families: ["sujetadores deportivos", "sujetador"],
+    pattern: /\bsujetador/,
+  },
+  {
+    key: "wbrama-intimi",
+    label: "INTIMI",
+    families: ["intimi"],
+    pattern: /\bintimi\b/,
+  },
+];
+
+/** Woman top-level apparel folders (PDF Woman) — forked roots where Part B differs. */
+export const WOMAN_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
+  {
+    key: "teamwear-woman",
+    label: "Teamwear",
+    children: WOMAN_TEAMWEAR_CHILDREN,
+    cover: "/brand/hub-teampro-2026.png",
+  },
+  {
+    key: "teamwear-pro-2026",
+    label: "Teamwear Pro 2026",
+    children: TEAMWEAR_PRO_CHILDREN,
+    cover: "/brand/hub-teampro-2026.png",
+  },
+  {
+    key: "running-trail-woman",
+    label: "Running / Trail",
+    children: WOMAN_RUNNING_TRAIL_CHILDREN,
+    cover: "/brand/hub-shoes.png",
+  },
+  {
+    key: "cycling",
+    label: "Cycling",
+    children: CYCLING_CHILDREN,
+  },
+  {
+    key: "racket-sports-woman",
+    label: "Racket sports",
+    children: WOMAN_RACKET_CHILDREN,
+  },
+  {
+    key: "hiking-outdoor",
+    label: "Hiking / Outdoor",
+    children: HIKING_CHILDREN,
+  },
+  {
+    key: "fitness-gym-woman",
+    label: "Fitness / Gym",
+    children: WOMAN_FITNESS_CHILDREN,
+  },
+  {
+    key: "lifestyle-apparel-woman",
+    label: "Lifestyle",
+    children: WOMAN_LIFESTYLE_CHILDREN,
+  },
+  {
+    key: "aguila-line",
+    label: "Águila Line",
+    families: ["aguila line", "águila line"],
+    pattern: /\b(aguila|águila)\b/,
+  },
+  {
+    key: "resort",
+    label: "Resort",
+    families: ["resort"],
+    pattern: /\bresort\b/,
+  },
+  {
+    key: "beachwear",
+    label: "Beachwear",
+    families: ["beachwear"],
+    pattern: /\bbeach(wear)?\b/,
+  },
+  {
+    key: "underwear-brama-woman",
+    label: "Underwear / Brama",
+    children: WOMAN_BRAMA_CHILDREN,
+  },
+  {
+    key: "athletes-combat",
+    label: "Athletes / Combat",
+    families: ["athletes / combat", "combat"],
+    pattern: /\b(combat|athletes)\b/,
+  },
+  {
+    key: "elite-club",
+    label: "Elite club",
+    families: ["elite club"],
+    pattern: /\belite club\b/,
+  },
+];
+
+/** Audience-scoped apparel roots (Woman forks where Part B differs from Man). */
+export function apparelFoldersForAudience(
+  audience: string | null | undefined,
+): readonly JomaFolderDef[] {
+  return audience === "women" ? WOMAN_APPAREL_FOLDERS : APPAREL_FOLDERS;
+}
+
+/* ─── Children deep trees (PDF Children — band-prefixed keys, Part B labels) ─── */
+
+function slugifyFolderLabel(label: string) {
+  return label
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Part B collection leaves under a kids parent (labels verbatim, no matchers — empty OK). */
+function kidsLeaves(prefix: string, labels: readonly string[]): JomaFolderDef[] {
+  return labels.map((label) => ({ key: `${prefix}-${slugifyFolderLabel(label)}`, label }));
+}
+
+const K14_TSHIRTS_SET = [
+  "Championship 20", "Heroic", "Winner IV", "Toletum VII", "Picasho City", "Tiger VIII",
+  "Inter VI", "Championship VIII", "Phoenix III Set", "Eco-Retro", "Inter V", "Tiger VII",
+  "Toletum VI", "Danubio IV", "Europa VI", "Líder Set", "Winner III", "Toletum V",
+  "Championship VII", "Tiger VI", "Inter III", "Teamwork", "Victory Set", "Supernova IV",
+  "Montreal", "Danubio II Set", "City II", "Europa V", "Tiger V", "Pisa II", "Inter II",
+  "Toletum IV", "Crew V", "Campus III", "Flag III", "Grafity III", "Copa II", "Academy IV",
+  "Academy III", "Winner", "Combi", "Combi Premium", "Olimpiada", "Inter Classic", "Inter IV",
+] as const;
+
+const K14_JACKETS = [
+  "Championship 20", "Heroic", "Winner IV", "Championship VIII", "Phoenix III", "Danubio IV",
+  "Eco. Retro", "Líder", "Championship VII", "Eco championship", "Winner III", "Toledo",
+  "Crew V", "Supernova IV", "Winner II", "Campus III", "Supernova III", "Combi premium",
+  "Winner", "Academy IV", "Combi", "Cairo II", "Doha", "Faraón", "Menfis", "Olimpiada",
+  "Academy III", "Gala",
+] as const;
+
+const K14_TRACKSUIT = [
+  "Heroic", "Winner IV", "Phoenix III", "Championship VIII", "Phoenix II", "Danubio IV",
+  "Líder", "Championship VII", "Eco Championship", "Danubio III", "Victory", "Danubio II",
+] as const;
+
+const K610_TSHIRTS_SET = [
+  "Championship 20", "Heroic", "Winner IV", "Toletum VII", "Picasho City", "Tiger VIII",
+  "Inter VI", "Championship VIII", "Phoenix III Set", "Eco-Retro", "Inter V", "Tiger VII",
+  "Toletum VI", "Danubio IV", "Europa VI", "Líder Set", "Winner III", "Toletum V",
+  "Championship VII", "Tiger VI", "Inter III", "Teamwork", "Victory Set", "Toledo", "Lion II",
+  "Tiger IV", "Danubio II", "Tiger V", "Crew V", "Supernova IV", "Montreal", "Campus III",
+  "Europa V", "Flag III", "City II", "Inter II", "Copa II", "Academy IV", "Academy III",
+  "Winner", "Combi", "Combi Premium", "Strong", "Olimpiada", "Inter Classic", "Inter IV",
+] as const;
+
+const K610_JACKETS = [
+  "Championship 20", "Heroic", "Winner IV", "Phoenix III", "Championship VIII", "Eco-Retro",
+  "Danubio IV", "Líder", "Championship VII", "Eco Championship", "Winner III", "Toledo",
+  "Crew V", "Supernova IV", "Campus III", "Supernova III", "Winner II", "Academy IV", "Winner",
+  "Combi", "Cairo II", "Doha", "Menfis", "Faraón", "Olimpiada", "Gala", "Combi Premium",
+] as const;
+
+const K610_TRACKSUIT = [
+  "Heroic", "Winner IV", "Phoenix III", "Championship VIII", "Phoenix II", "Danubio IV",
+  "Líder", "Championship VII", "Eco Championship", "Danubio III", "Victory", "Lion II",
+  "Danubio II", "Academy IV",
+] as const;
+
+const K1214B_TSHIRTS_SET = [
+  "Championship 20", "Heroic", "Heroic Cotton", "Winner IV", "Phoenix III", "Toletum VII",
+  "Picasho City", "Tiger VIII", "Inter VI", "Championship VIII", "New Area Set", "Eco-Retro",
+  "Inter V", "Líder", "Tiger VII", "Toletum VI", "Danubio IV", "Europa VI", "Dinamo",
+  "Victory Set", "Toledo", "Winner III", "Toletum V", "Championship VII", "Tiger VI", "Lion II",
+  "Fit One II", "Proteam II", "Inter III", "Gold VII", "Supernova IV", "Danubio II", "Montreal",
+  "City II", "Europa V", "Tiger V", "Inter II", "Flag III", "Crew V", "Copa II", "Campus III",
+  "Combi", "Combi Premium", "Olimpiada", "Academy III", "Inter IV", "Inter Classic", "Winner",
+  "Academy IV", "Táctica", "Hobby", "Bali III Cotton",
+] as const;
+
+const K1214B_JACKETS = [
+  "Championship 20", "Heroic", "Heroic Cotton", "Phoenix III", "Winner IV", "Championship VIII",
+  "Eco-Retro", "Danubio IV", "Líder", "Winner III", "Championship VII", "Eco Championship",
+  "Toledo", "Winner II", "Crew V", "Supernova IV", "Campus III", "Doha", "Faraón", "Cairo II",
+  "Menfis", "Gala", "Academy IV", "Combi Premium", "Táctica", "Olimpiada", "Winner", "Sena",
+] as const;
+
+const K1214B_TRACKSUIT = [
+  "Heroic", "Winner IV", "Phoenix III", "Championship VIII", "Phoenix II", "Danubio IV",
+  "Líder", "Championship VII", "Eco Championship", "Danubio III", "Victory", "Lion II",
+  "Danubio II", "Academy IV",
+] as const;
+
+const K1214B_RUNNING = [
+  "Picasho City", "Record Pro", "Élite XI", "Élite X", "Élite IX", "Record II", "R-Night",
+  "R-City", "R-Nature", "Básicos", "Pants & Tights",
+] as const;
+
+const K1214B_RUGBY = [
+  "Phoenix III", "Myskin III", "Nation", "Stimulus", "Teamwork", "Skrum", "Olimpiada",
+  "Strong", "Pants", "Accessories",
+] as const;
+
+const K1214B_BASKETBALL = [
+  "Phoenix III", "Final Four Set", "Lider Set", "Cancha", "Final II Set", "Atlanta Set",
+  "Olimpiada Set", "Kansas Set", "Aro (reversible)", "Combi", "Pants", "Accessories",
+] as const;
+
+const K1214B_VOLLEYBALL = [
+  "Championship 20", "Championship VIII", "Dinamo", "Academy IV", "Academy III", "Shorts",
+  "Accessories",
+] as const;
+
+const K1214B_HANDBALL = [
+  "Phoenix III", "Dinamo II", "Dinamo", "Hispa V", "Teamwork", "Olimpiada", "Strong",
+  "Combi", "Combi Premium", "Pants", "Accessories",
+] as const;
+
+const K1214B_RACKET = [
+  "Terra", "Montreal 2026", "Montreal 2025", "Challenge", "Smash", "Básicos of armario",
+  "Palas of pádel", "Palas of Pickleball", "Accessories",
+] as const;
+
+const K1214B_OUTERWEAR = ["Anorak/Jackets", "Chubasqueros/Windbreakers", "Soft Shell/Polar"] as const;
+const K1214B_PANTS = ["Pants corto", "Pants largo", "Leggings", "Pants largo cotton"] as const;
+
+const K1214G_TSHIRTS_SET = [
+  "Championship 20", "Championship VIII", "Heroic", "Heroic Cotton", "Picasho", "Toletum VII",
+  "Líder Set", "Eco championship", "Crew V", "Supernova IV", "Montreal", "Championship VI",
+  "Bali III", "Academy III", "Academy IV", "Combi", "Combi premium", "Phoenix set",
+] as const;
+
+const K1214G_JACKETS = [
+  "Championship 20", "Championship VIII", "Phoenix III", "Winner IV", "Heroic",
+  "Vintage Eco Retro", "Championship VI", "Eco Supernova", "Supernova III", "Eco Championship",
+  "Crew V", "Winner II", "Montreal", "Academy IV",
+] as const;
+
+const K1214G_RUNNING = [
+  "Picasho City", "Record pro", "Elite XI", "Elite X", "Elite IX", "Elite VIII", "Record II",
+  "Basicos", "R-City", "R-Night", "Pants & Tights", "Accessories",
+] as const;
+
+const K1214G_FOOTBALL_TSHIRTS = [
+  "Championship 20", "Heroic", "Picasho City", "Toletum VII", "Tiger VIII", "Inter VI",
+  "Championship VIII", "Phoenix III Set", "Tiger VII", "Danubio IV", "Lider set", "Toletum VI",
+  "Dinamo", "Europa VI", "Inter V", "Victory set", "Danubio III set", "Toletum V", "Tiger VI",
+  "Chanpionship VII", "Fit One II", "Inter III", "Gold VII", "Proteam II", "Winner III",
+  "Lion II", "Crew V", "Europa V", "Eco Championship", "Eco Supernova", "Tiger V", "Flag III",
+  "City II", "Copa II", "Academy IV", "Inter IV", "Inter Classic", "Academy III", "Winner",
+  "Combi", "Olimpiada",
+] as const;
+
+const K1214G_RUGBY = [
+  "Phoenix III", "Myskin III", "Stimulus", "Nation", "Teamwork", "Skrum", "Olimpiada",
+  "Strong", "Pants", "Accessories",
+] as const;
+
+const K1214G_VOLLEY = [
+  "Championship 20", "Championship VIII", "Dinamo", "Supernova IV", "Academy III", "Combi",
+  "Academy IV", "Record II", "Pants", "Accessories",
+] as const;
+
+const K1214G_BASKETBALL = [
+  "Phoenix III", "Final four set", "Líder set", "Cancha", "Final II set", "Atlanta set",
+  "Olimpiada set", "Kansas set (reversible)", "Aro (reversible)", "Combi", "Pants", "Accessories",
+] as const;
+
+const K1214G_HANDBALL = [
+  "Dinamo II", "Dinamo", "Hispa V", "Teamwork", "Olimpiada", "Strong", "Combi",
+  "Combi premium", "Phoenix III", "Pants", "Accessories",
+] as const;
+
+const K1214G_RACKET = [
+  "Terra", "Montreal 2026", "Montreal 2025", "Court", "Olimpiada", "Challenge", "Smash",
+  "Torneo", "Basicos", "Tracksuit & Jackets", "Skirts & Pants", "Accessories",
+  "Palas of Padel", "Palas pickleball",
+] as const;
+
+/** Children top-level age bands from the PDF (parents — first views stay clickable). */
 export const KIDS_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "kids-1-4",
     label: "1 - 4 years",
-    families: ["baby"],
-    pattern: /\b(baby|1\s*-\s*4|infant)\b/,
+    children: [
+      {
+        key: "k14-teamwear",
+        label: "Teamwear",
+        children: [
+          { key: "k14-tw-tshirts", label: "T-shirts & set", children: kidsLeaves("k14-tw-tshirts", K14_TSHIRTS_SET) },
+          { key: "k14-tw-jackets", label: "Jackets & Sweatshirts", children: kidsLeaves("k14-tw-jackets", K14_JACKETS) },
+          { key: "k14-tw-tracksuit", label: "Tracksuit", children: kidsLeaves("k14-tw-tracksuit", K14_TRACKSUIT) },
+          { key: "k14-tw-pants", label: "Pants", children: kidsLeaves("k14-tw-pants", ["Pants cortos", "Pants largos"]) },
+          { key: "k14-tw-tights", label: "Tights" },
+        ],
+      },
+      {
+        key: "k14-outerwear",
+        label: "Outerwear",
+        children: kidsLeaves("k14-outerwear", ["Chubasqueros", "Anoracks/Jackets"]),
+      },
+      { key: "k14-tshirts-polos", label: "T-shirts & polos" },
+      { key: "k14-tracksuit-set", label: "Tracksuit & set" },
+      { key: "k14-sweatshirts-jackets", label: "Sweatshirts & Jackets" },
+      {
+        key: "k14-pants",
+        label: "Pants",
+        children: kidsLeaves("k14-pants", ["Pants cortos", "Pants largos", "Pants of Cotton"]),
+      },
+      { key: "k14-brama", label: "Brama" },
+      { key: "k14-accessories", label: "Accessories" },
+    ],
     cover: "/brand/hub-kids.png",
   },
   {
     key: "kids-6-10",
     label: "6 - 10 years",
-    pattern: /\b(6\s*-\s*10|junior|kids|child)\b/,
+    children: [
+      {
+        key: "k610-teamwear",
+        label: "Teamwear",
+        children: [
+          { key: "k610-tw-tshirts", label: "T-shirts & set", children: kidsLeaves("k610-tw-tshirts", K610_TSHIRTS_SET) },
+          { key: "k610-tw-jackets", label: "Jackets & Sweatshirts", children: kidsLeaves("k610-tw-jackets", K610_JACKETS) },
+          { key: "k610-tw-tracksuit", label: "Tracksuit", children: kidsLeaves("k610-tw-tracksuit", K610_TRACKSUIT) },
+          { key: "k610-tw-pants", label: "Pants", children: kidsLeaves("k610-tw-pants", ["Shorts", "Long pants"]) },
+          { key: "k610-tw-outlet", label: "Outlet" },
+        ],
+      },
+      { key: "k610-outerwear", label: "Outerwear" },
+      { key: "k610-tshirts-polos", label: "T-Shirts & Polos" },
+      { key: "k610-jackets-sweatshirts", label: "Jackets & Sweatshirts" },
+      { key: "k610-set", label: "Set" },
+      { key: "k610-tracksuits", label: "Tracksuits" },
+      { key: "k610-brama", label: "Brama" },
+      {
+        key: "k610-pants-tights",
+        label: "Pants & Tights",
+        children: kidsLeaves("k610-pants-tights", ["Pants corto", "Pants largo", "Leggings", "Pants largo cotton"]),
+      },
+      { key: "k610-outlet", label: "Outlet" },
+      { key: "k610-beachwear", label: "Beachwear" },
+      { key: "k610-accessories", label: "Accessories" },
+      { key: "k610-previous-seasons", label: "Previous seasons" },
+    ],
     cover: "/brand/hub-kids.png",
   },
   {
     key: "kids-12-14-boy",
     label: "12 - 14 years Boy",
-    pattern: /\b(12\s*-\s*14|junior|boy)\b/,
+    children: [
+      {
+        key: "k1214b-teamwear",
+        label: "Teamwear",
+        children: [
+          {
+            key: "k1214b-tw-training",
+            label: "Training",
+            children: [
+              { key: "k1214b-tw-training-tshirts", label: "T-shirts & set", children: kidsLeaves("k1214b-tw-training-tshirts", K1214B_TSHIRTS_SET) },
+              { key: "k1214b-tw-training-jackets", label: "Jackets & Sweatshirts", children: kidsLeaves("k1214b-tw-training-jackets", K1214B_JACKETS) },
+              { key: "k1214b-tw-training-tracksuit", label: "Tracksuit", children: kidsLeaves("k1214b-tw-training-tracksuit", K1214B_TRACKSUIT) },
+            ],
+          },
+          { key: "k1214b-tw-running", label: "Running", children: kidsLeaves("k1214b-tw-running", K1214B_RUNNING) },
+          {
+            key: "k1214b-tw-football",
+            label: "Football / Futsal",
+            children: [
+              { key: "k1214b-tw-football-tshirts", label: "T-shirts & Set", children: kidsLeaves("k1214b-tw-football-tshirts", K1214B_TSHIRTS_SET) },
+              { key: "k1214b-tw-football-pants-corto", label: "Pants corto" },
+              { key: "k1214b-tw-football-medias", label: "Medias" },
+              { key: "k1214b-tw-football-balls", label: "Balls" },
+              { key: "k1214b-tw-football-accessories", label: "Accessories" },
+            ],
+          },
+          {
+            key: "k1214b-tw-portero",
+            label: "Portero",
+            children: kidsLeaves("k1214b-tw-portero", ["Set", "Gloves", "Accessories"]),
+          },
+          { key: "k1214b-tw-rugby", label: "Rugby", children: kidsLeaves("k1214b-tw-rugby", K1214B_RUGBY) },
+          { key: "k1214b-tw-basketball", label: "Basketball", children: kidsLeaves("k1214b-tw-basketball", K1214B_BASKETBALL) },
+          { key: "k1214b-tw-volleyball", label: "Volleyball", children: kidsLeaves("k1214b-tw-volleyball", K1214B_VOLLEYBALL) },
+          { key: "k1214b-tw-handball", label: "Handball", children: kidsLeaves("k1214b-tw-handball", K1214B_HANDBALL) },
+          { key: "k1214b-tw-cricket", label: "Cricket" },
+          { key: "k1214b-tw-outerwear", label: "Outerwear", children: kidsLeaves("k1214b-tw-outerwear", K1214B_OUTERWEAR) },
+          { key: "k1214b-tw-previous-seasons", label: "Previous seasons" },
+        ],
+      },
+      { key: "k1214b-racket", label: "Racket sports", children: kidsLeaves("k1214b-racket", K1214B_RACKET) },
+      { key: "k1214b-outerwear", label: "Outerwear", children: kidsLeaves("k1214b-outerwear", K1214B_OUTERWEAR) },
+      { key: "k1214b-beachwear", label: "Beachwear" },
+      { key: "k1214b-tshirts-polos", label: "T-shirts & Polos" },
+      { key: "k1214b-jackets-sweatshirts", label: "Jackets & Sweatshirts" },
+      { key: "k1214b-tracksuits", label: "Tracksuits" },
+      { key: "k1214b-pants", label: "Pants", children: kidsLeaves("k1214b-pants", K1214B_PANTS) },
+      { key: "k1214b-outlet", label: "Outlet" },
+      { key: "k1214b-brama", label: "Brama" },
+      { key: "k1214b-accessories", label: "Accessories" },
+      { key: "k1214b-outlet-2", label: "Outlet" },
+    ],
     cover: "/brand/hub-kids.png",
   },
   {
     key: "kids-12-14-girl",
     label: "12 - 14 years Girl",
-    pattern: /\b(12\s*-\s*14|junior|girl)\b/,
+    children: [
+      {
+        key: "k1214g-teamwear",
+        label: "Teamwear",
+        children: [
+          {
+            key: "k1214g-tw-training",
+            label: "Training",
+            children: [
+              { key: "k1214g-tw-training-tshirts", label: "T-shirts & Set", children: kidsLeaves("k1214g-tw-training-tshirts", K1214G_TSHIRTS_SET) },
+              { key: "k1214g-tw-training-jackets", label: "Jackets, Sweatshirts & tracksuit", children: kidsLeaves("k1214g-tw-training-jackets", K1214G_JACKETS) },
+              { key: "k1214g-tw-training-pants", label: "Pants", children: kidsLeaves("k1214g-tw-training-pants", ["Pants cortos", "Pants largos"]) },
+              { key: "k1214g-tw-training-tights", label: "Tights" },
+              { key: "k1214g-tw-training-skirts", label: "Skirts" },
+              { key: "k1214g-tw-training-accessories", label: "Accessories" },
+            ],
+          },
+          { key: "k1214g-tw-running", label: "Running", children: kidsLeaves("k1214g-tw-running", K1214G_RUNNING) },
+          {
+            key: "k1214g-tw-football",
+            label: "Football & Futsal",
+            children: [
+              { key: "k1214g-tw-football-tshirts", label: "T-shirts", children: kidsLeaves("k1214g-tw-football-tshirts", K1214G_FOOTBALL_TSHIRTS) },
+              { key: "k1214g-tw-football-pants", label: "Pants" },
+              {
+                key: "k1214g-tw-football-accessories",
+                label: "Accessories",
+                children: kidsLeaves("k1214g-tw-football-accessories", ["Balls", "Accessories of Football"]),
+              },
+            ],
+          },
+          { key: "k1214g-tw-rugby", label: "Rugby", children: kidsLeaves("k1214g-tw-rugby", K1214G_RUGBY) },
+          { key: "k1214g-tw-volley", label: "Volley", children: kidsLeaves("k1214g-tw-volley", K1214G_VOLLEY) },
+          { key: "k1214g-tw-basketball", label: "Basketball", children: kidsLeaves("k1214g-tw-basketball", K1214G_BASKETBALL) },
+          { key: "k1214g-tw-handball", label: "Handball", children: kidsLeaves("k1214g-tw-handball", K1214G_HANDBALL) },
+          { key: "k1214g-tw-cricket", label: "Cricket" },
+          {
+            key: "k1214g-tw-portera",
+            label: "Portera",
+            children: kidsLeaves("k1214g-tw-portera", ["Set", "Gloves", "Accessories"]),
+          },
+          {
+            key: "k1214g-tw-outwear",
+            label: "Outwear",
+            children: kidsLeaves("k1214g-tw-outwear", ["Chubasqueros", "Jackets"]),
+          },
+        ],
+      },
+      { key: "k1214g-racket", label: "Racket sports", children: kidsLeaves("k1214g-racket", K1214G_RACKET) },
+      { key: "k1214g-outerwear", label: "Outerwear", children: kidsLeaves("k1214g-outerwear", ["Chubasqueros", "Jacket"]) },
+      { key: "k1214g-beachwear", label: "Beachwear", children: kidsLeaves("k1214g-beachwear", ["Beachwear", "Accessories"]) },
+      { key: "k1214g-tshirts-polos", label: "T-shirts & Polos" },
+      { key: "k1214g-jackets-sweatshirts", label: "Jackets & Sweatshirts" },
+      { key: "k1214g-tracksuit-set", label: "Tracksuit & Set" },
+      { key: "k1214g-pants-tights", label: "Pants & Tights", children: kidsLeaves("k1214g-pants-tights", ["Pants cortos", "Pants largos", "Casual", "Tights"]) },
+      { key: "k1214g-skirts-dresses", label: "Skirts & Dresses" },
+      { key: "k1214g-underwear-brama", label: "Underwear & Brama" },
+      { key: "k1214g-accessories", label: "Accessories" },
+    ],
     cover: "/brand/hub-kids.png",
+  },
+];
+
+/* ─── Accessories (PDF Accessories — 14 leaves, `acc`-prefixed keys) ─── */
+
+export const ACCESSORIES_FOLDERS: readonly JomaFolderDef[] = [
+  {
+    key: "accessories",
+    label: "Accessories",
+    children: [
+      { key: "acc-balls", label: "Balls", sub: "balls", families: ["balls"], pattern: /\bballs?\b/ },
+      { key: "acc-gloves-portero", label: "Gloves portero", sub: "gk-gloves", families: ["gloves", "goalkeeper gloves"], pattern: /\b(glove|goalkeeper)\b/ },
+      { key: "acc-backpacks", label: "Backpacks", sub: "bags", families: ["backpack", "backpacks", "bag"], pattern: /\bbackpacks?\b/ },
+      { key: "acc-medias", label: "Medias", families: ["medias"], pattern: /\bmedias\b/ },
+      { key: "acc-socks", label: "Socks", sub: "socks", families: ["socks"], pattern: /\bsocks\b/ },
+      { key: "acc-teamwear", label: "Accessories teamwear", families: ["teamwear accessories"], pattern: /\bteamwear\b.{0,24}\baccessories\b/ },
+      { key: "acc-running", label: "Accessories running", sub: "accessories", families: ["running accessories"], pattern: /\brunning\b.{0,24}\baccessories\b/ },
+      { key: "acc-racket", label: "Accessories of Racket", families: ["racket", "rackets"], pattern: /\brackets?\b/ },
+      { key: "acc-palas-padel", label: "Palas of pádel", families: ["pala", "palas", "padel"], pattern: /\b(palas?|padel)\b/ },
+      { key: "acc-palas-pickleball", label: "Palas of Pickleball", families: ["pickleball"], pattern: /\bpickleball\b/ },
+      { key: "acc-outdoor", label: "Accessories Outdoor", families: ["outdoor"], pattern: /\boutdoor\b/ },
+      { key: "acc-fitness-gym", label: "Accessories Fitness / Gym", families: ["fitness accessories", "gym accessories"], pattern: /\b(fitness|gym)\b.{0,24}\baccessories\b/ },
+      { key: "acc-tiendas", label: "Accessories tiendas" },
+      { key: "acc-teamwear-catalogue", label: "Teamwear Catalogue" },
+    ],
+  },
+];
+
+/* ─── Outlet (PDF Outlet — 18 leaves, `outlet`-prefixed keys) ─── */
+
+export const OUTLET_FOLDERS: readonly JomaFolderDef[] = [
+  {
+    key: "outlet",
+    label: "Outlet",
+    children: [
+      { key: "outlet-promotions", label: "Promotions" },
+      { key: "outlet-footwear", label: "Footwear", families: ["outlet"], pattern: /\boutlet\b/ },
+      { key: "outlet-apparel-byear", label: "Apparel of byear" },
+      { key: "outlet-sweatshirt-jacket", label: "Sweatshirt / Jacket", pattern: /\b(sweatshirts?|hoodie|jackets?)\b/ },
+      { key: "outlet-tshirt-top", label: "T-shirt / Top", pattern: /\b(t-shirts?|tees?|tops?|polos?|jerseys?)\b/ },
+      { key: "outlet-pants-shorts", label: "Pants / Shorts", pattern: /\b(pants|shorts|bermuda)\b/ },
+      { key: "outlet-anorak", label: "Anorak", pattern: /\banoraks?\b/ },
+      { key: "outlet-tracksuit", label: "Tracksuit", pattern: /\btracksuits?\b/ },
+      { key: "outlet-junior", label: "Junior", pattern: /\b(junior|kids|child)\b/ },
+      { key: "outlet-price-199-299", label: "1.99 - 2.99" },
+      { key: "outlet-price-299-399", label: "2.99 - 3.99" },
+      { key: "outlet-price-399-499", label: "3.99 - 4.99" },
+      { key: "outlet-price-499-599", label: "4.99 - 5.99" },
+      { key: "outlet-price-599-699", label: "5.99 - 6.99" },
+      { key: "outlet-price-699-799", label: "6.99 - 7.99" },
+      { key: "outlet-price-799-1099", label: "7.99 - 10.99" },
+      { key: "outlet-price-1099-1599", label: "10.99 - 15.99" },
+      { key: "outlet-price-from-1599", label: "From 15.99" },
+    ],
   },
 ];
 
@@ -1231,6 +2212,7 @@ export const KIDS_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
 
 const KITS_REPLICA_CLUBS: readonly JomaFolderDef[] = [
   { key: "kit-getafe", label: "Getafe", families: ["getafe"], pattern: /\bgetafe\b/ },
+  { key: "kit-getafe-26-27", label: "Getafe 26/27", families: ["getafe"], pattern: /\bgetafe\b/ },
   { key: "kit-swansea-26-27", label: "Swansea 26/27", families: ["swansea"], pattern: /\bswansea\b/ },
   { key: "kit-norwich-26-27", label: "Norwich 26/27", families: ["norwich"], pattern: /\bnorwich\b/ },
   { key: "kit-villareal", label: "Villareal", families: ["villareal"], pattern: /\bvillareal\b/ },
@@ -1279,7 +2261,7 @@ const KITS_FEDERATIONS: readonly JomaFolderDef[] = [
   { key: "kit-fed-rugby", label: "Fed. Esp. Rugby", pattern: /\bfed\b.{0,25}\brugby\b|\brugby\b.{0,25}\bfed\b/ },
   { key: "kit-fed-handball", label: "Fed. Esp. Handball", pattern: /\bfed\b.{0,25}\bhandball\b|\bhandball\b.{0,25}\bfed\b/ },
   { key: "kit-fed-honduras", label: "Federation Football Honduras", pattern: /\bhonduras\b/ },
-  { key: "kit-fed-sala", label: "Federation Football Sala", pattern: /\bfederation\b/ },
+  { key: "kit-fed-sala", label: "Federation of Football Sala of España", pattern: /\bfederation\b/ },
   { key: "kit-fed-fitp", label: "FITP", pattern: /\bfitp\b/ },
   { key: "kit-fed-fidal", label: "FIDAL", pattern: /\bfidal\b/ },
 ];
@@ -1319,8 +2301,11 @@ function indexFolder(folder: JomaFolderDef) {
 for (const f of FOOTWEAR_FOLDERS) indexFolder(f);
 for (const f of KIDS_FOOTWEAR_FOLDERS) indexFolder(f);
 for (const f of APPAREL_FOLDERS) indexFolder(f);
+for (const f of WOMAN_APPAREL_FOLDERS) indexFolder(f);
 for (const f of KIDS_APPAREL_FOLDERS) indexFolder(f);
 for (const f of OFFICIAL_KITS_FOLDERS) indexFolder(f);
+for (const f of ACCESSORIES_FOLDERS) indexFolder(f);
+for (const f of OUTLET_FOLDERS) indexFolder(f);
 for (const f of FOOTBALL_SURFACES) indexFolder(f);
 for (const f of TEAMWEAR_CHILDREN) indexFolder(f);
 
@@ -1336,8 +2321,11 @@ function indexParents(folder: JomaFolderDef, parentKey?: string) {
 for (const f of FOOTWEAR_FOLDERS) indexParents(f);
 for (const f of KIDS_FOOTWEAR_FOLDERS) indexParents(f);
 for (const f of APPAREL_FOLDERS) indexParents(f);
+for (const f of WOMAN_APPAREL_FOLDERS) indexParents(f);
 for (const f of KIDS_APPAREL_FOLDERS) indexParents(f);
 for (const f of OFFICIAL_KITS_FOLDERS) indexParents(f);
+for (const f of ACCESSORIES_FOLDERS) indexParents(f);
+for (const f of OUTLET_FOLDERS) indexParents(f);
 
 /** All known Joma browse folder keys (for listing filters). */
 export function isJomaBrowseFolder(key: string) {
@@ -1365,9 +2353,13 @@ export function jomaFolderSiblings(key: string): readonly JomaFolderDef[] {
   const parentKey = JOMA_FOLDER_PARENT.get(key);
   if (!parentKey) {
     if (APPAREL_FOLDERS.some((f) => f.key === key)) return APPAREL_FOLDERS;
+    if (WOMAN_APPAREL_FOLDERS.some((f) => f.key === key)) return WOMAN_APPAREL_FOLDERS;
     if (FOOTWEAR_FOLDERS.some((f) => f.key === key)) return FOOTWEAR_FOLDERS;
     if (KIDS_APPAREL_FOLDERS.some((f) => f.key === key)) return KIDS_APPAREL_FOLDERS;
     if (KIDS_FOOTWEAR_FOLDERS.some((f) => f.key === key)) return KIDS_FOOTWEAR_FOLDERS;
+    if (ACCESSORIES_FOLDERS.some((f) => f.key === key)) return ACCESSORIES_FOLDERS;
+    if (OUTLET_FOLDERS.some((f) => f.key === key)) return OUTLET_FOLDERS;
+    if (OFFICIAL_KITS_FOLDERS.some((f) => f.key === key)) return OFFICIAL_KITS_FOLDERS;
     return [];
   }
   return jomaFolderByKey(parentKey)?.children ?? [];
@@ -1375,9 +2367,12 @@ export function jomaFolderSiblings(key: string): readonly JomaFolderDef[] {
 
 /** Root mid-folders for an audience or footwear browse landing. */
 export function jomaRootFoldersForAudience(
-  audience: "men" | "women" | "kids" | "footwear",
+  audience: "men" | "women" | "kids" | "footwear" | "accessories" | "outlet",
 ): readonly JomaFolderDef[] {
   if (audience === "kids") return KIDS_APPAREL_FOLDERS;
   if (audience === "footwear") return FOOTWEAR_FOLDERS;
+  if (audience === "women") return WOMAN_APPAREL_FOLDERS;
+  if (audience === "accessories") return ACCESSORIES_FOLDERS;
+  if (audience === "outlet") return OUTLET_FOLDERS;
   return APPAREL_FOLDERS;
 }

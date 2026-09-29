@@ -31,6 +31,7 @@ import {
   FOOTWEAR_FOLDERS,
   KIDS_APPAREL_FOLDERS,
   KIDS_FOOTWEAR_FOLDERS,
+  apparelFoldersForAudience,
   folderMatchesProduct,
   hasJomaFolderIndex,
   jomaFolderByKey,
@@ -537,7 +538,7 @@ export function audienceHubGroups(
   if (!hubSlug) {
     const apparelPool = items.filter((p) => !isStorefrontFootwear(p));
     return tilesFromJomaFolders(
-      APPAREL_FOLDERS,
+      apparelFoldersForAudience(audience),
       apparelPool,
       (folder) => {
         if (folder.children?.length) {

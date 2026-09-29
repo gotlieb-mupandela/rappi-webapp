@@ -21,7 +21,7 @@ Men → Teamwear → Outerwear → Soft Shell / Polar → products
 | Leaf folders | `/shop/men?group=outerwear` | Fewer tiles left-aligned + siblings |
 | Products | `/shop/men?group=soft-shell-polar` | Title `[n]`, collection tabs, ruled sections, hover matrix |
 
-Women uses the same apparel tree (`/shop/women?group=…`). Footwear uses `/shop/shoes` / `/category/shoes` with `FOOTWEAR_FOLDERS`.
+Women uses audience-scoped apparel roots where Part B differs (`teamwear-woman`, `running-trail-woman`, `racket-sports-woman`, `fitness-gym-woman`, `lifestyle-apparel-woman`, `underwear-brama-woman`; `/shop/women?group=…`). Footwear uses `/shop/shoes` / `/category/shoes` with `FOOTWEAR_FOLDERS`. Accessories (`accessories` → `acc-*`) and Outlet (`outlet` → `outlet-*`) are real folder trees; Kids age bands are parents with full Part B subtrees.
 
 ---
 
