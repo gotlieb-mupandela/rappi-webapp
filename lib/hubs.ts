@@ -859,12 +859,13 @@ export function outletLandingTiles(catalog: Product[] = bundled) {
     let imageSrc = "";
     if (tile.kind === "photo") {
       imageSrc = imageForProductIds(tile.productIds, catalog);
-      if (!imageSrc && tile.hub === "shoes") {
-        imageSrc = footwearLandingImage(undefined, catalog, tile.label === "FOOTWEAR");
-      } else if (!imageSrc && tile.hub) {
+      const footwearTile = tile.hub === "shoes" || tile.label === "FOOTWEAR";
+      if (!imageSrc && footwearTile) {
+        imageSrc = footwearLandingImage(undefined, catalog, true);
+      } else if (!imageSrc && tile.hub && !tile.productIds?.length) {
         imageSrc = landingTileImage(tile.hub, undefined, "men", catalog);
       }
-      if (!imageSrc) {
+      if (!imageSrc && footwearTile) {
         imageSrc = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
       }
     }
