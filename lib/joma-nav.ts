@@ -105,8 +105,6 @@ export function jomaFootwearLandingTiles(): FootwearLandingTileDef[] {
       label: "OUTLET",
       labelKey: "tiles.outlet",
       href: "/shop/shoes?group=footwear-outlet",
-      banner: "SPECIAL OFFERS",
-      bannerKey: "group.shoes.offersBanner",
     },
   ];
 }
@@ -577,7 +575,7 @@ export type OutletLandingTileDef = {
   /** i18n key resolving the label at render (falls back to label). */
   labelKey?: string;
   href: string;
-  /** photo = product cover; category = orange OUTLET graphic; price = red OUTLET graphic. */
+  /** photo = product cover; category = orange card; price = red card. */
   kind: "photo" | "category" | "price";
   /** Overlay strip on photo tiles. */
   banner?: string;
