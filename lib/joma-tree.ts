@@ -539,6 +539,123 @@ const COTTON_COLLECTIONS = collectionLeaves("cotton", [
   { key: "oasis", label: "Oasis", families: ["oasis", "oasis ii"] },
 ]);
 
+/* ─── Teamwear Set collections (PDF Man Teamwear → Set) ─── */
+
+const TEAMWEAR_SET_COLLECTIONS: readonly JomaFolderDef[] = [
+  { key: "tw-set-new-area", label: "Set New Area", families: ["set new area"], pattern: /\bset new area\b/ },
+  { key: "tw-set-phoenix-iii", label: "Set Phoenix III", families: ["set phoenix iii", "phoenix iii set"], pattern: /\b(set phoenix iii|phoenix iii set)\b/ },
+  { key: "tw-set-lider", label: "Set Lider", families: ["set lider", "lider set"], pattern: /\b(set lider|lider set)\b/ },
+  { key: "tw-set-liga-pro", label: "Set Liga Pro", families: ["set liga pro", "liga pro"], pattern: /\b(set liga pro|liga pro)\b/ },
+  { key: "tw-set-victory", label: "Set Victory", families: ["set victory", "victory set"], pattern: /\b(set victory|victory set)\b/ },
+  { key: "tw-set-danubio-iii", label: "Set Danubio III", families: ["set danubio iii", "danubio iii set"], pattern: /\b(set danubio iii|danubio iii set)\b/ },
+  { key: "tw-set-inter-classic", label: "Set Inter Classic", families: ["set inter classic", "inter classic"], pattern: /\b(set inter classic|inter classic)\b/ },
+  { key: "tw-set-phoenix", label: "Set Phoenix", families: ["set phoenix", "phoenix set"], pattern: /\b(set phoenix|phoenix set)\b/ },
+];
+
+/* ─── Entrenador children (PDF Man Teamwear → Entrenador) ─── */
+
+const COACH_CHILDREN: readonly JomaFolderDef[] = [
+  { key: "coach-pasarela", label: "Pasarela", families: ["pasarela"], pattern: /\bpasarela\b/ },
+  { key: "coach-bali-ii", label: "Bali II", families: ["bali ii"], pattern: /\bbali ii\b/ },
+  { key: "coach-confort-classic", label: "Confort classic", families: ["confort classic"], pattern: /\bconfort classic\b/ },
+  { key: "coach-bali-iii", label: "Bali III", families: ["bali iii"], pattern: /\bbali iii\b/ },
+  { key: "coach-hobby", label: "Hobby", families: ["hobby"], pattern: /\bhobby\b/ },
+  {
+    key: "coach-arbitro",
+    label: "Árbitro",
+    families: ["arbitro", "referee"],
+    // Catch-all preserves the previous flat Entrenador matches (coach/entrenador
+    // products without a more specific collection below).
+    pattern: /\b(arbitro|árbitro|referee|coach|entrenador)\b/,
+  },
+];
+
+/* ─── Portero children (PDF Man Teamwear → Portero) ─── */
+
+const KEEPER_CHILDREN: readonly JomaFolderDef[] = [
+  {
+    key: "keeper-set",
+    label: "Set",
+    families: ["keeper set"],
+    pattern: /\bkeeper set\b|\bset\b.{0,24}\b(keeper|portero|goalkeeper|goalie)\b|\b(keeper|portero|goalkeeper|goalie)\b.{0,24}\bset\b/,
+  },
+  {
+    key: "keeper-gloves",
+    label: "Gloves",
+    sub: "gk-gloves",
+    families: ["gloves", "goalkeeper gloves"],
+    pattern: /\b(glove|goalkeeper)\b/,
+  },
+  {
+    key: "keeper-accessories",
+    label: "Accessories",
+    // Catch-all preserves the previous flat Portero matches.
+    pattern: /\b(portero|portera|goalkeeper|goalie)\b/,
+  },
+];
+
+/* ─── Football / Futsal apparel collections (PDF Man/Woman Teamwear) ─── */
+
+const FOOTBALL_TSHIRT_COLLECTIONS: readonly JomaFolderDef[] = [
+  { key: "twfb-championship-20", label: "Championship 20", families: ["championship 20"], pattern: /\bchampionship 20\b/ },
+  { key: "twfb-heroic", label: "Heroic", families: ["heroic"], pattern: /\bheroic\b/ },
+  { key: "twfb-winner-iv", label: "Winner IV", families: ["winner iv"], pattern: /\bwinner iv\b/ },
+  { key: "twfb-inter-vi", label: "Inter VI", families: ["inter vi"], pattern: /\binter vi\b/ },
+  { key: "twfb-tiger-viii", label: "Tiger VIII", families: ["tiger viii"], pattern: /\btiger viii\b/ },
+  { key: "twfb-picasho-city", label: "Picasho City", families: ["picasho city", "picasho"], pattern: /\bpicasho(\s+city)?\b/ },
+  { key: "twfb-toletum-vii", label: "Toletum VII", families: ["toletum vii"], pattern: /\btoletum vii\b/ },
+  { key: "twfb-championship-viii", label: "Championship VIII", families: ["championship viii"], pattern: /\bchampionship viii\b/ },
+  { key: "twfb-eco-retro", label: "Eco-Retro", families: ["eco-retro", "eco retro"], pattern: /\beco[-. ]?retro\b/ },
+  { key: "twfb-inter-v", label: "Inter V", families: ["inter v"], pattern: /\binter v\b/ },
+  { key: "twfb-tiger-vii", label: "Tiger VII", families: ["tiger vii"], pattern: /\btiger vii\b/ },
+  { key: "twfb-toletum-vi", label: "Toletum VI", families: ["toletum vi"], pattern: /\btoletum vi\b/ },
+  { key: "twfb-europa-vi", label: "Europa VI", families: ["europa vi"], pattern: /\beuropa vi\b/ },
+  { key: "twfb-danubio-iv", label: "Danubio IV", families: ["danubio iv"], pattern: /\bdanubio iv\b/ },
+  { key: "twfb-dinamo", label: "Dinamo", families: ["dinamo"], pattern: /\bdinamo\b/ },
+  { key: "twfb-winner-iii", label: "Winner III", families: ["winner iii"], pattern: /\bwinner iii\b/ },
+  { key: "twfb-championship-vii", label: "Championship VII", families: ["championship vii"], pattern: /\bchampionship vii\b/ },
+  { key: "twfb-toledo", label: "Toledo", families: ["toledo"], pattern: /\btoledo\b/ },
+  { key: "twfb-lion-ii", label: "Lion II", families: ["lion ii"], pattern: /\blion ii\b/ },
+  { key: "twfb-toletum-v", label: "Toletum V", families: ["toletum v"], pattern: /\btoletum v\b/ },
+  { key: "twfb-tiger-vi", label: "Tiger VI", families: ["tiger vi"], pattern: /\btiger vi\b/ },
+  { key: "twfb-fit-one-ii", label: "Fit One II", families: ["fit one ii"], pattern: /\bfit one ii\b/ },
+  { key: "twfb-proteam", label: "Proteam", families: ["proteam", "proteam ii"], pattern: /\bproteam\b/ },
+  { key: "twfb-inter-iii", label: "Inter III", families: ["inter iii"], pattern: /\binter iii\b/ },
+  { key: "twfb-gold-vii", label: "Gold VII", families: ["gold vii"], pattern: /\bgold vii\b/ },
+  { key: "twfb-city-ii", label: "City II", families: ["city ii"], pattern: /\bcity ii\b/ },
+  { key: "twfb-inter-ii", label: "Inter II", families: ["inter ii"], pattern: /\binter ii\b/ },
+  { key: "twfb-pisa-ii", label: "Pisa II", families: ["pisa ii"], pattern: /\bpisa ii\b/ },
+  { key: "twfb-europa-v", label: "Europa V", families: ["europa v"], pattern: /\beuropa v\b/ },
+  { key: "twfb-crew-v", label: "Crew V", families: ["crew v"], pattern: /\bcrew v\b/ },
+  { key: "twfb-flag-iii", label: "Flag III", families: ["flag iii"], pattern: /\bflag iii\b/ },
+  { key: "twfb-supernova-iv", label: "Supernova IV", families: ["supernova iv"], pattern: /\bsupernova iv\b/ },
+  { key: "twfb-tiger-v", label: "Tiger V", families: ["tiger v"], pattern: /\btiger v\b/ },
+  { key: "twfb-inter-classic", label: "Inter Classic", families: ["inter classic"], pattern: /\binter classic\b/ },
+  { key: "twfb-inter-iv", label: "Inter IV", families: ["inter iv"], pattern: /\binter iv\b/ },
+  { key: "twfb-olimpiada", label: "Olimpiada", families: ["olimpiada"], pattern: /\bolimpiada\b/ },
+  { key: "twfb-academy-iii", label: "Academy III", families: ["academy iii"], pattern: /\bacademy iii\b/ },
+  { key: "twfb-academy-iv", label: "Academy IV", families: ["academy iv"], pattern: /\bacademy iv\b/ },
+  { key: "twfb-combi", label: "Combi", families: ["combi"], pattern: /\bcombi\b/ },
+  { key: "twfb-combi-premium", label: "Combi Premium", families: ["combi premium"], pattern: /\bcombi premium\b/ },
+  { key: "twfb-eventos", label: "Eventos", families: ["eventos"], pattern: /\beventos\b/ },
+  { key: "twfb-winner", label: "Winner", families: ["winner"], pattern: /\bwinner\b/ },
+  { key: "twfb-championship-2-0", label: "Championship 2.0", families: ["championship 2.0"], pattern: /\bchampionship 2\.0\b/ },
+  { key: "twfb-eco-championship", label: "Eco Championship", families: ["eco championship"], pattern: /\beco championship\b/ },
+  { key: "twfb-winner-ii", label: "Winner II", families: ["winner ii"], pattern: /\bwinner ii\b/ },
+  { key: "twfb-championship-vi", label: "Championship VI", families: ["championship vi"], pattern: /\bchampionship vi\b/ },
+];
+
+const FOOTBALL_SET_COLLECTIONS: readonly JomaFolderDef[] = [
+  { key: "twfs-new-area", label: "Set New Area", families: ["set new area", "new area set"], pattern: /\b(new area set|set new area)\b/ },
+  { key: "twfs-phoenix-iii", label: "Set Phoenix III", families: ["set phoenix iii", "phoenix iii set"], pattern: /\b(set phoenix iii|phoenix iii set)\b/ },
+  { key: "twfs-lider", label: "Set Lider", families: ["set lider", "lider set"], pattern: /\b(set lider|lider set)\b/ },
+  { key: "twfs-liga-pro", label: "Set Liga Pro", families: ["set liga pro", "liga pro"], pattern: /\b(set liga pro|liga pro)\b/ },
+  { key: "twfs-victory", label: "Set Victory", families: ["set victory", "victory set"], pattern: /\b(set victory|victory set)\b/ },
+  { key: "twfs-danubio-iii", label: "Set Danubio III", families: ["set danubio iii", "danubio iii set"], pattern: /\b(set danubio iii|danubio iii set)\b/ },
+  { key: "twfs-inter-classic", label: "Set Inter Classic", families: ["set inter classic", "inter classic"], pattern: /\b(set inter classic|inter classic)\b/ },
+  { key: "twfs-phoenix", label: "Set Phoenix", families: ["set phoenix", "phoenix set"], pattern: /\b(set phoenix|phoenix set)\b/ },
+];
+
 const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
   {
     key: "training-polyester",
@@ -586,8 +703,40 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
   {
     key: "tw-football",
     label: "Football / Futsal",
-    pattern: /\b(football|futsal|toletum|tiger|inter |europa|dinamo|proteam|fit one|gold vii|flag iii|pisa)\b/,
-    families: ["football", "futsal", "inter vi", "tiger viii", "toletum vii", "dinamo"],
+    children: [
+      {
+        key: "tw-football-tshirts",
+        label: "T-shirt",
+        children: FOOTBALL_TSHIRT_COLLECTIONS,
+      },
+      {
+        key: "tw-football-sets",
+        label: "Set",
+        children: FOOTBALL_SET_COLLECTIONS,
+      },
+    ],
+  },
+  {
+    key: "tw-set",
+    label: "Set",
+    children: TEAMWEAR_SET_COLLECTIONS,
+  },
+  {
+    key: "tw-pants-corto",
+    label: "Pants corto",
+    families: ["pants corto"],
+    pattern: /\bpants corto\b/,
+  },
+  {
+    key: "tw-medias",
+    label: "Medias",
+    families: ["medias"],
+    pattern: /\bmedias\b/,
+  },
+  {
+    key: "tw-accessories",
+    label: "Accessories",
+    pattern: /\b(cap|hat|visor|beanie|glove|socks)\b/,
   },
   {
     key: "tw-basketball",
@@ -624,14 +773,12 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
   {
     key: "tw-coach",
     label: "Entrenador",
-    families: ["entrenador", "pasarela", "arbitro", "árbitro"],
-    pattern: /\b(entrenador|coach|arbitro|referee)\b/,
+    children: COACH_CHILDREN,
   },
   {
     key: "tw-keeper",
     label: "Portero",
-    families: ["portero", "portera", "gloves"],
-    pattern: /\b(portero|portera|goalkeeper)\b/,
+    children: KEEPER_CHILDREN,
   },
   {
     key: "tw-cricket",
@@ -1077,6 +1224,91 @@ export const KIDS_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   },
 ];
 
+/* ─── Official Kits (PDF Official Kits — Réplicas, Federations, Special Editions) ───
+ * Club leaves match team names in product names; leaves without catalog
+ * evidence still render as tiles (empty allowed).
+ */
+
+const KITS_REPLICA_CLUBS: readonly JomaFolderDef[] = [
+  { key: "kit-getafe", label: "Getafe", families: ["getafe"], pattern: /\bgetafe\b/ },
+  { key: "kit-swansea-26-27", label: "Swansea 26/27", families: ["swansea"], pattern: /\bswansea\b/ },
+  { key: "kit-norwich-26-27", label: "Norwich 26/27", families: ["norwich"], pattern: /\bnorwich\b/ },
+  { key: "kit-villareal", label: "Villareal", families: ["villareal"], pattern: /\bvillareal\b/ },
+  { key: "kit-villarreal-26-27", label: "Villarreal 26/27", families: ["villarreal"], pattern: /\bvillarreal\b/ },
+  { key: "kit-inter-jp", label: "Inter JP Financial FS", families: ["inter jp"], pattern: /\binter(\s|-)jp\b/ },
+  { key: "kit-inter-jp-26-27", label: "Inter JP Financial FS 26/27", families: ["inter jp"], pattern: /\binter(\s|-)jp\b/ },
+  { key: "kit-hellas-verona", label: "Hellas Verona", families: ["hellas verona"], pattern: /\bhellas verona\b/ },
+  { key: "kit-hellas-25-26", label: "Hellas Verona 25/26", families: ["hellas verona"], pattern: /\bhellas verona\b/ },
+  { key: "kit-hellas-26-27", label: "Hellas Verona 26/27", families: ["hellas verona"], pattern: /\bhellas verona\b/ },
+  { key: "kit-hoffenheim", label: "Hoffenheim", families: ["hoffenheim"], pattern: /\bhoffenheim\b/ },
+  { key: "kit-anderlecht", label: "Anderlecht", families: ["anderlecht"], pattern: /\banderlecht\b/ },
+  { key: "kit-unicaja", label: "Unicaja Málaga", families: ["unicaja", "unicaja málaga"], pattern: /\bunicaja\b/ },
+  { key: "kit-unicaja-26-27", label: "Unicaja Málaga 26/27", families: ["unicaja"], pattern: /\bunicaja\b/ },
+  { key: "kit-torino-outlet", label: "TORINO Outlet", families: ["torino"], pattern: /\btorino\b/ },
+  { key: "kit-torino-26-27", label: "Torino 26/27", families: ["torino"], pattern: /\btorino\b/ },
+  { key: "kit-pescara-outlet", label: "Pescara Calcio Outlet", families: ["pescara"], pattern: /\bpescara\b/ },
+  { key: "kit-pescara-26-27", label: "Pescara Calcio 26/27", families: ["pescara"], pattern: /\bpescara\b/ },
+  { key: "kit-leganes", label: "Leganés", families: ["leganes", "leganés"], pattern: /\blegan[eé]s\b/ },
+  { key: "kit-joventut", label: "Joventut of Badalona", families: ["joventut", "badalona"], pattern: /\b(joventut|badalona)\b/ },
+  { key: "kit-joventut-26-27", label: "Joventut of Badalona 26/27", families: ["joventut"], pattern: /\bjoventut\b/ },
+  { key: "kit-brentford-25-26", label: "Brentford 25/26", families: ["brentford"], pattern: /\bbrentford\b/ },
+  { key: "kit-brentford-26-27", label: "Brentford 26/27", families: ["brentford"], pattern: /\bbrentford\b/ },
+  { key: "kit-munchen-25-26", label: "TSV 1860 Munchen 25/26", families: ["munchen", "tsv 1860 munchen"], pattern: /\b(munchen|münchen)\b/ },
+  { key: "kit-munchen-26-27", label: "TSV 1860 Munchen 26/27", families: ["munchen"], pattern: /\b(munchen|münchen)\b/ },
+  { key: "kit-murcia-26-27", label: "The Pozo Murcia 26/27", families: ["murcia", "pozo murcia"], pattern: /\bmurcia\b/ },
+  { key: "kit-lorient", label: "Lorient", families: ["lorient"], pattern: /\blorient\b/ },
+  { key: "kit-lorient-26-27", label: "Lorient 26/27", families: ["lorient"], pattern: /\blorient\b/ },
+  { key: "kit-juarez", label: "FC Juarez", families: ["juarez", "juárez"], pattern: /\bju[aá]rez\b/ },
+  { key: "kit-juarez-25-26", label: "FC Juarez 25/26", families: ["juarez"], pattern: /\bju[aá]rez\b/ },
+  { key: "kit-juarez-26-27", label: "FC Juarez 26/27", families: ["juarez"], pattern: /\bju[aá]rez\b/ },
+  { key: "kit-fiorentina-26-27", label: "ACF Fiorentina 26/27", families: ["fiorentina"], pattern: /\bfiorentina\b/ },
+  { key: "kit-sociedad-26-27", label: "Real Sociedad 26/27", families: ["sociedad"], pattern: /\bsociedad\b/ },
+  { key: "kit-marathon-25-26", label: "Marathon 25/26", families: ["marathon"], pattern: /\bmarathon\b/ },
+  { key: "kit-ranchers", label: "Texas Ranchers", families: ["ranchers", "texas ranchers"], pattern: /\branchers\b/ },
+  { key: "kit-vegas", label: "The Vegas Lights", families: ["vegas lights", "vegas"], pattern: /\bvegas\b/ },
+  { key: "kit-perugia-26-27", label: "Perugia Calcio 26/27", families: ["perugia"], pattern: /\bperugia\b/ },
+  { key: "kit-trabzonspor-26-27", label: "Trabzonspor 26/27", families: ["trabzonspor"], pattern: /\btrabzonspor\b/ },
+];
+
+const KITS_FEDERATIONS: readonly JomaFolderDef[] = [
+  { key: "kit-fed-rfea", label: "R.F.E.A.", pattern: /\br\.?\s?f\.?\s?e\.?\s?a\.?\b|\brfea\b/ },
+  { key: "kit-fed-rumania", label: "Fed. Football Rumanía", pattern: /\bruman[ií]a\b/ },
+  { key: "kit-fed-rumania-2025", label: "Fed. Football Rumanía 2025", pattern: /\bruman[ií]a\b/ },
+  { key: "kit-fed-coe", label: "C.O.E", pattern: /\bcoe\b/ },
+  { key: "kit-fed-coe-winter", label: "COE JJOO Invierno", pattern: /\b(jjoo|invierno)\b/ },
+  { key: "kit-fed-rugby", label: "Fed. Esp. Rugby", pattern: /\bfed\b.{0,25}\brugby\b|\brugby\b.{0,25}\bfed\b/ },
+  { key: "kit-fed-handball", label: "Fed. Esp. Handball", pattern: /\bfed\b.{0,25}\bhandball\b|\bhandball\b.{0,25}\bfed\b/ },
+  { key: "kit-fed-honduras", label: "Federation Football Honduras", pattern: /\bhonduras\b/ },
+  { key: "kit-fed-sala", label: "Federation Football Sala", pattern: /\bfederation\b/ },
+  { key: "kit-fed-fitp", label: "FITP", pattern: /\bfitp\b/ },
+  { key: "kit-fed-fidal", label: "FIDAL", pattern: /\bfidal\b/ },
+];
+
+const KITS_SPECIAL: readonly JomaFolderDef[] = [
+  { key: "kit-sp-ss27", label: "Special Editions SS27", pattern: /\bss27\b/ },
+  { key: "kit-sp-football", label: "Football / Futsal" },
+  { key: "kit-sp-running", label: "Running" },
+  { key: "kit-sp-padel", label: "Pádel" },
+  { key: "kit-sp-pickleball", label: "Pickleball" },
+  { key: "kit-sp-pedroche", label: "Cristina Pedroche Barefoot", pattern: /\bpedroche\b/ },
+  { key: "kit-sp-mundial", label: "Football Retro Mundial 2026", pattern: /\bmundial 2026\b/ },
+  { key: "kit-sp-superman", label: "Superman collection", pattern: /\bsuperman\b/ },
+  { key: "kit-sp-trail", label: "Team Trail", pattern: /\bteam trail\b/ },
+];
+
+/** Official Kits top hub (PDF Official Kits) for the teamwear kits drill-down. */
+export const OFFICIAL_KITS_FOLDERS: readonly JomaFolderDef[] = [
+  {
+    key: "official-kits",
+    label: "Official Kits",
+    children: [
+      { key: "kits-replicas", label: "Réplicas of sponsor", children: KITS_REPLICA_CLUBS },
+      { key: "kits-federations", label: "Federations and Committees", children: KITS_FEDERATIONS },
+      { key: "kits-special", label: "Special Editions", children: KITS_SPECIAL },
+    ],
+  },
+];
+
 const ALL_FOLDERS: JomaFolderDef[] = [];
 
 function indexFolder(folder: JomaFolderDef) {
@@ -1088,6 +1320,7 @@ for (const f of FOOTWEAR_FOLDERS) indexFolder(f);
 for (const f of KIDS_FOOTWEAR_FOLDERS) indexFolder(f);
 for (const f of APPAREL_FOLDERS) indexFolder(f);
 for (const f of KIDS_APPAREL_FOLDERS) indexFolder(f);
+for (const f of OFFICIAL_KITS_FOLDERS) indexFolder(f);
 for (const f of FOOTBALL_SURFACES) indexFolder(f);
 for (const f of TEAMWEAR_CHILDREN) indexFolder(f);
 
@@ -1104,6 +1337,7 @@ for (const f of FOOTWEAR_FOLDERS) indexParents(f);
 for (const f of KIDS_FOOTWEAR_FOLDERS) indexParents(f);
 for (const f of APPAREL_FOLDERS) indexParents(f);
 for (const f of KIDS_APPAREL_FOLDERS) indexParents(f);
+for (const f of OFFICIAL_KITS_FOLDERS) indexParents(f);
 
 /** All known Joma browse folder keys (for listing filters). */
 export function isJomaBrowseFolder(key: string) {

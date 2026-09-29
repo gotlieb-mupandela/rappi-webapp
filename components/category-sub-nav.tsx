@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
+import { isJomaBrowseFolder } from "@/lib/joma-tree";
 
 export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const pathname = usePathname();
@@ -29,6 +30,10 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const activeSub = params.get("sub");
   const viewAll = params.get("view") === "all";
   const onShop = pathname.startsWith(`/shop/${slug}`);
+
+  // Joma folder drill-downs show the folder sibling strip instead.
+  const group = params.get("group");
+  if (group && group !== "all" && isJomaBrowseFolder(group)) return null;
 
   // Footwear folder landings (audience tiles + sport folders) have no type strip.
   // Show Boots / Sneakers / … only on product lists (`sub` or `view=all`).

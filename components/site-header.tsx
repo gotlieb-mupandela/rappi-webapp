@@ -445,6 +445,7 @@ export function SiteHeader({
         {!open ? (
           <Suspense fallback={null}>
             <CategorySubNav taxonomy={taxonomy} />
+            <FolderSubNav />
           </Suspense>
         ) : null}
       </header>
