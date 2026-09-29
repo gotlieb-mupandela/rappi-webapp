@@ -10,7 +10,12 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useT } from "@/components/locale-provider";
 import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
 import { hubName } from "@/lib/i18n/labels";
-import { jomaAudienceLinks, jomaOfficialKitsLinks, jomaOutletLinks } from "@/lib/joma-nav";
+import {
+  jomaAccessoriesLinks,
+  jomaAudienceLinks,
+  jomaOfficialKitsLinks,
+  jomaOutletLinks,
+} from "@/lib/joma-nav";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import { CategorySubNav } from "@/components/category-sub-nav";
@@ -32,23 +37,8 @@ type NavKey =
 
 type UnderLink = { href: string; label: string };
 
-/** Exact Joma B2B ACCESSORIES dropdown labels → RAPPI shop routes. */
-const JOMA_ACCESSORIES_LINKS: UnderLink[] = [
-  { label: "Balls", href: "/shop/balls-bags?sub=balls" },
-  { label: "Goalkeeper gloves", href: "/shop/football?sub=gk-gloves" },
-  { label: "Backpacks", href: "/shop/balls-bags?sub=bags" },
-  { label: "Socks", href: "/shop/balls-bags?sub=socks" },
-  { label: "Socks", href: "/shop/balls-bags?sub=socks" },
-  { label: "Teamwear accessories", href: "/teamwear" },
-  { label: "Running accessories", href: "/shop/running-fitness?sub=accessories" },
-  { label: "Racket Accessories", href: "/shop/balls-bags?sub=rackets" },
-  { label: "Padel rackets", href: "/shop/padel?sub=rackets" },
-  { label: "Pickleball paddles", href: "/shop/balls-bags?sub=rackets" },
-  { label: "Outdoor accessories", href: "/shop/hiking" },
-  { label: "Fitness / Gym Accessories", href: "/shop/running-fitness" },
-  { label: "Accessories stores", href: "/store" },
-  { label: "Teamwear Catalogue", href: "/shop/teampro-2026" },
-];
+/** Part B Accessories dropdown — folder-backed destinations (shared with landing). */
+const JOMA_ACCESSORIES_LINKS: UnderLink[] = jomaAccessoriesLinks();
 
 export function SiteHeader({
   taxonomy,
@@ -208,16 +198,16 @@ export function SiteHeader({
     men: jomaAudienceLinks("men"),
     women: jomaAudienceLinks("women"),
     kids: [
-      { label: "1-4 years", href: "/shop/kids?age=1-4" },
-      { label: "6-10 years", href: "/shop/kids?age=6-10" },
-      { label: "12-14 year old boy", href: "/shop/kids?age=12-14&gender=boy" },
-      { label: "12-14 year old girl", href: "/shop/kids?age=12-14&gender=girl" },
+      { label: "1-4 years", href: "/shop/kids?group=kids-1-4" },
+      { label: "6-10 years", href: "/shop/kids?group=kids-6-10" },
+      { label: "12-14 year old boy", href: "/shop/kids?group=kids-12-14-boy" },
+      { label: "12-14 year old girl", href: "/shop/kids?group=kids-12-14-girl" },
     ],
     shoes: [
       { label: "Men", href: "/shop/shoes?audience=men" },
       { label: "Women", href: "/shop/shoes?audience=women" },
       { label: "Kids", href: "/shop/shoes?audience=kids" },
-      { label: "Outlet", href: "/promotions" },
+      { label: "Outlet", href: "/shop/shoes?group=footwear-outlet" },
     ],
     teamwear: jomaOfficialKitsLinks(),
     accessories: JOMA_ACCESSORIES_LINKS,
