@@ -2,6 +2,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import raw from "../data/products.json";
+import fixData from "../data/b2c-price-fix-data.json";
+import mapBData from "../data/b2c-map-b.json";
 import { productAudience } from "../lib/audience";
 import { withStorefrontCategories, withStorefrontMerchandising } from "../lib/classify";
 import { productCardImageCandidates, withProductImages } from "../lib/media";
@@ -15,6 +17,44 @@ const catalogDest = join(root, "data", "products.json");
 const navDest = join(root, "data", "storefront-nav.json");
 const listingDest = join(root, "public", "listing-index.json");
 const listingOnly = process.argv.includes("--listing-only");
+
+/**
+ * Pack-policy enforcement. data/b2c-price-fix-data.json + data/b2c-map-b.json
+ * are the audited sources of truth for pack NAD and hidden packs. The daily
+ * stock sync manages `available` by stock level (and could drift prices), so
+ * every bake re-pins policy prices and re-hides policy packs first — the
+ * guardrail (scripts/check-pack-prices.mjs) asserts the same afterwards.
+ */
+function enforcePackPolicy(catalog: Product[]) {
+  const fix = fixData as {
+    pack_price_overrides?: Array<{ code: string; pack_nad: number }>;
+    hidden_packs?: Array<{ code: string }>;
+  };
+  const mapB = mapBData as { prices?: Record<string, number> };
+  const priceByCode = new Map<string, number>();
+  for (const o of fix.pack_price_overrides ?? []) priceByCode.set(o.code, o.pack_nad);
+  for (const [code, nad] of Object.entries(mapB.prices ?? {})) priceByCode.set(code, nad);
+  const hidden = new Set((fix.hidden_packs ?? []).map((s) => s.code));
+  let pinned = 0;
+  let rehidden = 0;
+  for (const p of catalog) {
+    const nad = priceByCode.get(p.code);
+    if (nad !== undefined && Number.isInteger(nad) && (p.price !== nad || p.unitPrice !== nad)) {
+      p.price = nad;
+      p.unitPrice = nad;
+      pinned++;
+    }
+    if (hidden.has(p.code) && p.available !== false) {
+      p.available = false;
+      rehidden++;
+    }
+  }
+  if (pinned || rehidden) {
+    console.log(`pack policy enforced (prices pinned: ${pinned}, re-hidden: ${rehidden})`);
+  }
+}
+
+enforcePackPolicy(raw as Product[]);
 
 function toListingItem(product: Product): ListingItem {
   const candidates = productCardImageCandidates(product).slice(0, 3);

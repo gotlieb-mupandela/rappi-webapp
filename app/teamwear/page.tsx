@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { PageHeader } from "@/components/page-header";
+import { ProductGrid } from "@/components/product-grid";
 import { TeamwearIntro } from "@/components/teamwear-intro";
 import { TeamwearQuoteForm } from "@/components/teamwear-quote-form";
 import { officialKitsLandingTiles, teamsLandingTiles } from "@/lib/hubs";
+import {
+  isJomaBrowseFolder,
+  jomaFolderAncestorKeys,
+  jomaFolderByKey,
+  productsInJomaFolder,
+} from "@/lib/joma-tree";
+import { buildListing, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const metadata: Metadata = {
@@ -47,6 +55,59 @@ export default async function TeamwearPage({
   }
 
   if (view === "kits") {
+    const group = firstSearchParam(sp.group);
+    const catalog = await getCatalog();
+    // Official Kits drill-down: mid node → club/federation tiles,
+    // leaf node → product listing (hub-agnostic, kits span hubs).
+    if (group && isJomaBrowseFolder(group)) {
+      const node = jomaFolderByKey(group);
+      const ancestors = jomaFolderAncestorKeys(group);
+      const crumbs = [
+        { href: "/", key: "common.home" as const },
+        { href: "/teamwear?view=kits", key: "nav.officialKits" as const },
+        ...ancestors.map((key) => ({
+          href: `/teamwear?view=kits&group=${encodeURIComponent(key)}`,
+          sub: key,
+        })),
+        { sub: group },
+      ];
+      if (node?.children?.length) {
+        const tiles = node.children.map((child) => {
+          const sample = productsInJomaFolder(child.key)[0];
+          return {
+            label: child.label,
+            href: `/teamwear?view=kits&group=${encodeURIComponent(child.key)}`,
+            imageSrc: sample?.imageUrl ?? "",
+          };
+        });
+        return (
+          <div className="bg-white">
+            <PageHeader
+              crumbs={crumbs}
+              titleKey="nav.officialKits"
+              titleSub={group}
+            />
+            <div className="page-shell pb-10 pt-1 sm:pb-12 sm:pt-3">
+              <AudienceLandingGrid tiles={tiles} variant="kits" />
+            </div>
+          </div>
+        );
+      }
+      const listing = buildListing(catalog, parseListingQuery({ group }));
+      return (
+        <div className="bg-white">
+          <PageHeader
+            crumbs={crumbs}
+            titleKey="nav.officialKits"
+            titleSub={group}
+            titleCount={listing.total}
+          />
+          <div className="page-shell pb-10 pt-1 sm:pb-12 sm:pt-3">
+            <ProductGrid products={listing.products} grouped />
+          </div>
+        </div>
+      );
+    }
     const tiles = officialKitsLandingTiles();
     return (
       <div className="bg-white">

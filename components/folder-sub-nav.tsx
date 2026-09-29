@@ -35,6 +35,8 @@ function hrefForFolder(folder: JomaFolderDef, basePath: string, audience?: strin
   } else {
     params.set("group", folder.key);
   }
+  // Teamwear kits drill-down keeps its view param (/teamwear?view=kits&group=…).
+  if (basePath.includes("?")) return `${basePath}&${params.toString()}`;
   return `${basePath}?${params.toString()}`;
 }
 
@@ -53,12 +55,14 @@ export function FolderSubNav() {
   const hub = CATEGORIES.find(
     (c) => pathname === `/shop/${c.slug}` || pathname === `/category/${c.slug}`,
   )?.slug;
-  if (!audienceFromPath && !hub) return null;
+  const kitsDrill = pathname === "/teamwear";
+  if (!audienceFromPath && !hub && !kitsDrill) return null;
 
   const audienceQuery = params.get("audience") || undefined;
-  const basePath = audienceFromPath
-    ? `/shop/${audienceFromPath}`
-    : `/shop/${hub}`;
+  const kitsBase =
+    kitsDrill && params.get("view") === "kits" ? "/teamwear?view=kits" : undefined;
+  if (!audienceFromPath && !hub && !kitsBase) return null;
+  const basePath = kitsBase ?? (audienceFromPath ? `/shop/${audienceFromPath}` : `/shop/${hub}`);
   const audienceParam =
     !audienceFromPath && audienceQuery ? audienceQuery : undefined;
 
