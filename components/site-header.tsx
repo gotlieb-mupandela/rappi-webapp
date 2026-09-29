@@ -10,7 +10,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useT } from "@/components/locale-provider";
 import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
 import { hubName } from "@/lib/i18n/labels";
-import { jomaAudienceLinks, jomaOutletLinks } from "@/lib/joma-nav";
+import { jomaAudienceLinks, jomaOfficialKitsLinks, jomaOutletLinks } from "@/lib/joma-nav";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import { CategorySubNav } from "@/components/category-sub-nav";
@@ -219,11 +219,7 @@ export function SiteHeader({
       { label: "Kids", href: "/shop/shoes?audience=kids" },
       { label: "Outlet", href: "/promotions" },
     ],
-    teamwear: [
-      { label: "Sponsor replicas", href: "/shop/teampro-2026" },
-      { label: "Committees and Federations", href: "/teamwear?view=quote" },
-      { label: "Special Editions", href: "/promotions?view=all" },
-    ],
+    teamwear: jomaOfficialKitsLinks(),
     accessories: JOMA_ACCESSORIES_LINKS,
     /** Exact Joma B2B OUTLET dropdown labels → RAPPI shop / promotions routes. */
     outlet: jomaOutletLinks(),
