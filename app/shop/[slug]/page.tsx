@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { FolderGrid } from "@/components/folder-grid";
+import { NoStockBody } from "@/components/no-stock-body";
 import { PageHeader } from "@/components/page-header";
+import { TLink } from "@/components/t-link";
+import { Translated } from "@/components/translated";
 import {
   AUDIENCES,
   CATEGORIES,
@@ -21,11 +24,14 @@ import {
   audienceLandingTiles,
   footwearLandingTiles,
   kidsLandingTiles,
+  sportSeriesFolders,
   subcategoryHubGroups,
   jomaFolderAncestorKeys,
   jomaFolderHasChildren,
   type HubFolderTile,
 } from "@/lib/hubs";
+import { isSportHub } from "@/lib/hub-membership";
+import { isJomaBrowseFolder } from "@/lib/joma-tree";
 import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
@@ -256,7 +262,15 @@ export default async function ShopListingPage({
     }
   }
 
-  const showFolders = folders.length > 0;
+  const seriesFolders =
+    !audienceFromPath && !groupKey && !subKey && isSportHub(hubSlug) && !viewAll && wantTypeFolders
+      ? sportSeriesFolders(hubSlug, catalog).filter(
+          (tile) => !folders.some((folder) => folder.key === tile.key),
+        )
+      : [];
+
+  const showFolders = folders.length > 0 || seriesFolders.length > 0;
+  const jomaLeafEmpty = Boolean(groupKey && isJomaBrowseFolder(groupKey));
   const listing = audienceFromPath
     ? buildListing(catalog, { ...query, audience: audienceFromPath.slug })
     : buildListing(catalog, query, { categorySlug: hubSlug });
@@ -352,10 +366,35 @@ export default async function ShopListingPage({
         }
       >
         {showFolders ? (
-          <FolderGrid
-            folders={folders}
-            slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
-          />
+          <div className="space-y-8">
+            {folders.length ? (
+              <FolderGrid
+                folders={folders}
+                slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
+              />
+            ) : null}
+            {seriesFolders.length ? (
+              <div className={folders.length ? "border-t border-[var(--border)] pt-8" : undefined}>
+                <FolderGrid
+                  folders={seriesFolders}
+                  slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
+                />
+              </div>
+            ) : null}
+          </div>
+        ) : isSportHub(hubSlug) && !groupKey && !subKey && listing.total === 0 ? (
+          <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
+            <p className="font-[family-name:var(--font-oswald)] text-2xl uppercase text-ink">
+              <Translated k="shop.noStockTitle" />
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+              <NoStockBody hubSlug={hubSlug} />
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <TLink href="/category/sportswear" k="home.shopSportswear" />
+              <TLink href="/search" k="common.browseCatalog" variant="outline" />
+            </div>
+          </section>
         ) : (
           <CatalogBrowser
             initialListing={listing}
@@ -367,6 +406,7 @@ export default async function ShopListingPage({
             showCategoryFilter={false}
             showAudienceFilter={false}
             showLayoutToggle
+            emptyQuiet={jomaLeafEmpty}
             emptyTitleKey={audienceFromPath ? "shop.emptyAudience" : "shop.emptyHub"}
             emptyKind={audienceFromPath ? "audience" : "hub"}
             emptySlug={audienceFromPath ? audienceFromPath.slug : hubSlug}

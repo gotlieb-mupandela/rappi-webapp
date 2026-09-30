@@ -339,9 +339,14 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   },
   {
     slug: "trail-running",
-    test: (name, family) =>
-      /^(trail running|trail man|trail woman|r-trail)/.test(family) ||
-      (/\b(trail running|r-trail)\b/.test(`${name} ${family}`) && !isApparelName(name)),
+    test: (name, family) => {
+      // Item family "r-trail" is also the apparel line (R-Trail shirts and pants).
+      if (isApparelName(name)) return false;
+      return (
+        /^(trail running|trail man|trail woman|r-trail)/.test(family) ||
+        /\b(trail running|r-trail)\b/.test(`${name} ${family}`)
+      );
+    },
   },
   {
     slug: "tennis-shoes",
@@ -351,9 +356,10 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   },
   {
     slug: "padel-shoes",
-    test: (name, family) =>
-      /padel/.test(family) ||
-      (/\b(padel|p[aá]del)\b/.test(`${name} ${family}`) && !isApparelName(name)),
+    test: (name, family) => {
+      if (isApparelName(name)) return false;
+      return /padel/.test(family) || /\b(padel|p[aá]del)\b/.test(`${name} ${family}`);
+    },
   },
   {
     slug: "pickleball-shoes",
@@ -379,15 +385,17 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   },
   {
     slug: "outdoor-shoes",
-    test: (name, family) =>
-      family === "outdoor" ||
-      (/\boutdoor\b/.test(family) && !isApparelName(name)),
+    test: (name, family) => {
+      if (isApparelName(name) || /\b(fleece|soft-?shell|overall)\b/.test(name)) return false;
+      return family === "outdoor";
+    },
   },
   {
     slug: "hockey-shoes",
-    test: (name, family) =>
-      family === "hockey" ||
-      (/\bhockey\b/.test(`${name} ${family}`) && !isApparelName(name)),
+    test: (name, family) => {
+      if (isApparelName(name)) return false;
+      return family === "hockey" || /\bhockey\b/.test(`${name} ${family}`);
+    },
   },
   {
     slug: "volleyball-shoes",
@@ -476,10 +484,13 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   {
     slug: "jackets",
     test: (name, family) =>
-      /\b(jacket|anorak|raincoat|windbreaker|soft shell|parka)\b/.test(name) ||
+      /\b(jacket|anorak|raincoat|windbreaker|soft-?shell|fleece|overall|parka)\b/.test(name) ||
       family.includes("jacket") ||
       family.includes("anorak") ||
-      family.includes("raincoat"),
+      family.includes("raincoat") ||
+      family.includes("fleece") ||
+      family.includes("softshell") ||
+      family.includes("soft shell"),
   },
   {
     slug: "sets",
@@ -500,7 +511,7 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   {
     slug: "pants",
     test: (name, family) =>
-      /\b(pant|trouser|sweatpant)\b/.test(name) ||
+      /\b(pants?|trousers?|sweatpants?)\b/.test(name) ||
       family.includes("pant") ||
       family.includes("trouser"),
   },
@@ -604,10 +615,24 @@ export function classifyStorefrontSubcategory(
         "football-sg",
       ]);
       if (shoeOnly.has(rule.slug) && category !== "shoes" && category !== "football") {
-        if (rule.slug.startsWith("football") || rule.slug === "futsal" || rule.slug === "turf") {
-          if (category !== "football" && category !== "shoes") continue;
-        } else if (category !== "shoes") {
-          continue;
+        const sportShoeHubs: Record<string, readonly string[]> = {
+          "hockey-shoes": ["hockey"],
+          "padel-shoes": ["padel"],
+          "outdoor-shoes": ["hiking"],
+          "basketball-shoes": ["basketball"],
+          "running-shoes": ["running-fitness"],
+          "trail-running": ["running-fitness", "hiking"],
+          "training-shoes": ["running-fitness"],
+          sneakers: ["lifestyle"],
+          "tennis-shoes": ["padel"],
+        };
+        const allowedOnHub = sportShoeHubs[rule.slug]?.includes(category);
+        if (!allowedOnHub) {
+          if (rule.slug.startsWith("football") || rule.slug === "futsal" || rule.slug === "turf") {
+            if (category !== "football" && category !== "shoes") continue;
+          } else if (category !== "shoes") {
+            continue;
+          }
         }
       }
       if (rule.slug === "boots" && category !== "football" && category !== "shoes") continue;

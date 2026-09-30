@@ -44,7 +44,7 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const subs = (taxonomy[slug] ?? []).filter(
     (s) => s.count > 0 && SUBCATEGORY_LABELS[s.slug] && !HIDDEN_TYPE_FOLDERS.has(s.slug),
   );
-  if (subs.length < 2) return null;
+  if (!subs.length) return null;
 
   return (
     <nav className="border-t border-black/8 bg-white">

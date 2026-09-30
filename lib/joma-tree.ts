@@ -113,7 +113,14 @@ function leafMatchesProduct(
   blob: string,
 ): boolean {
   if (folder.category && product.category !== folder.category) return false;
-  if (folder.apparelOnly && isStorefrontFootwear(product)) return false;
+  // Apparel trees (teamwear, running, hiking, racket, …) are not shoe folders.
+  // A boot named Toledo must stay on Footwear, not the T-shirt collection.
+  if (
+    isStorefrontFootwear(product) &&
+    (folder.apparelOnly || folderUnderApparelRoot(folder.key))
+  ) {
+    return false;
+  }
   if (folder.sport && !productMatchesSport(product, folder.sport, blob)) return false;
   if (folder.sub && product.subcategory === folder.sub) return true;
   if (exactFamilyIn(fam, folder.exactFamilies)) return true;
@@ -175,6 +182,140 @@ export function hasJomaFolderIndex() {
  * Index every product into Joma browse folders once at catalog load.
  * Turns O(catalog × folders × regex) page work into O(1) membership checks.
  */
+const SEASON_PARENTS = new Set([
+  "running-trail",
+  "running-trail-woman",
+  "cycling",
+  "racket-sports",
+  "racket-sports-woman",
+  "hiking-outdoor",
+  "fitness-gym",
+  "fitness-gym-woman",
+  "lifestyle-apparel",
+  "lifestyle-apparel-woman",
+]);
+
+let apparelRootKeys: Set<string> | null = null;
+
+function apparelRoots() {
+  if (!apparelRootKeys) {
+    apparelRootKeys = new Set([
+      ...APPAREL_FOLDERS.map((folder) => folder.key),
+      ...WOMAN_APPAREL_FOLDERS.map((folder) => folder.key),
+    ]);
+  }
+  return apparelRootKeys;
+}
+
+/** True when this folder sits in a Man/Woman apparel tree (not Footwear). */
+function folderUnderApparelRoot(key: string) {
+  let cur: string | undefined = key;
+  while (cur) {
+    if (apparelRoots().has(cur)) return true;
+    cur = JOMA_FOLDER_PARENT.get(cur);
+  }
+  return false;
+}
+
+function directChildOf(leafKey: string, parentKey: string) {
+  let cur: string | undefined = leafKey;
+  let child: string | undefined;
+  while (cur && cur !== parentKey) {
+    child = cur;
+    cur = JOMA_FOLDER_PARENT.get(cur);
+  }
+  return cur === parentKey ? child : undefined;
+}
+
+function familyMatchScore(folder: JomaFolderDef, fam: string) {
+  let best = 0;
+  const n = normLabel(fam);
+  for (const raw of folder.exactFamilies ?? []) {
+    const token = normLabel(raw);
+    if (token && n === token) best = Math.max(best, 400 + token.length);
+  }
+  for (const raw of folder.families ?? []) {
+    const token = normLabel(raw);
+    if (!token) continue;
+    if (n === token) best = Math.max(best, 300 + token.length);
+    else if (n.startsWith(`${token} `) || n.endsWith(` ${token}`)) {
+      best = Math.max(best, 200 + token.length);
+    }
+  }
+  return best;
+}
+
+/**
+ * Season trees list the same line under New / In stock / Previous.
+ * Without a season field, keep the most specific folder (R-City Fall beats
+ * R-City) and, on a tie, the earlier season so one drop is not tiled twice.
+ */
+function resolveSeasonLeaves(leaves: JomaFolderDef[], fam: string, blob: string) {
+  const parents = new Set<string>();
+  for (const leaf of leaves) {
+    let cur = JOMA_FOLDER_PARENT.get(leaf.key);
+    while (cur) {
+      if (SEASON_PARENTS.has(cur)) parents.add(cur);
+      const parent = JOMA_FOLDER_PARENT.get(cur);
+      if (parent && SEASON_PARENTS.has(parent)) parents.add(cur);
+      if (SEASON_PARENTS.has(cur)) break;
+      cur = parent;
+    }
+  }
+  const depth = (key: string) => {
+    let n = 0;
+    let cur = JOMA_FOLDER_PARENT.get(key);
+    while (cur) {
+      n += 1;
+      cur = JOMA_FOLDER_PARENT.get(cur);
+    }
+    return n;
+  };
+  let kept = leaves;
+  for (const parentKey of [...parents].sort((a, b) => depth(b) - depth(a))) {
+    const parent = JOMA_FOLDER_BY_KEY.get(parentKey);
+    if (!parent?.children?.length) continue;
+    const involved = kept.filter((leaf) => directChildOf(leaf.key, parentKey));
+    if (involved.length < 2) continue;
+    const byChild = new Map<string, JomaFolderDef[]>();
+    for (const leaf of involved) {
+      const child = directChildOf(leaf.key, parentKey);
+      if (!child) continue;
+      const group = byChild.get(child);
+      if (group) group.push(leaf);
+      else byChild.set(child, [leaf]);
+    }
+    if (byChild.size < 2) continue;
+    let winner = "";
+    let winnerScore = -1;
+    let winnerIndex = Number.POSITIVE_INFINITY;
+    for (const [child, group] of byChild) {
+      const score = Math.max(
+        ...group.map((leaf) => {
+          const familyScore = familyMatchScore(leaf, fam);
+          const patternScore =
+            leaf.pattern && leaf.pattern.test(blob) ? 100 + leaf.pattern.source.length : 0;
+          return Math.max(familyScore, patternScore);
+        }),
+      );
+      const index = parent.children.findIndex((childFolder) => childFolder.key === child);
+      const order = index === -1 ? Number.POSITIVE_INFINITY : index;
+      if (score > winnerScore || (score === winnerScore && order < winnerIndex)) {
+        winner = child;
+        winnerScore = score;
+        winnerIndex = order;
+      }
+    }
+    const drop = new Set(
+      involved
+        .filter((leaf) => directChildOf(leaf.key, parentKey) !== winner)
+        .map((leaf) => leaf.key),
+    );
+    kept = kept.filter((leaf) => !drop.has(leaf.key));
+  }
+  return kept;
+}
+
 export function indexCatalogIntoJomaFolders(catalog: Product[]) {
   const byFolder = new Map<string, Product[]>();
   const byProduct = new Map<string, Set<string>>();
@@ -196,8 +337,11 @@ export function indexCatalogIntoJomaFolders(catalog: Product[]) {
   for (const product of catalog) {
     const fam = itemFamilyOf(product);
     const blob = `${fam} ${product.displayName} ${product.name} ${product.title}`.toLowerCase();
+    const matched: JomaFolderDef[] = [];
     for (const leaf of leaves) {
-      if (!leafMatchesProduct(leaf, product, fam, blob)) continue;
+      if (leafMatchesProduct(leaf, product, fam, blob)) matched.push(leaf);
+    }
+    for (const leaf of resolveSeasonLeaves(matched, fam, blob)) {
       let key: string | undefined = leaf.key;
       while (key) {
         push(key, product);
@@ -216,6 +360,19 @@ export function jomaFolderByKey(key: string) {
 
 export function jomaFolderHasChildren(key: string) {
   return Boolean(jomaFolderByKey(key)?.children?.length);
+}
+
+/**
+ * Teamwear Pro 2026 is the same leaf list under Man and Woman on Joma
+ * (“shows all the Football products”). Unisex kit belongs on both.
+ */
+export function jomaFolderIsSharedAudience(key: string) {
+  let cur: string | undefined = key;
+  while (cur) {
+    if (cur === "teamwear-pro-2026") return true;
+    cur = JOMA_FOLDER_PARENT.get(cur);
+  }
+  return false;
 }
 
 /* ─── Footwear (PDF pp. 28–30) — shared Man/Woman sport folders ─── */

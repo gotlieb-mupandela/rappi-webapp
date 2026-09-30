@@ -17,6 +17,7 @@ const catalogDest = join(root, "data", "products.json");
 const navDest = join(root, "data", "storefront-nav.json");
 const listingDest = join(root, "public", "listing-index.json");
 const listingOnly = process.argv.includes("--listing-only");
+const indexesOnly = process.argv.includes("--indexes-only");
 
 /**
  * Pack-policy enforcement. data/b2c-price-fix-data.json + data/b2c-map-b.json
@@ -95,10 +96,17 @@ function writeListingIndex(catalog: Product[]) {
   console.log(`baked listing index (${listingIndex.length}) → ${listingDest}`);
 }
 
-if (listingOnly) {
-  writeListingIndex(
-    withStorefrontCategories((raw as Product[]).map(withProductImages)).filter(isAvailable),
+if (listingOnly || indexesOnly) {
+  const classified = withStorefrontCategories((raw as Product[]).map(withProductImages)).filter(
+    isAvailable,
   );
+  if (indexesOnly) {
+    const taxonomy = buildTaxonomy(classified);
+    const categoryCounts = categoryCountsFromTaxonomy(taxonomy);
+    writeFileSync(navDest, `${JSON.stringify({ taxonomy, categoryCounts })}\n`);
+    console.log(`baked storefront nav → ${navDest}`);
+  }
+  writeListingIndex(classified);
   process.exit(0);
 }
 

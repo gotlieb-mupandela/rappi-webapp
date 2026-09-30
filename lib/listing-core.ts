@@ -1,10 +1,11 @@
-import { matchesAudience, productAudience } from "@/lib/audience";
+import { matchesAudienceInFolder, productAudience } from "@/lib/audience";
 import {
   AUDIENCES,
   CATEGORIES,
   HIDDEN_TYPE_FOLDERS,
   SUBCATEGORY_LABELS,
   matchesTypeFolder,
+  subcategoryChipRank,
 } from "@/lib/catalog";
 import { hasUsableProductImage } from "@/lib/classify";
 import {
@@ -185,7 +186,7 @@ export function filterListing(
         return false;
       }
     }
-    if (audience && !matchesAudience(p, audience)) return false;
+    if (audience && !matchesAudienceInFolder(p, audience, jomaGroup || undefined)) return false;
     if (size && !p.sizes.some((s) => s.size === size && s.stock > 0)) return false;
     if (Number.isFinite(max) && p.price > max) return false;
     return true;
@@ -228,7 +229,11 @@ function facetSubs(list: ListingItem[]): ListingFacet[] {
       name: SUBCATEGORY_LABELS[slug] ?? slug,
       count,
     }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    .sort(
+      (a, b) =>
+        subcategoryChipRank(a.slug) - subcategoryChipRank(b.slug) ||
+        a.name.localeCompare(b.name),
+    );
 }
 
 function facetSizes(list: ListingItem[]): string[] {
@@ -285,8 +290,9 @@ export function buildListing(
   const beforeAudience = audience
     ? filterListing(catalog, { ...query, audience: undefined }, opts)
     : null;
+  const groupKey = query.group && query.group !== "all" ? query.group : "";
   const filtered = beforeAudience
-    ? beforeAudience.filter((p) => matchesAudience(p, audience))
+    ? beforeAudience.filter((p) => matchesAudienceInFolder(p, audience, groupKey))
     : filterListing(catalog, query, opts);
   const result = paginateListing(filtered, query, opts?.pageSize ?? LISTING_PAGE_SIZE);
   if (beforeAudience) result.facets.audiences = facetAudiences(beforeAudience);

@@ -29,6 +29,7 @@ export function CatalogFilters({
   showAudienceFilter = true,
   emptyTitle,
   emptyBody,
+  emptyQuiet = false,
   children,
   onNavigate,
   showLayoutToggle,
@@ -44,6 +45,8 @@ export function CatalogFilters({
   showAudienceFilter?: boolean;
   emptyTitle?: string;
   emptyBody?: string;
+  /** Joma empty leaf: keep the listing chrome, no filter-error box. */
+  emptyQuiet?: boolean;
   children?: ReactNode;
   onNavigate?: (href: string) => void;
   showLayoutToggle?: boolean;
@@ -313,14 +316,18 @@ export function CatalogFilters({
           </div>
         ) : null}
         {listing.total === 0 ? (
-          <div className="border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-20 text-center">
-            <p className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase tracking-wide text-ink">
-              {emptyTitle ?? t("search.noProducts")}
-            </p>
-            <p className="mx-auto mt-3 max-w-sm text-sm text-[var(--muted)]">
-              {emptyBody ?? t("search.noProductsBody")}
-            </p>
-          </div>
+          emptyQuiet ? (
+            <div className="min-h-[42vh]" />
+          ) : (
+            <div className="border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-20 text-center">
+              <p className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase tracking-wide text-ink">
+                {emptyTitle ?? t("search.noProducts")}
+              </p>
+              <p className="mx-auto mt-3 max-w-sm text-sm text-[var(--muted)]">
+                {emptyBody ?? t("search.noProductsBody")}
+              </p>
+            </div>
+          )
         ) : (
           <>
             {children ?? (

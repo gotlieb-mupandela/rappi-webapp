@@ -24,6 +24,7 @@ import {
   isKidsProduct,
   isKidsShoe,
   matchesAudience,
+  matchesAudienceInFolder,
   productAudience,
 } from "@/lib/audience";
 import {
@@ -416,7 +417,7 @@ export function jomaChildFolderGroups(
   const hubSlug = opts?.categorySlug;
   const audience = opts?.audience;
   let pool = hubSlug ? productsByCategory(hubSlug, catalog) : catalog;
-  if (audience) pool = pool.filter((p) => matchesAudience(p, audience));
+  if (audience) pool = pool.filter((p) => matchesAudienceInFolder(p, audience, groupKey));
   const footwearParent =
     FOOTWEAR_FOLDERS.some((f) => f.key === groupKey) ||
     parent.children.some(
@@ -459,6 +460,34 @@ export function jomaChildFolderGroups(
     { includeEmpty: true },
   );
 }
+/**
+ * Joma series / season folder for a sport hub's second section.
+ * Men and women trees differ where the PDF forks them; the unscoped sport
+ * hub uses the man tree (woman drill-down lives under /shop/women).
+ */
+const SPORT_SERIES_FOLDER: Partial<Record<string, string>> = {
+  rugby: "tw-rugby",
+  football: "tw-football",
+  basketball: "tw-basketball",
+  "running-fitness": "running-trail",
+  padel: "racket-sports",
+  hiking: "hiking-outdoor",
+  swimming: "tw-swimming",
+  cricket: "tw-cricket",
+  boxing: "athletes-combat",
+};
+
+/** Series tiles under a sport hub (Phoenix III, R-City, football T-shirt, …). */
+export function sportSeriesFolders(hubSlug: string, catalog: Product[] = bundled): HubFolderTile[] {
+  const key = SPORT_SERIES_FOLDER[hubSlug];
+  if (!key || !jomaFolderHasChildren(key)) return [];
+  // Scope series tiles to this sport. Shared collection names (Phoenix, Championship)
+  // also match other hubs; the sport page should only count its own stock.
+  const tiles = jomaChildFolderGroups(key, catalog, { categorySlug: hubSlug });
+  if (!tiles.some((tile) => tile.count > 0)) return [];
+  return tiles;
+}
+
 /**
  * Top-level folder tiles for a category shop landing.
  * Shoes → PDF Footwear tree; brama/rugby curated; sportswear → PDF apparel mid folders.
