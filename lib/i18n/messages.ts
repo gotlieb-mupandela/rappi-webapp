@@ -425,6 +425,7 @@ export const en = {
     orderPackNamed: "Order unit: pack of {n}.",
     orderMultipack: "Order unit: multipack.",
     orderAssortment: "Order unit: assortment pack.",
+    orderAssortmentNamed: "Order unit: assortment of {n}.",
     orderWholesalePack: "Order unit: wholesale pack.",
     orderPack: "Order unit: pack.",
     orderSku: "Order unit: SKU. A per-size run is attached when the supplier export lists one.",
@@ -442,6 +443,8 @@ export const en = {
     packPdp: "Sold as a pack. The {symbol} price is for the full pack.",
     packAssortmentPack:
       "Sold as an assortment pack. The {symbol} price is for the full pack.",
+    packAssortmentNamed:
+      "Sold as an assortment of {n} {unit}. The {symbol} price is the pack price.",
     moreIn: "More in {name}",
     moreInHub: "More in this hub",
     soldOutPiece: "This piece is sold out.",
@@ -1576,6 +1579,7 @@ export const fr: Messages = {
     orderPackNamed: "Unité de commande : pack de {n}.",
     orderMultipack: "Unité de commande : multipack.",
     orderAssortment: "Unité de commande : pack assortiment.",
+    orderAssortmentNamed: "Unité de commande : assortiment de {n}.",
     orderWholesalePack: "Unité de commande : pack gros.",
     orderPack: "Unité de commande : pack.",
     orderSku: "Unité de commande : SKU. Une grille de tailles est jointe lorsque l’export fournisseur en liste une.",
@@ -1593,6 +1597,8 @@ export const fr: Messages = {
     packPdp: "Vendu par pack. Le prix {symbol} concerne le pack entier.",
     packAssortmentPack:
       "Vendu en pack assortiment. Le prix {symbol} concerne le pack entier.",
+    packAssortmentNamed:
+      "Vendu en assortiment de {n} {unit}. Le prix {symbol} est le prix du pack.",
     moreIn: "Plus dans {name}",
     moreInHub: "Plus dans ce rayon",
     soldOutPiece: "Cet article est épuisé.",

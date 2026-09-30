@@ -1,4 +1,4 @@
-import { BIB_PACK_PRICE_NAD, isFixedBibPack } from "@/lib/assortment";
+import { BIB_PACK_PRICE_NAD, applyInferredSurtidoAssortments, isFixedBibPack } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
 import { isSportHub, jomaLeafHub, productInHub } from "@/lib/hub-membership";
@@ -379,9 +379,13 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   },
   {
     slug: "basketball-shoes",
-    test: (name, family) =>
-      /^(basketball|basket)$/.test(family) ||
-      (/\bbasket(ball)?\b/.test(`${name} ${family}`) && !isApparelName(name)),
+    test: (name, family) => {
+      if (isApparelName(name)) return false;
+      return (
+        /^(basketball|basket)$/.test(family) ||
+        /\bbasket(ball)?\b/.test(`${name} ${family}`)
+      );
+    },
   },
   {
     slug: "outdoor-shoes",
@@ -437,10 +441,15 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   },
   {
     slug: "training-shoes",
-    test: (name, family) =>
-      /^(training|gym|sport|sports)$/.test(family) ||
-      (/\b(training|gym)\b/.test(family) &&
-        (isFootwearName(name) || isDedicatedShoeFamily(family))),
+    test: (name, family) => {
+      // Item family "Training" is also the Eagle Pro apparel line.
+      if (isApparelName(name)) return false;
+      if (/^(training|gym|sport|sports)$/.test(family)) return true;
+      return (
+        /\b(training|gym)\b/.test(family) &&
+        (isFootwearName(name) || isDedicatedShoeFamily(family))
+      );
+    },
   },
   {
     slug: "sneakers",
@@ -484,7 +493,7 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
   {
     slug: "jackets",
     test: (name, family) =>
-      /\b(jacket|anorak|raincoat|windbreaker|soft-?shell|fleece|overall|parka)\b/.test(name) ||
+      /\b(jacket|anorak|raincoat|windbreaker|soft[- ]?shell|fleece|overall|parka)\b/.test(name) ||
       family.includes("jacket") ||
       family.includes("anorak") ||
       family.includes("raincoat") ||
@@ -829,6 +838,7 @@ export function withStorefrontMerchandising<T extends Product>(product: T): T {
 }
 
 export function withStorefrontCategories<T extends Product>(catalog: T[]): T[] {
+  applyInferredSurtidoAssortments(catalog);
   return catalog.map(withStorefrontMerchandising);
 }
 

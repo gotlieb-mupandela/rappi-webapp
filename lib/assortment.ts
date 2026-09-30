@@ -247,6 +247,145 @@ function explicitPackInfo(product: Product): AssortmentInfo | null {
   };
 }
 
+const EU_SHOE_SIZE = /^(?:2[8-9]|[3-4]\d|5[0-2])(?:\.5)?$/;
+const SURTIDO_CURVE = /^S\d{1,2}$/i;
+/** Pack NAD floor. Confirmed surtido boxes sit well above single-pair retail. */
+const SURTIDO_PRICE_FLOOR = 2000;
+const SURTIDO_PACK_SIZES = [8, 12, 24] as const;
+
+/**
+ * Curve code → pairs, taken from supplier-confirmed surtido rows where one
+ * code mapped to a single pack size (S25 → 8, S28 → 12, …).
+ */
+const CURVE_PAIRS: Record<string, number> = {
+  S05: 8,
+  S08: 8,
+  S10: 12,
+  S11: 12,
+  S12: 8,
+  S16: 12,
+  S22: 8,
+  S24: 12,
+  S25: 8,
+  S28: 12,
+  S32: 12,
+  S35: 8,
+};
+
+const SHOE_SUBS = new Set([
+  "sneakers",
+  "running-shoes",
+  "trail-running",
+  "court-shoes",
+  "tennis-shoes",
+  "padel-shoes",
+  "pickleball-shoes",
+  "handball-shoes",
+  "badminton-shoes",
+  "basketball-shoes",
+  "outdoor-shoes",
+  "hockey-shoes",
+  "volleyball-shoes",
+  "comfort-shoes",
+  "joma-flow",
+  "summer-shoes",
+  "forloz",
+  "boots",
+  "futsal",
+  "turf",
+  "football-fg",
+  "football-ag",
+  "football-sg",
+  "sandals",
+  "barefoot",
+  "kids-shoes",
+  "training-shoes",
+  "shoes",
+]);
+
+const NOT_SURTIDO_NAME = /\b(bag|sock|bib|shirt|t-shirts?|tee|polo|shorts?|bermuda|jacket|pants?|tights?|leggings?|hoodie|glove|cap|hat)\b/i;
+const SHOE_HINT = /\b(boot|shoe|sneaker|futsal|turf|barefoot|trainer|firm ground|artificial grass|soft ground|indoor|cleat)\b/i;
+
+function codePrefix(code: string) {
+  return /^([A-Z]{3,})/.exec(code)?.[1] ?? "";
+}
+
+function isSurtidoFootwear(product: Product) {
+  const text = blob(product);
+  if (/\b(bag|sock|bib)\b/i.test(text)) return false;
+  if (NOT_SURTIDO_NAME.test(text) && !SHOE_HINT.test(text)) return false;
+  if (product.category === "shoes" || SHOE_SUBS.has(product.subcategory)) return true;
+  if (isFootwearSku(product)) return true;
+  return SHOE_HINT.test(text);
+}
+
+function curveConsensus(sizes: string[]) {
+  const votes = sizes
+    .map((size) => CURVE_PAIRS[size.toUpperCase()])
+    .filter((n): n is number => Boolean(n));
+  if (!votes.length) return null;
+  if (new Set(votes).size !== 1) return null;
+  return votes[0];
+}
+
+/**
+ * Joma B2B surtido boxes are filed as curve codes (S28, S25, …), not EU sizes.
+ * Pair count comes from a same-line single (price ≈ single × 8/12/24) when
+ * one exists, otherwise from the curve table. The selling price is left as
+ * the pack NAD (×18×1.45 already applied upstream) — never split per pair.
+ */
+export function applyInferredSurtidoAssortments<T extends Product>(catalog: T[]) {
+  const singles = new Map<string, number[]>();
+  for (const product of catalog) {
+    if (product.sellAs) continue;
+    const sizes = product.sizeOptions ?? [];
+    if (!sizes.some((size) => EU_SHOE_SIZE.test(size))) continue;
+    if (!isSurtidoFootwear(product)) continue;
+    const price = Number(product.price) || 0;
+    if (price <= 0 || price >= SURTIDO_PRICE_FLOOR) continue;
+    const prefix = codePrefix(product.code);
+    if (!prefix) continue;
+    const list = singles.get(prefix);
+    if (list) list.push(price);
+    else singles.set(prefix, [price]);
+  }
+
+  let labeled = 0;
+  for (const product of catalog) {
+    if (product.sellAs) continue;
+    if (!isSurtidoFootwear(product)) continue;
+    const sizes = product.sizeOptions ?? [];
+    if (!sizes.length || sizes.some((size) => EU_SHOE_SIZE.test(size))) continue;
+    if (!sizes.every((size) => SURTIDO_CURVE.test(size))) continue;
+    const price = Number(product.price) || 0;
+    if (price < SURTIDO_PRICE_FLOOR) continue;
+
+    let packSize = curveConsensus(sizes);
+    const prefix = codePrefix(product.code);
+    const units = prefix ? (singles.get(prefix) ?? []) : [];
+    let bestErr = 0.04;
+    const seen = new Set<number>();
+    for (const unit of units) {
+      if (seen.has(unit) || unit <= 0) continue;
+      seen.add(unit);
+      const ratio = price / unit;
+      for (const n of SURTIDO_PACK_SIZES) {
+        const err = Math.abs(ratio - n) / n;
+        if (err <= bestErr) {
+          bestErr = err;
+          packSize = n;
+        }
+      }
+    }
+    if (!packSize) continue;
+    product.sellAs = "assortment";
+    product.packSize = packSize;
+    if (product.unitPrice !== product.price) product.unitPrice = product.price;
+    labeled += 1;
+  }
+  return labeled;
+}
+
 export function getAssortment(
   product: Product,
   format: (nad: number) => string = formatPrice,

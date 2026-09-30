@@ -64,6 +64,22 @@ function hasRecordedSizeRun(product: Product) {
   return true;
 }
 
+const SURTIDO_CURVE = /^S\d{1,2}$/i;
+
+/** Surtido curve codes are not wearable sizes. Sell the box as one pack. */
+function asSurtidoPack<T extends Product>(product: T, total: number, sizes: string[]): T | null {
+  if (!sizes.length || !sizes.every((size) => SURTIDO_CURVE.test(size))) return null;
+  const info = getAssortment({ ...product, sizeOptions: sizes });
+  if (!info?.isAssortment || info.preserveSizes) return null;
+  return {
+    ...product,
+    sizeOptions: ["PACK"],
+    sizes: [{ size: "PACK", stock: total }],
+    stockQty: total,
+    totalQty: total,
+  };
+}
+
 function rowsFromSizes(
   sizes: string[],
   total: number,
@@ -107,6 +123,8 @@ export function withCatalogSizes<T extends Product>(product: T): T {
 
   if (master?.sizes?.length) {
     const rows = rowsFromSizes(master.sizes, total, master.perSize);
+    const packed = asSurtidoPack(product, total, rows.map((r) => r.size));
+    if (packed) return packed;
     return {
       ...product,
       sizeOptions: rows.map((r) => r.size),
