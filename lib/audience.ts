@@ -3,6 +3,7 @@ import {
   typeFolderForSubcategory,
   type AudienceSlug,
 } from "@/lib/catalog";
+import { jomaFolderIsSharedAudience } from "@/lib/joma-tree";
 import type { Product } from "@/lib/types";
 
 const KIDS_NAME_RE = /\b(junior| jr\b|kids|child|baby|youth|teen)\b/;
@@ -65,4 +66,27 @@ export function matchesAudience(
   }
   if (audience === "adult") return resolved !== "kids";
   return true;
+}
+
+/**
+ * Audience check for a Joma folder. Teamwear Pro leaves are shared by Man and
+ * Woman, so unisex stock counts on both instead of collapsing to an empty
+ * women filter.
+ */
+export function matchesAudienceInFolder(
+  product: Product & { audience?: ListingAudience },
+  audience: string | null,
+  folderKey?: string | null,
+) {
+  if (
+    folderKey &&
+    jomaFolderIsSharedAudience(folderKey) &&
+    (audience === "men" || audience === "women")
+  ) {
+    const resolved = product.audience ?? productAudience(product);
+    if (resolved === "kids") return false;
+    if (audience === "women") return resolved === "women" || resolved === "unisex";
+    return resolved === "men" || resolved === "unisex";
+  }
+  return matchesAudience(product, audience);
 }

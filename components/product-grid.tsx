@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/product-card";
 import { useT } from "@/components/locale-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
-import { SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { SUBCATEGORY_LABELS, subcategoryChipRank } from "@/lib/catalog";
 import { itemFamilyOf } from "@/lib/joma-tree";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +44,9 @@ function sectionsFor(
     list.push(p);
     bySub.set(key, list);
   }
-  const subEntries = [...bySub.entries()];
+  const subEntries = [...bySub.entries()].sort(
+    (a, b) => subcategoryChipRank(a[0]) - subcategoryChipRank(b[0]) || a[0].localeCompare(b[0]),
+  );
   const labeled = subEntries.filter(([sub]) => SUBCATEGORY_LABELS[sub]).length;
   if (
     subEntries.length > 1 &&

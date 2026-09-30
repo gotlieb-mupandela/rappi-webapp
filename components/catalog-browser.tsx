@@ -35,6 +35,7 @@ export function CatalogBrowser({
   emptyBody,
   emptyTitleKey,
   emptyBodyKey,
+  emptyQuiet = false,
   emptyKind,
   emptySlug,
   emptyQuery,
@@ -54,6 +55,7 @@ export function CatalogBrowser({
   emptyBody?: string;
   emptyTitleKey?: string;
   emptyBodyKey?: string;
+  emptyQuiet?: boolean;
   emptyKind?: "audience" | "hub";
   emptySlug?: string;
   emptyQuery?: ReactNode;
@@ -163,6 +165,7 @@ export function CatalogBrowser({
           : emptyTitle
       }
       emptyBody={emptyBodyKey ? t(emptyBodyKey) : emptyBody}
+      emptyQuiet={emptyQuiet}
       onNavigate={onNavigate}
     />
   );

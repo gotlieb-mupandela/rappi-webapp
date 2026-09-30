@@ -1,4 +1,4 @@
-import { CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { CATEGORIES, SUBCATEGORY_LABELS, subcategoryChipRank } from "@/lib/catalog";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { productInHub } from "@/lib/hub-membership";
 import type { Product } from "@/lib/types";
@@ -15,7 +15,11 @@ export function buildTaxonomy(catalog: Product[]): StorefrontTaxonomy {
         name: SUBCATEGORY_LABELS[slug] ?? slug,
         count,
       }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      .sort(
+        (a, b) =>
+          subcategoryChipRank(a.slug) - subcategoryChipRank(b.slug) ||
+          a.name.localeCompare(b.name),
+      );
   }
   return out;
 }
