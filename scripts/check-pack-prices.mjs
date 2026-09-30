@@ -183,9 +183,28 @@ const ASSORTMENT_ALLOWLIST = new Set([
   "TPOIS2601C", "TPOIS2604AC", "TPOIS2604C", "TPOIS2625AC", "TPOIS2625C", "TRALS2602AC", "TROLLS2625AC", "TROLLS2625C",
   "TROLS2603AC",
 ]);
+const INFERRED_PACK_SIZES = new Set([8, 12, 24]);
+const INFERRED_SHOE_SUBS = new Set([
+  "sneakers", "running-shoes", "trail-running", "court-shoes", "tennis-shoes", "padel-shoes",
+  "pickleball-shoes", "handball-shoes", "badminton-shoes", "basketball-shoes", "outdoor-shoes",
+  "hockey-shoes", "volleyball-shoes", "comfort-shoes", "joma-flow", "summer-shoes", "forloz",
+  "boots", "futsal", "turf", "football-fg", "football-ag", "football-sg", "sandals", "barefoot",
+  "kids-shoes", "training-shoes", "shoes",
+]);
+function inferredAssortmentOk(p) {
+  if (!INFERRED_PACK_SIZES.has(p.packSize)) return false;
+  if (p.price !== p.unitPrice || !Number.isInteger(p.price) || p.price < 2000) return false;
+  if (p.category === "shoes" || INFERRED_SHOE_SUBS.has(p.subcategory)) return true;
+  const name = `${p.displayName || ""} ${p.name || ""} ${p.item || ""}`;
+  if (/\b(bag|sock|bib|shirt|short|pant|jacket)\b/i.test(name) && !/\b(boot|firm ground|turf|futsal|artificial grass|indoor)\b/i.test(name)) {
+    return false;
+  }
+  return /\b(boot|shoe|sneaker|futsal|turf|firm ground|artificial grass|barefoot|indoor)\b/i.test(name);
+}
 for (const p of catalog) {
-  if (p.sellAs === "assortment" && !ASSORTMENT_ALLOWLIST.has(p.code)) {
-    fail(`${p.code} unexpected sellAs=assortment`);
+  if (p.sellAs !== "assortment" || ASSORTMENT_ALLOWLIST.has(p.code)) continue;
+  if (!inferredAssortmentOk(p)) {
+    fail(`${p.code} unexpected sellAs=assortment packSize=${p.packSize} price=${p.price} sub=${p.subcategory}`);
   }
 }
 

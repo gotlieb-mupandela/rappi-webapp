@@ -246,6 +246,48 @@ function familyMatchScore(folder: JomaFolderDef, fam: string) {
 }
 
 /**
+ * Sibling collection folders share a prefix (`Winner` vs `Winner IV`).
+ * Keep the exact family hit and drop the shorter tile so one line is not
+ * listed twice under the same parent.
+ */
+function resolveMoreSpecificSiblings(leaves: JomaFolderDef[], fam: string) {
+  const unique: JomaFolderDef[] = [];
+  const seen = new Set<string>();
+  for (const leaf of leaves) {
+    if (seen.has(leaf.key)) continue;
+    seen.add(leaf.key);
+    unique.push(leaf);
+  }
+  const byParent = new Map<string, JomaFolderDef[]>();
+  const loose: JomaFolderDef[] = [];
+  for (const leaf of unique) {
+    const parent = JOMA_FOLDER_PARENT.get(leaf.key);
+    if (!parent) {
+      loose.push(leaf);
+      continue;
+    }
+    const group = byParent.get(parent);
+    if (group) group.push(leaf);
+    else byParent.set(parent, [leaf]);
+  }
+  const kept = [...loose];
+  for (const group of byParent.values()) {
+    if (group.length < 2) {
+      kept.push(...group);
+      continue;
+    }
+    const exact = group.filter((leaf) => familyMatchScore(leaf, fam) >= 300);
+    if (!exact.length) {
+      kept.push(...group);
+      continue;
+    }
+    const best = Math.max(...exact.map((leaf) => familyMatchScore(leaf, fam)));
+    kept.push(...exact.filter((leaf) => familyMatchScore(leaf, fam) === best));
+  }
+  return kept;
+}
+
+/**
  * Season trees list the same line under New / In stock / Previous.
  * Without a season field, keep the most specific folder (R-City Fall beats
  * R-City) and, on a tie, the earlier season so one drop is not tiled twice.
@@ -341,7 +383,8 @@ export function indexCatalogIntoJomaFolders(catalog: Product[]) {
     for (const leaf of leaves) {
       if (leafMatchesProduct(leaf, product, fam, blob)) matched.push(leaf);
     }
-    for (const leaf of resolveSeasonLeaves(matched, fam, blob)) {
+    const specific = resolveMoreSpecificSiblings(matched, fam);
+    for (const leaf of resolveSeasonLeaves(specific, fam, blob)) {
       let key: string | undefined = leaf.key;
       while (key) {
         push(key, product);

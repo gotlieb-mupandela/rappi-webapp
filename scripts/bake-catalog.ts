@@ -5,6 +5,7 @@ import raw from "../data/products.json";
 import fixData from "../data/b2c-price-fix-data.json";
 import mapBData from "../data/b2c-map-b.json";
 import { productAudience } from "../lib/audience";
+import { applyInferredSurtidoAssortments } from "../lib/assortment";
 import { withStorefrontCategories, withStorefrontMerchandising } from "../lib/classify";
 import { productCardImageCandidates, withProductImages } from "../lib/media";
 import { isAvailable } from "../lib/product-stock";
@@ -56,6 +57,8 @@ function enforcePackPolicy(catalog: Product[]) {
 }
 
 enforcePackPolicy(raw as Product[]);
+const surtidoLabeled = applyInferredSurtidoAssortments(raw as Product[]);
+if (surtidoLabeled) console.log(`surtido assortments labeled: ${surtidoLabeled}`);
 
 function toListingItem(product: Product): ListingItem {
   const candidates = productCardImageCandidates(product).slice(0, 3);

@@ -8,7 +8,7 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment, packTitleSuffix } from "@/lib/assortment";
+import { getAssortment, isFootwearSku, packTitleSuffix } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -116,16 +116,24 @@ export function ProductDetail({ product }: { product: Product }) {
             <p className="mt-1 text-[12px] text-[var(--muted-2)]">
               {assortment.packSize === 10 && assortment.preserveSizes
                 ? t("product.pack10", { symbol })
-                : assortment.packSize && assortment.packSize > 1
-                  ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
+                : assortment.kind === "assortment"
+                  ? assortment.packSize && assortment.packSize > 1
+                    ? t("product.packAssortmentNamed", {
+                        n: assortment.packSize,
+                        unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
+                        symbol,
+                      })
+                    : t("product.packAssortmentPack", { symbol })
                   : assortment.kind === "multipack"
                     ? t("product.packMultipack", { symbol })
                     : assortment.kind === "pack"
-                      ? t("product.packPdp", { symbol })
-                      : assortment.kind === "assortment"
-                        ? t("product.packAssortmentPack", { symbol })
-                        : assortment.kind === "wholesale-pack"
-                          ? t("product.packWholesalePack", { symbol })
+                      ? assortment.packSize && assortment.packSize > 1
+                        ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
+                        : t("product.packPdp", { symbol })
+                      : assortment.kind === "wholesale-pack"
+                        ? t("product.packWholesalePack", { symbol })
+                        : assortment.packSize && assortment.packSize > 1
+                          ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
                           : t("product.packAssortment", { symbol })}
             </p>
           ) : null}
@@ -172,19 +180,25 @@ export function ProductDetail({ product }: { product: Product }) {
           <p className="mt-8 text-sm text-[var(--muted)]">
             {assortment?.packSize === 10 && assortment.preserveSizes
               ? t("product.orderPack10")
-              : assortment?.packSize && assortment.packSize > 1
-                ? t("product.orderPackNamed", { n: assortment.packSize })
+              : assortment?.kind === "assortment"
+                ? assortment.packSize && assortment.packSize > 1
+                  ? t("product.orderAssortmentNamed", { n: assortment.packSize })
+                  : t("product.orderAssortment")
                 : assortment?.kind === "multipack"
                   ? t("product.orderMultipack")
                   : assortment?.kind === "pack"
-                    ? t("product.orderPack")
+                    ? assortment.packSize && assortment.packSize > 1
+                      ? t("product.orderPackNamed", { n: assortment.packSize })
+                      : t("product.orderPack")
                     : assortment?.kind === "wholesale-pack"
-                    ? t("product.orderWholesalePack")
-                    : assortment?.isAssortment
-                      ? t("product.orderAssortment")
-                      : /^ONE$/i.test(size)
-                        ? t("product.orderOneSize")
-                        : t("product.orderSku")}
+                      ? t("product.orderWholesalePack")
+                      : assortment?.packSize && assortment.packSize > 1
+                        ? t("product.orderPackNamed", { n: assortment.packSize })
+                        : assortment?.isAssortment
+                          ? t("product.orderAssortment")
+                          : /^ONE$/i.test(size)
+                            ? t("product.orderOneSize")
+                            : t("product.orderSku")}
           </p>
         )}
 

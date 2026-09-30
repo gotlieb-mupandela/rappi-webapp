@@ -193,7 +193,7 @@ export function ProductCard({
         type="button"
         aria-label={t("common.addToBagAria", { title })}
         onClick={quickAdd}
-        className="absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center text-[var(--muted)] transition-colors hover:bg-white/90 hover:text-[var(--accent)]"
+        className="absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[var(--text)] shadow-sm transition-colors hover:text-[var(--accent)]"
       >
         <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
       </button>
