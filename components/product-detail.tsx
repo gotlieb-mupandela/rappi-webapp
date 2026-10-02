@@ -1,7 +1,9 @@
 "use client";
 
+import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { shareContent } from "@/lib/native";
 import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { MobileBuyBar } from "@/components/mobile-buy-bar";
@@ -97,9 +99,27 @@ export function ProductDetail({ product }: { product: Product }) {
           <span className="text-ink/25"> / </span>
           {subName(product.subcategory, t)}
         </p>
-        <h1 className="mt-4 break-words font-[family-name:var(--font-oswald)] text-3xl uppercase leading-tight tracking-normal text-ink sm:text-4xl">
-          {title}
-        </h1>
+        <div className="mt-4 flex items-start justify-between gap-3">
+          <h1 className="min-w-0 break-words font-[family-name:var(--font-oswald)] text-3xl uppercase leading-tight tracking-normal text-ink sm:text-4xl">
+            {title}
+          </h1>
+          <button
+            type="button"
+            className="mt-1 shrink-0 rounded-full p-2 text-[var(--muted)] hover:bg-[var(--hover)] hover:text-ink"
+            aria-label={t("product.share")}
+            onClick={() => {
+              void shareContent({
+                title,
+                text: title,
+                url: typeof window !== "undefined" ? window.location.href : "",
+              }).then((result) => {
+                if (result === "copied") toast.success(t("product.copied"));
+              });
+            }}
+          >
+            <Share2 className="h-5 w-5" />
+          </button>
+        </div>
         <p className="mt-3 font-mono text-[11px] tracking-normal text-[var(--muted-2)]">
           {product.code}
         </p>

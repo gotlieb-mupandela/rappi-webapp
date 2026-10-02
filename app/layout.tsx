@@ -54,6 +54,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     applicationName: "RAPPI SPORTS HUB",
+    formatDetection: { telephone: false },
     openGraph: {
       title: "RAPPI SPORTS HUB",
       description: market === "eu" ? description : TAGLINE,

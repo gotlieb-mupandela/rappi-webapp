@@ -1,3 +1,4 @@
+import { isNativeApp, nativeAuthRedirect } from "@/lib/native";
 import type { User } from "@/lib/types";
 
 export function userFromAuth(user: {
@@ -18,7 +19,11 @@ export function userFromAuth(user: {
 }
 
 export function authCallbackUrl(next = "/") {
-  const path = `/auth/callback?next=${encodeURIComponent(next.startsWith("/") ? next : "/")}`;
+  const dest = next.startsWith("/") ? next : "/";
+  if (typeof window !== "undefined" && isNativeApp()) {
+    return nativeAuthRedirect(dest);
+  }
+  const path = `/auth/callback?next=${encodeURIComponent(dest)}`;
   if (typeof window !== "undefined") {
     return `${window.location.origin}${path}`;
   }

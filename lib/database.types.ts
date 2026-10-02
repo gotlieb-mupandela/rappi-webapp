@@ -418,6 +418,39 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string | null
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string | null
+          platform: Database["public"]["Enums"]["push_platform"]
+          user_agent: string
+          user_id: string
+        }
+        Insert: {
+          auth?: string | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh?: string | null
+          platform?: Database["public"]["Enums"]["push_platform"]
+          user_agent?: string
+          user_id: string
+        }
+        Update: {
+          auth?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string | null
+          platform?: Database["public"]["Enums"]["push_platform"]
+          user_agent?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -614,6 +647,7 @@ export type Database = {
       gender: "men" | "women" | "kids" | "unisex"
       order_status: "reserved" | "preparing" | "shipped" | "cancelled"
       product_badge: "new" | "offer"
+      push_platform: "web" | "ios" | "android"
     }
     CompositeTypes: {
       [_ in never]: never

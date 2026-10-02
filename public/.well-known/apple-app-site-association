@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.rappisportshub.app",
+        "paths": ["/auth/callback", "/auth/callback/*", "/login", "/account", "/account/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.com.rappisportshub.app"]
+  }
+}

@@ -79,6 +79,10 @@ Product photos live at `public/products/{safeCode}/01…05.webp` and in Storage 
 
 Search by product **CODE**, title, or category from the header or `/search`.
 
+## Mobile (Play, App Store)
+
+Capacitor shells for Google Play and the App Store. Setup and submit steps: [docs/mobile.md](docs/mobile.md).
+
 ## Meta Commerce
 
 Scheduled product feed, Pixel, and Conversions API live in the app. Setup checklist: [docs/meta-commerce.md](docs/meta-commerce.md).

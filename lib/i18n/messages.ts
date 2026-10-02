@@ -415,6 +415,8 @@ export const en = {
   },
   product: {
     size: "Size",
+    share: "Share",
+    copied: "Link copied",
     details: "Details",
     soldOut: "Sold out",
     soldOutSize: "Sold out in this size",
@@ -530,6 +532,17 @@ export const en = {
     light: "Light mode",
     toDark: "Switch to dark mode",
     toLight: "Switch to light mode",
+  },
+  notify: {
+    title: "Order notifications",
+    body: "Get a push when your order status changes.",
+    enable: "Turn on",
+    disable: "Turn off",
+    enabled: "On",
+    disabled: "Off",
+    denied: "Notifications are blocked in your browser settings.",
+    error: "Could not enable notifications.",
+    unsupported: "Order notifications are available in the RAPPI app.",
   },
   hub: {
     sportswear: {
@@ -1569,6 +1582,8 @@ export const fr: Messages = {
   },
   product: {
     size: "Taille",
+    share: "Partager",
+    copied: "Lien copié",
     details: "Détails",
     soldOut: "Épuisé",
     soldOutSize: "Épuisé dans cette taille",
@@ -1684,6 +1699,17 @@ export const fr: Messages = {
     light: "Mode clair",
     toDark: "Passer en mode sombre",
     toLight: "Passer en mode clair",
+  },
+  notify: {
+    title: "Notifications de commande",
+    body: "Recevez une alerte quand le statut de votre commande change.",
+    enable: "Activer",
+    disable: "Désactiver",
+    enabled: "Activé",
+    disabled: "Désactivé",
+    denied: "Les notifications sont bloquées dans les réglages du navigateur.",
+    error: "Impossible d’activer les notifications.",
+    unsupported: "Les notifications de commande sont disponibles dans l’app RAPPI.",
   },
   hub: {
     sportswear: {

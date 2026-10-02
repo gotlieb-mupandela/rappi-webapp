@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { LocaleProvider } from "@/components/locale-provider";
+import { NativeShell } from "@/components/native-shell";
 import type { Market } from "@/lib/i18n/config";
 import { userFromAuth } from "@/lib/auth/session";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -29,6 +30,17 @@ export function Providers({
   }, []);
 
   useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.getRegistrations().then((regs) =>
+      Promise.all(regs.map((reg) => reg.unregister())),
+    );
+    if (!("caches" in window)) return;
+    void caches.keys().then((keys) =>
+      Promise.all(keys.filter((key) => key.startsWith("rappi-")).map((key) => caches.delete(key))),
+    );
+  }, []);
+
+  useEffect(() => {
     if (!isSupabaseConfigured()) return;
     void syncFromSupabase();
     const supabase = createClient();
@@ -51,6 +63,7 @@ export function Providers({
 
   return (
     <LocaleProvider initialMarket={initialMarket}>
+      <NativeShell />
       {children}
       <Toaster
         theme="light"

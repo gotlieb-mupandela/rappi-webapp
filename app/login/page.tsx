@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authCallbackUrl, userFromAuth } from "@/lib/auth/session";
+import { isNativeApp } from "@/lib/native";
 import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/catalog";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
@@ -72,16 +73,29 @@ function LoginForm() {
     }
     setGoogleLoading(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
+    const native = isNativeApp();
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: authCallbackUrl(next),
+        skipBrowserRedirect: native,
         queryParams: { prompt: "select_account" },
       },
     });
     if (error) {
       setGoogleLoading(false);
       toast.error(error.message);
+      return;
+    }
+    if (native && data.url) {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url: data.url });
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : t("login.authError"));
+      } finally {
+        setGoogleLoading(false);
+      }
     }
   }
 
@@ -144,7 +158,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="grid min-h-[calc(100dvh-var(--header-h))] lg:grid-cols-2">
+    <div className="grid min-h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top))] lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-[var(--accent-dim)] lg:block">
         <div className="absolute inset-4 overflow-hidden rounded-2xl">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -165,25 +179,19 @@ function LoginForm() {
         </div>
       </aside>
 
-      <div className="flex flex-col justify-center bg-white px-4 py-10 sm:px-8 lg:px-12 xl:px-16">
-        <div className="mx-auto w-full max-w-md">
-          <div className="mb-6 h-28 overflow-hidden rounded-2xl lg:hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOGIN_VISUAL}
-              alt=""
-              className="h-full w-full object-cover object-center"
-            />
-          </div>
-
-          <BrandLogo className="mb-5 h-20 w-auto sm:h-24" />
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
+      <div className="flex min-w-0 flex-col bg-white pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] [justify-content:safe_center] sm:pl-[max(2rem,env(safe-area-inset-left))] sm:pr-[max(2rem,env(safe-area-inset-right))] sm:pt-8 lg:pt-10 lg:pb-[max(2.5rem,env(safe-area-inset-bottom))] lg:pl-[max(3rem,env(safe-area-inset-left))] lg:pr-[max(3rem,env(safe-area-inset-right))] xl:pl-[max(4rem,env(safe-area-inset-left))] xl:pr-[max(4rem,env(safe-area-inset-right))]">
+        <div className="mx-auto w-full min-w-0 max-w-md">
+          <BrandLogo
+            className="mb-4 h-14 w-auto max-w-[min(100%,10.5rem)] sm:mb-5 sm:h-16"
+            priority
+          />
+          <p className="text-[10px] uppercase leading-relaxed tracking-[0.18em] text-[var(--muted)] sm:text-[11px] sm:tracking-[0.22em]">
             {t("home.tagline")}
           </p>
-          <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-4xl font-bold uppercase text-[var(--text-secondary)]">
+          <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-[2rem] font-bold uppercase leading-none tracking-tight text-[var(--text-secondary)] sm:text-4xl">
             {mode === "signup" ? t("login.createTitle") : t("login.title")}
           </h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
             {next === "/checkout" ? t("login.checkoutHint") : t("login.hint")}
           </p>
 
@@ -191,7 +199,7 @@ function LoginForm() {
             <Button
               type="button"
               variant="outline"
-              className="mt-6 w-full normal-case tracking-normal"
+              className="mt-6 h-12 w-full border-black/15 bg-white normal-case tracking-normal shadow-[var(--shadow-soft)] hover:bg-[var(--bg-elevated)] hover:text-ink"
               size="lg"
               disabled={googleLoading || loading}
               onClick={() => void onGoogle()}
@@ -211,12 +219,13 @@ function LoginForm() {
             <div className="mt-6" />
           )}
 
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-3.5">
             {mode === "signup" ? (
               <div className="space-y-1.5">
                 <Label htmlFor="name">{t("login.name")}</Label>
                 <Input
                   id="name"
+                  className="h-12 text-base sm:h-11 sm:text-sm"
                   autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -227,6 +236,7 @@ function LoginForm() {
               <Label htmlFor="email">{t("login.email")}</Label>
               <Input
                 id="email"
+                className="h-12 text-base sm:h-11 sm:text-sm"
                 type="email"
                 autoComplete="username"
                 value={email}
@@ -238,6 +248,7 @@ function LoginForm() {
               <Label htmlFor="password">{t("login.password")}</Label>
               <Input
                 id="password"
+                className="h-12 text-base sm:h-11 sm:text-sm"
                 type="password"
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 value={password}
@@ -246,7 +257,7 @@ function LoginForm() {
                 minLength={6}
               />
             </div>
-            <Button type="submit" className="w-full" size="lg" disabled={loading || googleLoading}>
+            <Button type="submit" className="mt-1 w-full" size="lg" disabled={loading || googleLoading}>
               {loading
                 ? t("login.signingIn")
                 : mode === "signup"
@@ -255,7 +266,7 @@ function LoginForm() {
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-[var(--muted)]">
+          <p className="mt-4 text-center text-sm leading-relaxed text-[var(--muted)]">
             {mode === "signup" ? (
               <>
                 {t("login.haveAccount")}{" "}
@@ -282,12 +293,16 @@ function LoginForm() {
           </p>
 
           {!configured ? (
-            <p className="mt-4 text-xs text-[var(--muted-2)]">
+            <p className="mt-4 text-xs leading-relaxed text-[var(--muted-2)]">
               {t("login.demo", { email: DEMO_EMAIL, password: DEMO_PASSWORD })}
             </p>
           ) : null}
 
-          <Button asChild variant="outline" className="mt-6 w-full">
+          <Button
+            asChild
+            variant="ghost"
+            className="mt-3 h-11 w-full normal-case tracking-normal text-[var(--muted)] hover:text-ink"
+          >
             <Link href="/">{t("login.continueShopping")}</Link>
           </Button>
         </div>
@@ -298,7 +313,7 @@ function LoginForm() {
 
 function GoogleMark() {
   return (
-    <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4" fill="none">
+    <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"
@@ -323,7 +338,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[70vh] items-center justify-center px-4 py-16 text-sm text-[var(--muted)]">
+        <div className="flex min-h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top))] items-center justify-center px-[max(1rem,env(safe-area-inset-left))] pt-16 pb-[max(4rem,env(safe-area-inset-bottom))] text-sm text-[var(--muted)]">
           …
         </div>
       }

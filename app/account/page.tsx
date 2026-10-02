@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/stores/auth";
 import { useOrders } from "@/lib/stores/orders";
+import { PushToggle } from "@/components/push-toggle";
 import { useT } from "@/components/locale-provider";
 
 export default function AccountPage() {
@@ -42,7 +43,7 @@ export default function AccountPage() {
         {t("account.myAccount")}
       </h1>
       <p className="mt-2 min-w-0 break-all text-sm text-[var(--muted)]">{t("account.signedInAs", { email: user.email })}</p>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Link href="/account/orders" className="surface-card p-6">
           <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.orders")}</p>
           <p className="mt-2 text-2xl font-semibold">{orders.length}</p>
@@ -53,6 +54,7 @@ export default function AccountPage() {
           <p className="mt-2 text-2xl font-semibold">{user.name}</p>
           <p className="mt-1 text-sm text-[var(--muted)]">{t("account.profileHint")}</p>
         </Link>
+        <PushToggle />
         <button
           type="button"
           onClick={() => {
