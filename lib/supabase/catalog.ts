@@ -161,7 +161,6 @@ function buildLiveCatalog(snapshot: LiveSnapshot): Product[] {
 }
 
 const LIVE_MEMO_TTL_MS = 60_000;
-const COLD_LOAD_TIMEOUT_MS = 8_000;
 let liveMemo: { at: number; catalog: Product[] } | null = null;
 let liveMemoPending: Promise<Product[] | null> | null = null;
 
@@ -192,21 +191,16 @@ function refreshLiveCatalog() {
 
 /**
  * Storefront catalog — baked product content with live price/stock/visibility.
- * Falls back to the baked catalog if Supabase is unreachable or slow.
+ * Never blocks a render on the live fetch: a cold instance serves the bundled
+ * catalog and loads the overlay in the background.
  */
 export async function getCatalog(): Promise<Product[]> {
   if (liveMemo) {
     if (Date.now() - liveMemo.at >= LIVE_MEMO_TTL_MS) void refreshLiveCatalog();
     return liveMemo.catalog;
   }
-  if (process.env.NEXT_PHASE === "phase-production-build") return getOfflineCatalog();
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), COLD_LOAD_TIMEOUT_MS);
-  });
-  const live = await Promise.race([refreshLiveCatalog(), timeout]);
-  clearTimeout(timer);
-  return live?.length ? live : getOfflineCatalog();
+  if (process.env.NEXT_PHASE !== "phase-production-build") void refreshLiveCatalog();
+  return getOfflineCatalog();
 }
 
 export const getCachedCatalog = cache(getCatalog);
