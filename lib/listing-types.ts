@@ -9,6 +9,8 @@ export type ListingItem = Product & {
   hay?: string;
   /** Precomputed at catalog load — avoids re-scanning image URLs per request. */
   hasImage?: boolean;
+  /** Joma browse folder keys (leaf + ancestors), baked for client filters. */
+  folders?: string[];
 };
 
 export type ListingFilterOpts = {

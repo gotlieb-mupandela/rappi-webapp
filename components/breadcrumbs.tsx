@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { useT } from "@/components/locale-provider";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import type { MessageVars } from "@/lib/i18n/translate";
-import { jomaFolderByKey } from "@/lib/joma-tree";
+import { jomaFolderByKey } from "@/lib/joma-folder-meta";
 import { cn } from "@/lib/utils";
 
 export type Crumb = {

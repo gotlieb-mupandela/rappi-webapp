@@ -11,6 +11,23 @@ function isRemoteUrl(url: string | undefined | null) {
   return Boolean(url && /^https?:\/\//i.test(url));
 }
 
+/** True when the SKU has a real remote or brand-local photo (not a placeholder). */
+export function hasUsableProductImage(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}) {
+  const urls = [product.imageUrl, ...(product.images ?? [])].filter(
+    (url): url is string => Boolean(url),
+  );
+  return urls.some((url) => {
+    if (/^https?:\/\//i.test(url)) return true;
+    // Real local assets only — ignore invented `/products/{id}/…` placeholders
+    // that 404 and used to surface silhouette fallbacks.
+    if (url.startsWith("/products/")) return false;
+    return url.startsWith("/");
+  });
+}
+
 function extraGalleryUrls(product: { id: string; code?: string }) {
   const fromCode = product.code ? EXTRA_GALLERY[product.code] : undefined;
   const fromId = EXTRA_GALLERY[product.id];

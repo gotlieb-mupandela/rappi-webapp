@@ -3,7 +3,7 @@ import {
   typeFolderForSubcategory,
   type AudienceSlug,
 } from "@/lib/catalog";
-import { jomaFolderIsSharedAudience } from "@/lib/joma-tree";
+import { jomaFolderIsSharedAudience } from "@/lib/joma-folder-meta";
 import type { Product } from "@/lib/types";
 
 const KIDS_NAME_RE = /\b(junior| jr\b|kids|child|baby|youth|teen)\b/;

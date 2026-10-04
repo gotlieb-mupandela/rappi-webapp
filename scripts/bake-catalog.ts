@@ -7,14 +7,22 @@ import mapBData from "../data/b2c-map-b.json";
 import { productAudience } from "../lib/audience";
 import { applyInferredSurtidoAssortments } from "../lib/assortment";
 import { withStorefrontCategories, withStorefrontMerchandising } from "../lib/classify";
-import { productCardImageCandidates, withProductImages } from "../lib/media";
+import {
+  folderKeysForProduct,
+  indexCatalogIntoJomaFolders,
+  jomaFolderMetaSnapshot,
+} from "../lib/joma-tree";
+import { listingHay } from "../lib/listing-core";
+import type { ListingItem } from "../lib/listing-types";
+import { hasUsableProductImage, productCardImageCandidates, withProductImages } from "../lib/media";
 import { isAvailable } from "../lib/product-stock";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "../lib/taxonomy";
-import type { ListingItem } from "../lib/listing-types";
 import type { Product } from "../lib/types";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const catalogDest = join(root, "data", "products.json");
+const folderMapDest = join(root, "data", "product-folders.json");
+const folderMetaDest = join(root, "data", "joma-folder-meta.json");
 const navDest = join(root, "data", "storefront-nav.json");
 const listingDest = join(root, "public", "listing-index.json");
 const listingOnly = process.argv.includes("--listing-only");
@@ -60,15 +68,25 @@ enforcePackPolicy(raw as Product[]);
 const surtidoLabeled = applyInferredSurtidoAssortments(raw as Product[]);
 if (surtidoLabeled) console.log(`surtido assortments labeled: ${surtidoLabeled}`);
 
-function toListingItem(product: Product): ListingItem {
-  const candidates = productCardImageCandidates(product).slice(0, 3);
+function attachListingFields(catalog: Product[]) {
+  indexCatalogIntoJomaFolders(catalog);
+  for (const product of catalog) {
+    const item = product as ListingItem;
+    item.audience = productAudience(product);
+    item.hasImage = hasUsableProductImage(product);
+    item.hay = listingHay(item);
+    item.folders = folderKeysForProduct(product);
+  }
+}
+
+function toListingItem(product: ListingItem): ListingItem {
+  const candidates = productCardImageCandidates(product).slice(0, 1);
   const card = candidates[0] || product.imageUrl;
   const sizes = (product.sizes ?? []).filter((s) => s.stock > 0);
   return {
     id: product.id,
     code: product.code,
     item: product.item,
-    title: product.title,
     name: product.name,
     displayName: product.displayName,
     category: product.category,
@@ -77,38 +95,52 @@ function toListingItem(product: Product): ListingItem {
     ...(product.packSize && product.packSize > 1 ? { packSize: product.packSize } : {}),
     subcategory: product.subcategory,
     gender: product.gender,
-    audience: productAudience(product),
+    audience: product.audience ?? productAudience(product),
     price: product.price,
     unitPrice: product.unitPrice,
-    currency: product.currency ?? "NAD",
-    sheetCategory: product.sheetCategory ?? null,
-    totalQty: product.totalQty,
     stockQty: product.stockQty,
     badge: product.badge,
-    sizeOptions: product.sizeOptions ?? sizes.map((s) => s.size),
     sizes,
     imageUrl: card,
     images: candidates,
+    folders: product.folders ?? [],
+    hasImage: true,
   } as ListingItem;
 }
 
+function writeFolderMeta() {
+  writeFileSync(folderMetaDest, `${JSON.stringify(jomaFolderMetaSnapshot())}\n`);
+  console.log(`baked joma folder meta → ${folderMetaDest}`);
+}
+
 function writeListingIndex(catalog: Product[]) {
-  const listingIndex = catalog.filter(isAvailable).map(toListingItem);
+  const listingIndex = catalog.filter(isAvailable).map((p) => toListingItem(p as ListingItem));
   mkdirSync(dirname(listingDest), { recursive: true });
   writeFileSync(listingDest, `${JSON.stringify(listingIndex)}\n`);
   console.log(`baked listing index (${listingIndex.length}) → ${listingDest}`);
 }
 
+function writeProductFolders(catalog: Product[]) {
+  const map: Record<string, string[]> = {};
+  for (const product of catalog) {
+    map[product.id] = (product as ListingItem).folders ?? [];
+  }
+  writeFileSync(folderMapDest, `${JSON.stringify(map)}\n`);
+  console.log(`baked product folders (${Object.keys(map).length}) → ${folderMapDest}`);
+}
+
+writeFolderMeta();
+
 if (listingOnly || indexesOnly) {
-  const classified = withStorefrontCategories((raw as Product[]).map(withProductImages)).filter(
-    isAvailable,
-  );
+  const classified = withStorefrontCategories((raw as Product[]).map(withProductImages));
+  attachListingFields(classified);
   if (indexesOnly) {
     const taxonomy = buildTaxonomy(classified);
     const categoryCounts = categoryCountsFromTaxonomy(taxonomy);
     writeFileSync(navDest, `${JSON.stringify({ taxonomy, categoryCounts })}\n`);
     console.log(`baked storefront nav → ${navDest}`);
   }
+  writeProductFolders(classified);
   writeListingIndex(classified);
   process.exit(0);
 }
@@ -134,8 +166,10 @@ writeFileSync(catalogDest, `${JSON.stringify(baked)}\n`);
 console.log(`baked ${baked.length} products → ${catalogDest}`);
 
 const navCatalog = withStorefrontCategories((baked as Product[]).map(withProductImages));
+attachListingFields(navCatalog);
 const taxonomy = buildTaxonomy(navCatalog);
 const categoryCounts = categoryCountsFromTaxonomy(taxonomy);
 writeFileSync(navDest, `${JSON.stringify({ taxonomy, categoryCounts })}\n`);
 console.log(`baked storefront nav → ${navDest}`);
+writeProductFolders(navCatalog);
 writeListingIndex(navCatalog);

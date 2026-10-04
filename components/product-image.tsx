@@ -95,7 +95,6 @@ export function ProductImage({
         priority={priority}
         className={className}
         loader={remote ? productImageLoader : undefined}
-        unoptimized={!remote}
         onError={advance}
       />
     );
@@ -113,7 +112,6 @@ export function ProductImage({
       priority={priority}
       className={className}
       loader={remote ? productImageLoader : undefined}
-      unoptimized={!remote}
       onError={advance}
     />
   );

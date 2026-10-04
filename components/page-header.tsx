@@ -5,7 +5,7 @@ import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
 import { useT } from "@/components/locale-provider";
 import { audienceBlurb, audienceName, groupName, hubBlurb, hubName, subName } from "@/lib/i18n/labels";
 import type { MessageVars } from "@/lib/i18n/translate";
-import { jomaFolderByKey } from "@/lib/joma-tree";
+import { jomaFolderByKey } from "@/lib/joma-folder-meta";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({

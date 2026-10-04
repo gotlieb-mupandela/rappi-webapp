@@ -8,12 +8,12 @@ import { groupName, subName } from "@/lib/i18n/labels";
 import {
   jomaFolderParentKey,
   jomaFolderSiblings,
-  type JomaFolderDef,
-} from "@/lib/joma-tree";
+  type JomaFolderMeta,
+} from "@/lib/joma-folder-meta";
 import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
-function folderLabel(folder: JomaFolderDef, t: ReturnType<typeof useT>) {
+function folderLabel(folder: JomaFolderMeta, t: ReturnType<typeof useT>) {
   const apparel = groupName("apparel", folder.key, t);
   if (apparel !== folder.key) return apparel;
   const footwear = groupName("footwear", folder.key, t);
@@ -25,10 +25,10 @@ function folderLabel(folder: JomaFolderDef, t: ReturnType<typeof useT>) {
   return folder.label;
 }
 
-function hrefForFolder(folder: JomaFolderDef, basePath: string, audience?: string) {
+function hrefForFolder(folder: JomaFolderMeta, basePath: string, audience?: string) {
   const params = new URLSearchParams();
   if (audience) params.set("audience", audience);
-  if (folder.sub && !folder.children?.length) {
+  if (folder.sub && !folder.hasChildren) {
     const parent = jomaFolderParentKey(folder.key);
     if (parent) params.set("group", parent);
     params.set("sub", folder.sub);

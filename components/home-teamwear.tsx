@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/components/locale-provider";
 
-const TEAMWEAR_COVER = "/brand/hub-teampro-2026.png";
+const TEAMWEAR_COVER = "/brand/hub-teampro-2026.webp";
 
 export function HomeTeamwear() {
   const t = useT();
@@ -12,11 +13,12 @@ export function HomeTeamwear() {
   return (
     <section className="relative overflow-hidden border-y border-[var(--border)]">
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-none sm:aspect-[16/9] lg:aspect-[2/1]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={TEAMWEAR_COVER}
           alt={t("home.teamwearTitle")}
-          className="absolute inset-0 h-full w-full max-w-none object-cover object-[center_16%]"
+          fill
+          sizes="100vw"
+          className="max-w-none object-cover object-[center_16%]"
         />
         <div
           aria-hidden

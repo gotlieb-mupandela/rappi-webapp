@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Geist_Mono, Inter, Oswald } from "next/font/google";
+import { Inter, Oswald } from "next/font/google";
 import Script from "next/script";
 import { MetaPixel } from "@/components/meta-pixel";
 import { Providers } from "@/components/providers";
 import { StorefrontChrome } from "@/components/storefront-chrome";
 import { TAGLINE } from "@/lib/catalog";
-import { MARKET_BOOTSTRAP, htmlLang } from "@/lib/i18n/config";
-import { getMarket } from "@/lib/i18n/server";
+import { DEFAULT_MARKET, MARKET_BOOTSTRAP, htmlLang } from "@/lib/i18n/config";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import storefrontNav from "@/data/storefront-nav.json";
 import "./globals.css";
@@ -16,14 +15,8 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   adjustFontFallback: false,
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
 });
 
 const oswald = Oswald({
@@ -40,43 +33,36 @@ export const viewport = {
   viewportFit: "cover" as const,
 };
 
-/** Document metadata; description/OG localize, brand title stays shared. */
-export async function generateMetadata(): Promise<Metadata> {
-  const market = await getMarket();
-  const description =
-    market === "eu"
-      ? "RAPPI SPORTS HUB — catalogue sportif. Équipe-toi. Présente-toi. Dépasse-toi."
-      : "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.";
-  return {
-    title: {
-      default: `RAPPI SPORTS HUB · ${TAGLINE}`,
-      template: "%s · RAPPI SPORTS HUB",
-    },
-    description,
-    applicationName: "RAPPI SPORTS HUB",
-    formatDetection: { telephone: false },
-    openGraph: {
-      title: "RAPPI SPORTS HUB",
-      description: market === "eu" ? description : TAGLINE,
-      siteName: "RAPPI SPORTS HUB",
-    },
-  };
-}
+const description =
+  "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.";
+
+export const metadata: Metadata = {
+  title: {
+    default: `RAPPI SPORTS HUB · ${TAGLINE}`,
+    template: "%s · RAPPI SPORTS HUB",
+  },
+  description,
+  applicationName: "RAPPI SPORTS HUB",
+  formatDetection: { telephone: false },
+  openGraph: {
+    title: "RAPPI SPORTS HUB",
+    description: TAGLINE,
+    siteName: "RAPPI SPORTS HUB",
+  },
+};
 
 const nav = storefrontNav as {
   taxonomy: StorefrontTaxonomy;
   categoryCounts: Record<string, number>;
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const market = await getMarket();
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
-      lang={htmlLang(market)}
-      data-market={market}
+      lang={htmlLang(DEFAULT_MARKET)}
+      data-market={DEFAULT_MARKET}
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} ${oswald.variable} h-full antialiased`}
+      className={`${inter.variable} ${oswald.variable} h-full antialiased`}
     >
       <body
         className={`${inter.className} flex min-h-full flex-col bg-bg text-ink`}
@@ -87,7 +73,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         </Script>
         <MetaPixel />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">
-          <Providers initialMarket={market}>
+          <Providers initialMarket={DEFAULT_MARKET}>
             <StorefrontChrome
               taxonomy={nav.taxonomy}
               categoryCounts={nav.categoryCounts}

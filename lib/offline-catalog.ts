@@ -3,34 +3,39 @@ import "server-only";
 import { cache } from "react";
 import { productAudience } from "@/lib/audience";
 import { CATEGORIES } from "@/lib/catalog";
-import { hasUsableProductImage, withStorefrontCategories } from "@/lib/classify";
 import { productHubs, productInHub } from "@/lib/hub-membership";
-import { indexCatalogIntoJomaFolders } from "@/lib/joma-tree";
+import { indexCatalogFromBakedFolders, matchJomaFolderKeys } from "@/lib/joma-tree";
 import { listingHay, type ListingItem } from "@/lib/listing-core";
-import { withProductImages } from "@/lib/media";
+import { hasUsableProductImage, withProductImages } from "@/lib/media";
 import type { Product } from "@/lib/types";
+import productFolders from "@/data/product-folders.json";
 import bundled from "@/data/products.json";
 import { dpoTestProduct } from "@/lib/dpo-test-product";
 
+const FOLDERS_BY_ID = productFolders as Record<string, string[]>;
+
 /** Process-level memo of the offline bundled catalog (avoid re-mapping 11k rows per call). */
 export const offlineCatalog: Product[] = [
-  ...withStorefrontCategories((bundled as Product[]).map(withProductImages)),
-  withProductImages(dpoTestProduct),
+  ...(bundled as ListingItem[]).map((product) => ({
+    ...product,
+    folders: product.folders ?? FOLDERS_BY_ID[product.id] ?? matchJomaFolderKeys(product),
+  })),
+  { ...withProductImages(dpoTestProduct), folders: [] } as ListingItem,
 ];
+
+indexCatalogFromBakedFolders(offlineCatalog as ListingItem[]);
 
 for (const product of offlineCatalog) {
   const item = product as ListingItem;
-  item.hay = listingHay(item);
-  item.audience = productAudience(product);
-  item.hasImage = hasUsableProductImage(product);
+  if (!item.hay) item.hay = listingHay(item);
+  if (!item.audience) item.audience = productAudience(product);
+  if (typeof item.hasImage !== "boolean") item.hasImage = hasUsableProductImage(product);
 }
 
 /** Catalog rows with a usable storefront image (skip silhouette-only SKUs on browse). */
 export const offlineCatalogImaged: Product[] = offlineCatalog.filter(
   (p) => (p as ListingItem).hasImage,
 );
-
-indexCatalogIntoJomaFolders(offlineCatalog);
 
 export const productsByCode = new Map(offlineCatalog.map((p) => [p.code, p]));
 

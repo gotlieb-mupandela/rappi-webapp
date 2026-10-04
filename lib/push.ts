@@ -78,20 +78,58 @@ export async function sendPushToUser(
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("push_subscriptions")
-    .select("id, endpoint, p256dh, auth, platform")
+    .select("id, endpoint, expo_token, p256dh, auth, platform")
     .eq("user_id", userId);
   if (error) throw new Error(error.message);
-  const rows = (data ?? []) as Pick<PushRow, "id" | "endpoint" | "p256dh" | "auth" | "platform">[];
+  const rows = (data ?? []) as Pick<
+    PushRow,
+    "id" | "endpoint" | "expo_token" | "p256dh" | "auth" | "platform"
+  >[];
   if (!rows.length) return { sent: 0, removed: 0 };
 
-  configureWebPush();
+  const hasWeb = rows.some((row) => row.platform === "web" && row.p256dh && row.auth && row.endpoint);
+  if (hasWeb) configureWebPush();
   const body = JSON.stringify(payload);
   let sent = 0;
   let removed = 0;
 
   await Promise.all(
     rows.map(async (row) => {
-      if (row.platform !== "web" || !row.p256dh || !row.auth) {
+      if (row.platform === "ios" || row.platform === "android") {
+        if (!row.expo_token) return;
+        try {
+          const res = await fetch("https://exp.host/--/api/v2/push/send", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Accept-encoding": "gzip, deflate",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              to: row.expo_token,
+              title: payload.title,
+              body: payload.body,
+              data: payload.data ?? {},
+              sound: "default",
+            }),
+          });
+          if (res.status === 404 || res.status === 410) {
+            await admin.from("push_subscriptions").delete().eq("id", row.id);
+            removed += 1;
+            return;
+          }
+          if (!res.ok) {
+            console.error("expo-push send failed", row.id, res.status);
+            return;
+          }
+          sent += 1;
+        } catch (err) {
+          console.error("expo-push send failed", row.id, err);
+        }
+        return;
+      }
+
+      if (row.platform !== "web" || !row.endpoint || !row.p256dh || !row.auth) {
         return;
       }
       try {

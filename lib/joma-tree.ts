@@ -1,16 +1,8 @@
 import { isStorefrontFootwear } from "@/lib/classify";
+import { itemFamilyOf } from "@/lib/joma-item";
 import type { Product } from "@/lib/types";
 
-/** Normalized Joma `item` family (drops trailing [n] pack markers). */
-export function itemFamilyOf(product: Pick<Product, "item">) {
-  return String(product.item || "")
-    .replace(/\s*\[\d+\]\s*$/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "");
-}
+export { itemFamilyOf } from "@/lib/joma-item";
 
 function normLabel(s: string) {
   return s
@@ -377,24 +369,77 @@ export function indexCatalogIntoJomaFolders(catalog: Product[]) {
   };
 
   for (const product of catalog) {
-    const fam = itemFamilyOf(product);
-    const blob = `${fam} ${product.displayName} ${product.name} ${product.title}`.toLowerCase();
-    const matched: JomaFolderDef[] = [];
-    for (const leaf of leaves) {
-      if (leafMatchesProduct(leaf, product, fam, blob)) matched.push(leaf);
-    }
-    const specific = resolveMoreSpecificSiblings(matched, fam);
-    for (const leaf of resolveSeasonLeaves(specific, fam, blob)) {
-      let key: string | undefined = leaf.key;
-      while (key) {
-        push(key, product);
-        key = JOMA_FOLDER_PARENT.get(key);
-      }
-    }
+    for (const key of matchJomaFolderKeys(product, leaves)) push(key, product);
   }
 
   productsByFolderKey = byFolder;
   folderKeysByProductId = byProduct;
+}
+
+let jomaLeaves: JomaFolderDef[] | null = null;
+
+/** Folder keys (leaves plus ancestors) for one product, without touching the catalog index. */
+export function matchJomaFolderKeys(
+  product: Product,
+  leaves: JomaFolderDef[] = (jomaLeaves ??= ALL_FOLDERS.filter((f) => !f.children?.length)),
+): string[] {
+  const keys = new Set<string>();
+  const fam = itemFamilyOf(product);
+  const blob = `${fam} ${product.displayName} ${product.name} ${product.title}`.toLowerCase();
+  const matched: JomaFolderDef[] = [];
+  for (const leaf of leaves) {
+    if (leafMatchesProduct(leaf, product, fam, blob)) matched.push(leaf);
+  }
+  const specific = resolveMoreSpecificSiblings(matched, fam);
+  for (const leaf of resolveSeasonLeaves(specific, fam, blob)) {
+    let key: string | undefined = leaf.key;
+    while (key) {
+      keys.add(key);
+      key = JOMA_FOLDER_PARENT.get(key);
+    }
+  }
+  return [...keys];
+}
+
+export function folderKeysForProduct(product: Pick<Product, "id">): string[] {
+  const keys = folderKeysByProductId?.get(product.id);
+  return keys ? [...keys] : [];
+}
+
+export function indexCatalogFromBakedFolders(
+  catalog: Array<Product & { folders?: string[] }>,
+) {
+  const byFolder = new Map<string, Product[]>();
+  const byProduct = new Map<string, Set<string>>();
+  for (const product of catalog) {
+    const keys = new Set(product.folders ?? []);
+    byProduct.set(product.id, keys);
+    for (const key of keys) {
+      const list = byFolder.get(key);
+      if (list) list.push(product);
+      else byFolder.set(key, [product]);
+    }
+  }
+  productsByFolderKey = byFolder;
+  folderKeysByProductId = byProduct;
+}
+
+export type JomaFolderMetaRow = {
+  key: string;
+  label: string;
+  parent: string | null;
+  hasChildren: boolean;
+  sub: string | null;
+};
+
+export function jomaFolderMetaSnapshot(): JomaFolderMetaRow[] {
+  return ALL_FOLDERS.map((folder) => ({
+    key: folder.key,
+    label: folder.label,
+    parent: JOMA_FOLDER_PARENT.get(folder.key) ?? null,
+    hasChildren: Boolean(folder.children?.length),
+    sub: folder.sub ?? null,
+  }));
 }
 
 export function jomaFolderByKey(key: string) {
@@ -1097,7 +1142,7 @@ const TEAMWEAR_CHILDREN: readonly JomaFolderDef[] = [
         pattern: /\b(socks?|balls?|scrum cap)\b/,
       },
     ]),
-    cover: "/brand/hub-rugby.png?v=1",
+    cover: "/brand/hub-rugby.webp?v=1",
   },
   {
     key: "tw-volleyball",
@@ -1490,7 +1535,7 @@ const TEAMWEAR_PRO_CHILDREN: readonly JomaFolderDef[] = [
     label: "Rugby",
     hubs: ["rugby"],
     apparelOnly: true,
-    cover: "/brand/hub-rugby.png?v=1",
+    cover: "/brand/hub-rugby.webp?v=1",
   },
   {
     key: "tp-handball",
@@ -1510,7 +1555,7 @@ const TEAMWEAR_PRO_CHILDREN: readonly JomaFolderDef[] = [
     label: "Training",
     exactFamilies: ["training"],
     apparelOnly: true,
-    cover: "/brand/hub-teampro-2026.png",
+    cover: "/brand/hub-teampro-2026.webp",
   },
   {
     key: "tp-travel",
@@ -1772,13 +1817,13 @@ export const APPAREL_FOLDERS: readonly JomaFolderDef[] = [
     key: "teamwear",
     label: "Teamwear",
     children: TEAMWEAR_CHILDREN,
-    cover: "/brand/hub-teampro-2026.png",
+    cover: "/brand/hub-teampro-2026.webp",
   },
   {
     key: "teamwear-pro-2026",
     label: "Teamwear Pro 2026",
     children: TEAMWEAR_PRO_CHILDREN,
-    cover: "/brand/hub-teampro-2026.png",
+    cover: "/brand/hub-teampro-2026.webp",
   },
   {
     key: "running-trail",
@@ -2022,13 +2067,13 @@ export const WOMAN_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
     key: "teamwear-woman",
     label: "Teamwear",
     children: WOMAN_TEAMWEAR_CHILDREN,
-    cover: "/brand/hub-teampro-2026.png",
+    cover: "/brand/hub-teampro-2026.webp",
   },
   {
     key: "teamwear-pro-2026",
     label: "Teamwear Pro 2026",
     children: TEAMWEAR_PRO_CHILDREN,
-    cover: "/brand/hub-teampro-2026.png",
+    cover: "/brand/hub-teampro-2026.webp",
   },
   {
     key: "running-trail-woman",

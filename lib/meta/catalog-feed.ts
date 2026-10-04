@@ -1,23 +1,12 @@
 import "server-only";
 
 import { CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
-import { withStorefrontMerchandising } from "@/lib/classify";
 import { productDescription } from "@/lib/copy";
 import { feedGroupId, feedVariantId } from "@/lib/meta/ids";
 import { metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
-import { offlineCatalog } from "@/lib/offline-catalog";
-import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database } from "@/lib/database.types";
+import { getCatalog } from "@/lib/supabase/catalog";
 import type { Product } from "@/lib/types";
 import { productPath } from "@/lib/utils";
-
-type ProductRow = Database["public"]["Tables"]["products"]["Row"];
-type SizeRow = Pick<
-  Database["public"]["Tables"]["product_sizes"]["Row"],
-  "product_id" | "size" | "stock"
->;
-
-const PRODUCT_PAGE = 400;
 const FEED_COLUMNS = [
   "id",
   "item_group_id",
@@ -108,79 +97,6 @@ function rowsForProduct(product: Product): string[] {
     .filter((line): line is string => Boolean(line));
 }
 
-function mapLiveProduct(row: ProductRow, sizes: { size: string; stock: number }[]): Product {
-  return withStorefrontMerchandising({
-    id: row.id,
-    code: row.code,
-    item: row.item,
-    title: row.title,
-    name: row.name,
-    displayName: row.display_name,
-    category: row.category_slug,
-    subcategory: row.subcategory,
-    gender: row.gender as Product["gender"],
-    price: Number(row.price),
-    unitPrice: Number(row.unit_price),
-    currency: "NAD",
-    sheetCategory: row.sheet_category,
-    totalQty: row.stock_qty,
-    stockQty: row.stock_qty,
-    badge: (row.badge ?? null) as Product["badge"],
-    sizeOptions: sizes.map((s) => s.size),
-    sizes,
-    imageUrl: row.image_url,
-    images: row.images ?? [],
-    description: "",
-  });
-}
-
-async function loadLiveProducts(): Promise<Product[] | null> {
-  try {
-    const admin = createAdminClient();
-    const products: Product[] = [];
-    for (let from = 0; ; from += PRODUCT_PAGE) {
-      const { data: rows, error } = await admin
-        .from("products")
-        .select(
-          "id, code, item, title, name, display_name, category_slug, subcategory, gender, price, unit_price, sheet_category, stock_qty, badge, image_url, images, created_at, currency, updated_at",
-        )
-        .order("code")
-        .range(from, from + PRODUCT_PAGE - 1);
-      if (error) throw error;
-      if (!rows?.length) break;
-
-      const { data: sizeRows, error: sizeError } = await admin
-        .from("product_sizes")
-        .select("product_id, size, stock")
-        .in(
-          "product_id",
-          rows.map((row) => row.id),
-        );
-      if (sizeError) throw sizeError;
-
-      const byProduct = new Map<string, SizeRow[]>();
-      for (const size of sizeRows ?? []) {
-        const list = byProduct.get(size.product_id) ?? [];
-        list.push(size);
-        byProduct.set(size.product_id, list);
-      }
-
-      for (const row of rows) {
-        const sizes = (byProduct.get(row.id) ?? []).map((s) => ({
-          size: s.size,
-          stock: s.stock,
-        }));
-        products.push(mapLiveProduct(row, sizes));
-      }
-
-      if (rows.length < PRODUCT_PAGE) break;
-    }
-    return products.length ? products : null;
-  } catch {
-    return null;
-  }
-}
-
 export function metaCatalogFeedHeader() {
   return FEED_COLUMNS.join("\t");
 }
@@ -190,8 +106,8 @@ export function metaCatalogFeedLines(catalog: Product[]) {
 }
 
 export async function buildMetaCatalogTsv() {
-  const catalog = ((await loadLiveProducts()) ?? offlineCatalog).filter(
-    (product) => product.code !== "DPO-TEST",
+  const catalog = (await getCatalog()).filter(
+    (product) => product.code !== "DPO-TEST" && product.available !== false,
   );
   return [metaCatalogFeedHeader(), ...metaCatalogFeedLines(catalog)].join("\n") + "\n";
 }

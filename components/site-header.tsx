@@ -15,7 +15,7 @@ import {
   jomaAudienceLinks,
   jomaOfficialKitsLinks,
   jomaOutletLinks,
-} from "@/lib/joma-nav";
+} from "@/lib/joma-nav-links";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import { CategorySubNav } from "@/components/category-sub-nav";

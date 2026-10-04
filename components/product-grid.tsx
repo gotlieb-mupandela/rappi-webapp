@@ -6,7 +6,7 @@ import { useT } from "@/components/locale-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
 import { SUBCATEGORY_LABELS, subcategoryChipRank } from "@/lib/catalog";
-import { itemFamilyOf } from "@/lib/joma-tree";
+import { itemFamilyOf } from "@/lib/joma-item";
 import { cn } from "@/lib/utils";
 
 /** Dense Joma-style catalog grid — up to ~5 columns on wide screens. */

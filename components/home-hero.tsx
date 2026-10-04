@@ -5,7 +5,7 @@ import { useT } from "@/components/locale-provider";
 import { hubNav } from "@/lib/i18n/labels";
 import type { Product } from "@/lib/types";
 
-const TEAMWEAR_COVER = "/brand/hub-teampro-2026.png";
+const TEAMWEAR_COVER = "/brand/hub-teampro-2026.webp";
 
 export function HomeHero({
   sportswearCover,

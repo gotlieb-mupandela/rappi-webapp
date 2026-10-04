@@ -1,31 +1,60 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { useT } from "@/components/locale-provider";
 import { audienceName, hubName } from "@/lib/i18n/labels";
 import {
-  buildListing,
   listingQueryFromSearchParams,
   listingQueryIsActive,
-  type ListingFilterOpts,
-  type ListingItem,
   type ListingQuery,
   type ListingResult,
 } from "@/lib/listing-core";
-import { getListingIndexSync, loadListingIndex } from "@/lib/listing-index";
 
 function queryFromLocation(): ListingQuery {
   if (typeof window === "undefined") return {};
   return listingQueryFromSearchParams(new URLSearchParams(window.location.search));
 }
 
+function apiParams(query: ListingQuery, categorySlug?: string, audienceSlug?: string) {
+  const params = new URLSearchParams();
+  if (query.q) params.set("q", query.q);
+  const cat = categorySlug || query.cat;
+  if (cat && cat !== "all") params.set("cat", cat);
+  if (query.sub) params.set("sub", query.sub);
+  if (query.group) params.set("group", query.group);
+  if (query.size) params.set("size", query.size);
+  if (query.max) params.set("max", query.max);
+  const audience = audienceSlug || query.audience;
+  if (audience && audience !== "all") params.set("audience", audience);
+  if (query.page && Number(query.page) > 1) params.set("page", String(query.page));
+  params.sort();
+  return params.toString();
+}
+
+async function fetchListing(url: string, requireQuery: boolean): Promise<ListingResult> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`listing ${res.status}`);
+  const data = await res.json();
+  if (requireQuery) return data.listing as ListingResult;
+  return {
+    products: data.products,
+    total: data.total,
+    page: data.page,
+    pageSize: data.pageSize,
+    pageCount: data.pageCount,
+    query: "",
+    facets: data.facets,
+  } as ListingResult;
+}
+
+const listingCache = new Map<string, ListingResult>();
+
 export function CatalogBrowser({
   basePath,
   categorySlug,
   audienceSlug,
   requireQuery = false,
-  badges,
   grouped = true,
   showCategoryFilter = false,
   showAudienceFilter = true,
@@ -45,7 +74,6 @@ export function CatalogBrowser({
   categorySlug?: string;
   audienceSlug?: string;
   requireQuery?: boolean;
-  badges?: ListingFilterOpts["badges"];
   grouped?: boolean;
   showCategoryFilter?: boolean;
   showAudienceFilter?: boolean;
@@ -62,76 +90,69 @@ export function CatalogBrowser({
   initialListing?: ListingResult;
 }) {
   const t = useT();
-  const [index, setIndex] = useState<ListingItem[] | null>(getListingIndexSync);
   const [query, setQuery] = useState<ListingQuery>({});
+  const [ready, setReady] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [remote, setRemote] = useState<ListingResult | null>(null);
 
   useLayoutEffect(() => {
     setQuery(queryFromLocation());
+    setReady(true);
   }, []);
 
   useEffect(() => {
-    let alive = true;
-    loadListingIndex()
-      .then((rows) => {
-        if (alive) setIndex(rows);
-      })
-      .catch(() => {
-        /* Keep SSR initial listing when the index fails to load. */
-      });
-    return () => {
-      alive = false;
+    const onPop = () => {
+      setQuery(queryFromLocation());
+      setDirty(true);
     };
-  }, []);
-
-  useEffect(() => {
-    const onPop = () => setQuery(queryFromLocation());
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  const listingQuery: ListingQuery = audienceSlug
-    ? { ...query, audience: audienceSlug }
-    : query;
-  const filterOpts: ListingFilterOpts = {
-    categorySlug,
-    requireQuery,
-    badges,
-  };
+  const hasQ = Boolean((query.q ?? "").trim());
+  const useInitial =
+    !requireQuery &&
+    Boolean(initialListing) &&
+    !dirty &&
+    !listingQueryIsActive(query, { categorySlug, audienceSlug });
+  const params = apiParams(query, categorySlug, audienceSlug);
+  const endpoint = requireQuery ? "/api/search" : "/api/catalog";
+  const url = `${endpoint}?${params}`;
+  const shouldFetch = ready && !useInitial && (!requireQuery || hasQ);
 
-  const listing = useMemo(() => {
-    if (index) return buildListing(index, listingQuery, filterOpts);
-    const canUseInitial =
-      initialListing &&
-      !requireQuery &&
-      !listingQueryIsActive(query, { categorySlug, audienceSlug });
-    return canUseInitial ? initialListing : null;
-  }, [
-    index,
-    listingQuery.q,
-    listingQuery.cat,
-    listingQuery.sub,
-    listingQuery.group,
-    listingQuery.size,
-    listingQuery.max,
-    listingQuery.audience,
-    listingQuery.page,
-    categorySlug,
-    requireQuery,
-    badges,
-    initialListing,
-    query,
-    audienceSlug,
-  ]);
+  useEffect(() => {
+    if (!shouldFetch) return;
+    const hit = listingCache.get(url);
+    if (hit) {
+      setRemote(hit);
+      return;
+    }
+    let alive = true;
+    fetchListing(url, requireQuery)
+      .then((result) => {
+        listingCache.set(url, result);
+        if (alive) setRemote(result);
+      })
+      .catch(() => {
+        if (alive && initialListing) setRemote(initialListing);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [shouldFetch, url, requireQuery, initialListing]);
 
   function onNavigate(href: string) {
-    const url = new URL(href, window.location.origin);
-    window.history.pushState(null, "", `${url.pathname}${url.search}`);
-    setQuery(listingQueryFromSearchParams(url.searchParams));
+    const next = new URL(href, window.location.origin);
+    window.history.pushState(null, "", `${next.pathname}${next.search}`);
+    setQuery(listingQueryFromSearchParams(next.searchParams));
+    setDirty(true);
   }
 
-  if (requireQuery && !(query.q ?? "").trim()) {
+  if (requireQuery && ready && !hasQ) {
     return <>{emptyQuery}</>;
   }
+
+  const listing = useInitial ? initialListing! : remote ?? (requireQuery ? null : initialListing ?? null);
 
   if (!listing) {
     return (

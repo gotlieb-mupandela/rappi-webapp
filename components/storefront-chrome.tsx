@@ -34,9 +34,8 @@ export function StorefrontChrome({
           pathname.startsWith("/search")),
     );
 
-  // NOTE: no global listing-index prefetch — it is an 11MB download that
-  // CatalogBrowser already fetches on demand on catalog pages. Prefetching
-  // it here taxed every homepage visit for zero benefit.
+  // NOTE: no global listing-index prefetch — CatalogBrowser loads a slim
+  // per-hub file only after the shopper uses filters or search.
 
   if (isAdmin) {
     return <>{children}</>;

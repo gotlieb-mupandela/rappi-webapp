@@ -110,7 +110,7 @@ export function brandCoverIfSafe(
   if (!cover) return "";
   const path = cover.split("?")[0] ?? cover;
   if (!path.startsWith("/brand/")) return "";
-  if (/\/hub-rugby\.png$/.test(path)) return "";
+  if (/\/hub-rugby\.(png|webp)$/.test(path)) return "";
   if (/\/hub-kids\.png$/.test(path)) return "";
   if (/\/hub-lifestyle\.png$/.test(path)) return "";
   if (/\/hub-shoes\.png$/.test(path) && kind !== "footwear") return "";

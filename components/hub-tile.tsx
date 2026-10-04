@@ -1,13 +1,41 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ProductImage } from "@/components/product-image";
 import { useT } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import { productCardImageCandidates, productCardImageUrl } from "@/lib/media";
+import { productImageLoader } from "@/lib/product-image-loader";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+function CoverImage({
+  src,
+  alt,
+  className,
+  priority,
+  sizes,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  priority: boolean;
+  sizes: string;
+}) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      priority={priority}
+      className={className}
+      loader={/^https?:\/\//i.test(src) ? productImageLoader : undefined}
+    />
+  );
+}
 
 export function HubTile({
   slug,
@@ -141,14 +169,12 @@ export function HubTile({
               fallbackClassName="absolute inset-0 h-full w-full"
             />
           ) : imageSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <CoverImage
               src={imageSrc}
               alt={label}
               className={imageClassName}
-              loading={priority ? "eager" : "lazy"}
-              decoding="async"
-              fetchPriority={priority ? "high" : "auto"}
+              priority={priority}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 240px"
             />
           ) : (
             <div className="absolute inset-0 bg-[var(--surface-2)]" />
@@ -201,14 +227,16 @@ export function HubTile({
             fallbackClassName="absolute inset-0 h-full w-full"
           />
         ) : imageSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <CoverImage
             src={imageSrc}
             alt={label}
             className={imageClassName}
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            fetchPriority={priority ? "high" : "auto"}
+            priority={priority}
+            sizes={
+              size === "large" || fill
+                ? "(max-width: 1024px) 100vw, 50vw"
+                : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            }
           />
         ) : (
           <div className="absolute inset-0 bg-[var(--surface-2)]" />

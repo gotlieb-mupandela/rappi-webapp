@@ -4,10 +4,19 @@ import { ProductCard } from "@/components/product-card";
 import { ProductDetail } from "@/components/product-detail";
 import { ProductMoreHeading } from "@/components/product-more-heading";
 import { getProduct, productsByCategory } from "@/lib/products";
+import { offlineCatalog } from "@/lib/offline-catalog";
+import { getCatalog, getFreshCheckoutProducts } from "@/lib/supabase/catalog";
 import { withFullResProductImages } from "@/lib/media";
+import { withCatalogSizes } from "@/lib/sizes";
 import { decodeProductCode } from "@/lib/utils";
 
 export const revalidate = 3600;
+
+const LIVE_PRODUCT_TIMEOUT_MS = 1500;
+
+export function generateStaticParams() {
+  return [];
+}
 
 export default async function ProductPage({
   params,
@@ -16,10 +25,22 @@ export default async function ProductPage({
 }) {
   const { code } = await params;
   const sku = decodeProductCode(code);
-  const found = getProduct(sku);
-  if (!found || (found as { available?: boolean }).available === false) notFound();
-  const product = withFullResProductImages(found);
-  const related = productsByCategory(product.category)
+  const catalog = await getCatalog();
+  let found = getProduct(sku, catalog);
+  let live = catalog !== offlineCatalog;
+  if (!live) {
+    const fresh = await Promise.race([
+      getFreshCheckoutProducts([sku]).then((map) => map.get(sku)),
+      new Promise<undefined>((resolve) => setTimeout(resolve, LIVE_PRODUCT_TIMEOUT_MS)),
+    ]);
+    if (fresh && fresh !== found) {
+      found = fresh;
+      live = true;
+    }
+  }
+  if (!found || found.available === false) notFound();
+  const product = withFullResProductImages(live ? found : withCatalogSizes(found));
+  const related = productsByCategory(product.category, catalog)
     .filter((p) => p.code !== product.code)
     .slice(0, 4);
 

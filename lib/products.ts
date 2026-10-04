@@ -1,6 +1,5 @@
 import "server-only";
 
-import { withStorefrontMerchandising } from "@/lib/classify";
 import { SUBCATEGORY_LABELS } from "@/lib/catalog";
 import { searchListing } from "@/lib/listing-core";
 import {
@@ -19,13 +18,12 @@ export {
 
 export { categoryCountsFrom, getProductByCode, productsByCategory } from "@/lib/offline-catalog";
 
-/** Bundled catalog — merchandised so server cart/PDP prices and copy stay in sync. */
+/** Bundled catalog fallback — live data goes through getCatalog(). */
 export const products = offlineCatalog;
 
 export function getProduct(code: string, catalog: Product[] = products) {
-  const found =
-    catalog === products ? getProductByCode(code) : catalog.find((p) => p.code === code);
-  return found ? withStorefrontMerchandising(found) : undefined;
+  if (catalog === products) return getProductByCode(code);
+  return catalog.find((p) => p.code === code);
 }
 
 export function productsBySubcategory(

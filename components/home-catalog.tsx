@@ -57,13 +57,13 @@ export function HomeCatalog() {
         <Tile
           className="aspect-[16/10] lg:col-span-2 lg:row-start-1 lg:aspect-auto"
           href="/teamwear"
-          src="/brand/hub-teampro-2026.png"
+          src="/brand/hub-teampro-2026.webp"
           title={t("home.tileTeamwear")}
         />
         <Tile
           className="aspect-[16/10] lg:col-span-2 lg:row-start-1 lg:aspect-auto"
           href="/shop/teampro-2026"
-          src="/brand/hub-rugby.png"
+          src="/brand/hub-rugby.webp"
           title={t("home.tileTeamwearPro")}
         />
         <Tile

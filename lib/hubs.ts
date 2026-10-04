@@ -308,7 +308,7 @@ export const HOME_CATEGORY_HUBS = ["shoes", "balls-bags", "lifestyle"] as const;
 export const HUB_COVERS: Partial<Record<string, string>> = {
   sportswear: "/brand/hub-sportswear.png?v=5",
   shoes: "/brand/hub-shoes.png",
-  "teampro-2026": "/brand/hub-teampro-2026.png",
+  "teampro-2026": "/brand/hub-teampro-2026.webp",
   "running-fitness": "/brand/hub-shoes.png",
 };
 function audienceSample(items: Product[], slug: AudienceSlug) {

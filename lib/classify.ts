@@ -2,7 +2,7 @@ import { BIB_PACK_PRICE_NAD, applyInferredSurtidoAssortments, isFixedBibPack } f
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
 import { isSportHub, jomaLeafHub, productInHub } from "@/lib/hub-membership";
-import { withProductImages } from "@/lib/media";
+import { hasUsableProductImage, withProductImages } from "@/lib/media";
 import { withCatalogSizes } from "@/lib/sizes";
 import type { Product } from "@/lib/types";
 
@@ -765,16 +765,7 @@ export function classifyExtraHubs(product: Product, category = product.category)
   return [...extra];
 }
 
-export function hasUsableProductImage(product: Product) {
-  const urls = [product.imageUrl, ...(product.images ?? [])].filter(Boolean);
-  return urls.some((url) => {
-    if (/^https?:\/\//i.test(url)) return true;
-    // Real local assets only — ignore invented `/products/{id}/…` placeholders
-    // that 404 and used to surface silhouette fallbacks.
-    if (url.startsWith("/products/")) return false;
-    return url.startsWith("/");
-  });
-}
+export { hasUsableProductImage };
 
 export function withStorefrontCategory<T extends Product>(product: T): T {
   return withStorefrontMerchandising(product);

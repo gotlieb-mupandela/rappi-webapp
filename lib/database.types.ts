@@ -188,6 +188,7 @@ export type Database = {
           shipping_cost: number
           shipping_method: string
           status: Database["public"]["Enums"]["order_status"]
+          stock_short: boolean
           subtotal: number
           total: number
           updated_at: string
@@ -210,6 +211,7 @@ export type Database = {
           shipping_cost?: number
           shipping_method: string
           status?: Database["public"]["Enums"]["order_status"]
+          stock_short?: boolean
           subtotal: number
           total: number
           updated_at?: string
@@ -232,6 +234,7 @@ export type Database = {
           shipping_cost?: number
           shipping_method?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stock_short?: boolean
           subtotal?: number
           total?: number
           updated_at?: string
@@ -346,19 +349,25 @@ export type Database = {
       }
       products: {
         Row: {
+          available: boolean
           badge: Database["public"]["Enums"]["product_badge"] | null
           category_slug: string
           code: string
+          content_changed_at: string | null
           created_at: string
           currency: string
+          description: string
           display_name: string
           gender: Database["public"]["Enums"]["gender"]
+          hubs: string[]
           id: string
           image_url: string
           images: string[]
           item: string
           name: string
+          pack_size: number | null
           price: number
+          sell_as: string | null
           sheet_category: string | null
           stock_qty: number
           subcategory: string
@@ -367,19 +376,25 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          available?: boolean
           badge?: Database["public"]["Enums"]["product_badge"] | null
           category_slug: string
           code: string
+          content_changed_at?: string | null
           created_at?: string
           currency?: string
+          description?: string
           display_name: string
           gender: Database["public"]["Enums"]["gender"]
+          hubs?: string[]
           id: string
           image_url: string
           images?: string[]
           item: string
           name: string
+          pack_size?: number | null
           price: number
+          sell_as?: string | null
           sheet_category?: string | null
           stock_qty?: number
           subcategory: string
@@ -388,19 +403,25 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          available?: boolean
           badge?: Database["public"]["Enums"]["product_badge"] | null
           category_slug?: string
           code?: string
+          content_changed_at?: string | null
           created_at?: string
           currency?: string
+          description?: string
           display_name?: string
           gender?: Database["public"]["Enums"]["gender"]
+          hubs?: string[]
           id?: string
           image_url?: string
           images?: string[]
           item?: string
           name?: string
+          pack_size?: number | null
           price?: number
+          sell_as?: string | null
           sheet_category?: string | null
           stock_qty?: number
           subcategory?: string
@@ -422,7 +443,8 @@ export type Database = {
         Row: {
           auth: string | null
           created_at: string
-          endpoint: string
+          endpoint: string | null
+          expo_token: string | null
           id: string
           p256dh: string | null
           platform: Database["public"]["Enums"]["push_platform"]
@@ -432,7 +454,8 @@ export type Database = {
         Insert: {
           auth?: string | null
           created_at?: string
-          endpoint: string
+          endpoint?: string | null
+          expo_token?: string | null
           id?: string
           p256dh?: string | null
           platform?: Database["public"]["Enums"]["push_platform"]
@@ -442,12 +465,40 @@ export type Database = {
         Update: {
           auth?: string | null
           created_at?: string
-          endpoint?: string
+          endpoint?: string | null
+          expo_token?: string | null
           id?: string
           p256dh?: string | null
           platform?: Database["public"]["Enums"]["push_platform"]
           user_agent?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      stock_sync_runs: {
+        Row: {
+          applied_by: string | null
+          created_at: string
+          filename: string
+          id: string
+          matched: number
+          unmatched_codes: string[]
+        }
+        Insert: {
+          applied_by?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          matched?: number
+          unmatched_codes?: string[]
+        }
+        Update: {
+          applied_by?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          matched?: number
+          unmatched_codes?: string[]
         }
         Relationships: []
       }
@@ -600,10 +651,77 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      storefront_catalog: {
+        Row: {
+          available: boolean | null
+          badge: Database["public"]["Enums"]["product_badge"] | null
+          category_slug: string | null
+          code: string | null
+          currency: string | null
+          description: string | null
+          display_name: string | null
+          gender: Database["public"]["Enums"]["gender"] | null
+          hubs: string[] | null
+          id: string | null
+          image_url: string | null
+          images: string[] | null
+          item: string | null
+          name: string | null
+          pack_size: number | null
+          price: number | null
+          sell_as: string | null
+          sheet_category: string | null
+          sizes: Json | null
+          stock_qty: number | null
+          subcategory: string | null
+          title: string | null
+          unit_price: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      _sync_upsert_products: { Args: { rows: Json }; Returns: number }
+      _sync_upsert_sizes: { Args: { rows: Json }; Returns: number }
+      apply_order_stock: { Args: { p_order_id: string }; Returns: boolean }
+      apply_stock_sync: {
+        Args: { p_filename?: string; p_rows: Json; p_unmatched?: string[] }
+        Returns: Json
+      }
       is_admin: { Args: never; Returns: boolean }
+      replace_product_sizes: {
+        Args: { p_product_id: string; p_sizes: Json }
+        Returns: number
+      }
+      storefront_overlay: { Args: never; Returns: Json }
+      storefront_catalog_page: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          available: boolean | null
+          badge: Database["public"]["Enums"]["product_badge"] | null
+          category_slug: string | null
+          code: string | null
+          currency: string | null
+          description: string | null
+          display_name: string | null
+          gender: Database["public"]["Enums"]["gender"] | null
+          hubs: string[] | null
+          id: string | null
+          image_url: string | null
+          images: string[] | null
+          item: string | null
+          name: string | null
+          pack_size: number | null
+          price: number | null
+          sell_as: string | null
+          sheet_category: string | null
+          sizes: Json | null
+          stock_qty: number | null
+          subcategory: string | null
+          title: string | null
+          unit_price: number | null
+        }[]
+      }
       place_order: {
         Args: {
           p_address: string
@@ -762,6 +880,7 @@ export const Constants = {
       gender: ["men", "women", "kids", "unisex"],
       order_status: ["reserved", "preparing", "shipped", "cancelled"],
       product_badge: ["new", "offer"],
+      push_platform: ["web", "ios", "android"],
     },
   },
 } as const

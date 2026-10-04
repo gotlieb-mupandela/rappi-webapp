@@ -4,7 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -91,26 +91,26 @@ export function LocaleProvider({
     setOverride(null);
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const stored = readStoredMarket();
     const cookieMarket = readCookie(MARKET_COOKIE);
     const cookieSource = readCookie(MARKET_SOURCE_COOKIE);
 
     if (stored.source === "manual" && stored.market) {
       persistMarket(stored.market, "manual");
-      if (stored.market !== initialMarket) router.refresh();
+      if (stored.market !== initialMarket) setOverride(stored.market);
       return;
     }
 
     if (cookieSource === "manual" && isMarket(cookieMarket)) {
       persistMarket(cookieMarket, "manual");
-      if (cookieMarket !== initialMarket) router.refresh();
+      if (cookieMarket !== initialMarket) setOverride(cookieMarket);
       return;
     }
 
     if (isMarket(cookieMarket)) {
       persistMarket(cookieMarket, "auto");
-      if (cookieMarket !== initialMarket) router.refresh();
+      if (cookieMarket !== initialMarket) setOverride(cookieMarket);
       return;
     }
 
@@ -125,8 +125,8 @@ export function LocaleProvider({
       timeZone: tz,
     });
     persistMarket(detected, "auto");
-    if (detected !== initialMarket) router.refresh();
-    // Cookie / timezone alignment after mount — persist + refresh only.
+    if (detected !== initialMarket) setOverride(detected);
+    // Cookie / timezone alignment after mount — no RSC refresh (layout is static).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

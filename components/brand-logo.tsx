@@ -2,7 +2,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const SRC = {
-  lockup: { src: "/brand/logo-dark.png", width: 1416, height: 895 },
+  lockup: { src: "/brand/logo-dark.webp", width: 800, height: 506 },
   mark: { src: "/brand/rappi-mark-v2.png", width: 512, height: 512 },
   banner: { src: "/brand/rappi-banner.png", width: 1024, height: 640 },
 } as const;

@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { productImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/locale-provider";
 
@@ -102,18 +104,19 @@ export function AudienceLandingGrid({
                   </span>
                 </div>
               ) : tile.imageSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={tile.imageSrc}
                   alt={label}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  priority={index < 4}
+                  loader={/^https?:\/\//i.test(tile.imageSrc) ? productImageLoader : undefined}
                   className={cn(
-                    "absolute inset-0 h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
+                    "transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
                     isFootwear
                       ? "object-contain object-center p-5 sm:p-6"
                       : "min-h-full min-w-full max-w-none object-cover object-center",
                   )}
-                  loading={index < 7 ? "eager" : "lazy"}
-                  decoding="async"
                 />
               ) : null}
               {banner && !isGraphic ? (

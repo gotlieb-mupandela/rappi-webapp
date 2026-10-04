@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
-import { isJomaBrowseFolder } from "@/lib/joma-tree";
+import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 
 export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const pathname = usePathname();

@@ -7,13 +7,8 @@ import {
   matchesTypeFolder,
   subcategoryChipRank,
 } from "@/lib/catalog";
-import { hasUsableProductImage } from "@/lib/classify";
-import {
-  hasJomaFolderIndex,
-  isJomaBrowseFolder,
-  matchesJomaFolderKey,
-  productsInJomaFolder,
-} from "@/lib/joma-tree";
+import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
+import { hasUsableProductImage } from "@/lib/media";
 import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
@@ -137,6 +132,10 @@ function productHasImage(p: ListingItem) {
   return hasUsableProductImage(p as Product);
 }
 
+function listingInFolder(product: ListingItem, key: string) {
+  return Boolean(product.folders?.includes(key));
+}
+
 export function filterListing(
   catalog: ListingItem[],
   query: ListingQuery,
@@ -156,8 +155,8 @@ export function filterListing(
   let list: ListingItem[];
   if (q) {
     list = searchListing(catalog, q, scopedCat);
-  } else if (jomaGroup && hasJomaFolderIndex()) {
-    list = productsInJomaFolder(jomaGroup).filter(productHasImage) as ListingItem[];
+  } else if (jomaGroup) {
+    list = catalog.filter((p) => productHasImage(p) && listingInFolder(p, jomaGroup));
     if (scopedCat && scopedCat !== "all") {
       list = list.filter((p) => listingInHub(p, scopedCat));
     }
@@ -180,8 +179,7 @@ export function filterListing(
     if (sub && p.subcategory !== sub) return false;
     if (group) {
       if (jomaGroup) {
-        // Already constrained to the folder when the index is available.
-        if (!hasJomaFolderIndex() && !matchesJomaFolderKey(p, jomaGroup)) return false;
+        if (!listingInFolder(p, jomaGroup)) return false;
       } else if (!matchesTypeFolder(p.subcategory, group)) {
         return false;
       }
@@ -266,7 +264,7 @@ export function paginateListing(
     : 1;
   const start = (page - 1) * pageSize;
   return {
-    products: list.slice(start, start + pageSize),
+    products: list.slice(start, start + pageSize).map(toClientProduct),
     total: list.length,
     page,
     pageSize,
@@ -279,6 +277,12 @@ export function paginateListing(
       sizes: facetSizes(list),
     },
   };
+}
+
+/** Drop server-only search/folder helpers before sending a row to the browser. */
+export function toClientProduct(product: Product): Product {
+  const { hay: _hay, folders: _folders, ...rest } = product as ListingItem;
+  return rest;
 }
 
 export function buildListing(

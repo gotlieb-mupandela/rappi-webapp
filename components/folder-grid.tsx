@@ -25,7 +25,7 @@ export function FolderGrid({
           bannerKey={g.banner ? "group.shoes.offersBanner" : undefined}
           shape="portrait"
           variant="folder"
-          priority={i < 7}
+          priority={i < 2}
         />
       ))}
     </div>
