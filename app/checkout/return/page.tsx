@@ -7,6 +7,7 @@ import { MetaPurchase } from "@/components/meta-purchase";
 import { fulfillDpoPayment } from "@/lib/dpo-payments";
 import { formatPrice } from "@/lib/format";
 import { purchaseContentsFromPayment } from "@/lib/meta/capi";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,10 @@ export default async function CheckoutReturnPage({
   const params = await searchParams;
   const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   let heading = "Payment not verified";
   let body = "Missing transaction token. Return to checkout and try again.";
@@ -41,7 +46,11 @@ export default async function CheckoutReturnPage({
 
   if (transToken || companyRef) {
     try {
-      const result = await fulfillDpoPayment({ transToken, companyRef });
+      const result = await fulfillDpoPayment({
+        transToken,
+        companyRef,
+        userId: user?.id ?? null,
+      });
       paid = result.ok && result.status === "paid";
       heading = paid ? "Payment received" : "Payment not complete";
       body = result.message;

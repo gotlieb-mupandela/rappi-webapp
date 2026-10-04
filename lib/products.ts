@@ -1,6 +1,7 @@
 import "server-only";
 
 import { SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { DPO_TEST_CODE, isDpoTestCheckoutEnabled } from "@/lib/dpo-test-product";
 import { searchListing } from "@/lib/listing-core";
 import {
   categoryCountsFrom,
@@ -22,6 +23,7 @@ export { categoryCountsFrom, getProductByCode, productsByCategory } from "@/lib/
 export const products = offlineCatalog;
 
 export function getProduct(code: string, catalog: Product[] = products) {
+  if (code === DPO_TEST_CODE && !isDpoTestCheckoutEnabled()) return undefined;
   if (catalog === products) return getProductByCode(code);
   return catalog.find((p) => p.code === code);
 }

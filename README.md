@@ -4,7 +4,7 @@ Consumer sports catalog for **RAPPI SPORTS HUB**. Tagline: **EQUIP | PERFORM | I
 
 Dark storefront with neon lime CTAs. Opening-shop stock — **184 SKUs**. Unit prices are retail Namibian dollars (**N$**). France / EU visitors can switch the storefront to **French + euros** (converted from NAD). Guest browse and cart are enabled. Checkout charges via DPO after sign-in.
 
-When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, the storefront reads catalog, shipping, and site settings from Supabase (with `/data/products.json` as offline fallback). Orders go through the `place_order` RPC.
+When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set, the storefront reads catalog, shipping, and site settings from Supabase (with `/data/products.json` as offline fallback). Checkout charges via DPO after sign-in.
 
 Staff use the **admin panel** at `/admin` (same Supabase project as the Expo app). Do not put a native admin in mobile.
 
@@ -27,15 +27,10 @@ npm run build
 npm start
 ```
 
-## Demo login (storefront)
+## Storefront login
 
 With Supabase configured, use **Google**, **Create account**, or email/password on `/login`.
 Checkout requires a signed-in account (guest browse is still allowed).
-
-Offline-only demo (no Supabase env):
-
-- Email: `shop@rappi.com`
-- Password: `rappi123`
 
 ### Google sign-in setup
 
@@ -46,12 +41,18 @@ Offline-only demo (no Supabase env):
 3. In Google Cloud OAuth client, set Authorized redirect URI to:
    `https://wzmzwerzbyudcvoiiege.supabase.co/auth/v1/callback`
 
-Orders from `place_order` are mirrored to browser `localStorage` and also stored in Supabase for Account → Orders.
+Paid orders are stored in Supabase after DPO confirms the charged amount. Account → Orders reads those rows.
+
+DPO company notify URL (after `DPO_WEBHOOK_SECRET` is on Vercel):
+
+`https://www.rappisportshub.com/api/payments/dpo/webhook?token=<DPO_WEBHOOK_SECRET>`
+
+Copy the token from `.env.local`. The return page still creates the order if the shopper comes back signed in.
 
 ## Admin panel
 
-1. Create a staff Auth user in Supabase (not the demo customer).
-2. Promote: `select public.promote_admin('staff@example.com');` (SQL editor / service role).
+1. Create a staff Auth user in Supabase.
+2. Promote: `select public.promote_admin('staff@example.com');` (SQL editor / service role). Matches `auth.users.email`, not the profile email.
 3. Sign in at `/admin/login`.
 
 Routes: dashboard, products, orders, customers, content (`site_settings`), shipping. Never ship the service role key to the browser.

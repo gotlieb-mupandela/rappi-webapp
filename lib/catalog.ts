@@ -431,6 +431,4 @@ export function audienceBySlug(slug: string) {
   return AUDIENCES.find((a) => a.slug === slug);
 }
 
-export const DEMO_EMAIL = "shop@rappi.com";
-export const DEMO_PASSWORD = "rappi123";
 export const TAGLINE = "GEAR UP. SHOW UP. LEVEL UP.";

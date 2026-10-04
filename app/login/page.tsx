@@ -8,24 +8,18 @@ import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authCallbackUrl, userFromAuth } from "@/lib/auth/session";
+import { authCallbackUrl, safeNextPath, userFromAuth } from "@/lib/auth/session";
 import { isNativeApp } from "@/lib/native";
-import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/catalog";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
 import { useT } from "@/components/locale-provider";
 
 const LOGIN_VISUAL = "/brand/hero-athlete.png";
 
-function safeNext(raw: string | null) {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/account";
-  return raw;
-}
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = safeNext(searchParams.get("next"));
+  const next = safeNextPath(searchParams.get("next"), "/account");
   const login = useAuth((s) => s.login);
   const setUser = useAuth((s) => s.setUser);
   const user = useAuth((s) => s.user);
@@ -291,12 +285,6 @@ function LoginForm() {
               </>
             )}
           </p>
-
-          {!configured ? (
-            <p className="mt-4 text-xs leading-relaxed text-[var(--muted-2)]">
-              {t("login.demo", { email: DEMO_EMAIL, password: DEMO_PASSWORD })}
-            </p>
-          ) : null}
 
           <Button
             asChild

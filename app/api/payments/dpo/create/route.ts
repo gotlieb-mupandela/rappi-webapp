@@ -16,6 +16,7 @@ import {
   requestSiteUrl,
   splitName,
 } from "@/lib/dpo";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { defaultVatCountry, quoteVat, resolveVatCountry } from "@/lib/vat";
@@ -49,6 +50,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sign in to place an order." }, { status: 401 });
   }
 
+  const allowed = await consumeRateLimit(`dpo-create:${user.id}`, 10);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many payment attempts. Try again later." }, { status: 429 });
+  }
+
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim();
   const phone = String(body.phone ?? "").trim();
@@ -75,7 +81,7 @@ export async function POST(req: Request) {
 
   let lines;
   try {
-    lines = resolveCheckoutLines(body.lines);
+    lines = await resolveCheckoutLines(body.lines);
   } catch (err) {
     if (err instanceof CartResolveError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

@@ -1,9 +1,10 @@
 import "server-only";
 
 import { buyableSizes } from "@/lib/product-stock";
-import { getProduct } from "@/lib/products";
+import { getFreshCheckoutProducts } from "@/lib/supabase/catalog";
 import { SHIPPING_METHODS, shippingCostById } from "@/lib/shipping";
 import type { DpoCartLine } from "@/lib/dpo-payload";
+import type { Product } from "@/lib/types";
 
 export class CartResolveError extends Error {
   constructor(
@@ -25,7 +26,30 @@ export function parseShippingMethod(value: unknown) {
   return SHIPPING_METHODS.some((method) => method.id === id) ? id : null;
 }
 
-export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
+function priceLine(product: Product, size: string, qty: number): DpoCartLine {
+  if (product.available === false) {
+    throw new CartResolveError(400, `Product ${product.code} is no longer sold.`);
+  }
+  const sizeRow = buyableSizes(product).find((option) => option.size === size);
+  if (!sizeRow) {
+    throw new CartResolveError(400, `Size ${size} is not available for ${product.code}.`);
+  }
+  if (sizeRow.stock < qty) {
+    throw new CartResolveError(
+      400,
+      `Only ${sizeRow.stock} in stock for ${product.code} size ${size}.`,
+    );
+  }
+  return {
+    code: product.code,
+    name: product.displayName || product.name,
+    size: sizeRow.size,
+    qty,
+    price: Number(product.price),
+  };
+}
+
+export async function resolveCheckoutLines(input: unknown): Promise<DpoCartLine[]> {
   if (!Array.isArray(input) || input.length === 0) {
     throw new CartResolveError(400, "Cart is empty.");
   }
@@ -33,8 +57,7 @@ export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
     throw new CartResolveError(400, "Too many items in the cart.");
   }
 
-  const lines: DpoCartLine[] = [];
-  const missing: string[] = [];
+  const parsed: Array<{ code: string; size: string; qty: number }> = [];
   for (const raw of input) {
     if (!raw || typeof raw !== "object") {
       throw new CartResolveError(400, "Invalid cart line.");
@@ -46,31 +69,19 @@ export function resolveCheckoutLines(input: unknown): DpoCartLine[] {
     if (!code || !size || !qty) {
       throw new CartResolveError(400, "Each item needs a product, size, and quantity.");
     }
+    parsed.push({ code, size, qty });
+  }
 
-    const product = getProduct(code);
+  const products = await getFreshCheckoutProducts(parsed.map((line) => line.code));
+  const lines: DpoCartLine[] = [];
+  const missing: string[] = [];
+  for (const row of parsed) {
+    const product = products.get(row.code);
     if (!product) {
-      if (!missing.includes(code)) missing.push(code);
+      if (!missing.includes(row.code)) missing.push(row.code);
       continue;
     }
-    if ((product as { available?: boolean }).available === false) {
-      throw new CartResolveError(400, `Product ${code} is no longer sold.`);
-    }
-
-    const sizeRow = buyableSizes(product).find((option) => option.size === size);
-    if (!sizeRow) {
-      throw new CartResolveError(400, `Size ${size} is not available for ${code}.`);
-    }
-    if (sizeRow.stock < qty) {
-      throw new CartResolveError(400, `Only ${sizeRow.stock} in stock for ${code} size ${size}.`);
-    }
-
-    lines.push({
-      code: product.code,
-      name: product.displayName || product.name,
-      size: sizeRow.size,
-      qty,
-      price: Number(product.price),
-    });
+    lines.push(priceLine(product, row.size, row.qty));
   }
   if (missing.length) {
     throw new CartResolveError(400, `Product ${missing.join(", ")} was not found.`);

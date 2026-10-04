@@ -7,7 +7,7 @@ import { hasUsableProductImage } from "@/lib/classify";
 import { listingHay, type ListingItem } from "@/lib/listing-core";
 import { withProductImages } from "@/lib/media";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/taxonomy";
-import { DPO_TEST_CODE, dpoTestProduct } from "@/lib/dpo-test-product";
+import { DPO_TEST_CODE, dpoTestProduct, isDpoTestCheckoutEnabled } from "@/lib/dpo-test-product";
 import { indexCatalogFromBakedFolders, matchJomaFolderKeys } from "@/lib/joma-tree";
 import bakedFolders from "@/data/product-folders.json";
 import {
@@ -142,7 +142,7 @@ function buildLiveCatalog(snapshot: LiveSnapshot): Product[] {
   const catalog: Product[] = [];
   for (const base of offlineCatalog) {
     if (base.code === DPO_TEST_CODE) {
-      catalog.push(base);
+      if (isDpoTestCheckoutEnabled()) catalog.push(base);
       continue;
     }
     const full = fullByCode.get(base.code);
@@ -221,33 +221,37 @@ export async function getFreshCheckoutProducts(codes: string[]): Promise<Map<str
   const map = new Map<string, Product>();
   if (!unique.length) return map;
 
-  if (unique.includes(DPO_TEST_CODE)) {
+  if (isDpoTestCheckoutEnabled() && unique.includes(DPO_TEST_CODE)) {
     map.set(DPO_TEST_CODE, finalizeLiveProduct(dpoTestProduct));
   }
 
   const liveCodes = unique.filter((code) => code !== DPO_TEST_CODE);
-  if (liveCodes.length && isSupabaseConfigured()) {
-    try {
-      const supabase = createPublicClient();
-      const { data, error } = await supabase
-        .from("storefront_catalog")
-        .select("*")
-        .in("code", liveCodes);
-      if (!error && data?.length) {
-        for (const row of data as StorefrontCatalogRow[]) {
-          const mapped = mapStorefrontRow(row);
-          if (mapped) map.set(mapped.code, finalizeLiveProduct(mapped));
+  if (isSupabaseConfigured()) {
+    if (liveCodes.length) {
+      try {
+        const supabase = createPublicClient();
+        const { data, error } = await supabase
+          .from("storefront_catalog")
+          .select("*")
+          .in("code", liveCodes);
+        if (!error && data?.length) {
+          for (const row of data as StorefrontCatalogRow[]) {
+            const mapped = mapStorefrontRow(row);
+            if (mapped) map.set(mapped.code, finalizeLiveProduct(mapped));
+          }
         }
+      } catch (err) {
+        console.error("fresh checkout products failed", err);
       }
-    } catch (err) {
-      console.error("fresh checkout products failed", err);
     }
+    return map;
   }
 
   if (map.size < unique.length) {
     const catalog = await getCatalog();
     for (const code of unique) {
       if (map.has(code)) continue;
+      if (code === DPO_TEST_CODE && !isDpoTestCheckoutEnabled()) continue;
       const found = catalog.find((p) => p.code === code);
       if (found) map.set(code, found);
     }

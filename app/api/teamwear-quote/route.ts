@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { consumeRateLimit, requestIp } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -28,6 +29,11 @@ export async function POST(req: Request) {
   }
   if (!organisation) {
     return NextResponse.json({ error: "Enter the school, club or team." }, { status: 400 });
+  }
+
+  const allowed = await consumeRateLimit(`teamwear-quote:${requestIp(req)}`, 5);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
   }
 
   try {

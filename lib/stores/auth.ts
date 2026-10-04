@@ -3,7 +3,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/lib/types";
-import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/catalog";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { userFromAuth } from "@/lib/auth/session";
 
@@ -24,20 +23,9 @@ export const useAuth = create<AuthState>()(
     (set) => ({
       user: null,
       setUser: (user) => set({ user }),
-      login: (email, password, override) => {
+      login: (_email, _password, override) => {
         if (override) {
           set({ user: override });
-          return { ok: true, message: "Signed in." };
-        }
-        // Offline / no Supabase: keep the demo shop account.
-        if (
-          !isSupabaseConfigured() &&
-          email.trim().toLowerCase() === DEMO_EMAIL &&
-          password === DEMO_PASSWORD
-        ) {
-          set({
-            user: { email: DEMO_EMAIL, name: "RAPPI Shop" },
-          });
           return { ok: true, message: "Signed in." };
         }
         return { ok: false, message: "Sign in failed." };

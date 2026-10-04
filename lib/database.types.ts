@@ -475,6 +475,24 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          hits: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          hits?: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          hits?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       stock_sync_runs: {
         Row: {
           applied_by: string | null
@@ -684,6 +702,11 @@ export type Database = {
       _sync_upsert_products: { Args: { rows: Json }; Returns: number }
       _sync_upsert_sizes: { Args: { rows: Json }; Returns: number }
       apply_order_stock: { Args: { p_order_id: string }; Returns: boolean }
+      consume_rate_limit: {
+        Args: { p_key: string; p_max: number; p_window_seconds?: number }
+        Returns: boolean
+      }
+      fulfill_paid_payment: { Args: { p_payment_id: string }; Returns: string }
       apply_stock_sync: {
         Args: { p_filename?: string; p_rows: Json; p_unmatched?: string[] }
         Returns: Json

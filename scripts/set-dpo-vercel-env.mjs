@@ -47,6 +47,7 @@ const vars = [
   { key: "DPO_API_URL", sensitive: false },
   { key: "DPO_PAY_URL", sensitive: false },
   { key: "DPO_CURRENCY", sensitive: false },
+  { key: "DPO_WEBHOOK_SECRET", sensitive: true },
   { key: "SUPABASE_SERVICE_ROLE_KEY", sensitive: true },
   { key: "NEXT_PUBLIC_SITE_URL", sensitive: false },
 ];

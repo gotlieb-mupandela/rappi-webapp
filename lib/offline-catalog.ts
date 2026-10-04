@@ -10,7 +10,7 @@ import { hasUsableProductImage, withProductImages } from "@/lib/media";
 import type { Product } from "@/lib/types";
 import productFolders from "@/data/product-folders.json";
 import bundled from "@/data/products.json";
-import { dpoTestProduct } from "@/lib/dpo-test-product";
+import { dpoTestProduct, isDpoTestCheckoutEnabled } from "@/lib/dpo-test-product";
 
 const FOLDERS_BY_ID = productFolders as Record<string, string[]>;
 
@@ -20,7 +20,9 @@ export const offlineCatalog: Product[] = [
     ...product,
     folders: product.folders ?? FOLDERS_BY_ID[product.id] ?? matchJomaFolderKeys(product),
   })),
-  { ...withProductImages(dpoTestProduct), folders: [] } as ListingItem,
+  ...(isDpoTestCheckoutEnabled()
+    ? [{ ...withProductImages(dpoTestProduct), folders: [] } as ListingItem]
+    : []),
 ];
 
 indexCatalogFromBakedFolders(offlineCatalog as ListingItem[]);

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { cancelDpoPayment } from "@/lib/dpo-payments";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -24,11 +25,19 @@ export default async function CheckoutCancelPage({
   const params = await searchParams;
   const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   let body = "Checkout was closed before payment. Your bag is still saved.";
   if (transToken || companyRef) {
     try {
-      const result = await cancelDpoPayment({ transToken, companyRef });
+      const result = await cancelDpoPayment({
+        transToken,
+        companyRef,
+        userId: user?.id ?? null,
+      });
       if (result.status === "paid") {
         body = "This payment was already verified as paid.";
       } else if (result.payment) {

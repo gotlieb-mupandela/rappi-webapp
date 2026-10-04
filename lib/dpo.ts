@@ -23,19 +23,7 @@ export function dpoSiteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, "");
 }
 
-export function requestSiteUrl(req: Request) {
-  const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "")
-    .split(",")[0]
-    .trim();
-  const proto = req.headers.get("x-forwarded-proto") || "https";
-  if (
-    host &&
-    !/^localhost\b/i.test(host) &&
-    !/^127\.0\.0\.1\b/.test(host) &&
-    !/^\[::1\]\b/.test(host)
-  ) {
-    return `${proto}://${host}`.replace(/\/$/, "");
-  }
+export function requestSiteUrl(_req?: Request) {
   return dpoSiteUrl();
 }
 

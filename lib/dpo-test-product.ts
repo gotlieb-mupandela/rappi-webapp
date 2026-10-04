@@ -2,6 +2,10 @@ import type { Product } from "@/lib/types";
 
 export const DPO_TEST_CODE = "DPO-TEST";
 
+export function isDpoTestCheckoutEnabled() {
+  return process.env.DPO_TEST_CHECKOUT === "1";
+}
+
 /** N$10 checkout product. One size, kept out of the baked Joma catalog. */
 export const dpoTestProduct: Product = {
   id: "dpo-test",

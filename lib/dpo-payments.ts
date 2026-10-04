@@ -85,19 +85,30 @@ async function loadPayment(transToken?: string | null, companyRef?: string | nul
   return null;
 }
 
+const PAYMENT_NOT_FOUND: DpoFulfillResult = {
+  ok: false,
+  status: "error",
+  message: "Payment not found.",
+  payment: null,
+  orderId: null,
+};
+
+function ownsPayment(payment: Payment, userId?: string | null) {
+  if (userId === undefined) return true;
+  return Boolean(userId && payment.user_id === userId);
+}
+
 export async function fulfillDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
+  userId?: string | null;
 }): Promise<DpoFulfillResult> {
+  if (input.userId !== undefined && !input.userId) {
+    return PAYMENT_NOT_FOUND;
+  }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment) {
-    return {
-      ok: false,
-      status: "error",
-      message: "Payment not found.",
-      payment: null,
-      orderId: null,
-    };
+  if (!payment || !ownsPayment(payment, input.userId)) {
+    return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {
     return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
@@ -193,16 +204,14 @@ export async function fulfillDpoPayment(input: {
 export async function cancelDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
+  userId?: string | null;
 }): Promise<DpoFulfillResult> {
+  if (input.userId !== undefined && !input.userId) {
+    return PAYMENT_NOT_FOUND;
+  }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment) {
-    return {
-      ok: false,
-      status: "error",
-      message: "Payment not found.",
-      payment: null,
-      orderId: null,
-    };
+  if (!payment || !ownsPayment(payment, input.userId)) {
+    return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {
     return withOrder(payment, "Already paid.", { ok: true, status: "paid" });

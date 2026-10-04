@@ -18,8 +18,21 @@ export function userFromAuth(user: {
   };
 }
 
+export function safeNextPath(raw: string | null | undefined, fallback = "/") {
+  if (
+    !raw ||
+    !raw.startsWith("/") ||
+    raw.startsWith("//") ||
+    raw.includes("\\") ||
+    raw.includes("//")
+  ) {
+    return fallback;
+  }
+  return raw;
+}
+
 export function authCallbackUrl(next = "/") {
-  const dest = next.startsWith("/") ? next : "/";
+  const dest = safeNextPath(next, "/");
   if (typeof window !== "undefined" && isNativeApp()) {
     return nativeAuthRedirect(dest);
   }
