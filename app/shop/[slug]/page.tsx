@@ -35,7 +35,7 @@ import { isJomaBrowseFolder } from "@/lib/joma-tree";
 import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 export function generateStaticParams() {
   return [

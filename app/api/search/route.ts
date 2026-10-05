@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { buildListing, LISTING_PAGE_SIZE, toClientProduct } from "@/lib/listing-core";
-import { getCatalog } from "@/lib/supabase/catalog";
+import { getCatalogLive } from "@/lib/supabase/catalog";
+
+export const revalidate = 3600;
+
+const SEARCH_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") ?? "").trim();
-  const catalog = await getCatalog();
+  const catalog = await getCatalogLive();
   const listing = buildListing(
     catalog,
     {
@@ -32,7 +36,8 @@ export async function GET(request: Request) {
     },
     {
       headers: {
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "Cache-Control": SEARCH_CACHE,
+        "CDN-Cache-Control": SEARCH_CACHE,
       },
     },
   );

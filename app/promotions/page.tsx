@@ -8,7 +8,7 @@ import { outletGroupForLegacyMax } from "@/lib/joma-nav";
 import { buildListing, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 function firstSearchParam(value: string | string[] | undefined) {
   if (Array.isArray(value)) return value[0];

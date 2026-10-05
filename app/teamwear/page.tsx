@@ -14,6 +14,8 @@ import {
 import { buildListing, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
+export const revalidate = 21600;
+
 export const metadata: Metadata = {
   title: "Teams",
   description:

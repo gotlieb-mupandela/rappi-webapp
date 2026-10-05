@@ -78,7 +78,7 @@ async function fetchLiveSnapshot(): Promise<LiveSnapshot | null> {
 const getCachedLiveSnapshot = unstable_cache(
   async () => fetchLiveSnapshot(),
   ["storefront-overlay-v1"],
-  { revalidate: 300, tags: ["catalog"] },
+  { revalidate: 3600, tags: ["catalog"] },
 );
 
 function parseOverlaySizes(packed: string, order: string[]): Product["sizes"] {
@@ -190,17 +190,23 @@ function refreshLiveCatalog() {
 }
 
 /**
- * Storefront catalog — baked product content with live price/stock/visibility.
- * Never blocks a render on the live fetch: a cold instance serves the bundled
- * catalog and loads the overlay in the background.
+ * Storefront HTML — baked catalog only. A warm instance may already have a
+ * live overlay in memory; we never start that overlay from a page render.
  */
 export async function getCatalog(): Promise<Product[]> {
   if (liveMemo) {
     if (Date.now() - liveMemo.at >= LIVE_MEMO_TTL_MS) void refreshLiveCatalog();
     return liveMemo.catalog;
   }
-  if (process.env.NEXT_PHASE !== "phase-production-build") void refreshLiveCatalog();
   return getOfflineCatalog();
+}
+
+/** Listing APIs / ops — load the live overlay (cached ~1 hour). */
+export async function getCatalogLive(): Promise<Product[]> {
+  if (liveMemo && Date.now() - liveMemo.at < LIVE_MEMO_TTL_MS) {
+    return liveMemo.catalog;
+  }
+  return (await loadLiveCatalog()) ?? getOfflineCatalog();
 }
 
 export const getCachedCatalog = cache(getCatalog);

@@ -17,7 +17,7 @@ import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
 import { productPath } from "@/lib/utils";
 
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 export function generateStaticParams() {
   return [

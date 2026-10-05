@@ -2,7 +2,7 @@ import { HomeHero } from "@/components/home-hero";
 import { HUB_COVERS } from "@/lib/hubs";
 import { productForPin } from "@/lib/tile-covers";
 
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 /** Homepage is hero-only — no featured / shop-by sections below. */
 export default async function HomePage() {

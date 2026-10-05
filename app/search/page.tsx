@@ -2,17 +2,15 @@ import { CatalogBrowser } from "@/components/catalog-browser";
 import { MetaSearch } from "@/components/meta-search";
 import { SearchEmpty } from "@/components/search-empty";
 import { SearchHeader } from "@/components/search-header";
-import { getCatalog } from "@/lib/supabase/catalog";
+import { offlineCatalog } from "@/lib/offline-catalog";
 
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 export default async function SearchPage() {
-  const catalog = await getCatalog();
-
   return (
     <div>
       <MetaSearch />
-      <SearchHeader catalogCount={catalog.length} />
+      <SearchHeader catalogCount={offlineCatalog.length} />
       <div className="page-shell py-8 sm:py-10">
         <CatalogBrowser
           basePath="/search"
