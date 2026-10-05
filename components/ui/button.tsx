@@ -13,7 +13,7 @@ const buttonVariants = cva(
         outline:
           "border border-[var(--border-strong)] bg-transparent text-ink hover:border-[var(--accent)] hover:text-[var(--accent)]",
         ghost: "text-ink hover:bg-[var(--hover)] hover:text-[var(--accent)]",
-        dark: "bg-[var(--accent-dim)] text-[var(--on-accent)] hover:bg-[var(--accent)]",
+        dark: "bg-[var(--accent-dim)] text-white hover:bg-[var(--accent)] hover:text-[var(--on-accent)]",
         danger: "border border-[var(--border-strong)] text-[var(--muted)] hover:text-ink hover:border-[var(--text)]",
       },
       size: {

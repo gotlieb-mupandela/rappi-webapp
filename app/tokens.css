@@ -1,28 +1,28 @@
 :root {
-  /* Light storefront: white surfaces, dark forest green accent, near-black text */
+  /* Light storefront: white surfaces, RAPPI logo green, near-black text */
   --bg: #ffffff;
   --bg-elevated: #f9fafb;
   --surface: #ffffff;
   --surface-2: #f5f5f5;
   --surface-hover: #eeeeee;
-  --accent: #1b4332;
-  --accent-bright: #2d6a4f;
-  --accent-dim: #081c15;
-  --accent-muted: rgba(27, 67, 50, 0.12);
-  --accent-glow: 0 12px 40px rgba(27, 67, 50, 0.16);
+  --accent: #58b82c;
+  --accent-bright: #4a9c24;
+  --accent-dim: #102408;
+  --accent-muted: rgba(88, 184, 44, 0.14);
+  --accent-glow: 0 12px 40px rgba(88, 184, 44, 0.22);
   --text: #121212;
   --text-secondary: #0a0a0a;
   --muted: #6b7280;
   --muted-2: #9ca3af;
-  --on-accent: #ffffff;
+  --on-accent: #121212;
   --border: rgba(0, 0, 0, 0.1);
   --border-strong: rgba(0, 0, 0, 0.16);
-  --border-accent: rgba(27, 67, 50, 0.45);
+  --border-accent: rgba(88, 184, 44, 0.55);
   --danger: #d1243a;
   --warn: #c4840c;
-  --ok: #1b4332;
-  --ok-muted: rgba(27, 67, 50, 0.12);
-  --ok-border: rgba(27, 67, 50, 0.4);
+  --ok: #58b82c;
+  --ok-muted: rgba(88, 184, 44, 0.14);
+  --ok-border: rgba(88, 184, 44, 0.45);
   --font-display: var(--font-oswald), "Oswald", "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-body: var(--font-inter), "Inter", "Segoe UI", system-ui, sans-serif;
   --header-h: 4rem;
@@ -58,7 +58,7 @@
   --visual-from: #f9fafb;
   --visual-to: #f3f4f6;
   --visual-base: #f5f5f5;
-  --hero-glow: rgba(27, 67, 50, 0.1);
+  --hero-glow: rgba(88, 184, 44, 0.16);
   --toast-bg: #ffffff;
   --toast-border: rgba(0, 0, 0, 0.1);
   --toast-fg: #121212;

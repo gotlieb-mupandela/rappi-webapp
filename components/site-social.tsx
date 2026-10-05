@@ -128,7 +128,7 @@ export function SiteSocial({
                 rel={item.external ? "noreferrer" : undefined}
                 aria-label={item.short}
                 title={item.label}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--accent)] transition-[border-color,background-color,transform] duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-white active:scale-95"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white text-[var(--accent)] transition-[border-color,background-color,transform] duration-200 hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--on-accent)] active:scale-95"
               >
                 <Icon className="h-4 w-4" />
               </a>

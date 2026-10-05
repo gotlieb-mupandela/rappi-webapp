@@ -173,7 +173,7 @@ export function ProductCard({
             />
           </div>
           {soldOut ? (
-            <span className="absolute bottom-2 left-2 z-10 bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+            <span className="absolute bottom-2 left-2 z-10 bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--on-accent)]">
               {t("common.soldOut")}
             </span>
           ) : null}
