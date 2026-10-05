@@ -18,7 +18,7 @@ import {
 } from "@/lib/dpo";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 import { defaultVatCountry, quoteVat, resolveVatCountry } from "@/lib/vat";
 
 export const runtime = "nodejs";
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = await createRequestClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Database } from "@/lib/database.types";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 
 export const runtime = "nodejs";
 
@@ -16,6 +16,12 @@ function readEndpoint(body: Record<string, unknown>) {
   return endpoint;
 }
 
+function readExpoToken(body: Record<string, unknown>) {
+  const token = String(body.expoToken ?? body.expo_token ?? "").trim();
+  if (!token || token.length > 2048) return null;
+  return token;
+}
+
 export async function POST(req: Request) {
   let body: Record<string, unknown>;
   try {
@@ -25,21 +31,25 @@ export async function POST(req: Request) {
   }
 
   const endpoint = readEndpoint(body);
-  if (!endpoint) {
-    return NextResponse.json({ error: "Missing endpoint." }, { status: 400 });
-  }
-
+  const expoToken = readExpoToken(body);
   const keys = (body.keys ?? {}) as Record<string, unknown>;
   const p256dh = String(keys.p256dh ?? body.p256dh ?? "").trim() || null;
   const auth = String(keys.auth ?? body.auth ?? "").trim() || null;
   const platform = isPlatform(body.platform) ? body.platform : "web";
   const userAgent = String(body.userAgent ?? req.headers.get("user-agent") ?? "").slice(0, 400);
 
-  if (platform === "web" && (!p256dh || !auth)) {
-    return NextResponse.json({ error: "Missing subscription keys." }, { status: 400 });
+  if (platform === "web") {
+    if (!endpoint) {
+      return NextResponse.json({ error: "Missing endpoint." }, { status: 400 });
+    }
+    if (!p256dh || !auth) {
+      return NextResponse.json({ error: "Missing subscription keys." }, { status: 400 });
+    }
+  } else if (!expoToken) {
+    return NextResponse.json({ error: "Missing Expo push token." }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = await createRequestClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -47,17 +57,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  const { error } = await supabase.from("push_subscriptions").upsert(
-    {
-      user_id: user.id,
-      endpoint,
-      p256dh,
-      auth,
-      platform,
-      user_agent: userAgent,
-    },
-    { onConflict: "endpoint" },
-  );
+  const target =
+    platform === "web"
+      ? {
+          user_id: user.id,
+          endpoint,
+          expo_token: null,
+          p256dh,
+          auth,
+          platform,
+          user_agent: userAgent,
+        }
+      : {
+          user_id: user.id,
+          endpoint: null,
+          expo_token: expoToken,
+          p256dh: null,
+          auth: null,
+          platform,
+          user_agent: userAgent,
+        };
+  const { error } = await supabase
+    .from("push_subscriptions")
+    .upsert(target, { onConflict: platform === "web" ? "endpoint" : "expo_token" });
   if (error) {
     console.error("push subscribe", error.message);
     return NextResponse.json({ error: "Could not save subscription." }, { status: 500 });
@@ -75,7 +97,8 @@ export async function DELETE(req: Request) {
   }
 
   const endpoint = readEndpoint(body);
-  const supabase = await createClient();
+  const expoToken = readExpoToken(body);
+  const supabase = await createRequestClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -85,6 +108,7 @@ export async function DELETE(req: Request) {
 
   let query = supabase.from("push_subscriptions").delete().eq("user_id", user.id);
   if (endpoint) query = query.eq("endpoint", endpoint);
+  else if (expoToken) query = query.eq("expo_token", expoToken);
   const { error } = await query;
   if (error) {
     console.error("push unsubscribe", error.message);

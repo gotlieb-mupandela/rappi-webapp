@@ -36,7 +36,8 @@ export default async function CheckoutCancelPage({
       const result = await cancelDpoPayment({
         transToken,
         companyRef,
-        userId: user?.id ?? null,
+        // Native checkouts use a browser without the app's Supabase cookie.
+        userId: user?.id,
       });
       if (result.status === "paid") {
         body = "This payment was already verified as paid.";

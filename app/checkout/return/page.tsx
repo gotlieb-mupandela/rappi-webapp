@@ -49,7 +49,9 @@ export default async function CheckoutReturnPage({
       const result = await fulfillDpoPayment({
         transToken,
         companyRef,
-        userId: user?.id ?? null,
+        // DPO's signed transaction token is verified server-side. Mobile
+        // checkouts return in a browser that does not share the app session.
+        userId: user?.id,
       });
       paid = result.ok && result.status === "paid";
       heading = paid ? "Payment received" : "Payment not complete";
