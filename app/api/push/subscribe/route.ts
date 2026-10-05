@@ -5,6 +5,7 @@ import { createRequestClient } from "@/lib/supabase/request";
 export const runtime = "nodejs";
 
 type Platform = Database["public"]["Enums"]["push_platform"];
+type PushSubscriptionInsert = Database["public"]["Tables"]["push_subscriptions"]["Insert"];
 
 function isPlatform(value: unknown): value is Platform {
   return value === "web" || value === "ios" || value === "android";
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  const target =
+  const target: PushSubscriptionInsert =
     platform === "web"
       ? {
           user_id: user.id,
