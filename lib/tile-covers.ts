@@ -15,6 +15,8 @@ const TILE_PRODUCT_CODES: Record<string, string> = {
   // Homepage bento. Lifestyle has no brand plate; the kids plate is an adult.
   "home:lifestyle": "100818.200",
   "home:kids": "500747.475",
+  // hub-shoes.png is already the Footwear tile beside it.
+  "home:running": "104129.100",
 
   // Folder grids. Landing tiles that need the same photo use productIds.
   teamwear: "104594.102",
