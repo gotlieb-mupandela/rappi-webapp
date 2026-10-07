@@ -89,7 +89,7 @@ const en: Policy = {
     {
       heading: "Deleting your account",
       body: [
-        "In the app, go to Account and tap Delete account. This permanently deletes your account and the personal data linked to it, apart from the order records we must keep by law.",
+        "In the app, go to Account and tap Delete account. On the website, sign in and open rappisportshub.com/account/delete. This permanently deletes your account and the personal data linked to it, apart from the order records we must keep by law.",
         "You can also ask us to delete your account without the app by emailing us from the address on your account. We confirm by email once it's done.",
       ],
     },
@@ -200,7 +200,7 @@ const fr: Policy = {
     {
       heading: "Supprimer votre compte",
       body: [
-        "Dans l'application, ouvrez Compte puis touchez Supprimer le compte. Votre compte et les données personnelles qui y sont liées sont supprimés définitivement, à l'exception des enregistrements de commande que la loi nous oblige à conserver.",
+        "Dans l'application, ouvrez Compte puis touchez Supprimer le compte. Sur le site, connectez-vous et ouvrez rappisportshub.com/account/delete. Votre compte et les données personnelles qui y sont liées sont supprimés définitivement, à l'exception des enregistrements de commande que la loi nous oblige à conserver.",
         "Vous pouvez aussi demander la suppression sans l'application en nous écrivant depuis l'adresse e-mail de votre compte. Nous confirmons par e-mail une fois la suppression effectuée.",
       ],
     },

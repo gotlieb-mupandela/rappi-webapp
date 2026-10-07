@@ -706,6 +706,7 @@ export type Database = {
         Args: { p_key: string; p_max: number; p_window_seconds?: number }
         Returns: boolean
       }
+      delete_my_account: { Args: never; Returns: undefined }
       fulfill_paid_payment: { Args: { p_payment_id: string }; Returns: string }
       apply_stock_sync: {
         Args: { p_filename?: string; p_rows: Json; p_unmatched?: string[] }

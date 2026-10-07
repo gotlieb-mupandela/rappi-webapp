@@ -67,6 +67,12 @@ export default function AccountPage() {
           <p className="mt-1 text-sm text-[var(--muted)]">{t("account.logoutHint")}</p>
         </button>
       </div>
+      <Link
+        href="/account/delete"
+        className="mt-8 inline-block text-sm text-[var(--muted)] underline underline-offset-4 hover:text-red-500"
+      >
+        {t("account.deleteAccount")}
+      </Link>
     </div>
   );
 }

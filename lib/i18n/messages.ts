@@ -368,6 +368,7 @@ export const en = {
     session: "Session",
     logout: "Logout",
     logoutHint: "End this browser session.",
+    deleteAccount: "Delete my account",
     ordersIntro:
       "Order history to view or track orders already placed. Checkout is a stub — status starts at Reserved.",
     ordersSignIn: "Sign in to see orders tied to your account.",
@@ -1538,6 +1539,7 @@ export const fr: Messages = {
     session: "Session",
     logout: "Déconnexion",
     logoutHint: "Terminer cette session navigateur.",
+    deleteAccount: "Supprimer mon compte",
     ordersIntro:
       "Historique des commandes déjà passées. La commande est simulée — le statut commence à Réservé.",
     ordersSignIn: "Connectez-vous pour voir les commandes liées à votre compte.",
