@@ -228,7 +228,7 @@ export const TERMS_CLAUSES: TermsClause[] = [
       "The Company collects and processes the Customer's personal information for the purposes of concluding and administering the sale, processing payment, administering warranties, returns and deliveries, and complying with its legal obligations.",
       "The Company takes reasonable steps to keep that information secure and does not sell it to third parties. It may be shared with suppliers, manufacturers, payment providers and, where an account is in default, with a debt collection agency.",
       "The Customer consents to receiving service communications relating to a transaction. Marketing communications are sent only where the Customer has opted in, and the Customer may opt out at any time by email.",
-      "The Customer may request access to, or correction of, personal information held about them by writing to admin@rappisportshub.com.",
+      "The Customer may request access to, or correction of, personal information held about them by writing to sales@rappisportshub.com.",
     ],
   },
   {
@@ -246,7 +246,7 @@ export const TERMS_CLAUSES: TermsClause[] = [
     number: 23,
     title: "Complaints",
     items: [
-      "A Customer who is dissatisfied should raise the matter with the manager on duty. If unresolved, the complaint should be submitted in writing to admin@rappisportshub.com, and the Company will respond within 7 working days.",
+      "A Customer who is dissatisfied should raise the matter with the manager on duty. If unresolved, the complaint should be submitted in writing to sales@rappisportshub.com, and the Company will respond within 7 working days.",
       "This procedure does not affect any legal rights the Customer may have.",
     ],
   },

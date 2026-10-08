@@ -147,7 +147,7 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
     number: 13,
     title: "If you are not satisfied",
     body: [
-      "Speak to the manager on duty first — most matters are resolved on the spot. If you are still not satisfied, put your complaint in writing to admin@rappisportshub.com and we will respond within 7 working days. This does not affect any legal rights you may have.",
+      "Speak to the manager on duty first — most matters are resolved on the spot. If you are still not satisfied, put your complaint in writing to sales@rappisportshub.com and we will respond within 7 working days. This does not affect any legal rights you may have.",
     ],
   },
 ];
