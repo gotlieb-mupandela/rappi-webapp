@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import raw from "../data/products.json";
+import apparelAssortmentData from "../data/apparel-assortments.json";
 import fixData from "../data/b2c-price-fix-data.json";
 import mapBData from "../data/b2c-map-b.json";
 import { productAudience } from "../lib/audience";
@@ -37,15 +38,32 @@ const indexesOnly = process.argv.includes("--indexes-only");
  */
 function enforcePackPolicy(catalog: Product[]) {
   const fix = fixData as {
-    pack_price_overrides?: Array<{ code: string; pack_nad: number }>;
+    pack_price_overrides?: Array<{
+      code: string;
+      pack_nad: number;
+      pack_size?: number;
+      sell_as?: Product["sellAs"];
+    }>;
     hidden_packs?: Array<{ code: string }>;
   };
   const mapB = mapBData as { prices?: Record<string, number> };
+  const policyByCode = new Map(
+    (fix.pack_price_overrides ?? []).map((override) => [override.code, override]),
+  );
+  const apparelAssortments = new Map(
+    (
+      apparelAssortmentData as {
+        products: Array<{ code: string; pack_size: number }>;
+      }
+    ).products.map((row) => [row.code, row.pack_size]),
+  );
+  const missingApparelAssortments = new Set(apparelAssortments.keys());
   const priceByCode = new Map<string, number>();
   for (const o of fix.pack_price_overrides ?? []) priceByCode.set(o.code, o.pack_nad);
   for (const [code, nad] of Object.entries(mapB.prices ?? {})) priceByCode.set(code, nad);
   const hidden = new Set((fix.hidden_packs ?? []).map((s) => s.code));
   let pinned = 0;
+  let relabeled = 0;
   let rehidden = 0;
   for (const p of catalog) {
     const nad = priceByCode.get(p.code);
@@ -54,13 +72,45 @@ function enforcePackPolicy(catalog: Product[]) {
       p.unitPrice = nad;
       pinned++;
     }
+    const policy = policyByCode.get(p.code);
+    if (policy?.sell_as && p.sellAs !== policy.sell_as) {
+      p.sellAs = policy.sell_as;
+      relabeled++;
+    }
+    if (
+      policy?.pack_size &&
+      policy.pack_size > 1 &&
+      p.packSize !== policy.pack_size
+    ) {
+      p.packSize = policy.pack_size;
+      relabeled++;
+    }
+    const apparelPackSize = apparelAssortments.get(p.code);
+    if (apparelPackSize) {
+      missingApparelAssortments.delete(p.code);
+      if (p.sellAs !== "assortment") {
+        p.sellAs = "assortment";
+        relabeled++;
+      }
+      if (p.packSize !== apparelPackSize) {
+        p.packSize = apparelPackSize;
+        relabeled++;
+      }
+    }
     if (hidden.has(p.code) && p.available !== false) {
       p.available = false;
       rehidden++;
     }
   }
-  if (pinned || rehidden) {
-    console.log(`pack policy enforced (prices pinned: ${pinned}, re-hidden: ${rehidden})`);
+  if (missingApparelAssortments.size) {
+    throw new Error(
+      `Apparel assortment policy references missing SKUs: ${[...missingApparelAssortments].join(", ")}`,
+    );
+  }
+  if (pinned || relabeled || rehidden) {
+    console.log(
+      `pack policy enforced (prices pinned: ${pinned}, labels pinned: ${relabeled}, re-hidden: ${rehidden})`,
+    );
   }
 }
 

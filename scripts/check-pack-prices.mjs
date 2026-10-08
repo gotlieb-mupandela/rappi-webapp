@@ -4,8 +4,8 @@
  *
  * Driven by data/b2c-price-fix-data.json + data/b2c-map-b.json:
  * - every pack_price_overrides row: catalog.price == pack_nad (literal),
- *   hidden rows stay available === false, live rows stay purchasable and
- *   match the public listing index (flags carried for client render).
+ *   hidden rows stay available === false; in-stock rows match the public
+ *   listing index, while zero-stock rows remain unavailable.
  * - baked displayName/title carry no pack suffix (render localizes it).
  * - every hidden_packs row: available === false and absent from the index.
  * - every MAP B row: catalog + index price == snapped NAD.
@@ -19,6 +19,7 @@ const catalogPath = path.join(root, "data", "products.json");
 const listingPath = path.join(root, "public", "listing-index.json");
 const markupPath = path.join(root, "data", "retail-markup.json");
 const fixPath = path.join(root, "data", "b2c-price-fix-data.json");
+const apparelAssortmentsPath = path.join(root, "data", "apparel-assortments.json");
 const mapBPath = path.join(root, "data", "b2c-map-b.json");
 
 // Unit-retail NAD that must never reappear as a selling price on mapped codes.
@@ -35,7 +36,18 @@ const listing = JSON.parse(fs.readFileSync(listingPath, "utf8"));
 const byCode = new Map(catalog.map((p) => [p.code, p]));
 const listingByCode = new Map(listing.map((p) => [p.code, p]));
 const fix = JSON.parse(fs.readFileSync(fixPath, "utf8"));
+const apparelAssortments = JSON.parse(
+  fs.readFileSync(apparelAssortmentsPath, "utf8"),
+).products;
 const hidden = new Set((fix.hidden_packs || []).map((s) => s.code));
+const explicitAssortments = new Set(
+  [
+    ...(fix.pack_price_overrides || [])
+      .filter((row) => row.sell_as === "assortment")
+      .map((row) => row.code),
+    ...apparelAssortments.map((row) => row.code),
+  ],
+);
 
 function titleWording(o) {
   // Bake stores locale-neutral base names: no EN pack suffix may be baked
@@ -76,8 +88,13 @@ for (const o of fix.pack_price_overrides || []) {
     if (listingByCode.has(o.code)) fail(`${o.code} still appears in public listing index`);
     continue;
   }
-  if (p.available === false) fail(`${o.code} should be purchasable at pack NAD ${o.pack_nad}`);
   const indexed = listingByCode.get(o.code);
+  if (p.available === false) {
+    if (Number(p.stockQty) > 0) fail(`${o.code} unavailable with stock ${p.stockQty}`);
+    if (indexed) fail(`${o.code} zero-stock pack still appears in public listing index`);
+    titleWording(o);
+    continue;
+  }
   if (!indexed) fail(`${o.code} missing from public listing index`);
   else {
     if (indexed.price !== o.pack_nad || indexed.unitPrice !== o.pack_nad) {
@@ -92,6 +109,31 @@ for (const o of fix.pack_price_overrides || []) {
     }
   }
   titleWording(o);
+}
+
+// Audited apparel assortments: exact pack flags must reach both catalog and
+// the public listing index. Prices are intentionally unchanged.
+for (const row of apparelAssortments) {
+  const p = byCode.get(row.code);
+  if (!p) {
+    fail(`missing apparel assortment SKU ${row.code}`);
+    continue;
+  }
+  if (p.sellAs !== "assortment" || p.packSize !== row.pack_size) {
+    fail(
+      `${row.code} apparel flags ${p.sellAs}/${p.packSize}, expected assortment/${row.pack_size}`,
+    );
+  }
+  const indexed = listingByCode.get(row.code);
+  if (!indexed) fail(`${row.code} apparel assortment missing from public listing index`);
+  else if (
+    indexed.sellAs !== "assortment" ||
+    indexed.packSize !== row.pack_size
+  ) {
+    fail(
+      `${row.code} listing flags ${indexed.sellAs}/${indexed.packSize}, expected assortment/${row.pack_size}`,
+    );
+  }
 }
 
 // Hidden packs: never purchasable, never indexed.
@@ -202,7 +244,13 @@ function inferredAssortmentOk(p) {
   return /\b(boot|shoe|sneaker|futsal|turf|firm ground|artificial grass|barefoot|indoor)\b/i.test(name);
 }
 for (const p of catalog) {
-  if (p.sellAs !== "assortment" || ASSORTMENT_ALLOWLIST.has(p.code)) continue;
+  if (
+    p.sellAs !== "assortment" ||
+    ASSORTMENT_ALLOWLIST.has(p.code) ||
+    explicitAssortments.has(p.code)
+  ) {
+    continue;
+  }
   if (!inferredAssortmentOk(p)) {
     fail(`${p.code} unexpected sellAs=assortment packSize=${p.packSize} price=${p.price} sub=${p.subcategory}`);
   }
