@@ -18,7 +18,13 @@
  * Writes data/size-master.json (authoritative size/stock overlay).
  * With --write-catalog, also patches matching rows in data/products.json
  * without inventing per-size counts.
+ *
+ * After a file write, runs scripts/sync-stock-db.mjs so Supabase stock matches
+ * the baked catalog. A database failure is printed and does not undo the files
+ * or change this script's exit code, so the morning commit can still proceed.
+ * Set SKIP_STOCK_DB_SYNC=1 to write files only.
  */
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -29,6 +35,24 @@ const sourcePath = path.join(root, "data", "products-source.json");
 const dumpPath = process.env.JOMA_CATALOG_JSON;
 const write = process.argv.includes("--write") || process.argv.includes("--write-catalog");
 const writeCatalog = process.argv.includes("--write-catalog");
+
+function syncDatabaseAfterFileWrite() {
+  if (!write) return;
+  if (process.env.SKIP_STOCK_DB_SYNC === "1") {
+    console.error("STOCK DB SYNC SKIPPED (SKIP_STOCK_DB_SYNC=1).");
+    return;
+  }
+  const script = path.join(root, "scripts", "sync-stock-db.mjs");
+  const result = spawnSync(process.execPath, [script], {
+    stdio: "inherit",
+    env: process.env,
+  });
+  if (result.error || result.status !== 0) {
+    console.error(
+      "STOCK DB SYNC FAILED. Catalog files were still written, so the file commit can proceed. Re-run `npm run sync:stock-db` when Supabase is reachable.",
+    );
+  }
+}
 
 function parseSizes(value) {
   if (!value) return { sizes: [], perSize: null };
@@ -95,6 +119,7 @@ if (!dumpPath) {
       2,
     ),
   );
+  syncDatabaseAfterFileWrite();
   process.exit(0);
 }
 
@@ -170,3 +195,4 @@ console.log(
     2,
   ),
 );
+syncDatabaseAfterFileWrite();
