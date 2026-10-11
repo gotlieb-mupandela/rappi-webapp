@@ -53,6 +53,38 @@ export function jomaFolderIsSharedAudience(key: string) {
   return false;
 }
 
+/**
+ * Woman apparel trees. Joma files the same unisex line on Man and Woman;
+ * these keys are the woman roots (shared trees included).
+ */
+const WOMAN_APPAREL_ROOTS = new Set([
+  "teamwear-woman",
+  "running-trail-woman",
+  "racket-sports-woman",
+  "fitness-gym-woman",
+  "lifestyle-apparel-woman",
+  "underwear-brama-woman",
+  "aguila-line",
+  "resort",
+  "beachwear",
+  "athletes-combat",
+  "elite-club",
+  "cycling",
+  "hiking-outdoor",
+  "teamwear-pro-2026",
+]);
+
+export function jomaFolderIsWomanApparel(key: string) {
+  let cur: string | undefined = key;
+  const seen = new Set<string>();
+  while (cur && !seen.has(cur)) {
+    if (WOMAN_APPAREL_ROOTS.has(cur)) return true;
+    seen.add(cur);
+    cur = BY_KEY.get(cur)?.parent ?? undefined;
+  }
+  return false;
+}
+
 export function isOutletFolderKey(key: string) {
   if (key === "outlet") return true;
   let cur = BY_KEY.get(key)?.parent ?? null;

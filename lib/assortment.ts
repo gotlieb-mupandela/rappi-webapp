@@ -267,6 +267,8 @@ const CURVE_PAIRS: Record<string, number> = {
   S22: 8,
   S24: 12,
   S25: 8,
+  // S26 is 12 on every labelled footwear row that carries it (22 packs, none at 8).
+  S26: 12,
   S28: 12,
   S32: 12,
   S35: 8,
@@ -319,20 +321,43 @@ function isSurtidoFootwear(product: Product) {
   return SHOE_HINT.test(text);
 }
 
+type CurveRead =
+  | { kind: "locked"; n: number }
+  | { kind: "partial"; n: number }
+  | { kind: "conflict" }
+  | { kind: "none" };
+
+/**
+ * Pair count from the size curve.
+ * Locked = every size code is in the table and they agree.
+ * A price ratio must not override that. Unknown codes (S17, S30, S49, …)
+ * and mixed curves (S28 with S35) do not establish a count.
+ */
+function readCurve(sizes: string[]): CurveRead {
+  if (!sizes.length) return { kind: "none" };
+  const votes: number[] = [];
+  let unknown = 0;
+  for (const size of sizes) {
+    const n = CURVE_PAIRS[size.toUpperCase()];
+    if (n) votes.push(n);
+    else unknown += 1;
+  }
+  if (!votes.length) return { kind: "none" };
+  if (new Set(votes).size !== 1) return { kind: "conflict" };
+  if (unknown) return { kind: "partial", n: votes[0] };
+  return { kind: "locked", n: votes[0] };
+}
+
 function curveConsensus(sizes: string[]) {
-  const votes = sizes
-    .map((size) => CURVE_PAIRS[size.toUpperCase()])
-    .filter((n): n is number => Boolean(n));
-  if (!votes.length) return null;
-  if (new Set(votes).size !== 1) return null;
-  return votes[0];
+  const read = readCurve(sizes);
+  return read.kind === "locked" ? read.n : null;
 }
 
 /**
- * Joma B2B surtido boxes are filed as curve codes (S28, S25, …), not EU sizes.
- * Pair count comes from a same-line single (price ≈ single × 8/12/24) when
- * one exists, otherwise from the curve table. The selling price is left as
- * the pack NAD (×18×1.45 already applied upstream) — never split per pair.
+ * Surtido boxes are filed as curve codes (S28, S25, …), not EU sizes.
+ * A fully known curve locks the pair count. A same-line single
+ * (price ≈ single × 8/12/24) is used only when no curve code is known.
+ * The selling price stays the pack NAD — never split per pair.
  */
 export function applyInferredSurtidoAssortments<T extends Product>(catalog: T[]) {
   const singles = new Map<string, number[]>();
@@ -360,20 +385,25 @@ export function applyInferredSurtidoAssortments<T extends Product>(catalog: T[])
     const price = Number(product.price) || 0;
     if (price < SURTIDO_PRICE_FLOOR) continue;
 
-    let packSize = curveConsensus(sizes);
-    const prefix = codePrefix(product.code);
-    const units = prefix ? (singles.get(prefix) ?? []) : [];
-    let bestErr = 0.04;
-    const seen = new Set<number>();
-    for (const unit of units) {
-      if (seen.has(unit) || unit <= 0) continue;
-      seen.add(unit);
-      const ratio = price / unit;
-      for (const n of SURTIDO_PACK_SIZES) {
-        const err = Math.abs(ratio - n) / n;
-        if (err <= bestErr) {
-          bestErr = err;
-          packSize = n;
+    const curve = readCurve(sizes);
+    // Unknown or mixed curves are not a count. Do not invent one from price.
+    if (curve.kind === "conflict" || curve.kind === "partial") continue;
+    let packSize = curve.kind === "locked" ? curve.n : null;
+    if (!packSize) {
+      const prefix = codePrefix(product.code);
+      const units = prefix ? (singles.get(prefix) ?? []) : [];
+      let bestErr = 0.04;
+      const seen = new Set<number>();
+      for (const unit of units) {
+        if (seen.has(unit) || unit <= 0) continue;
+        seen.add(unit);
+        const ratio = price / unit;
+        for (const n of SURTIDO_PACK_SIZES) {
+          const err = Math.abs(ratio - n) / n;
+          if (err <= bestErr) {
+            bestErr = err;
+            packSize = n;
+          }
         }
       }
     }
@@ -384,6 +414,28 @@ export function applyInferredSurtidoAssortments<T extends Product>(catalog: T[])
     labeled += 1;
   }
   return labeled;
+}
+
+/**
+ * Correct pair counts already stored on non-policy rows.
+ * A locked curve replaces a disagreeing count (S28 labelled 8 → 12).
+ * Policy pins are skipped. Counts with an unknown curve code are left for review.
+ */
+export function reconcileCurvePackSizes<T extends Product>(
+  catalog: T[],
+  pinned: ReadonlySet<string>,
+) {
+  let changed = 0;
+  for (const product of catalog) {
+    if (pinned.has(product.code)) continue;
+    if (product.sellAs !== "assortment") continue;
+    const read = readCurve(product.sizeOptions ?? []);
+    if (read.kind === "locked" && product.packSize !== read.n) {
+      product.packSize = read.n;
+      changed += 1;
+    }
+  }
+  return changed;
 }
 
 export function getAssortment(

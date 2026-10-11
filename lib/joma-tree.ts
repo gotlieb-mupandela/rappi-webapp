@@ -1,3 +1,4 @@
+import { isKidsProduct } from "@/lib/audience";
 import { isStorefrontFootwear } from "@/lib/classify";
 import { itemFamilyOf } from "@/lib/joma-item";
 import type { Product } from "@/lib/types";
@@ -58,6 +59,21 @@ export type JomaFolderDef = {
   children?: readonly JomaFolderDef[];
   /** Local cover override for HubTile. */
   cover?: string;
+  /**
+   * Kids apparel leaf. The same item family on an adult row stays on Man/Woman.
+   */
+  kidsOnly?: boolean;
+  /**
+   * Ages parsed from size labels (`8 (4XS)`). Every parsed age must sit in range.
+   * A size run with no age matches only when `matchWhenUnaged` is set.
+   */
+  ageRange?: readonly [number, number];
+  matchWhenUnaged?: boolean;
+  /**
+   * Parent folders normally fill only through their children. Set this when the
+   * parent itself is the Joma filing (age-band item families such as "1-4 years").
+   */
+  matchSelf?: boolean;
 };
 
 function familyIn(fam: string, list: readonly string[] | undefined) {
@@ -98,12 +114,32 @@ function productMatchesSport(product: Product, sport: string, blob: string) {
   }
 }
 
+function parsedApparelAges(product: Product): number[] {
+  const ages: number[] = [];
+  for (const size of product.sizeOptions ?? []) {
+    const match = /^(\d{1,2})\s*\(/.exec(size.trim());
+    if (match) ages.push(Number(match[1]));
+  }
+  return ages;
+}
+
+function matchesAgeRange(folder: JomaFolderDef, product: Product) {
+  if (!folder.ageRange) return true;
+  const ages = parsedApparelAges(product);
+  if (!ages.length) return Boolean(folder.matchWhenUnaged);
+  const min = Math.min(...ages);
+  const max = Math.max(...ages);
+  return min >= folder.ageRange[0] && max <= folder.ageRange[1];
+}
+
 function leafMatchesProduct(
   folder: JomaFolderDef,
   product: Product,
   fam: string,
   blob: string,
 ): boolean {
+  if (folder.kidsOnly && !isKidsProduct(product)) return false;
+  if (!matchesAgeRange(folder, product)) return false;
   if (folder.category && product.category !== folder.category) return false;
   // Apparel trees (teamwear, running, hiking, racket, …) are not shoe folders.
   // A boot named Toledo must stay on Footwear, not the T-shirt collection.
@@ -194,6 +230,7 @@ function apparelRoots() {
     apparelRootKeys = new Set([
       ...APPAREL_FOLDERS.map((folder) => folder.key),
       ...WOMAN_APPAREL_FOLDERS.map((folder) => folder.key),
+      ...KIDS_APPAREL_FOLDERS.map((folder) => folder.key),
     ]);
   }
   return apparelRootKeys;
@@ -393,6 +430,15 @@ export function matchJomaFolderKeys(
   const specific = resolveMoreSpecificSiblings(matched, fam);
   for (const leaf of resolveSeasonLeaves(specific, fam, blob)) {
     let key: string | undefined = leaf.key;
+    while (key) {
+      keys.add(key);
+      key = JOMA_FOLDER_PARENT.get(key);
+    }
+  }
+  for (const folder of ALL_FOLDERS) {
+    if (!folder.matchSelf || !folder.children?.length) continue;
+    if (!leafMatchesProduct(folder, product, fam, blob)) continue;
+    let key: string | undefined = folder.key;
     while (key) {
       keys.add(key);
       key = JOMA_FOLDER_PARENT.get(key);
@@ -1882,8 +1928,8 @@ export const APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "athletes-combat",
     label: "Athletes / Combat",
-    families: ["athletes / combat", "combat"],
-    pattern: /\b(combat|athletes)\b/,
+    families: ["athletes / combat", "atheletes / combat", "combat"],
+    pattern: /\b(combat|athletes|atheletes)\b/,
   },
   {
     key: "elite-club",
@@ -2043,19 +2089,19 @@ const WOMAN_LIFESTYLE_CHILDREN: readonly JomaFolderDef[] = [
 const WOMAN_BRAMA_CHILDREN: readonly JomaFolderDef[] = [
   {
     key: "wbrama-line",
-    label: "BRAMA LINE",
+    label: "Brama Line",
     families: ["brama", "brama line"],
     pattern: /\bbrama\b/,
   },
   {
     key: "wbrama-sujetadores",
-    label: "SUJETADORES DEPORTIVOS",
+    label: "Sports bras",
     families: ["sujetadores deportivos", "sujetador"],
     pattern: /\bsujetador/,
   },
   {
     key: "wbrama-intimi",
-    label: "INTIMI",
+    label: "Intimi",
     families: ["intimi"],
     pattern: /\bintimi\b/,
   },
@@ -2132,8 +2178,8 @@ export const WOMAN_APPAREL_FOLDERS: readonly JomaFolderDef[] = [
   {
     key: "athletes-combat",
     label: "Athletes / Combat",
-    families: ["athletes / combat", "combat"],
-    pattern: /\b(combat|athletes)\b/,
+    families: ["athletes / combat", "atheletes / combat", "combat"],
+    pattern: /\b(combat|athletes|atheletes)\b/,
   },
   {
     key: "elite-club",
@@ -2540,8 +2586,8 @@ export const ACCESSORIES_FOLDERS: readonly JomaFolderDef[] = [
       { key: "acc-teamwear", label: "Accessories teamwear", families: ["teamwear accessories"], pattern: /\bteamwear\b.{0,24}\baccessories\b/ },
       { key: "acc-running", label: "Accessories running", sub: "accessories", families: ["running accessories"], pattern: /\brunning\b.{0,24}\baccessories\b/ },
       { key: "acc-racket", label: "Accessories of Racket", families: ["racket", "rackets"], pattern: /\brackets?\b/ },
-      { key: "acc-palas-padel", label: "Palas of pádel", families: ["pala", "palas", "padel"], pattern: /\b(palas?|padel)\b/ },
-      { key: "acc-palas-pickleball", label: "Palas of Pickleball", families: ["pickleball"], pattern: /\bpickleball\b/ },
+      { key: "acc-palas-padel", label: "Padel rackets", families: ["pala", "palas", "padel"], pattern: /\b(palas?|padel)\b/ },
+      { key: "acc-palas-pickleball", label: "Pickleball paddles", families: ["pickleball"], pattern: /\bpickleball\b/ },
       { key: "acc-outdoor", label: "Accessories Outdoor", families: ["outdoor"], pattern: /\boutdoor\b/ },
       { key: "acc-fitness-gym", label: "Accessories Fitness / Gym", families: ["fitness accessories", "gym accessories"], pattern: /\b(fitness|gym)\b.{0,24}\baccessories\b/ },
       { key: "acc-tiendas", label: "Accessories tiendas" },
@@ -2563,7 +2609,7 @@ export const OUTLET_FOLDERS: readonly JomaFolderDef[] = [
       // generic Outlet-bucket SKUs into the matching type leaf.
       { key: "outlet-promotions", label: "Promotions", exactFamilies: ["promotions", "outlet"] },
       { key: "outlet-footwear", label: "Footwear", exactFamilies: ["footwear"] },
-      { key: "outlet-apparel-byear", label: "Apparel of byear", exactFamilies: ["apparel of byear"] },
+      { key: "outlet-apparel-byear", label: "Apparel by year", exactFamilies: ["apparel of byear"] },
       {
         key: "outlet-sweatshirt-jacket",
         label: "Sweatshirt / Jacket",
@@ -2698,12 +2744,138 @@ export const OFFICIAL_KITS_FOLDERS: readonly JomaFolderDef[] = [
     key: "official-kits",
     label: "Official Kits",
     children: [
-      { key: "kits-replicas", label: "Réplicas of sponsor", children: KITS_REPLICA_CLUBS },
+      { key: "kits-replicas", label: "Sponsor replicas", children: KITS_REPLICA_CLUBS },
       { key: "kits-federations", label: "Federations and Committees", children: KITS_FEDERATIONS },
       { key: "kits-special", label: "Special Editions", children: KITS_SPECIAL },
     ],
   },
 ];
+
+/**
+ * Kids type leaves were built with no matchers, so in-stock kids apparel
+ * never joined the age band it was sized for. Keys stay the slug of the
+ * original label. Collection tiles (Championship, Winner, …) stay empty:
+ * no catalog row is filed under those names.
+ */
+function tuneKidsFolder(key: string, patch: Partial<JomaFolderDef>) {
+  const walk = (nodes: readonly JomaFolderDef[]): JomaFolderDef | undefined => {
+    for (const node of nodes) {
+      if (node.key === key) return node;
+      const hit = node.children && walk(node.children);
+      if (hit) return hit;
+    }
+    return undefined;
+  };
+  const folder = walk(KIDS_APPAREL_FOLDERS);
+  if (!folder) throw new Error(`missing kids folder ${key}`);
+  Object.assign(folder, patch);
+}
+
+const KIDS_DISPLAY_LABELS: Record<string, string> = {
+  "Palas of pádel": "Padel rackets",
+  "Palas of Padel": "Padel rackets",
+  "Palas of Pickleball": "Pickleball paddles",
+  "Palas pickleball": "Pickleball paddles",
+  "Básicos of armario": "Wardrobe basics",
+};
+
+function retitleKidsLabels(nodes: readonly JomaFolderDef[]) {
+  for (const node of nodes) {
+    const next = KIDS_DISPLAY_LABELS[node.label];
+    if (next) node.label = next;
+    if (node.children?.length) retitleKidsLabels(node.children);
+  }
+}
+
+retitleKidsLabels(KIDS_APPAREL_FOLDERS);
+
+tuneKidsFolder("kids-1-4", {
+  kidsOnly: true,
+  matchSelf: true,
+  exactFamilies: ["1-4 years"],
+});
+tuneKidsFolder("kids-6-10", {
+  kidsOnly: true,
+  matchSelf: true,
+  exactFamilies: ["5-8 years boy", "5-8 years girl"],
+});
+tuneKidsFolder("kids-12-14-boy", {
+  kidsOnly: true,
+  matchSelf: true,
+  exactFamilies: ["teen boy"],
+});
+tuneKidsFolder("kids-12-14-girl", {
+  kidsOnly: true,
+  matchSelf: true,
+  exactFamilies: ["teen girl"],
+});
+tuneKidsFolder("k14-sweatshirts-jackets", {
+  kidsOnly: true,
+  exactFamilies: ["sweatshirts & jackets"],
+  ageRange: [1, 6],
+});
+tuneKidsFolder("k14-tracksuit-set", {
+  kidsOnly: true,
+  exactFamilies: ["tracksuit & set"],
+  matchWhenUnaged: true,
+});
+tuneKidsFolder("k14-outerwear-anoracks-jackets", {
+  kidsOnly: true,
+  exactFamilies: ["anoracks/jackets", "anoraks/jackets"],
+  ageRange: [1, 6],
+});
+tuneKidsFolder("k14-pants-pants-largos", {
+  kidsOnly: true,
+  exactFamilies: ["long pants"],
+  ageRange: [1, 6],
+});
+tuneKidsFolder("k610-outerwear", {
+  kidsOnly: true,
+  exactFamilies: ["outerwear", "raincoats"],
+});
+tuneKidsFolder("k610-tshirts-polos", {
+  kidsOnly: true,
+  exactFamilies: ["t-shirts & polos", "t-shirts & polo shirts"],
+});
+tuneKidsFolder("k610-jackets-sweatshirts", {
+  kidsOnly: true,
+  exactFamilies: ["jackets & sweatshirts", "jacket"],
+  ageRange: [8, 14],
+});
+tuneKidsFolder("k610-set", {
+  kidsOnly: true,
+  exactFamilies: ["set"],
+});
+tuneKidsFolder("k610-tracksuits", {
+  kidsOnly: true,
+  exactFamilies: ["tracksuits"],
+});
+tuneKidsFolder("k610-pants-tights-leggings", {
+  kidsOnly: true,
+  exactFamilies: ["leggings"],
+  ageRange: [8, 14],
+});
+tuneKidsFolder("k610-pants-tights-pants-largo-cotton", {
+  kidsOnly: true,
+  exactFamilies: ["cotton long trousers"],
+});
+tuneKidsFolder("k610-accessories", {
+  kidsOnly: true,
+  exactFamilies: ["accessories"],
+});
+tuneKidsFolder("k610-beachwear", {
+  kidsOnly: true,
+  exactFamilies: ["beachwear"],
+});
+tuneKidsFolder("k610-tw-outlet", {
+  kidsOnly: true,
+  exactFamilies: ["outlet"],
+  ageRange: [8, 14],
+});
+tuneKidsFolder("k1214g-skirts-dresses", {
+  kidsOnly: true,
+  exactFamilies: ["skirts & dresses"],
+});
 
 const ALL_FOLDERS: JomaFolderDef[] = [];
 

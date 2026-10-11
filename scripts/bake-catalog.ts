@@ -6,7 +6,7 @@ import apparelAssortmentData from "../data/apparel-assortments.json";
 import fixData from "../data/b2c-price-fix-data.json";
 import mapBData from "../data/b2c-map-b.json";
 import { productAudience } from "../lib/audience";
-import { applyInferredSurtidoAssortments } from "../lib/assortment";
+import { applyInferredSurtidoAssortments, reconcileCurvePackSizes } from "../lib/assortment";
 import { withStorefrontCategories, withStorefrontMerchandising } from "../lib/classify";
 import {
   folderKeysForProduct,
@@ -84,6 +84,15 @@ function enforcePackPolicy(catalog: Product[]) {
     ) {
       p.packSize = policy.pack_size;
       relabeled++;
+    } else if (
+      policy &&
+      Object.prototype.hasOwnProperty.call(policy, "pack_size") &&
+      !(policy.pack_size && policy.pack_size > 1) &&
+      p.packSize
+    ) {
+      // Count was not established. Keep the assortment flag, drop the number.
+      p.packSize = null;
+      relabeled++;
     }
     const apparelPackSize = apparelAssortments.get(p.code);
     if (apparelPackSize) {
@@ -115,6 +124,18 @@ function enforcePackPolicy(catalog: Product[]) {
 }
 
 enforcePackPolicy(raw as Product[]);
+const pinnedPacks = new Set<string>([
+  ...(
+    fixData as { pack_price_overrides?: Array<{ code: string; sell_as?: string }> }
+  ).pack_price_overrides
+    ?.filter((row) => row.sell_as)
+    .map((row) => row.code) ?? [],
+  ...(
+    apparelAssortmentData as { products: Array<{ code: string }> }
+  ).products.map((row) => row.code),
+]);
+const curveReconciled = reconcileCurvePackSizes(raw as Product[], pinnedPacks);
+if (curveReconciled) console.log(`curve pack sizes reconciled: ${curveReconciled}`);
 const surtidoLabeled = applyInferredSurtidoAssortments(raw as Product[]);
 if (surtidoLabeled) console.log(`surtido assortments labeled: ${surtidoLabeled}`);
 
