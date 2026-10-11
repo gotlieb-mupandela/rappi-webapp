@@ -152,7 +152,11 @@ function buildLiveCatalog(snapshot: LiveSnapshot): Product[] {
       continue;
     }
     const row = overlayByCode.get(base.code);
-    catalog.push(row ? applyOverlay(base, row) : { ...base, available: false });
+    // A code missing from the overlay is not a delist. The morning catalog
+    // file is the source for that SKU; forcing it unavailable hid in-stock
+    // rows the overlay had simply not caught up with. When the row exists,
+    // the overlay still wins.
+    catalog.push(row ? applyOverlay(base, row) : base);
   }
   catalog.push(...fullByCode.values());
 

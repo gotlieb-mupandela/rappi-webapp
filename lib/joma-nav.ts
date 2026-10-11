@@ -306,14 +306,14 @@ export function jomaAccessoriesLandingTiles(): AccessoriesLandingTileDef[] {
       productIds: ["401845-100"],
     },
     {
-      label: "Palas of pádel",
+      label: "Padel rackets",
       labelKey: "tiles.palasPadel",
       href: "/shop/padel?group=acc-palas-padel",
       hub: "padel",
       sub: "rackets",
     },
     {
-      label: "Palas of Pickleball",
+      label: "Pickleball paddles",
       labelKey: "tiles.palasPickleball",
       href: "/shop/balls-bags?group=acc-palas-pickleball",
       hub: "balls-bags",
@@ -563,12 +563,12 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
       productIds: ["FSS2402IN"],
     },
     {
-      label: "Apparel of byear",
+      label: "Apparel by year",
       labelKey: "tiles.apparelByear",
       href: "/promotions?group=outlet-apparel-byear",
       // No SKU is filed in this leaf.
       kind: "category",
-      barLabel: "APPAREL OF BYEAR",
+      barLabel: "APPAREL BY YEAR",
       barLabelKey: "tiles.apparelByear",
       hub: "swimming",
     },
