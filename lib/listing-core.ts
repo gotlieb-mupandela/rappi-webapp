@@ -7,6 +7,7 @@ import {
   matchesTypeFolder,
   subcategoryChipRank,
 } from "@/lib/catalog";
+import { sortByFolderOrder } from "@/lib/folder-order";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 import { hasUsableProductImage } from "@/lib/media";
 import {
@@ -175,7 +176,7 @@ export function filterListing(
     list = list.filter((p) => p.badge != null && badges.has(p.badge));
   }
 
-  return list.filter((p) => {
+  const filtered = list.filter((p) => {
     if (sub && p.subcategory !== sub) return false;
     if (group) {
       if (jomaGroup) {
@@ -189,6 +190,8 @@ export function filterListing(
     if (Number.isFinite(max) && p.price > max) return false;
     return true;
   });
+  if (!jomaGroup) return filtered;
+  return sortByFolderOrder(jomaGroup, filtered);
 }
 
 function facetCategories(list: ListingItem[]): ListingFacet[] {

@@ -10,6 +10,13 @@ import {
 import type { Product } from "@/lib/types";
 
 const KIDS_NAME_RE = /\b(junior| jr\b|kids|child|baby|youth|teen)\b/;
+
+/**
+ * Kids apparel packs whose import row is unisex. They belong on the kids
+ * cotton-trousers folder; the name does not say junior, so the heuristic
+ * would hide them from that shop.
+ */
+const KIDS_PACK_CODES = new Set(["500480.322", "500680.579", "500680.715"]);
 const WOMEN_NAME_RE = /\b(lady|ladies|women|woman|female|womens)\b/;
 const MEN_NAME_RE = /\b(men|man|male|mens)\b/;
 
@@ -28,6 +35,7 @@ export function isKidsShoe(product: Product) {
 }
 
 export function isKidsProduct(product: Product) {
+  if (KIDS_PACK_CODES.has(product.code)) return true;
   if (product.gender === "kids") return true;
   if (
     product.subcategory === "tees-kids" ||
