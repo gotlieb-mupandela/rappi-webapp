@@ -373,6 +373,14 @@ def main() -> None:
             continue
         walk(key, nodes)
 
+    # Kids Colegial is the kids footwear Colegial tile plus Schoolwear.
+    # The tile does not list every school shoe that collection carries.
+    schoolwear = (4940, 2180)
+    pairs = mapped_pairs.setdefault("kids-colegial", [])
+    if schoolwear not in pairs:
+        pairs.append(schoolwear)
+    leaf_lists["kids-colegial"] = take_codes(pairs)
+
     # Products browsable on the live site keep a category when the crawl
     # filed them nowhere we have a leaf for.
     old = json.loads(
@@ -402,8 +410,9 @@ def main() -> None:
         filed.add(product["code"])
         restored += 1
 
-    # A mapped leaf keeps only the collection's own codes. Keyword fallback
-    # must not leave 700133.100 or the schoolwear rows on Colegial.
+    # A mapped leaf keeps only its collection codes. Keyword fallback must
+    # not leave 700133.100 on Colegial. Schoolwear is one of that folder's
+    # collections, so those shoes stay.
     for key, pairs in mapped_pairs.items():
         if not pairs:
             continue
