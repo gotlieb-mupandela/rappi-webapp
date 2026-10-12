@@ -4,7 +4,7 @@ import { FolderGrid } from "@/components/folder-grid";
 import { HubTile } from "@/components/hub-tile";
 import { PageHeader } from "@/components/page-header";
 import { ProductImage } from "@/components/product-image";
-import { productCardImageCandidates } from "@/lib/media";
+import { tileImageCandidates } from "@/lib/media";
 import { SectionHeading } from "@/components/section-heading";
 import { NoStockBody } from "@/components/no-stock-body";
 import { OtherHubsNav } from "@/components/other-hubs-nav";
@@ -90,7 +90,7 @@ export default async function CategoryHubPage({
               <ProductImage
                 product={sample}
                 src={sample.imageUrl}
-                sources={productCardImageCandidates(sample)}
+                sources={tileImageCandidates(sample)}
                 alt={sample.displayName}
                 priority
                 className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"

@@ -166,6 +166,7 @@ export function CatalogBrowser({
     <CatalogFilters
       listing={listing}
       query={query}
+      audienceSlug={audienceSlug}
       categorySlug={categorySlug}
       basePath={basePath}
       grouped={grouped}

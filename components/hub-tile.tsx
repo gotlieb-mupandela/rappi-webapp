@@ -6,7 +6,7 @@ import { ProductImage } from "@/components/product-image";
 import { useT } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
-import { productCardImageCandidates, productCardImageUrl } from "@/lib/media";
+import { tileImageCandidates, tileImageUrl } from "@/lib/media";
 import { productImageLoader } from "@/lib/product-image-loader";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -113,8 +113,8 @@ export function HubTile({
               })()
             : (name ?? slug);
   const contain = imageFit === "contain";
-  const productSrc = product ? productCardImageUrl(product) : "";
-  const productSources = product ? productCardImageCandidates(product) : [];
+  const productSrc = product ? tileImageUrl(product) : "";
+  const productSources = product ? tileImageCandidates(product) : [];
   const coverSrc = imageSrc || productSrc || "";
   const useProductPhoto = Boolean(product && coverSrc && !imageSrc);
   const hasCover = Boolean(coverSrc);

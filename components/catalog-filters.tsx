@@ -22,6 +22,7 @@ function asAll(value?: string) {
 export function CatalogFilters({
   listing,
   query,
+  audienceSlug,
   categorySlug,
   basePath,
   grouped = true,
@@ -38,6 +39,8 @@ export function CatalogFilters({
 }: {
   listing: ListingResult;
   query?: ListingQuery;
+  /** Audience the listing is scoped to (path or ?audience=). */
+  audienceSlug?: string;
   categorySlug?: string;
   basePath: string;
   grouped?: boolean;
@@ -333,6 +336,11 @@ export function CatalogFilters({
             {children ?? (
               <ProductGrid
                 products={listing.products}
+                audience={
+                  audienceSlug ||
+                  query?.audience ||
+                  /^\/shop\/(kids|women|men)(\/|$)/.exec(basePath)?.[1]
+                }
                 grouped={grouped}
                 layout={layout}
                 groupCounts={Object.fromEntries(
