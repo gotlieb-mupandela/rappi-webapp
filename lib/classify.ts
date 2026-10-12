@@ -1,4 +1,5 @@
 import { BIB_PACK_PRICE_NAD, applyInferredSurtidoAssortments, isFixedBibPack } from "@/lib/assortment";
+import jomaTypeOverrides from "@/data/joma-type-overrides.json";
 import { productDescription } from "@/lib/copy";
 import { roundNad } from "@/lib/format";
 import { isSportHub, jomaLeafHub, productInHub } from "@/lib/hub-membership";
@@ -806,10 +807,22 @@ function applyPackTitle<T extends Product>(product: T): T {
 }
 
 
+/**
+ * Product type per Joma's own B2B placement (nav_tree + supplier crawl), for
+ * SKUs our name rules misfile: shoes Joma lists under Calzado (TSELS tennis
+ * "SET LADY", Breston handball, junior padel), racket-basics clothing filed as
+ * rackets, and two one-offs. Only category/subcategory change.
+ */
+const JOMA_TYPE_OVERRIDES = jomaTypeOverrides as Record<
+  string,
+  { category?: string; subcategory: string }
+>;
+
 export function withStorefrontMerchandising<T extends Product>(product: T): T {
-  const category = classifyStorefrontCategory(product);
+  const placed = JOMA_TYPE_OVERRIDES[product.code];
+  const category = placed?.category ?? classifyStorefrontCategory(product);
   const classified = category === product.category ? product : { ...product, category };
-  const subcategory = classifyStorefrontSubcategory(classified, category);
+  const subcategory = placed?.subcategory ?? classifyStorefrontSubcategory(classified, category);
   const hubs = classifyExtraHubs(classified, category);
   const withoutHubs = { ...product };
   delete withoutHubs.hubs;

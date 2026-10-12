@@ -128,14 +128,15 @@ function tilesFromJomaFolders(
       const items = poolSet
         ? productsInJomaFolder(folder.key).filter((p) => poolSet.has(p))
         : pool.filter((p) => folderMatchesProduct(folder, p));
+      const photographed = items.filter((p) => usableCatalogImageUrl(p));
       const inFolder = imagedSample(
         sampleForTypeFolder(
-          items,
+          photographed.length ? photographed : items,
           folder.sub && (TYPE_FOLDERS.shoes as readonly string[]).includes(folder.sub)
             ? "shoes"
             : folder.key,
           sampleHub,
-        ) ?? firstImagedProduct(items),
+        ) ?? firstImagedProduct(photographed.length ? photographed : items),
       );
       const picture = folderTilePicture(folder, kind, inFolder);
       return {
@@ -340,6 +341,10 @@ function looksLikeFolder(product: Product, folderKey: string) {
 }
 /** Folder-tile photo only — do not reuse for hub/homepage footwear heroes. */
 function sampleForTypeFolder(list: Product[], folderKey: string, sampleHub?: string) {
+  // Skip SKUs whose only picture is the no-photo plate when the folder has
+  // a photographed product.
+  const photographed = list.filter((p) => usableCatalogImageUrl(p));
+  if (photographed.length && photographed.length < list.length) list = photographed;
   const footwear = list.filter(isStorefrontFootwear);
   const apparel = list.filter((p) => !isStorefrontFootwear(p));
   if (

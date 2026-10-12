@@ -1,0 +1,1601 @@
+{
+ "900703.010": {
+  "subcategory": "tops"
+ },
+ "900703.040": {
+  "subcategory": "tops"
+ },
+ "900703.060": {
+  "subcategory": "tops"
+ },
+ "900703.100": {
+  "subcategory": "tops"
+ },
+ "900703.200": {
+  "subcategory": "tops"
+ },
+ "900703.331": {
+  "subcategory": "tops"
+ },
+ "900703.400": {
+  "subcategory": "tops"
+ },
+ "900703.500": {
+  "subcategory": "tops"
+ },
+ "900703.700": {
+  "subcategory": "tops"
+ },
+ "901861.717": {
+  "subcategory": "jackets"
+ },
+ "902062.100": {
+  "subcategory": "tops"
+ },
+ "902062.713": {
+  "subcategory": "tops"
+ },
+ "902062.715": {
+  "subcategory": "tops"
+ },
+ "902076.200": {
+  "subcategory": "skirts"
+ },
+ "902664.013": {
+  "subcategory": "tops"
+ },
+ "902664.021": {
+  "subcategory": "tops"
+ },
+ "902664.100": {
+  "subcategory": "tops"
+ },
+ "902664.106": {
+  "subcategory": "tops"
+ },
+ "902664.107": {
+  "subcategory": "tops"
+ },
+ "902664.200": {
+  "subcategory": "tops"
+ },
+ "902664.251": {
+  "subcategory": "tops"
+ },
+ "902664.331": {
+  "subcategory": "tops"
+ },
+ "902664.339": {
+  "subcategory": "tops"
+ },
+ "902664.422": {
+  "subcategory": "tops"
+ },
+ "902664.450": {
+  "subcategory": "tops"
+ },
+ "902664.501": {
+  "subcategory": "tops"
+ },
+ "902664.600": {
+  "subcategory": "tops"
+ },
+ "902664.700": {
+  "subcategory": "tops"
+ },
+ "903164.494": {
+  "category": "running-fitness",
+  "subcategory": "jackets"
+ },
+ "BBRECW2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BBRESTS2501": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BBRESTS2502": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BBRESTS2509": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BBRESTS2702": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BCOUW2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BFLEXBW2503V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "BKBUZZW2501": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKBUZZW2502": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKBUZZW2504": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKLITW2501": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKLITW2502": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKLITW2512": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKLITW2532": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKZERW2519": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BKZERW2522": {
+  "category": "shoes",
+  "subcategory": "basketball-shoes"
+ },
+ "BNATUW2402": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BNATUW2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSCREW2601": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSCREW2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSCRLS2601": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSCRLS2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSCRLS2605": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSCRLW2601": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "BSPIW2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "C142S2615": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "C142S2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "C1992S2602": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "C1992S2603": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "C520S2602": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "C520S2615": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAGUILW2529": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAGUIW2503": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAGUIW2522": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAGUIW2524": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAREILW2503": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAREILW2512": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAREILW2513": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAREILW2523": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAREW2501": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAREW2524": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROLW2501": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROLW2507": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROLW2510": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROLW2526": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROW2501": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROW2503": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROW2515": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROW2522": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CARROW2526": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CATELS2625": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CATENS2601O": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CATLW2501": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "CATLW2523": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "CATLW2524": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "CATRLS2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CATTIS2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CAURLS2603": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CAURLS2613": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CAURLS2621": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CAYULS2612": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCALCW2501": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCALCW2502": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCALPLS2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCAMLS2613": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCAMLS2615": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCAMLS2616": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCAMLS2629": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCAMS2603": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCAMS2615": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCHILS2619": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CCLALS2619": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCLALS2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CCUPES2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CCUPES2621": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2603": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2605": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2613": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2621": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2621O": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2625": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CDIALS2625O": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CEROS2603": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CFLELS2506": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CFLELW2515": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CFLELW2526": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CFLELW2532": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CFLEXS2612": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CGALLS2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CGALLS2625": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CHEOS2615": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CHERS2623": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CJ80LW2516": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CKRUMS2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CKRUMS2623": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLACELS2629": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLACELW2503": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLACES2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLACES2623": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLEYLS2625": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLEYLS2625M": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLEYLS2629M": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLEYLS2629O": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CLUMS2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CMORLS2602": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CMORLS2619": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CMORLS2625": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CMUNLW2520": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CMUNLW2523": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CMUNLW2525": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CMUNS2602": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CMUNS2628": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CNEROS2601": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CNEROS2601O": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CNEROS2615H": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CNORALW2501": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "CNORALW2512": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "CNORALW2526": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "COASILS2613": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASILS2629": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASILW2515": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASILW2525": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASILW2527": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASILW2529": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASIW2503": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "COASIW2525": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CORIGLW2516": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CORIGLW2522": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CORIGLW2529": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CORIGW2503": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CPER2S2623": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CR111LW2522": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CR111LW2531": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CR111LW2536": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CR111S2602": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CR111S2622": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CR111S2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CRIBS2625": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CSTALS2610": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CSTALS2612": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CSTALS2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CSTALS2629": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CTALLW2501": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CTALLW2526": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CTESLS2603": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CTESLS2613": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CTESLS2619": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CTESLS2621": {
+  "category": "shoes",
+  "subcategory": "comfort-shoes"
+ },
+ "CTORMW2526": {
+  "category": "shoes",
+  "subcategory": "outdoor-shoes"
+ },
+ "CTRILW2501": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CTRILW2520": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CTRILW2523": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CTRILW2529": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CTRIW2501": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CTRIW2520": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CVULCS2624": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CVULCS2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "CZENIW2522": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "FSS2602IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "JBERRW2503V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JBERRW2506V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JBERRW2524V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JCAMBW2623V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JCAMBW2624V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JCAMPW2526V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JJARAW2603V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JJARAW2624V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JJARAW2626V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JKNOW2603V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JKNOW2624V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATS2602C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATS2603C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATS2619C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATS2653C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATW2602C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATW2603C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATW2604C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATW2611C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATW2613C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMATW2632C": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JMUNW2513": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "JMUNW2526": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JNINOS2610V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JNINOS2615V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JOASIW2501": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JORIGW2515": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JORIGW2523": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JORIGW2524": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JORIGW2531": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JORIGW2541": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JRIUS2605V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JRIUS2613V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSAJOW2512V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSAJOW2522V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMS2601OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMS2602OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMS2608OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMS2624OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMS2632OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMW2601OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMW2602OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMW2604OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMW2609OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMW2613OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSLAMW2632OM": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JSNOW2512": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTEOS2616V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTEOS2619V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTERW2603V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTERW2626V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTORCW2613V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTORCW2624V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JTORCW2626V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JUTAHW2501V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JUTAHW2503V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JUTAHW2520V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "JUTAHW2523V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "LIGS2602INH": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "MAXS2303IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "MUNW2529IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "PICKLS2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKLW2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKLW2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKLW2619": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKS2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKW2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKW2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKW2612": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKW2691": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICKW2692": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICW2592": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PICW2593": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROLS2602C": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROLS2619C": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROLW2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROLW2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROLW2627": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROS2501": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROS2632": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROW2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROW2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROW2612": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSTROW2617": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSWILS2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSWILS2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSWIS2601": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSWIS2602": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSWIS2604": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "PSWIW2502": {
+  "category": "shoes",
+  "subcategory": "pickleball-shoes"
+ },
+ "RNEOS2622O": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "RRT50S2602": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "RRT50S2612": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "RRT50S2623": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "RRT50S2625": {
+  "category": "shoes",
+  "subcategory": "sneakers"
+ },
+ "RTITAS2608S": {
+  "category": "shoes",
+  "subcategory": "running-shoes"
+ },
+ "SAFTJS2601": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SAFTJS2613": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SBOAJS2603V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SBOAJS2633V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SCLIJS2608V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SCLIJS2610V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SCLIJS2611V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SGOMES2601": {
+  "category": "shoes",
+  "subcategory": "summer-shoes"
+ },
+ "SGOMES2623": {
+  "category": "shoes",
+  "subcategory": "summer-shoes"
+ },
+ "SKILW2501IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "SKILW2502IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "SKILW2504IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "SKILW2505IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "SKILW2576IN": {
+  "category": "shoes",
+  "subcategory": "futsal"
+ },
+ "SLEOLS2625V": {
+  "category": "shoes",
+  "subcategory": "summer-shoes"
+ },
+ "SNEOJS2633V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SNORLS2613V": {
+  "category": "shoes",
+  "subcategory": "summer-shoes"
+ },
+ "SOCEJS2603V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SOCEJS2604V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SOCEJS2613V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SWAVJS2625V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "SY400625A331": {
+  "subcategory": "accessories"
+ },
+ "SYAILS2601": {
+  "category": "shoes",
+  "subcategory": "summer-shoes"
+ },
+ "TACELW2522G": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACEW2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACEW2501C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACEW2502AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACEW2502C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACEW2508AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACEW2522G": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TACLS2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TEDYBS2505V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "TELCLW2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TELCLW2527AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TELCW2501C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TELCW2502AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TELCW2502C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TELCW2504AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TELCW2504C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TKKUBS2618": {
+  "category": "shoes",
+  "subcategory": "trail-running"
+ },
+ "TKRASW2501": {
+  "category": "shoes",
+  "subcategory": "trail-running"
+ },
+ "TKTR8S2663": {
+  "category": "shoes",
+  "subcategory": "trail-running"
+ },
+ "TOPLW2501OM": {
+  "category": "shoes",
+  "subcategory": "padel-shoes"
+ },
+ "TPOILS2532AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILS2532C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILS2602AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILS2602C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILS2625AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILS2625C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILW2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOILW2501C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOIS2532AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOIS2532C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOIW2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TPOIW2502AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRALW2502AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRALW2510AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRAPS2601AC": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "TRAPS2601C": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "TRAPS2602AC": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "TRAPS2602C": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "TRAPS2617AC": {
+  "category": "shoes",
+  "subcategory": "shoes"
+ },
+ "TRAPS2617C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRAPW2502AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRAPW2502C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRAPW2511AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TRAPW2527C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TROLLS2532C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TROLLW2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TROLLW2522G": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TROLW2502AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TROLW2502C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2601AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2601C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2611AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2611C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2613AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2613C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2621AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2621C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2627AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELS2627C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELW2501AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELW2601AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELW2601C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELW2602AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSELW2627C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETS2601AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETS2602AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETS2602C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETS2612C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETW2601C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETW2602AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETW2631AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETW2632AC": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TSETW2632C": {
+  "category": "shoes",
+  "subcategory": "tennis-shoes"
+ },
+ "TULLW2502OM": {
+  "category": "shoes",
+  "subcategory": "padel-shoes"
+ },
+ "V62SW2601": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "V62SW2602": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "V62SW2609": {
+  "category": "shoes",
+  "subcategory": "handball-shoes"
+ },
+ "VBLOKS2501": {
+  "category": "shoes",
+  "subcategory": "volleyball-shoes"
+ },
+ "VDYNAW2602": {
+  "category": "shoes",
+  "subcategory": "volleyball-shoes"
+ },
+ "VDYNAW2611": {
+  "category": "shoes",
+  "subcategory": "volleyball-shoes"
+ },
+ "VDYNMW2602": {
+  "category": "shoes",
+  "subcategory": "volleyball-shoes"
+ },
+ "VIMPUS2501": {
+  "category": "shoes",
+  "subcategory": "volleyball-shoes"
+ },
+ "WAGOW2501V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WAGOW2502V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WAGOW2503V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WAGOW2515V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WAGOW2529V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WAGOW2532V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WGINW2402V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WGINW2403V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WGINW2529V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WGINW2532V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WHARW2203V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WHARW2533O": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WHARW2543O": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WPLAYW2101V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WPLAYW2102V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WPLAYW2103V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WSCHOW2103V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ },
+ "WSCHOW2533V": {
+  "category": "shoes",
+  "subcategory": "kids-shoes"
+ }
+}
