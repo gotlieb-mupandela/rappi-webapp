@@ -1,4 +1,5 @@
 import extraGalleryByCode from "@/data/ai-gallery-urls.json";
+import preTileImages from "@/data/pre-person-tile-images.json";
 import type { Product } from "@/lib/types";
 
 const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -169,4 +170,47 @@ export function withFullResProductImages<T extends Product>(product: T): T {
     imageUrl: product.imageUrl ? upgradeProductImageUrl(product.imageUrl) : product.imageUrl,
     images: (product.images ?? []).map(upgradeProductImageUrl),
   };
+}
+
+/**
+ * Card frame each product had before galleries were re-led with a person
+ * (PR #46). Folder, hub and landing tiles use these: a tile stands for a
+ * whole folder or audience, and a shared teamwear code's model is usually an
+ * adult man, which is wrong on Kids and Woman tiles. Product pages and cards
+ * keep the person lead.
+ */
+
+const PRE_TILE_IMAGES = preTileImages as Record<string, string>;
+
+export function tileImageCandidates(product: {
+  code?: string | null;
+  imageUrl?: string | null;
+  images?: string[] | null;
+}): string[] {
+  const base = productCardImageCandidates(product);
+  const pre = product.code ? PRE_TILE_IMAGES[product.code] : "";
+  return pre ? [...new Set([pre, ...base])] : base;
+}
+
+export function tileImageUrl(product: {
+  code?: string | null;
+  imageUrl?: string | null;
+  images?: string[] | null;
+}) {
+  return tileImageCandidates(product)[0] ?? "";
+}
+
+/**
+ * Card frames for a listing scoped to one audience. A shared teamwear code's
+ * person lead is usually an adult man, so Kids listings (non 5/6xxxxx codes)
+ * and Woman listings (non 9xxxxx codes) use the earlier product-only frame.
+ */
+export function listingCardCandidates(
+  product: { code?: string | null; imageUrl?: string | null; images?: string[] | null },
+  audience?: string | null,
+): string[] {
+  const code = product.code ?? "";
+  if (audience === "kids" && !/^[56]\d{5}\./.test(code)) return tileImageCandidates(product);
+  if (audience === "women" && !/^9\d{5}\./.test(code)) return tileImageCandidates(product);
+  return productCardImageCandidates(product);
 }

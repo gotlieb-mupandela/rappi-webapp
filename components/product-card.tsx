@@ -18,7 +18,7 @@ import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
 import { buyableSizes, isSoldOut } from "@/lib/product-stock";
-import { productCardImageCandidates, productCardImageUrl } from "@/lib/media";
+import { listingCardCandidates } from "@/lib/media";
 import { useCart } from "@/lib/stores/cart";
 import { productPath } from "@/lib/utils";
 
@@ -28,17 +28,20 @@ const CURSOR_GAP = 14;
 export function ProductCard({
   product,
   layout = "grid",
+  audience,
 }: {
   product: Product;
   layout?: "grid" | "list";
+  /** Listing audience (kids / women): avoids adult or men's person leads. */
+  audience?: string;
 }) {
   const add = useCart((s) => s.add);
   const { t, format } = useLocale();
   const first = buyableSizes(product)[0];
   const soldOut = isSoldOut(product);
   const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
-  const cardSrc = productCardImageUrl(product);
-  const cardSources = productCardImageCandidates(product);
+  const cardSources = listingCardCandidates(product, audience);
+  const cardSrc = cardSources[0] ?? "";
 
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);

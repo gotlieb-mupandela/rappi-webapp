@@ -86,8 +86,10 @@ export function ProductGrid({
   grouped = false,
   layout = "grid",
   groupCounts,
+  audience,
 }: {
   products: Product[];
+  audience?: string;
   grouped?: boolean;
   layout?: "grid" | "list";
   groupCounts?: Record<string, number>;
@@ -110,13 +112,13 @@ export function ProductGrid({
     layout === "list" ? (
       <div className="divide-y divide-[var(--border)] border border-[var(--border)] bg-white px-4 sm:px-5">
         {list.map((p) => (
-          <ProductCard key={p.code} product={p} layout="list" />
+          <ProductCard key={p.code} product={p} layout="list" audience={audience} />
         ))}
       </div>
     ) : (
       <div className={GRID}>
         {list.map((p) => (
-          <ProductCard key={p.code} product={p} />
+          <ProductCard key={p.code} product={p} audience={audience} />
         ))}
       </div>
     );

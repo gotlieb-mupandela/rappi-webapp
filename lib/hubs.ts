@@ -51,7 +51,7 @@ import {
   jomaTeamsLandingTiles,
   type AccessoriesLandingTileDef,
 } from "@/lib/joma-nav";
-import { productCardImageUrl } from "@/lib/media";
+import { tileImageUrl } from "@/lib/media";
 import { productInHub } from "@/lib/hub-membership";
 import {
   brandCoverIfSafe,
@@ -651,7 +651,7 @@ function landingTileImage(
 
   const sample = sampleFromList(scoped, hub) ?? firstImagedProduct(scoped);
   if (sample) {
-    const url = productCardImageUrl(sample);
+    const url = tileImageUrl(sample);
     if (url) return url;
   }
 
@@ -678,19 +678,19 @@ function kidsLandingTileImage(
   if (cover) return cover;
   const kids = catalog.filter((p) => isKidsProduct(p) && productInHub(p, hub));
   const pool = kids.length ? kids : catalog.filter(isKidsProduct);
-  const imaged = pool.filter((p) => Boolean(productCardImageUrl(p)));
+  const imaged = pool.filter((p) => Boolean(tileImageUrl(p)));
   const sample =
     imaged[index % Math.max(imaged.length, 1)] ??
     sampleFromList(pool, hub) ??
     firstImagedProduct(pool);
   if (sample) {
-    const url = productCardImageUrl(sample);
+    const url = tileImageUrl(sample);
     if (url) return url;
   }
   return HUB_COVERS[hub] ?? "";
 }
 
-/** `productCardImageUrl` for a pinned catalog id or code. Skips `default.jpg`. */
+/** `tileImageUrl` for a pinned catalog id or code. Skips `default.jpg`. */
 function imageForProductIds(ids: string[] | undefined, catalog: Product[]) {
   if (!ids?.length) return "";
   for (const id of ids) {
@@ -698,7 +698,7 @@ function imageForProductIds(ids: string[] | undefined, catalog: Product[]) {
     if (!product) continue;
     const pinned = pinnedFrameUrlForProduct(product);
     if (pinned) return pinned;
-    const url = productCardImageUrl(product);
+    const url = tileImageUrl(product);
     if (url && !/\/default\.jpe?g(\?|$)/i.test(url)) return url;
     const fallback = usableCatalogImageUrl(product);
     if (fallback) return fallback;
@@ -745,7 +745,7 @@ function footwearLandingImage(
 
   const sample = sampleFromList(pool, "shoes") ?? firstImagedProduct(pool);
   if (sample) {
-    const url = productCardImageUrl(sample);
+    const url = tileImageUrl(sample);
     if (url) return url;
   }
   return fallback;
@@ -799,7 +799,7 @@ function teamsLandingImage(
     if (!product || usedIds.has(product.id) || !hasUsableProductImage(product)) {
       return "";
     }
-    const url = productCardImageUrl(product);
+    const url = tileImageUrl(product);
     if (!url || usedUrls.has(url) || /default\.jp/i.test(url)) return "";
     usedIds.add(product.id);
     usedUrls.add(url);
@@ -834,7 +834,7 @@ function teamsLandingImage(
   const ranked = [...pool]
     .filter((p) => !usedIds.has(p.id))
     .map((p) => {
-      const url = productCardImageUrl(p);
+      const url = tileImageUrl(p);
       let score = (p.images?.length ?? 0) * 2;
       if (preferRe?.test(hay(p))) score += 40;
       if (url && !usedUrls.has(url)) score += 5;
@@ -931,10 +931,10 @@ function accessoriesLandingTileImage(
       const bySub = pool.filter((p) => p.subcategory === tile.sub);
       if (bySub.length) pool = bySub;
     }
-    const imaged = pool.filter((p) => Boolean(productCardImageUrl(p)));
+    const imaged = pool.filter((p) => Boolean(tileImageUrl(p)));
     if (imaged.length) {
       const sample = imaged[index % imaged.length];
-      const url = productCardImageUrl(sample);
+      const url = tileImageUrl(sample);
       if (url) return url;
     }
     const sample =
@@ -942,7 +942,7 @@ function accessoriesLandingTileImage(
       sampleForCategory(catalog, tile.hub) ??
       firstImagedProduct(pool);
     if (sample) {
-      const url = productCardImageUrl(sample);
+      const url = tileImageUrl(sample);
       if (url) return url;
     }
   }
