@@ -64,6 +64,8 @@ Schema source of truth: `supabase/migrations/` (shared with mobile).
 Source rows: `/data/products-source.json`  
 Normalized catalog: `/data/products.json` (offline fallback)
 
+The morning stock commit updates that file. `npm run sync:stock-db` then copies `stockQty`, `available`, and sizes into Supabase and busts the catalog cache. Setup, dry-run, and rollback: [docs/stock-sync.md](docs/stock-sync.md).
+
 Integrity checks (184 unique SKUs, NAD currency, spot-check prices, 4–5 photos each):
 
 ```bash
