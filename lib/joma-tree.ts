@@ -640,6 +640,7 @@ const COTTON_COLLECTIONS = collectionLeaves("cotton", [
   { key: "jungle", label: "Jungle", families: ["jungle"] },
   { key: "lille", label: "Lille", families: ["lille"] },
   { key: "pasarela-travel", label: "Pasarela travel", families: ["pasarela travel", "pasarela"] },
+  { key: "sweatshirts", label: "Sweatshirts", families: ["sweatshirts", "sweatshirt"] },
   {
     key: "pants",
     label: "Pants",

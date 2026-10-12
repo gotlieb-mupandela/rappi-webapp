@@ -1,0 +1,45 @@
+# After the morning catalog commit lands on main, push stock into Supabase
+# and bust the storefront cache. File commits are already on main; a failure
+# here does not revert them. Re-running is safe.
+name: Sync stock database
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - data/products.json
+      - data/size-master.json
+  workflow_dispatch:
+
+concurrency:
+  group: stock-db-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Require Supabase credentials
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          test -n "$NEXT_PUBLIC_SUPABASE_URL" || { echo "Missing GitHub secret NEXT_PUBLIC_SUPABASE_URL"; exit 1; }
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "Missing GitHub secret SUPABASE_SERVICE_ROLE_KEY"; exit 1; }
+      - name: Sync stock and revalidate
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CATALOG_REVALIDATE_SECRET: ${{ secrets.CATALOG_REVALIDATE_SECRET }}
+          CATALOG_REVALIDATE_URL: ${{ secrets.CATALOG_REVALIDATE_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+        run: node scripts/sync-stock-db.mjs

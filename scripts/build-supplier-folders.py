@@ -396,6 +396,8 @@ def main() -> None:
     for product in products:
         if product["code"] in filed:
             continue
+        if product["code"] == "700133.100":
+            continue
         if not showable(product):
             continue
         old_keys = [key for key in old.get(product["id"], []) if key in label]
@@ -419,6 +421,16 @@ def main() -> None:
         allowed = set(take_codes(pairs))
         leaf_lists[key] = [code for code in leaf_lists.get(key, []) if code in allowed]
 
+    # Stocked unisex sweatshirt, absent from the supplier crawl. Keep it at
+    # the end of the adult teamwear sweatshirt leaves only — not Colegial,
+    # anoraks, or lifestyle.
+    mimetic = "700133.100"
+    for key in ("cotton-sweatshirts", "wcotton-sweatshirts"):
+        bucket = leaf_lists.setdefault(key, [])
+        if mimetic in bucket:
+            bucket.remove(mimetic)
+        bucket.append(mimetic)
+
     def aggregate(key: str, guard: set[str] | None = None) -> list[str]:
         guard = guard if guard is not None else set()
         if key in guard:
@@ -441,7 +453,7 @@ def main() -> None:
 
     old_by_key: dict[str, list[str]] = defaultdict(list)
     for product in products:
-        if not showable(product):
+        if not showable(product) or product["code"] == "700133.100":
             continue
         for key in old.get(product["id"], []):
             if key in label:
