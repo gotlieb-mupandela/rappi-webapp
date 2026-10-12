@@ -402,6 +402,81 @@ def main() -> None:
         filed.add(product["code"])
         restored += 1
 
+    # A mapped leaf keeps only the collection's own codes. Keyword fallback
+    # must not leave 700133.100 or the schoolwear rows on Colegial.
+    for key, pairs in mapped_pairs.items():
+        if not pairs:
+            continue
+        allowed = set(take_codes(pairs))
+        leaf_lists[key] = [code for code in leaf_lists.get(key, []) if code in allowed]
+
+    def aggregate(key: str, guard: set[str] | None = None) -> list[str]:
+        guard = guard if guard is not None else set()
+        if key in guard:
+            return []
+        guard.add(key)
+        out: list[str] = []
+        seen: set[str] = set()
+        for child in children.get(key, []):
+            for code in aggregate(child, guard):
+                if code in seen or not showable(by_code.get(code)):
+                    continue
+                seen.add(code)
+                out.append(code)
+        for code in leaf_lists.get(key, []):
+            if code in seen or not showable(by_code.get(code)):
+                continue
+            seen.add(code)
+            out.append(code)
+        return out
+
+    old_by_key: dict[str, list[str]] = defaultdict(list)
+    for product in products:
+        if not showable(product):
+            continue
+        for key in old.get(product["id"], []):
+            if key in label:
+                old_by_key[key].append(product["code"])
+
+    # A menu node that has products on live must not open empty.
+    filled_empty = 0
+    restore_guard: set[str] = set()
+
+    def restore(key: str) -> None:
+        nonlocal filled_empty
+        if key in restore_guard:
+            return
+        restore_guard.add(key)
+        for child in children.get(key, []):
+            restore(child)
+        if aggregate(key):
+            return
+        bucket = leaf_lists.setdefault(key, [])
+        have = set(bucket)
+        added = False
+        for code in old_by_key.get(key, []):
+            if code in have:
+                continue
+            bucket.append(code)
+            have.add(code)
+            added = True
+        if added:
+            filled_empty += 1
+
+    for key in label:
+        restore(key)
+
+    # Unavailable in the bake, shown on live once the stock overlay returns.
+    # Keep it on the categories it had there.
+    pinned = by_code.get("104441.200")
+    if pinned:
+        for key in old.get(pinned["id"], []):
+            if key not in label:
+                continue
+            bucket = leaf_lists.setdefault(key, [])
+            if pinned["code"] not in bucket:
+                bucket.append(pinned["code"])
+
     json.dump(
         {key: [list(pair) for pair in pairs] for key, pairs in mapped_pairs.items()},
         open(f"{ROOT}/data/supplier/leaf-map.json", "w"),
@@ -449,6 +524,7 @@ def main() -> None:
         "weak_matches": weak[:30],
         "weak_n": len(weak),
         "restored_browsable": restored,
+        "filled_empty_folders": filled_empty,
         "live_browsable": live_browsable,
         "lost_browsable": lost,
         "tw_pants": len(leaf_lists.get("tw-pants", [])),

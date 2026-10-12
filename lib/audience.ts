@@ -3,11 +3,7 @@ import {
   typeFolderForSubcategory,
   type AudienceSlug,
 } from "@/lib/catalog";
-import {
-  jomaFolderIsKidsMenu,
-  jomaFolderIsSharedAudience,
-  jomaFolderIsWomanApparel,
-} from "@/lib/joma-folder-meta";
+import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 import type { Product } from "@/lib/types";
 
 const KIDS_NAME_RE = /\b(junior| jr\b|kids|child|baby|youth|teen)\b/;
@@ -81,34 +77,16 @@ export function matchesAudience(
 }
 
 /**
- * Audience check for a Joma folder.
- * Teamwear Pro is shared by Man and Woman.
- * The rest of the Woman apparel tree is too: the import marks those lines
- * unisex, and a women-only filter emptied Running, Águila, Resort, and the
- * other woman roots. Men-coded rows stay off the woman folders. Footwear
- * keeps the stricter women filter (those trees are not in this set).
+ * Folder pages show the supplier list for that menu node.
+ * A gender filter must not drop a product the supplier filed there:
+ * Woman nodes that reuse a Man key, swim briefs on Swimming, kids anoraks
+ * on the man outerwear leaf.
  */
 export function matchesAudienceInFolder(
   product: Product & { audience?: ListingAudience },
   audience: string | null,
   folderKey?: string | null,
 ) {
-  // Kids folders are the supplier kids menu. Show the whole list: most rows
-  // are imported unisex and do not say "junior", which used to leave
-  // Outerwear and the other age-band leaves nearly empty.
-  if (folderKey && audience === "kids" && jomaFolderIsKidsMenu(folderKey)) {
-    return true;
-  }
-  const womanApparel =
-    Boolean(folderKey) &&
-    (jomaFolderIsSharedAudience(folderKey!) || jomaFolderIsWomanApparel(folderKey!));
-  if (folderKey && womanApparel && (audience === "men" || audience === "women")) {
-    const resolved = product.audience ?? productAudience(product);
-    if (resolved === "kids") return false;
-    if (audience === "women") return resolved === "women" || resolved === "unisex";
-    if (jomaFolderIsSharedAudience(folderKey)) {
-      return resolved === "men" || resolved === "unisex";
-    }
-  }
+  if (folderKey && isJomaBrowseFolder(folderKey)) return true;
   return matchesAudience(product, audience);
 }

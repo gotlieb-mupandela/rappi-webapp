@@ -88,18 +88,50 @@ def main() -> None:
                 out.append(code)
         return out
 
-    def pred_of(key: str) -> list[str]:
-        return [code for code in order.get(key, []) if showable(by_code.get(code))]
+    memo: dict[str, list[str]] = {}
+
+    def pred_of(key: str, guard: set[str] | None = None) -> list[str]:
+        """What a shopper sees: descendant lists, then codes on this node."""
+        if guard is None and key in memo:
+            return memo[key]
+        guard = set() if guard is None else guard
+        if key in guard:
+            return []
+        guard = set(guard)
+        guard.add(key)
+        out: list[str] = []
+        seen: set[str] = set()
+        for child in children.get(key, []):
+            for code in pred_of(child, guard):
+                if code in seen:
+                    continue
+                seen.add(code)
+                out.append(code)
+        for code in order.get(key, []):
+            if code in seen or not showable(by_code.get(code)):
+                continue
+            seen.add(code)
+            out.append(code)
+        if len(guard) == 1:
+            memo[key] = out
+        return out
 
     both = sets = orders = missing_leaves = extra_leaves = 0
-    missing_slots = extra_slots = 0
+    missing_slots = extra_slots = kept_live = 0
+    woman_empty = 0
     taus = []
     scored = 0
-    for key, pairs in leaf_map.items():
-        if children.get(key) or not pairs:
+    seen_row = set()
+    for row in meta:
+        key = row["key"]
+        duplicate = key in seen_row
+        seen_row.add(key)
+        if children.get(key):
             continue
         target = target_of(key)
         pred = pred_of(key)
+        if duplicate and target and not pred:
+            woman_empty += 1
         if not target and not pred:
             continue
         scored += 1
@@ -116,54 +148,91 @@ def main() -> None:
         if miss:
             missing_leaves += 1
             missing_slots += len(miss)
-        if extra:
+        if extra and not target:
+            kept_live += 1
+        elif extra:
             extra_leaves += 1
             extra_slots += len(extra)
         tau = kendall(pred, target)
         if tau is not None:
             taus.append(tau)
 
-    live = lost = 0
+    live = lost = live_empty_nodes = 0
+    live_on_key: dict[str, int] = defaultdict(int)
     for product in products:
-        if not old.get(product["id"]) or not showable(product):
+        keys = old.get(product["id"]) or []
+        if not keys or not showable(product):
             continue
         live += 1
         if not folders.get(product["id"]):
             lost += 1
+        for key in keys:
+            live_on_key[key] += 1
+    for key, count in live_on_key.items():
+        if count and not pred_of(key):
+            live_empty_nodes += 1
 
-    brand = 0
     import re
     pat = re.compile(r"(?<![A-Za-z])joma(?![A-Za-z])", re.I)
+    glue = re.compile(r"\S·")
+    brand = glue_n = 0
     for product in products:
-        if pat.search(product.get("displayName") or ""):
-            brand += 1
+        for field in ("displayName", "name", "title", "description"):
+            text = product.get(field) or ""
+            if pat.search(text):
+                brand += 1
+            if glue.search(text):
+                glue_n += 1
 
     taus.sort()
     median = taus[len(taus) // 2] if taus else None
+    pinned = next((p for p in products if p["code"] == "104441.200"), None)
     report = {
+        "menu_rows": len(meta),
         "scored_leaves": scored,
         "identical_set_and_order": both,
         "identical_product_set": sets,
         "identical_order": orders,
         "leaves_missing": missing_leaves,
         "missing_slots": missing_slots,
-        "leaves_extra": extra_leaves,
+        "leaves_extra_on_stocked_collection": extra_leaves,
         "extra_slots": extra_slots,
+        "kept_live_placement": kept_live,
+        "woman_reuse_empty": woman_empty,
+        "live_stocked_nodes_now_empty": live_empty_nodes,
         "median_kendall": None if median is None else round(median, 3),
         "live_browsable": live,
         "lost_browsable": lost,
-        "display_names_with_brand": brand,
-        "tw_pants_showable": len(pred_of("tw-pants")),
-        "k610_outerwear_showable": len(pred_of("k610-outerwear")),
-        "examples": {
-            "TOJS2601FG": [key for key, seq in order.items() if "TOJS2601FG" in seq][:4],
-            "EVJS2602FG": [key for key, seq in order.items() if "EVJS2602FG" in seq][:4],
+        "brand_tokens": brand,
+        "titles_missing_space": glue_n,
+        "pinned_104441": bool(pinned and folders.get(pinned["id"])),
+        "shopper": {
+            "tw-pants": len(pred_of("tw-pants")),
+            "tw-swimming": len(pred_of("tw-swimming")),
+            "tp-volleyball": len(pred_of("tp-volleyball")),
+            "elite-club": len(pred_of("elite-club")),
+            "hk-prev-outdoor": len(pred_of("hk-prev-outdoor")),
+            "anorak-jackets": len(pred_of("anorak-jackets")),
+            "beachwear": len(pred_of("beachwear")),
+            "athletes-combat": len(pred_of("athletes-combat")),
+            "k610-outerwear": len(pred_of("k610-outerwear")),
+            "rk-new-ss27": len(pred_of("rk-new-ss27")),
+            "twfb-eco-championship": len(pred_of("twfb-eco-championship")),
         },
     }
     blob = json.dumps(report, sort_keys=True)
     report["digest"] = hashlib.sha256(blob.encode()).hexdigest()[:16]
     print(json.dumps(report, indent=2))
-    if lost or brand or both != sets or sets < scored - 15:
+    if (
+        missing_slots
+        or extra_leaves
+        or woman_empty
+        or live_empty_nodes
+        or brand
+        or glue_n
+        or not report["pinned_104441"]
+        or both != sets
+    ):
         raise SystemExit(1)
 
 
