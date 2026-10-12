@@ -12,9 +12,10 @@ import { offlineCatalog } from "@/lib/offline-catalog";
  * Landing tiles pin the same way with `productIds` in `lib/joma-nav.ts`.
  */
 const TILE_PRODUCT_CODES: Record<string, string> = {
-  // Homepage bento. Lifestyle has no brand plate; the kids plate is an adult.
+  // Homepage bento. Lifestyle has no brand plate. Kids uses the camp jacket
+  // whose gallery already includes a child wearing it (angle 2, not the ghost).
   "home:lifestyle": "100818.200",
-  "home:kids": "500747.475",
+  "home:kids": "500828.345",
   // hub-shoes.png is already the Footwear tile beside it.
   "home:running": "104129.100",
 
@@ -90,9 +91,26 @@ function productForCode(code: string | undefined, catalog: Product[]) {
   return product;
 }
 
+/**
+ * Homepage kids tile must show the child, which is a later gallery frame.
+ * Other pins keep the normal card image. The URL is taken from that product's
+ * existing gallery — no new remote path is introduced.
+ */
+const TILE_GALLERY_FILE: Record<string, string> = {
+  "home:kids": "500828.345_2.jpg",
+};
+
 /** Pinned catalog product for a folder key or homepage slot. */
 export function productForPin(key: string, catalog: Product[] = offlineCatalog) {
   return productForCode(TILE_PRODUCT_CODES[key], catalog);
+}
+
+/** Specific gallery frame for a pin. Empty when the pin uses the card image. */
+export function pinnedTileImageUrl(key: string, catalog: Product[] = offlineCatalog) {
+  const file = TILE_GALLERY_FILE[key];
+  const product = productForPin(key, catalog);
+  if (!file || !product) return "";
+  return product.images.find((url) => url.endsWith(file)) ?? "";
 }
 
 /** Catalog product for a folder that has no in-folder sample. Does not replace one. */
