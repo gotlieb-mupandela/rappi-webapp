@@ -401,7 +401,7 @@ export default async function ShopListingPage({
             categorySlug={audienceFromPath ? undefined : hubSlug}
             audienceSlug={audienceFromPath?.slug ?? activeAudience?.slug}
             basePath={shopPath}
-            grouped
+            grouped={!(groupKey && isJomaBrowseFolder(groupKey))}
             hideFilters
             showCategoryFilter={false}
             showAudienceFilter={false}

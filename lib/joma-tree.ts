@@ -1,18 +1,8 @@
-import { isKidsProduct } from "@/lib/audience";
-import { isStorefrontFootwear } from "@/lib/classify";
-import { itemFamilyOf } from "@/lib/joma-item";
+import { folderKeysForCode, sortByFolderOrder } from "@/lib/folder-order";
 import type { Product } from "@/lib/types";
 
 export { itemFamilyOf } from "@/lib/joma-item";
 
-function normLabel(s: string) {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 export type JomaFolderDef = {
   key: string;
@@ -76,112 +66,11 @@ export type JomaFolderDef = {
   matchSelf?: boolean;
 };
 
-function familyIn(fam: string, list: readonly string[] | undefined) {
-  if (!list?.length) return false;
-  const n = normLabel(fam);
-  return list.some((f) => {
-    const t = normLabel(f);
-    return n === t || n.startsWith(`${t} `) || n.endsWith(` ${t}`);
-  });
-}
-
-function exactFamilyIn(fam: string, list: readonly string[] | undefined) {
-  if (!list?.length) return false;
-  const n = normLabel(fam);
-  return list.some((f) => normLabel(f) === n);
-}
-
-function productInListedHubs(product: Product, hubs: readonly string[] | undefined) {
-  if (!hubs?.length) return false;
-  return hubs.some((hub) => product.category === hub || product.hubs?.includes(hub));
-}
-
-/** Sport signal for generic leaves. Collection-specific families do not use this. */
-function productMatchesSport(product: Product, sport: string, blob: string) {
-  const inHub = (slug: string) =>
-    product.category === slug || Boolean(product.hubs?.includes(slug));
-  switch (sport) {
-    case "rugby":
-      return inHub("rugby") || /\b(rugby|skrum|myskin|scrum)\b/.test(blob);
-    case "basketball":
-      return inHub("basketball") || /\b(basketball|cancha)\b/.test(blob);
-    case "handball":
-      return /\b(handball|hispa)\b/.test(blob);
-    case "volleyball":
-      return /\bvolley/.test(blob);
-    default:
-      return false;
-  }
-}
-
-function parsedApparelAges(product: Product): number[] {
-  const ages: number[] = [];
-  for (const size of product.sizeOptions ?? []) {
-    const match = /^(\d{1,2})\s*\(/.exec(size.trim());
-    if (match) ages.push(Number(match[1]));
-  }
-  return ages;
-}
-
-function matchesAgeRange(folder: JomaFolderDef, product: Product) {
-  if (!folder.ageRange) return true;
-  const ages = parsedApparelAges(product);
-  if (!ages.length) return Boolean(folder.matchWhenUnaged);
-  const min = Math.min(...ages);
-  const max = Math.max(...ages);
-  return min >= folder.ageRange[0] && max <= folder.ageRange[1];
-}
-
-function leafMatchesProduct(
-  folder: JomaFolderDef,
-  product: Product,
-  fam: string,
-  blob: string,
-): boolean {
-  if (folder.kidsOnly && !isKidsProduct(product)) return false;
-  if (!matchesAgeRange(folder, product)) return false;
-  if (folder.category && product.category !== folder.category) return false;
-  // Apparel trees (teamwear, running, hiking, racket, …) are not shoe folders.
-  // A boot named Toledo must stay on Footwear, not the T-shirt collection.
-  if (
-    isStorefrontFootwear(product) &&
-    (folder.apparelOnly || folderUnderApparelRoot(folder.key))
-  ) {
-    return false;
-  }
-  if (folder.sport && !productMatchesSport(product, folder.sport, blob)) return false;
-  if (folder.sub && product.subcategory === folder.sub) return true;
-  if (exactFamilyIn(fam, folder.exactFamilies)) return true;
-  if (familyIn(fam, folder.families)) return true;
-  if (folder.pattern) {
-    const gate = folder.patternFamilies;
-    if ((!gate?.length || exactFamilyIn(fam, gate)) && folder.pattern.test(blob)) return true;
-  }
-  if (productInListedHubs(product, folder.hubs)) return true;
-  // Category-only leaf (e.g. catch-all under a campaign hub).
-  if (
-    folder.category &&
-    !folder.families?.length &&
-    !folder.exactFamilies?.length &&
-    !folder.pattern &&
-    !folder.sub &&
-    !folder.hubs?.length
-  ) {
-    return true;
-  }
-  return false;
-}
-
 export function folderMatchesProduct(folder: JomaFolderDef, product: Product): boolean {
   if (folderKeysByProductId) {
     return folderKeysByProductId.get(product.id)?.has(folder.key) ?? false;
   }
-  if (folder.children?.length) {
-    return folder.children.some((c) => folderMatchesProduct(c, product));
-  }
-  const fam = itemFamilyOf(product);
-  const blob = `${fam} ${product.displayName} ${product.name} ${product.title}`.toLowerCase();
-  return leafMatchesProduct(folder, product, fam, blob);
+  return folderKeysForCode(product.code).includes(folder.key);
 }
 
 export function matchesJomaFolderKey(product: Product, key: string): boolean {
@@ -210,183 +99,6 @@ export function hasJomaFolderIndex() {
  * Index every product into Joma browse folders once at catalog load.
  * Turns O(catalog × folders × regex) page work into O(1) membership checks.
  */
-const SEASON_PARENTS = new Set([
-  "running-trail",
-  "running-trail-woman",
-  "cycling",
-  "racket-sports",
-  "racket-sports-woman",
-  "hiking-outdoor",
-  "fitness-gym",
-  "fitness-gym-woman",
-  "lifestyle-apparel",
-  "lifestyle-apparel-woman",
-]);
-
-let apparelRootKeys: Set<string> | null = null;
-
-function apparelRoots() {
-  if (!apparelRootKeys) {
-    apparelRootKeys = new Set([
-      ...APPAREL_FOLDERS.map((folder) => folder.key),
-      ...WOMAN_APPAREL_FOLDERS.map((folder) => folder.key),
-      ...KIDS_APPAREL_FOLDERS.map((folder) => folder.key),
-    ]);
-  }
-  return apparelRootKeys;
-}
-
-/** True when this folder sits in a Man/Woman apparel tree (not Footwear). */
-function folderUnderApparelRoot(key: string) {
-  let cur: string | undefined = key;
-  while (cur) {
-    if (apparelRoots().has(cur)) return true;
-    cur = JOMA_FOLDER_PARENT.get(cur);
-  }
-  return false;
-}
-
-function directChildOf(leafKey: string, parentKey: string) {
-  let cur: string | undefined = leafKey;
-  let child: string | undefined;
-  while (cur && cur !== parentKey) {
-    child = cur;
-    cur = JOMA_FOLDER_PARENT.get(cur);
-  }
-  return cur === parentKey ? child : undefined;
-}
-
-function familyMatchScore(folder: JomaFolderDef, fam: string) {
-  let best = 0;
-  const n = normLabel(fam);
-  for (const raw of folder.exactFamilies ?? []) {
-    const token = normLabel(raw);
-    if (token && n === token) best = Math.max(best, 400 + token.length);
-  }
-  for (const raw of folder.families ?? []) {
-    const token = normLabel(raw);
-    if (!token) continue;
-    if (n === token) best = Math.max(best, 300 + token.length);
-    else if (n.startsWith(`${token} `) || n.endsWith(` ${token}`)) {
-      best = Math.max(best, 200 + token.length);
-    }
-  }
-  return best;
-}
-
-/**
- * Sibling collection folders share a prefix (`Winner` vs `Winner IV`).
- * Keep the exact family hit and drop the shorter tile so one line is not
- * listed twice under the same parent.
- */
-function resolveMoreSpecificSiblings(leaves: JomaFolderDef[], fam: string) {
-  const unique: JomaFolderDef[] = [];
-  const seen = new Set<string>();
-  for (const leaf of leaves) {
-    if (seen.has(leaf.key)) continue;
-    seen.add(leaf.key);
-    unique.push(leaf);
-  }
-  const byParent = new Map<string, JomaFolderDef[]>();
-  const loose: JomaFolderDef[] = [];
-  for (const leaf of unique) {
-    const parent = JOMA_FOLDER_PARENT.get(leaf.key);
-    if (!parent) {
-      loose.push(leaf);
-      continue;
-    }
-    const group = byParent.get(parent);
-    if (group) group.push(leaf);
-    else byParent.set(parent, [leaf]);
-  }
-  const kept = [...loose];
-  for (const group of byParent.values()) {
-    if (group.length < 2) {
-      kept.push(...group);
-      continue;
-    }
-    const exact = group.filter((leaf) => familyMatchScore(leaf, fam) >= 300);
-    if (!exact.length) {
-      kept.push(...group);
-      continue;
-    }
-    const best = Math.max(...exact.map((leaf) => familyMatchScore(leaf, fam)));
-    kept.push(...exact.filter((leaf) => familyMatchScore(leaf, fam) === best));
-  }
-  return kept;
-}
-
-/**
- * Season trees list the same line under New / In stock / Previous.
- * Without a season field, keep the most specific folder (R-City Fall beats
- * R-City) and, on a tie, the earlier season so one drop is not tiled twice.
- */
-function resolveSeasonLeaves(leaves: JomaFolderDef[], fam: string, blob: string) {
-  const parents = new Set<string>();
-  for (const leaf of leaves) {
-    let cur = JOMA_FOLDER_PARENT.get(leaf.key);
-    while (cur) {
-      if (SEASON_PARENTS.has(cur)) parents.add(cur);
-      const parent = JOMA_FOLDER_PARENT.get(cur);
-      if (parent && SEASON_PARENTS.has(parent)) parents.add(cur);
-      if (SEASON_PARENTS.has(cur)) break;
-      cur = parent;
-    }
-  }
-  const depth = (key: string) => {
-    let n = 0;
-    let cur = JOMA_FOLDER_PARENT.get(key);
-    while (cur) {
-      n += 1;
-      cur = JOMA_FOLDER_PARENT.get(cur);
-    }
-    return n;
-  };
-  let kept = leaves;
-  for (const parentKey of [...parents].sort((a, b) => depth(b) - depth(a))) {
-    const parent = JOMA_FOLDER_BY_KEY.get(parentKey);
-    if (!parent?.children?.length) continue;
-    const involved = kept.filter((leaf) => directChildOf(leaf.key, parentKey));
-    if (involved.length < 2) continue;
-    const byChild = new Map<string, JomaFolderDef[]>();
-    for (const leaf of involved) {
-      const child = directChildOf(leaf.key, parentKey);
-      if (!child) continue;
-      const group = byChild.get(child);
-      if (group) group.push(leaf);
-      else byChild.set(child, [leaf]);
-    }
-    if (byChild.size < 2) continue;
-    let winner = "";
-    let winnerScore = -1;
-    let winnerIndex = Number.POSITIVE_INFINITY;
-    for (const [child, group] of byChild) {
-      const score = Math.max(
-        ...group.map((leaf) => {
-          const familyScore = familyMatchScore(leaf, fam);
-          const patternScore =
-            leaf.pattern && leaf.pattern.test(blob) ? 100 + leaf.pattern.source.length : 0;
-          return Math.max(familyScore, patternScore);
-        }),
-      );
-      const index = parent.children.findIndex((childFolder) => childFolder.key === child);
-      const order = index === -1 ? Number.POSITIVE_INFINITY : index;
-      if (score > winnerScore || (score === winnerScore && order < winnerIndex)) {
-        winner = child;
-        winnerScore = score;
-        winnerIndex = order;
-      }
-    }
-    const drop = new Set(
-      involved
-        .filter((leaf) => directChildOf(leaf.key, parentKey) !== winner)
-        .map((leaf) => leaf.key),
-    );
-    kept = kept.filter((leaf) => !drop.has(leaf.key));
-  }
-  return kept;
-}
-
 export function indexCatalogIntoJomaFolders(catalog: Product[]) {
   const byFolder = new Map<string, Product[]>();
   const byProduct = new Map<string, Set<string>>();
@@ -409,6 +121,10 @@ export function indexCatalogIntoJomaFolders(catalog: Product[]) {
     for (const key of matchJomaFolderKeys(product, leaves)) push(key, product);
   }
 
+  for (const [key, list] of byFolder) {
+    byFolder.set(key, sortByFolderOrder(key, list));
+  }
+
   productsByFolderKey = byFolder;
   folderKeysByProductId = byProduct;
 }
@@ -420,31 +136,10 @@ export function matchJomaFolderKeys(
   product: Product,
   leaves: JomaFolderDef[] = (jomaLeaves ??= ALL_FOLDERS.filter((f) => !f.children?.length)),
 ): string[] {
-  const keys = new Set<string>();
-  const fam = itemFamilyOf(product);
-  const blob = `${fam} ${product.displayName} ${product.name} ${product.title}`.toLowerCase();
-  const matched: JomaFolderDef[] = [];
-  for (const leaf of leaves) {
-    if (leafMatchesProduct(leaf, product, fam, blob)) matched.push(leaf);
-  }
-  const specific = resolveMoreSpecificSiblings(matched, fam);
-  for (const leaf of resolveSeasonLeaves(specific, fam, blob)) {
-    let key: string | undefined = leaf.key;
-    while (key) {
-      keys.add(key);
-      key = JOMA_FOLDER_PARENT.get(key);
-    }
-  }
-  for (const folder of ALL_FOLDERS) {
-    if (!folder.matchSelf || !folder.children?.length) continue;
-    if (!leafMatchesProduct(folder, product, fam, blob)) continue;
-    let key: string | undefined = folder.key;
-    while (key) {
-      keys.add(key);
-      key = JOMA_FOLDER_PARENT.get(key);
-    }
-  }
-  return [...keys];
+  // Membership is the supplier collection list for this code. Keyword and
+  // type rules are not applied; a code we don't stock is simply absent.
+  void leaves;
+  return folderKeysForCode(product.code);
 }
 
 export function folderKeysForProduct(product: Pick<Product, "id">): string[] {
@@ -465,6 +160,9 @@ export function indexCatalogFromBakedFolders(
       if (list) list.push(product);
       else byFolder.set(key, [product]);
     }
+  }
+  for (const [key, list] of byFolder) {
+    byFolder.set(key, sortByFolderOrder(key, list));
   }
   productsByFolderKey = byFolder;
   folderKeysByProductId = byProduct;
@@ -691,7 +389,7 @@ export const FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
   },
   {
     key: "joma-flow",
-    label: "Joma flow",
+    label: "Flow",
     sub: "joma-flow",
     families: ["joma flow", "flow"],
     pattern: /\bjoma flow\b/,

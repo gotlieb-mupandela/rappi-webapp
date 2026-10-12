@@ -93,13 +93,24 @@ function blob(product: Product) {
     .join(" ");
 }
 
+/**
+ * Pairs vs pcs. Category is not enough: court, trail and lifestyle boxes are
+ * often filed under the sport hub (basketball, padel, sportswear) rather than
+ * shoes. A shoe subcategory, a footwear name, or a supplier footwear code
+ * (no dot — garment packs use 500747.475) decides the unit. Balls stay pcs.
+ */
 export function isFootwearSku(product: Product) {
+  if (isBallSku(product)) return false;
   if (product.category === "shoes") return true;
-  if (product.subcategory === "boots" || product.subcategory === "kids-shoes") return true;
+  if (SHOE_SUBS.has(product.subcategory)) return true;
   const text = blob(product);
   if (NOT_FOOTWEAR.test(text) && !FOOTWEAR_NAME.test(text)) return false;
   if (FOOTWEAR_NAME.test(text)) return true;
   if (product.category === "football" && FOOTBALL_SURFACE.test(text)) return true;
+  if (!product.code.includes(".") && /^[A-Z]/i.test(product.code)) {
+    if (/\b(ball|wristband|bag|sock|bib|glove|cap|hat)\b/i.test(text)) return false;
+    return true;
+  }
   return false;
 }
 
@@ -269,6 +280,8 @@ const CURVE_PAIRS: Record<string, number> = {
   S25: 8,
   // S26 is 12 on every labelled footwear row that carries it (22 packs, none at 8).
   S26: 12,
+  // S27 is 12 on every single-curve assortment that already carries a count (35 packs).
+  S27: 12,
   S28: 12,
   S32: 12,
   S35: 8,

@@ -89,7 +89,7 @@ export function productDescription(
         : "Sold as a pack of 10. The N$ price is for the full pack.",
     );
     if (product.sizeOptions.some((s) => /^S0\d$/i.test(s))) {
-      bits.push(t ? t("product.descBibSizes") : "Sizes S01–S04 follow the Joma grid (3XS, XS, M, XL).");
+      bits.push(t ? t("product.descBibSizes") : "Sizes S01–S04 follow the size grid (3XS, XS, M, XL).");
     }
   } else if (pack?.isAssortment) {
     // Localized pack wording: never inject the raw (English) assortment label.
