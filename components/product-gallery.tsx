@@ -41,7 +41,7 @@ export function ProductGallery({ product }: { product: Product }) {
         product={product}
         src={src}
         alt=""
-        className="aspect-square w-full object-contain"
+        className="aspect-square w-full object-cover"
         fallbackClassName="aspect-square"
         sizes="80px"
         width={160}

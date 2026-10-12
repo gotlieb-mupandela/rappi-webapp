@@ -92,12 +92,16 @@ function productForCode(code: string | undefined, catalog: Product[]) {
 }
 
 /**
- * Homepage kids tile must show the child, which is a later gallery frame.
- * Other pins keep the normal card image. The URL is taken from that product's
- * existing gallery — no new remote path is introduced.
+ * Gallery file for a pin, taken from that product's existing images.
+ * Kids is the only homepage tile allowed to leave its pre-reorder frame.
+ * Brama and basketball shoes are pinned to the pre-reorder medium file.
+ * The women's lifestyle folder is pinned to its pre-reorder wholesale file.
  */
 const TILE_GALLERY_FILE: Record<string, string> = {
   "home:kids": "500828.345_2.jpg",
+  "underwear-brama-woman": "101015.200_1.jpg",
+  "basketball-shoes": "101660.100_1.jpg",
+  "lifestyle-apparel-woman": "20250829135121.104736.324.jpg",
 };
 
 /** Pinned catalog product for a folder key or homepage slot. */
@@ -111,6 +115,22 @@ export function pinnedTileImageUrl(key: string, catalog: Product[] = offlineCata
   const product = productForPin(key, catalog);
   if (!file || !product) return "";
   return product.images.find((url) => url.endsWith(file)) ?? "";
+}
+
+/**
+ * Pre-reorder frame for a pinned product used on a landing tile.
+ * Kids is excluded: that tile is allowed to show the child photo.
+ */
+export function pinnedFrameUrlForProduct(product: {
+  code: string;
+  images?: string[] | null;
+}) {
+  for (const [key, file] of Object.entries(TILE_GALLERY_FILE)) {
+    if (key === "home:kids") continue;
+    if (TILE_PRODUCT_CODES[key] !== product.code) continue;
+    return (product.images ?? []).find((url) => url.endsWith(file)) ?? "";
+  }
+  return "";
 }
 
 /** Catalog product for a folder that has no in-folder sample. Does not replace one. */
