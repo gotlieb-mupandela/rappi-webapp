@@ -42,8 +42,7 @@ export function HomeHero({
           Joma-style 2×4 bento:
           [ teamwear 2 ] [ sport 1 ] [ run 1 ]
           [ life 1 ] [ shoes 1 ] [ kids 2 ]
-          Equal row heights. The kids tile uses contain so the full
-          supplier photo, including garment branding, stays visible.
+          Equal row heights; every tile fills with object-cover.
         */}
         <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-[minmax(11rem,1fr)_minmax(11rem,1fr)] gap-2 sm:gap-2.5 md:grid-cols-4 md:grid-rows-2 md:gap-3 lg:gap-3.5">
           <HubTile
@@ -122,7 +121,7 @@ export function HomeHero({
             fill
             tone="light"
             labelPosition="center"
-            imageFit="contain"
+            imageFit="cover"
             imagePosition="object-center"
             className="col-span-2 min-h-[12rem] md:min-h-0"
           />

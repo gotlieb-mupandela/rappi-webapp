@@ -57,6 +57,8 @@ import {
   brandCoverIfSafe,
   emptyFolderProduct,
   familyChromeProduct,
+  pinnedFrameUrlForProduct,
+  pinnedTileImageUrl,
   productForPin,
   usableCatalogImageUrl,
 } from "@/lib/tile-covers";
@@ -91,9 +93,9 @@ function imagedSample(product: Product | null | undefined) {
 }
 
 /**
- * Picture for a folder tile. A pinned or in-folder product is the `sample`
- * so HubTile uses `productCardImageUrl`. `cover` is only a /brand plate,
- * and only when there is no product photo.
+ * Picture for a folder tile. A pinned gallery file is the `cover`, so that
+ * tile stays on its pre-reorder photo. Otherwise HubTile uses the sample's
+ * card image. A /brand plate is only used when there is no product photo.
  */
 function folderTilePicture(
   folder: JomaFolderDef,
@@ -105,7 +107,8 @@ function folderTilePicture(
     inFolder ??
     emptyFolderProduct(folder.key) ??
     familyChromeProduct(folder, bundled);
-  if (sample) return { sample };
+  const pinned = pinnedTileImageUrl(folder.key);
+  if (sample) return pinned ? { sample, cover: pinned } : { sample };
   const cover = brandCoverIfSafe(folder.cover, kind);
   return { sample: null, cover: cover || undefined };
 }
@@ -693,6 +696,8 @@ function imageForProductIds(ids: string[] | undefined, catalog: Product[]) {
   for (const id of ids) {
     const product = catalog.find((row) => row.id === id || row.code === id);
     if (!product) continue;
+    const pinned = pinnedFrameUrlForProduct(product);
+    if (pinned) return pinned;
     const url = productCardImageUrl(product);
     if (url && !/\/default\.jpe?g(\?|$)/i.test(url)) return url;
     const fallback = usableCatalogImageUrl(product);
