@@ -2703,25 +2703,129 @@
       "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
-    }
-  ],
-  "hidden_packs": [
-    {
-      "code": "TI42305B1101",
-      "name": "HELLAS VERONA FC TRAINING WINTER HAT \u00b7 TI42305B1101",
-      "catalog_nad": 5030,
-      "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
     },
     {
       "code": "400089.300",
       "name": "CAP CLASSIC NAVY \u00b7 400089.300",
-      "catalog_nad": 2818,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
+      "pack_nad": 2819,
+      "pack_size": 24,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1289/2452: 4.5 USD x 24 (2026-10-12)"
     },
+    {
+      "code": "400089.600",
+      "name": "CAP CLASSIC RED \u00b7 400089.600",
+      "pack_nad": 2819,
+      "pack_size": 24,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1289/2452: 4.5 USD x 24 (2026-10-12)"
+    },
+    {
+      "code": "400089.700",
+      "name": "CAP CLASSIC ROYAL \u00b7 400089.700",
+      "pack_nad": 2819,
+      "pack_size": 24,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1479/2429: 4.5 USD x 24 (2026-10-12)"
+    },
+    {
+      "code": "401504.100",
+      "name": "CLASSIC CAP BLACK \u00b7 401504.100",
+      "pack_nad": 2349,
+      "pack_size": 20,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1467/988: 4.5 USD x 20 (2026-10-12)"
+    },
+    {
+      "code": "401504.200",
+      "name": "CLASSIC CAP WHITE \u00b7 401504.200",
+      "pack_nad": 2349,
+      "pack_size": 20,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1467/988: 4.5 USD x 20 (2026-10-12)"
+    },
+    {
+      "code": "401504.331",
+      "name": "CLASSIC CAP NAVY \u00b7 401504.331",
+      "pack_nad": 2349,
+      "pack_size": 20,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1467/988: 4.5 USD x 20 (2026-10-12)"
+    },
+    {
+      "code": "400635.000",
+      "name": "TORNEO VISOR CAP MULTICOLOR \u00b7 400635.000",
+      "pack_nad": 2067,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1479/2429: 6.6 USD x 12 (2026-10-12)"
+    },
+    {
+      "code": "400635.001",
+      "name": "TORNEO VISOR CAP MULTICOLOR \u00b7 400635.001",
+      "pack_nad": 2067,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1479/2429: 6.6 USD x 12 (2026-10-12)"
+    },
+    {
+      "code": "400635.002",
+      "name": "TORNEO VISOR CAP MULTICOLOR \u00b7 400635.002",
+      "pack_nad": 2067,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1479/2429: 6.6 USD x 12 (2026-10-12)"
+    },
+    {
+      "code": "400635.102",
+      "name": "TORNEO VISOR CAP BLACK WHITE \u00b7 400635.102",
+      "pack_nad": 2067,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1479/2429: 6.6 USD x 12 (2026-10-12)"
+    },
+    {
+      "code": "400580.100",
+      "name": "RUNNING NIGHT CAP BLACK \u00b7 400580.100",
+      "pack_nad": 1921,
+      "pack_size": 10,
+      "sell_as": "pack",
+      "source": "B2B Surtido probe 1289/2452: 7.36 USD x 10 (2026-10-12)"
+    },
+    {
+      "code": "300267.001",
+      "name": "CAP ACCESSORIES MULTICOLOR \u00b7 300267.001",
+      "pack_nad": 2276,
+      "pack_size": 12,
+      "sell_as": "assortment",
+      "source": "B2B probe 1467/988: mixed cap assortment, Total unidades 12 (2026-10-12)"
+    },
+    {
+      "code": "400360.280",
+      "name": "HAT MELANGE \u00b7 400360.280",
+      "pack_nad": 1409,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "Joma tariff 54 USD = sibling 400360.100 pack of 12 (4.5 USD x 12) (2026-10-12)"
+    },
+    {
+      "code": "400360.331",
+      "name": "HAT NAVY \u00b7 400360.331",
+      "pack_nad": 1409,
+      "pack_size": 12,
+      "sell_as": "pack",
+      "source": "Joma tariff 54 USD = sibling 400360.100 pack of 12 (4.5 USD x 12) (2026-10-12)"
+    },
+    {
+      "code": "TI42305B1101",
+      "name": "HELLAS VERONA FC TRAINING WINTER HAT \u00b7 TI42305B1101",
+      "pack_nad": 5030,
+      "pack_size": null,
+      "sell_as": "pack",
+      "source": "Joma tariff 192.72 USD pack; count not established on B2B (2026-10-12)"
+    }
+  ],
+  "hidden_packs": [
     {
       "code": "400089.474",
       "name": "CLASSIC CAP KHAKI \u00b7 400089.474",
@@ -2731,96 +2835,8 @@
       "source": "pack retail policy 2026-09-28"
     },
     {
-      "code": "400089.600",
-      "name": "CAP CLASSIC RED \u00b7 400089.600",
-      "catalog_nad": 2818,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400089.700",
-      "name": "CAP CLASSIC ROYAL \u00b7 400089.700",
-      "catalog_nad": 2818,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "401504.100",
-      "name": "CLASSIC  CAP BLACK \u00b7 401504.100",
-      "catalog_nad": 2349,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "401504.200",
-      "name": "CLASSIC  CAP WHITE \u00b7 401504.200",
-      "catalog_nad": 2349,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "401504.331",
-      "name": "CLASSIC  CAP NAVY \u00b7 401504.331",
-      "catalog_nad": 2349,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "300267.001",
-      "name": "CAP ACCESSORIES MULTICOLOR \u00b7 300267.001",
-      "catalog_nad": 2276,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400635.000",
-      "name": "TORNEO VISOR CAP MULTICOLOR \u00b7 400635.000",
-      "catalog_nad": 2067,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400635.001",
-      "name": "TORNEO VISOR CAP MULTICOLOR \u00b7 400635.001",
-      "catalog_nad": 2067,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400635.002",
-      "name": "TORNEO VISOR CAP MULTICOLOR \u00b7 400635.002",
-      "catalog_nad": 2067,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400635.102",
-      "name": "TORNEO VISOR CAP BLACK WHITE \u00b7 400635.102",
-      "catalog_nad": 2067,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
       "code": "400580.001",
       "name": "RUNNING NIGHT CAP MULTICOLOR \u00b7 400580.001",
-      "catalog_nad": 1921,
-      "subcategory": "caps",
-      "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400580.100",
-      "name": "RUNNING NIGHT CAP BLACK \u00b7 400580.100",
       "catalog_nad": 1921,
       "subcategory": "caps",
       "reason": "cap at pack NAD, no unit USD known",
@@ -2840,22 +2856,6 @@
       "catalog_nad": 1777,
       "subcategory": "caps",
       "reason": "cap at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400360.280",
-      "name": "HAT MELANGE \u00b7 400360.280",
-      "catalog_nad": 1409,
-      "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known",
-      "source": "pack retail policy 2026-09-28"
-    },
-    {
-      "code": "400360.331",
-      "name": "HAT NAVY \u00b7 400360.331",
-      "catalog_nad": 1409,
-      "subcategory": "caps",
-      "reason": "hat at pack NAD, no unit USD known",
       "source": "pack retail policy 2026-09-28"
     },
     {
