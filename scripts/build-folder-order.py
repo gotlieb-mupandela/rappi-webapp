@@ -166,6 +166,12 @@ def make_matcher(parent: dict[str, str | None]):
 
 
 def main() -> None:
+    raise SystemExit(
+        "This audit-4 reconstruction is retired. "
+        "Rebuild category lists with scripts/build-supplier-folders.py "
+        "(nav_tree.json + master_products_full.jsonl). "
+        "Running this file would overwrite those lists."
+    )
     audit_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_AUDIT
     import subprocess
 

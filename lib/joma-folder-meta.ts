@@ -74,6 +74,28 @@ const WOMAN_APPAREL_ROOTS = new Set([
   "teamwear-pro-2026",
 ]);
 
+/**
+ * Kids menu trees (age bands and kids footwear). The import marks most of
+ * that kit unisex, so a kids-name check would hide it from the kids shop.
+ */
+const KIDS_MENU_ROOTS = new Set([
+  "kids-1-4",
+  "kids-6-10",
+  "kids-12-14-boy",
+  "kids-12-14-girl",
+]);
+
+export function jomaFolderIsKidsMenu(key: string) {
+  let cur: string | undefined = key;
+  const seen = new Set<string>();
+  while (cur && !seen.has(cur)) {
+    if (KIDS_MENU_ROOTS.has(cur) || cur.startsWith("kids-")) return true;
+    seen.add(cur);
+    cur = BY_KEY.get(cur)?.parent ?? undefined;
+  }
+  return false;
+}
+
 export function jomaFolderIsWomanApparel(key: string) {
   let cur: string | undefined = key;
   const seen = new Set<string>();

@@ -151,7 +151,7 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   "hockey-shoes": "Hockey",
   "volleyball-shoes": "Volleyball",
   "comfort-shoes": "Confort",
-  "joma-flow": "Joma flow",
+  "joma-flow": "Flow",
   "summer-shoes": "Summer shoes",
   forloz: "Forloz",
   "kids-shoes": "Kids shoes",

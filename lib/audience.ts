@@ -4,6 +4,7 @@ import {
   type AudienceSlug,
 } from "@/lib/catalog";
 import {
+  jomaFolderIsKidsMenu,
   jomaFolderIsSharedAudience,
   jomaFolderIsWomanApparel,
 } from "@/lib/joma-folder-meta";
@@ -92,6 +93,12 @@ export function matchesAudienceInFolder(
   audience: string | null,
   folderKey?: string | null,
 ) {
+  // Kids folders are the supplier kids menu. Show the whole list: most rows
+  // are imported unisex and do not say "junior", which used to leave
+  // Outerwear and the other age-band leaves nearly empty.
+  if (folderKey && audience === "kids" && jomaFolderIsKidsMenu(folderKey)) {
+    return true;
+  }
   const womanApparel =
     Boolean(folderKey) &&
     (jomaFolderIsSharedAudience(folderKey!) || jomaFolderIsWomanApparel(folderKey!));
