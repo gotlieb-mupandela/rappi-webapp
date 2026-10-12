@@ -76,7 +76,11 @@ function normFamily(value: string) {
 export function usableCatalogImageUrl(product: Product) {
   return (
     productCardImageCandidates(product).find(
-      (url) => url && !/\/default\.jpe?g(\?|$)/i.test(url),
+      (url) =>
+        url &&
+        !/\/default\.jpe?g(\?|$)/i.test(url) &&
+        // Site no-photo plate (products Joma has no files for).
+        !/^\/brand\/rappi-logo/i.test(url),
     ) ?? ""
   );
 }
