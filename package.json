@@ -15,6 +15,7 @@
     "check:i18n": "npx tsx scripts/check-i18n.ts",
     "bake:catalog": "npx tsx scripts/bake-catalog.ts",
     "sync:joma": "node scripts/sync-joma-catalog.mjs",
+    "sync:stock-db": "node scripts/sync-stock-db.mjs",
     "images:demandware": "node scripts/enrich-demandware-images.mjs --write",
     "images": "python scripts/expand-product-images.py",
     "images:upload": "node scripts/upload-product-images.mjs",

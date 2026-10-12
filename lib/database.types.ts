@@ -702,6 +702,10 @@ export type Database = {
       _sync_upsert_products: { Args: { rows: Json }; Returns: number }
       _sync_upsert_sizes: { Args: { rows: Json }; Returns: number }
       apply_order_stock: { Args: { p_order_id: string }; Returns: boolean }
+      apply_repo_stock_batch: {
+        Args: { p_products?: Json; p_sizes?: Json }
+        Returns: Json
+      }
       consume_rate_limit: {
         Args: { p_key: string; p_max: number; p_window_seconds?: number }
         Returns: boolean
