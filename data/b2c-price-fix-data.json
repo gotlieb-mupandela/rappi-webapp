@@ -498,7 +498,7 @@
       "code": "TI41800B5101",
       "name": "HELLAS VERONA FC REPLICA BALL \u00b7 TI41800B5101",
       "pack_nad": 3495,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "pack retail policy 2026-09-28 (UNHIDE snap)"
     },
@@ -964,7 +964,7 @@
       "code": "BFCALLW2625",
       "name": "CALPE LADY BAREFOOT 2625 WHITE \u00b7 BFCALLW2625",
       "pack_nad": 5220,
-      "pack_size": null,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1172,7 +1172,7 @@
       "code": "BFVIPJS2603",
       "name": "VIPER JUNIOR BAREFOOT 2603 NAVY BLUE \u00b7 BFVIPJS2603",
       "pack_nad": 4176,
-      "pack_size": null,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1196,7 +1196,7 @@
       "code": "BFVIPJW2616",
       "name": "VIPER JUNIOR BAREFOOT 2616 MULTI COLOR \u00b7 BFVIPJW2616",
       "pack_nad": 4176,
-      "pack_size": null,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1212,7 +1212,7 @@
       "code": "BFVIPJW2620",
       "name": "VIPER JUNIOR BAREFOOT 2620 FUCHSIA \u00b7 BFVIPJW2620",
       "pack_nad": 4176,
-      "pack_size": null,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1244,47 +1244,47 @@
       "code": "C1992LS2626",
       "name": "C.1992 LADY 2626 LIGHT BROWN \u00b7 C1992LS2626",
       "pack_nad": 8300,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "C448LW2612",
       "name": "C.448 LADY 2612 LIGHT GRAY \u00b7 C448LW2612",
-      "pack_nad": 6117,
-      "pack_size": null,
+      "pack_nad": 4078,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "C448LW2625",
       "name": "C.448 LADY 2625 BEIGE \u00b7 C448LW2625",
-      "pack_nad": 6117,
-      "pack_size": null,
+      "pack_nad": 4078,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "C448LW2626",
       "name": "C.448 LADY 2626 LIGHT BROWN \u00b7 C448LW2626",
-      "pack_nad": 6117,
-      "pack_size": null,
+      "pack_nad": 4078,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "C448W2612",
       "name": "C.448 MEN 2612 LIGHT GRAY \u00b7 C448W2612",
-      "pack_nad": 6117,
-      "pack_size": null,
+      "pack_nad": 4078,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "C448W2624",
       "name": "C.448 MEN 2624 BROWN \u00b7 C448W2624",
-      "pack_nad": 6117,
-      "pack_size": null,
+      "pack_nad": 4078,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1339,16 +1339,16 @@
     {
       "code": "C521S2603",
       "name": "C.521 MEN 2603 NAVY BLUE \u00b7 C521S2603",
-      "pack_nad": 7047,
-      "pack_size": null,
+      "pack_nad": 4698,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "C521S2623",
       "name": "C.521 MEN 2623 KHAKI \u00b7 C521S2623",
-      "pack_nad": 7047,
-      "pack_size": null,
+      "pack_nad": 4698,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1651,8 +1651,8 @@
     {
       "code": "CKRUMW2603",
       "name": "KRUM MEN 2603 NAVY BLUE \u00b7 CKRUMW2603",
-      "pack_nad": 4583,
-      "pack_size": null,
+      "pack_nad": 6875,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1700,7 +1700,7 @@
       "code": "CN10LS2625",
       "name": "N-100 LADY 2625 BEIGE \u00b7 CN10LS2625",
       "pack_nad": 5234,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1788,7 +1788,7 @@
       "code": "CR111LS2602",
       "name": "CR111 LADY 2602 WHITE \u00b7 CR111LS2602",
       "pack_nad": 7943,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1796,7 +1796,7 @@
       "code": "CR111LS2625",
       "name": "CR111 LADY 2625 BEIGE \u00b7 CR111LS2625",
       "pack_nad": 7943,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -1996,7 +1996,7 @@
       "code": "CZENS2621",
       "name": "ZEN MEN 2621 BLACK \u00b7 CZENS2621",
       "pack_nad": 6330,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2147,8 +2147,8 @@
     {
       "code": "RHISPW2609",
       "name": "HISPALIS 2609 FLUOR YELLOW \u00b7 RHISPW2609",
-      "pack_nad": 8848,
-      "pack_size": null,
+      "pack_nad": 5899,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2212,7 +2212,7 @@
       "code": "RRT50LS2603",
       "name": "RT50 LADY 2603 NAVY BLUE \u00b7 RRT50LS2603",
       "pack_nad": 7833,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2220,7 +2220,7 @@
       "code": "RRT50LS2612",
       "name": "RT50 LADY 2612 GRAY \u00b7 RRT50LS2612",
       "pack_nad": 7833,
-      "pack_size": null,
+      "pack_size": 12,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2300,15 +2300,15 @@
       "code": "RSPEEW2607",
       "name": "SPEED 2607 CORAL \u00b7 RSPEEW2607",
       "pack_nad": 4819,
-      "pack_size": null,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "RSPEEW2630",
       "name": "SPEED 2630 MEDIUM GRAY \u00b7 RSPEEW2630",
-      "pack_nad": 7229,
-      "pack_size": null,
+      "pack_nad": 4819,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2323,16 +2323,16 @@
     {
       "code": "RVICTW2607",
       "name": "VICTORY 7 2607 CORAL \u00b7 RVICTW2607",
-      "pack_nad": 8056,
-      "pack_size": null,
+      "pack_nad": 5370,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
     {
       "code": "RVICTW2612",
       "name": "VICTORY 7 2612 LIGHT GRAY \u00b7 RVICTW2612",
-      "pack_nad": 8056,
-      "pack_size": null,
+      "pack_nad": 5370,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2340,7 +2340,7 @@
       "code": "RVICTW2632",
       "name": "VICTORY 7 2632 WHITE BLUE \u00b7 RVICTW2632",
       "pack_nad": 5370,
-      "pack_size": null,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
@@ -2587,8 +2587,8 @@
     {
       "code": "TKTULW2625",
       "name": "TUNDRA LADY 2625 BEIGE \u00b7 TKTULW2625",
-      "pack_nad": 8654,
-      "pack_size": null,
+      "pack_nad": 5769,
+      "pack_size": 8,
       "sell_as": "assortment",
       "source": "B2B Surtido re-probe 2026-09-28 (footwear assortment)"
     },
