@@ -83,7 +83,7 @@ export default function CartPage() {
                 <ProductImage
                   product={product}
                   src={line.imageUrl}
-                  className="aspect-square w-full object-cover"
+                  className="aspect-square w-full object-contain"
                   fallbackClassName="aspect-square"
                 />
               </Link>
