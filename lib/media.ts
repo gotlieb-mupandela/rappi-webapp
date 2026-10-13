@@ -12,6 +12,15 @@ function isRemoteUrl(url: string | undefined | null) {
   return Boolean(url && /^https?:\/\//i.test(url));
 }
 
+/** Official Joma catalogue on-model photos hosted in `public/catalog-photos/`. */
+export function isCatalogPhoto(url: string | undefined | null) {
+  return Boolean(url && url.startsWith("/catalog-photos/"));
+}
+
+function isGalleryUrl(url: string | undefined | null) {
+  return isRemoteUrl(url) || isCatalogPhoto(url);
+}
+
 /** True when the SKU has a real remote or brand-local photo (not a placeholder). */
 export function hasUsableProductImage(product: {
   imageUrl?: string | null;
@@ -75,14 +84,15 @@ export function productCardImageCandidates(product: {
 }): string[] {
   const gallery = (product.images ?? []).filter(Boolean);
   const primary = product.imageUrl?.trim() || "";
+  const catalog = [primary, ...gallery].filter(isCatalogPhoto);
   const mediums = gallery.filter(isDemandwareMedium);
   const nets = [primary, ...gallery].filter(isJomaNet);
   const rest = [primary, ...gallery].filter(
-    (url) => url && !isDemandwareMedium(url) && !isJomaNet(url),
+    (url) => url && !isDemandwareMedium(url) && !isJomaNet(url) && !isCatalogPhoto(url),
   );
   return [
     ...new Set(
-      [mediums[0], nets[0], ...mediums.slice(1), ...nets.slice(1), ...rest].filter(
+      [catalog[0], mediums[0], nets[0], ...mediums.slice(1), ...nets.slice(1), ...rest].filter(
         Boolean,
       ),
     ),
@@ -127,10 +137,10 @@ export function withProductImages<
   T extends { id: string; imageUrl: string; images: string[]; code?: string },
 >(product: T): T {
   if (isRemoteUrl(product.imageUrl) || product.images?.some(isRemoteUrl)) {
-    const remoteImages = (product.images ?? []).filter(isRemoteUrl);
-    const remotePrimary = isRemoteUrl(product.imageUrl)
-      ? product.imageUrl
-      : remoteImages[0];
+    const remoteImages = (product.images ?? []).filter(isGalleryUrl);
+    const remotePrimary =
+      remoteImages.find(isCatalogPhoto) ??
+      (isRemoteUrl(product.imageUrl) ? product.imageUrl : remoteImages[0]);
 
     if (remotePrimary) {
       return {
@@ -187,7 +197,8 @@ export function tileImageCandidates(product: {
   imageUrl?: string | null;
   images?: string[] | null;
 }): string[] {
-  const base = productCardImageCandidates(product);
+  // Tiles keep the product-only frame: catalogue model shots are adults.
+  const base = productCardImageCandidates(product).filter((url) => !isCatalogPhoto(url));
   const pre = product.code ? PRE_TILE_IMAGES[product.code] : "";
   return pre ? [...new Set([pre, ...base])] : base;
 }
