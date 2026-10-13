@@ -8,8 +8,13 @@ const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const EXTRA_GALLERY = extraGalleryByCode as Record<string, string[]>;
 
+/** AI-generated renders (e.g. product-images/<code>/ai-02-back.webp) are never shown. */
+export function isAiImage(url: string | undefined | null) {
+  return Boolean(url && /\/ai-[^/]*$/i.test(url.split("?")[0]));
+}
+
 function isRemoteUrl(url: string | undefined | null) {
-  return Boolean(url && /^https?:\/\//i.test(url));
+  return Boolean(url && /^https?:\/\//i.test(url) && !isAiImage(url));
 }
 
 /** Official Joma catalogue on-model photos hosted in `public/catalog-photos/`. */

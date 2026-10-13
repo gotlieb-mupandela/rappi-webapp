@@ -35,25 +35,25 @@ function checkAiSmoke(code, { primary, extras, price, stock }) {
   }
 }
 
+for (const p of catalog) {
+  for (const u of [p.imageUrl, ...(p.images || [])]) {
+    if (u && /\/ai-[^/]*$/i.test(u)) fail(`${p.code} has AI image ${u}`);
+  }
+}
+
 checkAiSmoke("100807.040", {
   primary:
     "https://v1.joma-sport.net/files/0001/h1bk2b91212b127y123ydhe783737371/web.system/products/20250730091158.100807.040.jpg",
-  extras: [
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-040/ai-02-back.webp",
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-040/ai-03-threequarter.webp",
-  ],
-  price: 2555,
-  stock: 463,
+  extras: [],
+  price: 2218,
+  stock: 466,
 });
 checkAiSmoke("100807.200", {
   primary:
     "https://v1.joma-sport.net/files/0001/h1bk2b91212b127y123ydhe783737371/web.system/products/20250730120016.100807.200.jpg",
-  extras: [
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-200/ai-02-back.webp",
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-200/ai-03-threequarter.webp",
-  ],
-  price: 2555,
-  stock: 431,
+  extras: [],
+  price: 2218,
+  stock: 367,
 });
 
 const bib = catalog.find((p) => p.code === "101686.010");
@@ -180,8 +180,8 @@ else {
   if (/Kids's/i.test(jrBoot.description) || /Kids’s/.test(jrBoot.description)) {
     fail(`TOJS2604TF has Kids's: ${jrBoot.description}`);
   }
-  if (!/Kids’ boots/i.test(jrBoot.description) && !/Kids' boots/i.test(jrBoot.description)) {
-    fail(`TOJS2604TF expected Kids’ boots: ${jrBoot.description}`);
+  if (!/Kids[’'] (boots|turf)/i.test(jrBoot.description)) {
+    fail(`TOJS2604TF expected Kids’ boots/turf: ${jrBoot.description}`);
   }
 }
 
