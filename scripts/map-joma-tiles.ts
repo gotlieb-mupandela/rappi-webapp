@@ -27,7 +27,15 @@ import {
 
 type JomaTile = { path: string; label: string; image_url: string };
 const src = process.argv[2] ?? "/workspace/joma_net/folder_tiles.json";
-const tiles = (JSON.parse(readFileSync(src, "utf8")) as JomaTile[]).filter(
+const rows = JSON.parse(readFileSync(src, "utf8")) as JomaTile[];
+const dedupe = new Set<string>();
+const tiles = rows.filter((t) => {
+  if (!t || typeof t.path !== "string" || typeof t.label !== "string") return false;
+  const k = `${t.path}|${t.label}|${t.image_url}`;
+  if (dedupe.has(k)) return false;
+  dedupe.add(k);
+  return true;
+}).filter(
   (t) =>
     /^https?:\/\//.test(t.image_url) &&
     !/no-image/i.test(t.image_url) &&
@@ -72,11 +80,16 @@ const norm = (v: string) =>
     .replace(/\b(the|and|y)\b/g, " ")
     .replace(/[^a-z0-9]+/g, "")
     .replace(/s\b/g, "");
-const parentOf = (p: string) => p.split(" > ").slice(0, -1).map(norm).join(">");
+/** Crawl rows carry either the tile's own path (ending in its label) or the page path it sits on. */
+const parentOf = (p: string, label: string) => {
+  const parts = p.split(" > ");
+  const own = norm(parts[parts.length - 1] ?? "") === norm(label);
+  return (own ? parts.slice(0, -1) : parts).map(norm).join(">");
+};
 
 const byPath = new Map<string, JomaTile>();
 for (const t of tiles) {
-  const key = `${parentOf(t.path)}|${norm(t.label)}`;
+  const key = `${parentOf(t.path, t.label)}|${norm(t.label)}`;
   if (!byPath.has(key)) byPath.set(key, t);
 }
 const findUnder = (parent: string[], label: string) =>
