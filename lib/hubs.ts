@@ -52,6 +52,7 @@ import {
   type AccessoriesLandingTileDef,
 } from "@/lib/joma-nav";
 import { tileImageUrl } from "@/lib/media";
+import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
 import { productInHub } from "@/lib/hub-membership";
 import {
   brandCoverIfSafe,
@@ -138,7 +139,10 @@ function tilesFromJomaFolders(
           sampleHub,
         ) ?? firstImagedProduct(photographed.length ? photographed : items),
       );
-      const picture = folderTilePicture(folder, kind, inFolder);
+      const exact = jomaFolderTileImage(folder.key);
+      const picture = exact
+        ? { sample: inFolder, cover: exact }
+        : folderTilePicture(folder, kind, inFolder);
       return {
         key: folder.key,
         name: folder.label,
@@ -721,6 +725,7 @@ export function audienceLandingTiles(
     labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
+      jomaLandingTileImage(`${audience}`, tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       landingTileImage(tile.hub, tile.cover, audience, catalog),
   }));
@@ -763,6 +768,7 @@ export function footwearLandingTiles(catalog: Product[] = bundled) {
     labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
+      jomaLandingTileImage("footwear", tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       footwearLandingImage(tile.audience, catalog, tile.label === "OUTLET"),
     banner: tile.banner,
@@ -778,6 +784,7 @@ export function kidsLandingTiles(catalog: Product[] = bundled) {
     labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
+      jomaLandingTileImage("kids", tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
   }));
@@ -875,7 +882,8 @@ export function teamsLandingTiles(catalog: Product[] = bundled) {
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
-    imageSrc: teamsLandingImage(tile, catalog, usedUrls, usedIds),
+    imageSrc:
+      jomaLandingTileImage("teams", tile.label) || teamsLandingImage(tile, catalog, usedUrls, usedIds),
   }));
 }
 
@@ -886,6 +894,7 @@ export function officialKitsLandingTiles(catalog: Product[] = bundled) {
     labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
+      jomaLandingTileImage("official-kits", tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       tile.cover ||
       landingTileImage(tile.hub, undefined, "men", catalog),
@@ -908,6 +917,7 @@ export function outletLandingTiles(catalog: Product[] = bundled) {
         imageSrc = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
       }
     }
+    if (tile.kind === "photo") imageSrc = jomaLandingTileImage("outlet", tile.label) || imageSrc;
     return {
       label: tile.label,
       labelKey: tile.labelKey,
@@ -963,6 +973,7 @@ export function accessoriesLandingTiles(catalog: Product[] = bundled) {
     labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
+      jomaLandingTileImage("accessories", tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       accessoriesLandingTileImage(tile, catalog, index),
   }));
