@@ -1,3 +1,4 @@
+import { isZeroStockVisible } from "@/lib/visibility";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductCard } from "@/components/product-card";
@@ -23,7 +24,7 @@ export default async function ProductPage({
   const { code } = await params;
   const sku = decodeProductCode(code);
   const found = getProduct(sku, offlineCatalog);
-  if (!found || found.available === false) notFound();
+  if (!found || (found.available === false && !isZeroStockVisible(found))) notFound();
   const product = withFullResProductImages(withCatalogSizes(found));
   const related = productsByCategory(product.category, offlineCatalog)
     .filter((p) => p.code !== product.code)

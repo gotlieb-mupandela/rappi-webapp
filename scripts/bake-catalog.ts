@@ -1,3 +1,4 @@
+import { isZeroStockVisible } from "../lib/visibility";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -177,6 +178,7 @@ function toListingItem(product: ListingItem): ListingItem {
     images: candidates,
     folders: product.folders ?? [],
     hasImage: true,
+    ...(product.available === false ? { available: false } : {}),
   } as ListingItem;
 }
 
@@ -186,7 +188,9 @@ function writeFolderMeta() {
 }
 
 function writeListingIndex(catalog: Product[]) {
-  const listingIndex = catalog.filter(isAvailable).map((p) => toListingItem(p as ListingItem));
+  const listingIndex = catalog
+    .filter((p) => isAvailable(p) || isZeroStockVisible(p))
+    .map((p) => toListingItem(p as ListingItem));
   mkdirSync(dirname(listingDest), { recursive: true });
   writeFileSync(listingDest, `${JSON.stringify(listingIndex)}\n`);
   // Folders with at least one live product (folders include ancestors). Tiles and

@@ -1,3 +1,4 @@
+import { isZeroStockVisible } from "@/lib/visibility";
 import { matchesAudienceInFolder, productAudience } from "@/lib/audience";
 import {
   AUDIENCES,
@@ -171,7 +172,12 @@ export function filterListing(
   }
   // Pack-price guard: hidden SKUs never surface in listings (covers the
   // Joma folder path too, which bypasses searchListing).
-  list = list.filter((p) => (p as { available?: boolean }).available !== false);
+  // Joma folder listings also show zero-stock items as "Sold out" (portal parity).
+  list = list.filter(
+    (p) =>
+      (p as { available?: boolean }).available !== false ||
+      (Boolean(jomaGroup) && !q && isZeroStockVisible(p as Parameters<typeof isZeroStockVisible>[0])),
+  );
 
   if (opts?.badges?.length) {
     const badges = new Set(opts.badges);
