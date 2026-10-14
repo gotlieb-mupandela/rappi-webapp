@@ -34,7 +34,9 @@ for r in json.load(open(TILES)):
 ALIAS={('home > children > 12-14 year old boy > pants','pantalón corto'):'SHORTS',
        ('home > children > 12-14 year old boy > pants','pantalón largo'):'LONG TROUSERS',
        ('home > children > 12-14 year old boy > pants','pantalón largo cotton'):'COTTON LONG TROUSERS',
-       ('home > children > 12-14 year old girl > teamwear > football & futsal > accessories','balones'):'Balls'}
+       ('home > children > 12-14 year old girl > teamwear > football & futsal > accessories','balones'):'Balls',
+       ('home > children > 12-14 year old girl > teamwear > portress','guantes'):'Gloves',
+       ('home > children > 12-14 year old girl > teamwear > portress','accesorios'):'Accessories'}
 pcodes={}
 for line in open(PRODS):
     r=json.loads(line); parts=html.unescape(r['path']).split(' > ')
