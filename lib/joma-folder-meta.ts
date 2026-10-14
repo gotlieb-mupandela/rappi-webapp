@@ -47,7 +47,7 @@ export function jomaFolderAncestorKeys(key: string): string[] {
 export function jomaFolderIsSharedAudience(key: string) {
   let cur: string | undefined = key;
   while (cur) {
-    if (cur === "teamwear-pro-2026") return true;
+    if (cur === "teamwear-pro-2026" || cur === "w-teamwear-pro-2026") return true;
     cur = BY_KEY.get(cur)?.parent ?? undefined;
   }
   return false;
@@ -72,6 +72,14 @@ const WOMAN_APPAREL_ROOTS = new Set([
   "cycling",
   "hiking-outdoor",
   "teamwear-pro-2026",
+  "w-aguila-line",
+  "w-resort",
+  "w-beachwear",
+  "w-athletes-combat",
+  "w-elite-club",
+  "w-cycling",
+  "w-hiking-outdoor",
+  "w-teamwear-pro-2026",
 ]);
 
 /**

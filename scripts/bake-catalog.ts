@@ -25,6 +25,7 @@ const catalogDest = join(root, "data", "products.json");
 const folderMapDest = join(root, "data", "product-folders.json");
 const folderMetaDest = join(root, "data", "joma-folder-meta.json");
 const navDest = join(root, "data", "storefront-nav.json");
+const liveFoldersDest = join(root, "data", "joma-live-folders.json");
 const listingDest = join(root, "public", "listing-index.json");
 const listingOnly = process.argv.includes("--listing-only");
 const indexesOnly = process.argv.includes("--indexes-only");
@@ -188,6 +189,12 @@ function writeListingIndex(catalog: Product[]) {
   const listingIndex = catalog.filter(isAvailable).map((p) => toListingItem(p as ListingItem));
   mkdirSync(dirname(listingDest), { recursive: true });
   writeFileSync(listingDest, `${JSON.stringify(listingIndex)}\n`);
+  // Folders with at least one live product (folders include ancestors). Tiles and
+  // menus hide the rest so there are no empty pages.
+  const live = new Set<string>();
+  for (const item of listingIndex) for (const key of item.folders ?? []) live.add(key);
+  writeFileSync(liveFoldersDest, `${JSON.stringify([...live].sort())}\n`);
+  console.log(`baked live folders (${live.size}) → ${liveFoldersDest}`);
   console.log(`baked listing index (${listingIndex.length}) → ${listingDest}`);
 }
 

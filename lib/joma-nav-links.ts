@@ -5,20 +5,20 @@ export type JomaAudienceLink = { href: string; label: string };
 export function destinations(audience: "men" | "women") {
   const w = audience === "women";
   return {
-    teamwearPro: `/shop/${audience}?group=teamwear-pro-2026`,
+    teamwearPro: `/shop/${audience}?group=${w ? "w-teamwear-pro-2026" : "teamwear-pro-2026"}`,
     teamwear: `/shop/${audience}?group=${w ? "teamwear-woman" : "teamwear"}`,
     running: `/shop/${audience}?group=${w ? "running-trail-woman" : "running-trail"}`,
-    cycling: `/shop/${audience}?group=cycling`,
+    cycling: `/shop/${audience}?group=${w ? "w-cycling" : "cycling"}`,
     racket: `/shop/${audience}?group=${w ? "racket-sports-woman" : "racket-sports"}`,
-    hiking: `/shop/${audience}?group=hiking-outdoor`,
+    hiking: `/shop/${audience}?group=${w ? "w-hiking-outdoor" : "hiking-outdoor"}`,
     fitness: `/shop/${audience}?group=${w ? "fitness-gym-woman" : "fitness-gym"}`,
-    aguila: `/shop/${audience}?group=aguila-line`,
-    resort: `/shop/${audience}?group=resort`,
+    aguila: `/shop/${audience}?group=${w ? "w-aguila-line" : "aguila-line"}`,
+    resort: `/shop/${audience}?group=${w ? "w-resort" : "resort"}`,
     lifestyle: `/shop/${audience}?group=${w ? "lifestyle-apparel-woman" : "lifestyle-apparel"}`,
-    beachwear: `/shop/${audience}?group=beachwear`,
+    beachwear: `/shop/${audience}?group=${w ? "w-beachwear" : "beachwear"}`,
     brama: `/shop/${audience}?group=${w ? "underwear-brama-woman" : "underwear-brama"}`,
-    combat: `/shop/${audience}?group=athletes-combat`,
-    elite: `/shop/${audience}?group=elite-club`,
+    combat: `/shop/${audience}?group=${w ? "w-athletes-combat" : "athletes-combat"}`,
+    elite: `/shop/${audience}?group=${w ? "w-elite-club" : "elite-club"}`,
   } as const;
 }
 

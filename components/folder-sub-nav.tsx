@@ -12,6 +12,7 @@ import {
 } from "@/lib/joma-folder-meta";
 import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
+import { isLiveFolder } from "@/lib/joma-live";
 
 function folderLabel(folder: JomaFolderMeta, t: ReturnType<typeof useT>) {
   // Portal (joma-sport.net) label, baked into the folder meta.
@@ -68,7 +69,9 @@ export function FolderSubNav() {
   const audienceParam =
     !audienceFromPath && audienceQuery ? audienceQuery : undefined;
 
-  const siblings = jomaFolderSiblings(group);
+  const siblings = jomaFolderSiblings(group).filter(
+    (folder) => folder.key === group || isLiveFolder(folder.key),
+  );
   if (siblings.length < 2) return null;
 
   return (

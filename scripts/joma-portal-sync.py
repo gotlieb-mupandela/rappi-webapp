@@ -52,7 +52,7 @@ def close(a,b):
     if sorted(a.split())==sorted(b.split()): return True
     return difflib.SequenceMatcher(None,norm(a),norm(b)).ratio()>=0.88
 # Our Footwear root is the men's sport list (Woman reuses it minus a few); on the portal that is Footwear > MAN.
-ROOTS=[('Man',['Home','Man']),('Woman',['Home','Woman']),('Children',['Home','Children']),('Footwear',['Home','Footwear','MAN']),
+ROOTS=[('Man',['Home','Man']),('Woman',['Home','Woman']),('Children',['Home','Children']),('Footwear',['Home','Footwear','MAN']),('FootwearWoman',['Home','Footwear','WOMAN']),
 ('FootwearJunior',['Home','Footwear','Junior']),('Accessories',['Home','Accessories']),('Outlet',['Home','Outlet']),('OfficialKits',['Home','Official Kits'])]
 path_key={}; paired=set(); seen_keys=set(); order={}; labels={}; images={}; added=collections.defaultdict(list); added_by=collections.defaultdict(dict)
 newfolders=[]; extra_nodes={}
@@ -146,6 +146,14 @@ def subtree_codes(n):
     for c in n['children']: s|=subtree_codes(c)
     return s
 removed=[]; kept=[]
+# Duplicate tiles merged into the portal folder (all products are socks; portal SOCKS page was not crawled).
+MERGE={'acc-socks':'acc-medias'}
+for src,dst in MERGE.items():
+    if src in extra_only:
+        tgt=new_direct.setdefault(dst,[])
+        for c in direct.get(src,[]):
+            if c not in tgt: tgt.append(c)
+        removed.append(src); extra_only.pop(src)
 for k,(n,where) in extra_only.items():
     cs=subtree_codes(n); live=[c for c in cs if c in ourcodes]
     unc=[c for c in live if c not in portal_all]
@@ -154,7 +162,7 @@ for k,(n,where) in extra_only.items():
 for k in removed: new_direct.pop(k,None)
 def drop(n):
     for c in n['children']: new_direct.pop(c['key'],None); drop(c)
-for k in removed: drop(extra_only[k][0])
+for k in removed: drop(extra_nodes[k][0])
 old=json.load(open(os.path.join(ROOT,'data/joma-portal-structure.json')))
 S={'order':order,'labels':labels,'images':dict(sorted(images.items())),'landing':old.get('landing',{}),'added':added,'removed':removed}
 json.dump(S,open(os.path.join(ROOT,'data/joma-portal-structure.json'),'w'),indent=1,ensure_ascii=False)
