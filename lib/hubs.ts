@@ -1,3 +1,4 @@
+import portalListKeys from "@/data/joma-portal-list-keys.json";
 import {
   firstImagedProduct,
   hasUsableProductImage,
@@ -129,6 +130,13 @@ import {
   productForPin,
   usableCatalogImageUrl,
 } from "@/lib/tile-covers";
+
+/** Folders with a Joma portal product list link to that list (group=key), not a type filter. */
+const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
+function hasPortalList(key: string) {
+  return PORTAL_LIST_KEYS.has(key);
+}
+
 export { isKidsProduct, isKidsShoe, matchesAudience, productAudience };
 export {
   jomaFolderAncestorKeys,
@@ -236,7 +244,7 @@ export function shoeHubGroups(catalog: Product[] = bundled): HubFolderTile[] {
       if (folder.children?.length) {
         return `/shop/shoes?group=${encodeURIComponent(folder.key)}`;
       }
-      if (folder.sub) return `/shop/shoes?sub=${encodeURIComponent(folder.sub)}`;
+      if (folder.sub && !hasPortalList(folder.key)) return `/shop/shoes?sub=${encodeURIComponent(folder.sub)}`;
       return `/shop/shoes?group=${encodeURIComponent(folder.key)}`;
     },
     "footwear",
@@ -250,7 +258,7 @@ export function kidsFootwearHubGroups(catalog: Product[] = bundled): HubFolderTi
     KIDS_FOOTWEAR_FOLDERS,
     kidsShoes,
     (folder) => {
-      if (folder.sub) {
+      if (folder.sub && !hasPortalList(folder.key)) {
         return `/shop/shoes?audience=kids&sub=${encodeURIComponent(folder.sub)}`;
       }
       return `/shop/shoes?audience=kids&group=${encodeURIComponent(folder.key)}`;
@@ -526,7 +534,7 @@ export function jomaChildFolderGroups(
         : audience
           ? `/shop/${audience}`
           : "/shop/sportswear";
-      if (folder.sub) {
+      if (folder.sub && !hasPortalList(folder.key)) {
         const p = new URLSearchParams();
         if (audience) p.set("audience", audience);
         if (parent.children) p.set("group", groupKey);
@@ -660,7 +668,7 @@ export function audienceHubGroups(
         params.set("audience", audience);
         if (folder.children?.length) {
           params.set("group", folder.key);
-        } else if (folder.sub) {
+        } else if (folder.sub && !hasPortalList(folder.key)) {
           params.set("sub", folder.sub);
         } else {
           params.set("group", folder.key);
