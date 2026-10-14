@@ -194,7 +194,7 @@
  "folder:jp-db7db65b9b": "/joma-tiles/d1270edbd0d0.jpg",
  "folder:jp-db855205d4": "/joma-tiles/959486846728.jpg",
  "folder:jp-e1cfebfe5c": "/joma-tiles/55b4a1afb2b2.jpg",
- "folder:jp-e4ec17b6ec": "/joma-tiles/7606382400dd.jpg",
+ "folder:jp-e4ec17b6ec": "/joma-tiles/b3d378746181.jpg",
  "folder:jp-e5260bfa55": "/joma-tiles/70aae2f7308e.jpg",
  "folder:jp-e632c11642": "/joma-tiles/a6354cb7e8f5.jpg",
  "folder:jp-e7cb4a6b94": "/joma-tiles/be5301a1ba03.jpg",
@@ -1358,5 +1358,8 @@
  "landing:women:TEAMWEAR PRO 2026": "/joma-tiles/f2094fa0439d.jpg",
  "landing:women:TEAMWEAR": "/joma-tiles/4c31056e5bc2.jpg",
  "landing:women:UNDERWEAR / BRAMA": "/joma-tiles/9250acde171d.jpg",
- "landing:women:Águila Line": "/joma-tiles/aa158014b727.jpg"
+ "landing:women:Águila Line": "/joma-tiles/aa158014b727.jpg",
+ "landing:outlet:TRACK-SUIT": "/joma-tiles/a73d0306e5fd.jpg",
+ "landing:outlet:2.99 - 3.99": "/joma-tiles/b00af1731920.jpg",
+ "landing:outlet:FROM 15.99": "/joma-tiles/9db74ee29e2b.jpg"
 }

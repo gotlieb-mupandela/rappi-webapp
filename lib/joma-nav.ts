@@ -602,13 +602,10 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
       productIds: ["500764-100"],
     },
     {
-      label: "Tracksuit",
-      labelKey: "tiles.tracksuit",
+      label: "TRACK-SUIT",
       href: "/promotions?group=outlet-tracksuit",
-      // No tracksuit is filed on the Outlet tracksuit leaf.
-      kind: "category",
-      barLabel: "TRACKSUIT",
-      barLabelKey: "tiles.tracksuit",
+      kind: "photo",
+      barLabel: "TRACK-SUIT",
     },
     {
       label: "JUNIOR",
@@ -629,7 +626,7 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
     {
       label: "2.99 - 3.99",
       href: "/promotions?group=outlet-price-299-399",
-      kind: "price",
+      kind: "photo",
       barLabel: "2.99 - 3.99",
     },
     {
@@ -678,7 +675,7 @@ export function jomaOutletLandingTiles(): OutletLandingTileDef[] {
       label: "FROM 15.99",
       labelKey: "tiles.from1599",
       href: "/promotions?group=outlet-price-from-1599",
-      kind: "price",
+      kind: "photo",
       barLabel: "FROM 15.99",
       barLabelKey: "tiles.from1599",
     },

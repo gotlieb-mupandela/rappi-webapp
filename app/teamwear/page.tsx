@@ -1,3 +1,4 @@
+import { jomaFolderTileImage } from "@/lib/joma-tile-images";
 import type { Metadata } from "next";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { PageHeader } from "@/components/page-header";
@@ -79,7 +80,7 @@ export default async function TeamwearPage({
           return {
             label: child.label,
             href: `/teamwear?view=kits&group=${encodeURIComponent(child.key)}`,
-            imageSrc: sample?.imageUrl ?? "",
+            imageSrc: jomaFolderTileImage(child.key) || (sample?.imageUrl ?? ""),
           };
         });
         return (
