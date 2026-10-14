@@ -158,7 +158,9 @@ export function filterListing(
     list = searchListing(catalog, q, scopedCat);
   } else if (jomaGroup) {
     list = catalog.filter((p) => productHasImage(p) && listingInFolder(p, jomaGroup));
-    if (scopedCat && scopedCat !== "all") {
+    // Women's footwear folders (wf-*) show the portal's Footwear > WOMAN list as is,
+    // including boots our classifier files under another hub.
+    if (scopedCat && scopedCat !== "all" && !jomaGroup.startsWith("wf-")) {
       list = list.filter((p) => listingInHub(p, scopedCat));
     }
   } else {
