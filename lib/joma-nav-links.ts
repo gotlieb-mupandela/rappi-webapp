@@ -82,7 +82,6 @@ export function jomaAccessoriesLinks(): JomaAudienceLink[] {
 
 export function jomaOfficialKitsLinks(): JomaAudienceLink[] {
   return [
-    { label: "SPONSOR REPLICAS", href: "/teamwear?view=kits&group=kits-replicas" },
     { label: "COMMITTEES AND FEDERATIONS", href: "/teamwear?view=kits&group=kits-federations" },
     { label: "SPECIAL EDITIONS", href: "/teamwear?view=kits&group=kits-special" },
   ];

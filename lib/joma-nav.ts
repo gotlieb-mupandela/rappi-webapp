@@ -494,17 +494,10 @@ export function jomaTeamsLandingTiles(): LandingTileDef[] {
 
 /**
  * Official Kits hub tiles — matches header Official Kits dropdown.
- * Three equal portrait tiles on `/teamwear?view=kits`.
+ * Two equal portrait tiles on `/teamwear?view=kits`.
  */
 export function jomaOfficialKitsLandingTiles(): LandingTileDef[] {
   return [
-    {
-      label: "SPONSOR REPLICAS",
-      labelKey: "tiles.kitSponsorReplicas",
-      href: "/teamwear?view=kits&group=kits-replicas",
-      hub: "teampro-2026",
-      cover: "/brand/hub-teampro-2026.webp",
-    },
     {
       label: "COMMITTEES AND FEDERATIONS",
       labelKey: "tiles.kitCommittees",
