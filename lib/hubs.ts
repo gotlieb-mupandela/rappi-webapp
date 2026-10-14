@@ -61,16 +61,59 @@ const PORTAL_LANDING = (portalStructure as {
 }).landing ?? {};
 
 /** Joma portal names and order for a landing grid (images are resolved first, by our label). */
-function portalLanding<T extends { label: string; labelKey?: string }>(page: string, tiles: T[]): T[] {
+const PORTAL_TREE = portalStructure as unknown as {
+  order: Record<string, string[]>;
+  added?: Record<string, { key: string; label: string }[]>;
+  removed?: string[];
+};
+const PORTAL_REMOVED = new Set(PORTAL_TREE.removed ?? []);
+const LANDING_ROOT: Record<string, string> = {
+  men: "root:Man",
+  women: "root:Woman",
+  kids: "root:Children",
+  accessories: "root:Accessories",
+  outlet: "root:Outlet",
+  "official-kits": "root:OfficialKits",
+};
+const groupOf = (href: string) => /[?&]group=([^&]+)/.exec(href)?.[1];
+
+/**
+ * Landing tiles in joma-sport.net order and wording. Tiles for folders the portal
+ * sync removed are dropped; root folders the sync added get a tile (exact Joma image).
+ */
+function portalLanding<T extends { label: string; labelKey?: string; href?: string; imageSrc?: string }>(
+  page: string,
+  input: T[],
+): T[] {
   const spec = PORTAL_LANDING[page];
+  const root = LANDING_ROOT[page];
+  let tiles = input.filter((t) => !PORTAL_REMOVED.has(groupOf(t.href ?? "") ?? ""));
+  const template = tiles.find((t) => groupOf(t.href ?? ""));
+  if (root && template?.href) {
+    for (const node of PORTAL_TREE.added?.[root] ?? []) {
+      if (tiles.some((t) => groupOf(t.href ?? "") === node.key)) continue;
+      tiles.push({
+        ...template,
+        label: node.label,
+        labelKey: undefined,
+        href: template.href.replace(/([?&]group=)[^&]+/, `$1${node.key}`),
+        imageSrc: jomaFolderTileImage(node.key) || template.imageSrc,
+      });
+    }
+  }
+  const rootRank = new Map((root ? PORTAL_TREE.order[root] ?? [] : []).map((k, i) => [k, i]));
+  const rank = new Map((spec?.order ?? []).map((label, i) => [label, i]));
+  const score = (t: T) => {
+    const k = groupOf(t.href ?? "");
+    if (k && rootRank.has(k)) return rootRank.get(k)!;
+    return 1e5 + (rank.get(t.label) ?? 1e4);
+  };
+  tiles = [...tiles].sort((a, b) => score(a) - score(b));
   if (!spec) return tiles;
-  const rank = new Map(spec.order.map((label, i) => [label, i]));
-  return [...tiles]
-    .sort((a, b) => (rank.get(a.label) ?? 1e6) - (rank.get(b.label) ?? 1e6))
-    .map((tile) => {
-      const label = spec.labels[tile.label];
-      return label ? { ...tile, label, labelKey: undefined } : tile;
-    });
+  return tiles.map((tile) => {
+    const label = spec.labels[tile.label];
+    return label ? { ...tile, label, labelKey: undefined } : tile;
+  });
 }
 import { productInHub } from "@/lib/hub-membership";
 import {
