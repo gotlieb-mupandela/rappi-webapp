@@ -140,6 +140,11 @@ export function ProductCard({
             {t("product.tariff", { amount: format(product.unitPrice) })}
           </p>
         </Link>
+        {soldOut ? (
+          <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">
+            {t("common.soldOut")}
+          </span>
+        ) : (
         <button
           type="button"
           onClick={quickAdd}
@@ -148,6 +153,7 @@ export function ProductCard({
         >
           <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
         </button>
+        )}
       </article>
     );
   }
@@ -192,6 +198,7 @@ export function ProductCard({
         </div>
       </Link>
 
+      {soldOut ? null : (
       <button
         type="button"
         aria-label={t("common.addToBagAria", { title })}
@@ -200,6 +207,7 @@ export function ProductCard({
       >
         <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
       </button>
+      )}
 
       {mounted && open && !soldOut
         ? createPortal(
