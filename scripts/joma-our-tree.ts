@@ -10,7 +10,7 @@ async function main() {
   const kids = (list: readonly F[]) => (list[0]?.children ?? []) as readonly F[];
   const out = {
     Man: conv(T.APPAREL_FOLDERS), Woman: conv(T.WOMAN_APPAREL_FOLDERS), Children: conv(T.KIDS_APPAREL_FOLDERS),
-    Footwear: conv(T.FOOTWEAR_FOLDERS), FootwearJunior: conv(T.KIDS_FOOTWEAR_FOLDERS),
+    Footwear: conv(T.FOOTWEAR_FOLDERS), FootwearWoman: conv(T.WOMAN_FOOTWEAR_FOLDERS), FootwearJunior: conv(T.KIDS_FOOTWEAR_FOLDERS),
     Accessories: conv(kids(T.ACCESSORIES_FOLDERS)), Outlet: conv(kids(T.OUTLET_FOLDERS)),
     OfficialKits: conv(kids(T.OFFICIAL_KITS_FOLDERS)),
     landing: {

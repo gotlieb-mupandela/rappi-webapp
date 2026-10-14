@@ -54,6 +54,7 @@ import {
 import { tileImageUrl } from "@/lib/media";
 import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
 import portalStructure from "@/data/joma-portal-structure.json";
+import { isLiveFolder } from "@/lib/joma-live";
 import { PORTAL_LABEL_KEYS } from "@/lib/joma-tree";
 
 const PORTAL_LANDING = (portalStructure as {
@@ -87,7 +88,10 @@ function portalLanding<T extends { label: string; labelKey?: string; href?: stri
 ): T[] {
   const spec = PORTAL_LANDING[page];
   const root = LANDING_ROOT[page];
-  let tiles = input.filter((t) => !PORTAL_REMOVED.has(groupOf(t.href ?? "") ?? ""));
+  let tiles = input.filter((t) => {
+    const k = groupOf(t.href ?? "") ?? "";
+    return !PORTAL_REMOVED.has(k) && isLiveFolder(k, Boolean(k && jomaFolderByKey(k)));
+  });
   const template = tiles.find((t) => groupOf(t.href ?? ""));
   if (root && template?.href) {
     for (const node of PORTAL_TREE.added?.[root] ?? []) {
@@ -189,6 +193,7 @@ function tilesFromJomaFolders(
   const groupKind = kind === "kids" ? ("kids" as const) : kind;
   const poolSet = hasJomaFolderIndex() ? new Set(pool) : null;
   return folders
+    .filter((folder) => isLiveFolder(folder.key))
     .map((folder) => {
       const items = poolSet
         ? productsInJomaFolder(folder.key).filter((p) => poolSet.has(p))

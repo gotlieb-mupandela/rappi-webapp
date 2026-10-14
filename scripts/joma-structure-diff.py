@@ -17,7 +17,7 @@ ALIASES={"training polyester":"polyester","training cotton":"cotton","portero":"
 "anoracks/jackets":"anoraks/jackets","básicos":"basics","basicos":"basics","pants corto":"shorts","pants cortos":"shorts","pants largo":"long pants",
 "pants largos":"long pants","portera":"goalie","football / futsal":"soccer / futsal","football/futsal":"soccer / futsal","football":"soccer",
 "colegial":"schoolboy","kansas set (reversible)":"kansas set","outwear":"outerwear","teamwer collections":"teamwear collections","skirts & pants":"skirts & trousers",
-"federations and committees":"committees and federations","césped artificial":"artificial grass","cesped artificial":"artificial grass","terreno blando":"soft ground","terreno semiseco y duro":"semi-dry and hard terrain","terreno semiseco and duro":"semi-dry and hard terrain"}
+"federations and committees":"committees and federations","césped artificial":"artificial grass","cesped artificial":"artificial grass","terreno blando":"soft ground","terreno semiseco y duro":"semi-dry and hard terrain","terreno semiseco and duro":"semi-dry and hard terrain","volley":"volleyball"}
 def norm(v):
     v=ALIASES.get(v.strip().lower(),v)
     v=unicodedata.normalize('NFD',v); v=''.join(c for c in v if unicodedata.category(c)!='Mn').lower()
@@ -40,7 +40,7 @@ for r in rows:
     if u.startswith('http') and 'no-image' not in u: img.setdefault(pk+(norm(l),),u)
 ours=json.load(open(OURS))
 ourimg=json.load(open(os.path.join(ROOT,'data/joma-tile-images.json')))
-ROOTS=[('Man',['Home','Man']),('Woman',['Home','Woman']),('Children',['Home','Children']),('Footwear',['Home','Footwear','MAN']),
+ROOTS=[('Man',['Home','Man']),('Woman',['Home','Woman']),('Children',['Home','Children']),('Footwear',['Home','Footwear','MAN']),('FootwearWoman',['Home','Footwear','WOMAN']),
 ('FootwearJunior',['Home','Footwear','Junior']),('Accessories',['Home','Accessories']),('Outlet',['Home','Outlet']),('OfficialKits',['Home','Official Kits'])]
 import difflib
 DOUBT={x.split(' ')[0].split(':',1)[1] for x in json.load(open(os.path.join(ROOT,'data/joma-tile-unmatched.json')))['unmatched'] if x.startswith('folder:')}
