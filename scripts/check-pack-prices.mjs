@@ -40,6 +40,16 @@ const apparelAssortments = JSON.parse(
   fs.readFileSync(apparelAssortmentsPath, "utf8"),
 ).products;
 const hidden = new Set((fix.hidden_packs || []).map((s) => s.code));
+
+/** Zero-stock, not policy-hidden, priced row listed as sold out (available:false, no stock sizes). */
+function soldOutListed(p, indexed) {
+  if (!p || !indexed) return false;
+  if (p.available !== false || indexed.available !== false) return false;
+  if (hidden.has(p.code)) return false;
+  if (Number(p.stockQty ?? p.totalQty ?? 0) > 0) return false;
+  if (!(Number(p.price) > 0)) return false;
+  return !(indexed.sizes || []).some((s) => s.stock > 0);
+}
 const explicitAssortments = new Set(
   [
     ...(fix.pack_price_overrides || [])
@@ -91,7 +101,11 @@ for (const o of fix.pack_price_overrides || []) {
   const indexed = listingByCode.get(o.code);
   if (p.available === false) {
     if (Number(p.stockQty) > 0) fail(`${o.code} unavailable with stock ${p.stockQty}`);
-    if (indexed) fail(`${o.code} zero-stock pack still appears in public listing index`);
+    if (indexed) {
+      // Zero-stock packs may show as "Sold out" (lib/visibility.ts) at the policy price.
+      if (!soldOutListed(p, indexed)) fail(`${o.code} zero-stock pack still appears in public listing index`);
+      else if (indexed.price !== o.pack_nad) fail(`${o.code} sold-out listing price ${indexed.price}, expected ${o.pack_nad}`);
+    }
     titleWording(o);
     continue;
   }
@@ -268,14 +282,24 @@ for (const p of catalog) {
 }
 
 // No unavailable catalog row should leak into any public browse index.
+// Only exception: zero-stock rows shown as "Sold out" (not buyable) — see soldOutListed.
+let soldOutListedCount = 0;
 for (const p of catalog) {
   if (p.available === false && listingByCode.has(p.code)) {
-    fail(`unavailable ${p.code} still appears in public listing index`);
+    if (soldOutListed(p, listingByCode.get(p.code))) soldOutListedCount++;
+    else fail(`unavailable ${p.code} still appears in public listing index`);
   }
 }
+const catalogByCode = new Map(catalog.map((p) => [p.code, p]));
 for (const p of listing) {
-  if (p.available === false) fail(`listing index contains unavailable ${p.code}`);
+  if (p.available === false && !soldOutListed(catalogByCode.get(p.code), p)) {
+    fail(`listing index contains unavailable ${p.code}`);
+  }
+  if (p.available !== false && catalogByCode.get(p.code)?.available === false) {
+    fail(`listing index marks unavailable ${p.code} as buyable`);
+  }
 }
+console.log(`info zero-stock sold-out rows in listing index: ${soldOutListedCount}`);
 
 // Headline regression asserts from the task verify matrix.
 for (const [code, nad] of [
