@@ -659,7 +659,10 @@ export function audienceHubGroups(
   if (hubSlug === "shoes") {
     const shoes = footwearOnly(items);
     const folders =
-      audience === "kids" ? KIDS_FOOTWEAR_FOLDERS : footwearFoldersForAudience(audience);
+      audience === "kids"
+        ? KIDS_FOOTWEAR_FOLDERS
+        : // Portal: Outlet sits beside MAN/WOMAN/JUNIOR on Footwear, not inside MAN.
+          footwearFoldersForAudience(audience).filter((f) => f.key !== "footwear-outlet");
     return tilesFromJomaFolders(
       folders,
       shoes,
