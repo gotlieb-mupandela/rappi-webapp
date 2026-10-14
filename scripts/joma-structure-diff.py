@@ -17,7 +17,7 @@ ALIASES={"training polyester":"polyester","training cotton":"cotton","portero":"
 "anoracks/jackets":"anoraks/jackets","básicos":"basics","basicos":"basics","pants corto":"shorts","pants cortos":"shorts","pants largo":"long pants",
 "pants largos":"long pants","portera":"goalie","football / futsal":"soccer / futsal","football/futsal":"soccer / futsal","football":"soccer",
 "colegial":"schoolboy","kansas set (reversible)":"kansas set","outwear":"outerwear","teamwer collections":"teamwear collections","skirts & pants":"skirts & trousers",
-"federations and committees":"committees and federations"}
+"federations and committees":"committees and federations","césped artificial":"artificial grass","cesped artificial":"artificial grass","terreno blando":"soft ground","terreno semiseco y duro":"semi-dry and hard terrain","terreno semiseco and duro":"semi-dry and hard terrain"}
 def norm(v):
     v=ALIASES.get(v.strip().lower(),v)
     v=unicodedata.normalize('NFD',v); v=''.join(c for c in v if unicodedata.category(c)!='Mn').lower()
@@ -40,7 +40,7 @@ for r in rows:
     if u.startswith('http') and 'no-image' not in u: img.setdefault(pk+(norm(l),),u)
 ours=json.load(open(OURS))
 ourimg=json.load(open(os.path.join(ROOT,'data/joma-tile-images.json')))
-ROOTS=[('Man',['Home','Man']),('Woman',['Home','Woman']),('Children',['Home','Children']),('Footwear',['Home','Footwear']),
+ROOTS=[('Man',['Home','Man']),('Woman',['Home','Woman']),('Children',['Home','Children']),('Footwear',['Home','Footwear','MAN']),
 ('FootwearJunior',['Home','Footwear','Junior']),('Accessories',['Home','Accessories']),('Outlet',['Home','Outlet']),('OfficialKits',['Home','Official Kits'])]
 import difflib
 DOUBT={x.split(' ')[0].split(':',1)[1] for x in json.load(open(os.path.join(ROOT,'data/joma-tile-unmatched.json')))['unmatched'] if x.startswith('folder:')}
@@ -86,8 +86,17 @@ def walk(nodes,ppath,our_path,pkey):
         order_fix[pkey]=[n['key'] for _,n in sorted(matched,key=lambda x:x[0])]+[n['key'] for n in nodes if n['key'] not in pairs]
 for name,pp in ROOTS:
     walk(ours[name],pp,[name],'root:'+name)
+# split missing folders by whether the portal product crawl has products in them
+PRODS=os.path.join(os.path.dirname(TILES),'folder_products.jsonl')
+if os.path.exists(PRODS):
+    have=[tuple(norm(x) for x in html.unescape(json.loads(l)['path']).split(' > ')[1:]) for l in open(PRODS)]
+    def hasd(m):
+        t=tuple(norm(x) for x in m.split(' > '))
+        return any(h[:len(t)]==t for h in have)
+    rep['missing_with_products']=[m for m in rep['missing'] if hasd(m)]
+    rep['missing_no_products']=[m for m in rep['missing'] if not hasd(m)]
 FIX={'order':order_fix,'labels':label_fix,'images':struct_img}
-for k in ['fuzzy_pairs','missing','extra','wrong_order','name_diff','wrong_image','no_portal_page']: print(k,len(rep[k]))
+for k in ['missing_with_products','missing_no_products','fuzzy_pairs','missing','extra','wrong_order','name_diff','wrong_image','no_portal_page']: print(k,len(rep[k]))
 # landing tiles vs portal root children
 LP={'men':('Man',['Home','Man']),'women':('Woman',['Home','Woman']),'kids':('Children',['Home','Children']),'footwear':('Footwear',['Home','Footwear']),
 'accessories':('Accessories',['Home','Accessories']),'outlet':('Outlet',['Home','Outlet']),'official-kits':('OfficialKits',['Home','Official Kits']),'teams':('Teams',['Home','Man','Teamwear'])}
@@ -108,7 +117,7 @@ FIX['landing']=landing
 FIX['images']={k:v for k,v in sorted(FIX['images'].items())}
 json.dump(FIX,open(os.path.join(ROOT,'data/joma-portal-structure.json'),'w'),indent=1,ensure_ascii=False)
 if REPORT:
-    keys=['missing','extra','wrong_order','name_diff','wrong_image','landing_name_diff','landing_extra','landing_wrong_order','fuzzy_pairs','no_portal_page']
+    keys=['missing','missing_with_products','missing_no_products','extra','wrong_order','name_diff','wrong_image','landing_name_diff','landing_extra','landing_wrong_order','fuzzy_pairs','no_portal_page']
     with open(REPORT,'w') as f:
         f.write('# Our site vs Joma B2B portal: structural diff\n\n| check | count |\n|---|---|\n')
         for k in keys: f.write(f'| {k} | {len(rep[k])} |\n')

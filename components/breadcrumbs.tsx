@@ -26,6 +26,9 @@ function crumbLabel(
   if (item.hub) return hubName(item.hub, t);
   if (item.audience) return audienceName(item.audience, t);
   if (item.sub) {
+    // Joma browse folders use the joma-sport.net portal label.
+    const folder = jomaFolderByKey(item.sub);
+    if (folder) return folder.label;
     const fromSub = subName(item.sub, t);
     if (fromSub !== item.sub) return fromSub;
     for (const kind of ["apparel", "footwear", "kids"] as const) {

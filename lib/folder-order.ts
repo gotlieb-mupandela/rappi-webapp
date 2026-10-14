@@ -1,5 +1,9 @@
 import orderData from "@/data/folder-collection-order.json";
 import meta from "@/data/joma-folder-meta.json";
+import portalOrderData from "@/data/joma-portal-order.json";
+
+/** joma-sport.net display order per folder (portal codes mapped to our SKUs). */
+const portalOrder = portalOrderData as Record<string, string[]>;
 
 type MetaRow = {
   key: string;
@@ -41,6 +45,11 @@ export function orderedCodes(key: string): readonly string[] {
   }
   const out: string[] = [];
   const seen = new Set<string>();
+  for (const code of portalOrder[key] ?? []) {
+    if (seen.has(code)) continue;
+    seen.add(code);
+    out.push(code);
+  }
   for (const child of kids) {
     for (const code of orderedCodes(child)) {
       if (seen.has(code)) continue;
