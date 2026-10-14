@@ -1,5 +1,5 @@
 import { isZeroStockVisible } from "../lib/visibility";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import raw from "../data/products.json";
@@ -182,7 +182,16 @@ function toListingItem(product: ListingItem): ListingItem {
   } as ListingItem;
 }
 
+function writePortalListKeys() {
+  const order = JSON.parse(readFileSync(join(root, "data", "joma-portal-order.json"), "utf8"));
+  writeFileSync(
+    join(root, "data", "joma-portal-list-keys.json"),
+    `${JSON.stringify(Object.keys(order).sort())}\n`,
+  );
+}
+
 function writeFolderMeta() {
+  writePortalListKeys();
   writeFileSync(folderMetaDest, `${JSON.stringify(jomaFolderMetaSnapshot())}\n`);
   console.log(`baked joma folder meta → ${folderMetaDest}`);
 }
