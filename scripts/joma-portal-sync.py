@@ -20,6 +20,8 @@ def addchild(pk,l):
     if norm(l) not in [norm(x) for x in lst]: lst.append(l)
 for r in json.load(open(TILES)):
     p=html.unescape(r['path']); l=html.unescape(r['label']).strip()
+    # tile captions carry a status after '|' (N.O.S / CONTINUITY, AVAILABLE UNTIL 2028, ...): not part of the name
+    if not l.endswith('.jpg'): l=l.split('|')[0].strip()
     if JUNK.search(l): continue
     parts=p.split(' > ')
     parent=parts[:-1] if norm(parts[-1])==norm(l) else parts
@@ -27,14 +29,24 @@ for r in json.load(open(TILES)):
     pk=tuple(norm(x) for x in parent); addchild(pk,l)
     u=r.get('image_url','')
     if u.startswith('http') and 'no-image' not in u: img.setdefault(pk+(norm(l),),u)
+# Some product lists are stored under the Spanish name while the portal page shows the English
+# tile (e.g. 12-14 boy > Pants shows SHORTS, its list is 'Pantalón corto'). Same folder: use the tile.
+ALIAS={('home > children > 12-14 year old boy > pants','pantalón corto'):'SHORTS',
+       ('home > children > 12-14 year old boy > pants','pantalón largo'):'LONG TROUSERS',
+       ('home > children > 12-14 year old boy > pants','pantalón largo cotton'):'COTTON LONG TROUSERS',
+       ('home > children > 12-14 year old girl > teamwear > football & futsal > accessories','balones'):'Balls'}
 pcodes={}
 for line in open(PRODS):
     r=json.loads(line); parts=html.unescape(r['path']).split(' > ')
+    for i in range(1,len(parts)):
+        a=ALIAS.get((' > '.join(parts[:i]).lower(),parts[i].lower()))
+        if a: parts[i]=a
     for i in range(2,len(parts)): addchild(tuple(norm(x) for x in parts[:i]),parts[i])
     pcodes[tuple(norm(x) for x in parts)]=r['codes']
 # ---- our catalog codes
 cat=json.load(open(os.path.join(ROOT,'data/products.json')))
 ourcodes={p['code'] for p in cat}
+LIVE={x['code'] for x in json.load(open(os.path.join(ROOT,'public/listing-index.json')))}
 base_pack=collections.defaultdict(list)
 for c in ourcodes:
     m=re.match(r'^(.*)\.P\d+$',c)
@@ -48,6 +60,8 @@ def mapcode(c):
 # ---- pair ours with portal
 ours=json.load(open(OURS))
 DOUBT={x.split(' ')[0].split(':',1)[1] for x in json.load(open(os.path.join(ROOT,'data/joma-tile-unmatched.json')))['unmatched'] if x.startswith('folder:')}
+# our Spanish folder names whose portal folder carries the English name
+SAME={norm('Portero'):[norm('Goalkeeper'),norm('Portress')],norm('Basicos'):[norm('Racket basics')]}
 def close(a,b):
     if sorted(a.split())==sorted(b.split()): return True
     return difflib.SequenceMatcher(None,norm(a),norm(b)).ratio()>=0.88
@@ -83,7 +97,7 @@ def walk(nodes,ppath,pkey):
         return
     pn=[norm(x) for x in portal]; pairs={}; used=set()
     for n in nodes:
-        k=norm(n['label'])
+        k=norm(n['label']); k=next((a for a in SAME.get(k,[]) if a in pn),k)
         if k in pn and pn.index(k) not in used: pairs[n['key']]=pn.index(k); used.add(pn.index(k))
     for n in nodes:
         if n['key'] in pairs or n['key'] in DOUBT: continue
@@ -135,6 +149,14 @@ def leaves_of(pk,key,label):
 for name,pp in ROOTS:
     for c in kids.get(tuple(norm(x) for x in pp),[]): leaves_of(tuple(norm(x) for x in pp)+(norm(c),),None,pp[1:]+[c])
 nodata=sorted(set(nodata))
+# Products with no portal list placed into a portal folder by scripts/joma-place-orphans.py
+# (sibling colour, same model or club). They go after the portal's own products.
+PLACE=os.path.join(ROOT,'data/joma-portal-placements.json')
+placed=json.load(open(PLACE)) if os.path.exists(PLACE) else {}
+for code,keys in placed.items():
+    for key in keys:
+        lst=portal_order.setdefault(key,list(direct.get(key,[])))
+        if code not in lst: lst.append(code)
 # membership: portal list replaces ours for every folder that has one
 new_direct=dict(direct)
 for key,codes in portal_order.items(): new_direct[key]=codes
@@ -155,7 +177,8 @@ for src,dst in MERGE.items():
             if c not in tgt: tgt.append(c)
         removed.append(src); extra_only.pop(src)
 for k,(n,where) in extra_only.items():
-    cs=subtree_codes(n); live=[c for c in cs if c in ourcodes]
+    # only live products count: hidden / sold-out ones have nowhere to show anyway
+    cs=subtree_codes(n); live=[c for c in cs if c in LIVE]
     unc=[c for c in live if c not in portal_all]
     if not unc: removed.append(k)
     else: kept.append({'key':k,'where':where,'products':len(live),'not_in_portal':len(unc),'sample':sorted(unc)[:8]})
