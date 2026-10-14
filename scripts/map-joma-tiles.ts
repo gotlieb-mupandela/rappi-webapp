@@ -27,7 +27,18 @@ import {
 
 type JomaTile = { path: string; label: string; image_url: string };
 const src = process.argv[2] ?? "/workspace/joma_net/folder_tiles.json";
-const rows = JSON.parse(readFileSync(src, "utf8")) as JomaTile[];
+const decode = (v: string) =>
+  v
+    .replace(/&amp;/g, "&")
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+const rows = (JSON.parse(readFileSync(src, "utf8")) as JomaTile[]).map((t) =>
+  t && typeof t.path === "string" && typeof t.label === "string"
+    ? { ...t, path: decode(t.path), label: decode(t.label) }
+    : t,
+);
 const dedupe = new Set<string>();
 const tiles = rows.filter((t) => {
   if (!t || typeof t.path !== "string" || typeof t.label !== "string") return false;
@@ -69,6 +80,29 @@ const ALIASES: Record<string, string> = {
   cycling: "cycling / triathlon",
   "running / trailrunning": "running / trail",
   flow: "joma flow",
+  intimi: "intimate",
+  confort: "comfort",
+  "sandals confort": "comfort sandals",
+  "chubasqueros/windbreakers": "raincoats/windbreakers",
+  chubasqueros: "raincoats",
+  "anoracks/jackets": "anoraks/jackets",
+  básicos: "basics",
+  basicos: "basics",
+  "pants corto": "shorts",
+  "pants cortos": "shorts",
+  "pants largo": "long pants",
+  "pants largos": "long pants",
+  árbitro: "referee",
+  portera: "goalie",
+  "football / futsal": "soccer / futsal",
+  "football/futsal": "soccer / futsal",
+  football: "soccer",
+  colegial: "schoolboy",
+  "kansas set (reversible)": "kansas set",
+  outwear: "outerwear",
+  "teamwer collections": "teamwear collections",
+  "skirts & pants": "skirts & trousers",
+  "previous season": "previous seasons",
 };
 const alias = (v: string) => ALIASES[v.trim().toLowerCase()] ?? v;
 const norm = (v: string) =>
@@ -78,8 +112,11 @@ const norm = (v: string) =>
     .toLowerCase()
     .replace(/&/g, " and ")
     .replace(/\b(the|and|y)\b/g, " ")
-    .replace(/[^a-z0-9]+/g, "")
-    .replace(/s\b/g, "");
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(" ")
+    .map((w) => w.replace(/s$/, ""))
+    .join("");
 /** Crawl rows carry either the tile's own path (ending in its label) or the page path it sits on. */
 const parentOf = (p: string, label: string) => {
   const parts = p.split(" > ");
@@ -94,8 +131,15 @@ for (const t of tiles) {
 }
 const findUnder = (parent: string[], label: string) =>
   byPath.get(`${parent.map(norm).join(">")}|${norm(label)}`);
-/** Same label anywhere below the given parent (crawler sometimes nests one deeper). */
+/** Same label anywhere below the given parent, widening one level at a time (min Home > X > Y). */
 const findBelow = (parent: string[], label: string) => {
+  for (let n = parent.length; n >= Math.min(3, parent.length); n--) {
+    const hit = findBelowExact(parent.slice(0, n), label);
+    if (hit) return hit;
+  }
+  return undefined;
+};
+const findBelowExact = (parent: string[], label: string) => {
   const pre = parent.map(norm).join(">");
   for (const [key, t] of byPath) {
     const [p, l] = key.split("|");
@@ -152,7 +196,14 @@ walk(KIDS_APPAREL_FOLDERS, ["Home", "Children"], seen);
 walk(FOOTWEAR_FOLDERS, ["Home", "Footwear"], seen);
 walk(KIDS_FOOTWEAR_FOLDERS, ["Home", "Footwear", "Junior"], seen);
 
+/** HARD RULE: home-page tiles / banners are never touched by this mapping. */
+function assertNoHomeKeys(map: Record<string, string>) {
+  const bad = Object.keys(map).filter((k) => /^(home|homepage|hero|bento)[:|]/i.test(k) || /^landing:home/i.test(k));
+  if (bad.length) throw new Error(`Refusing to map home-page tiles: ${bad.join(", ")}`);
+}
+
 async function main() {
+  assertNoHomeKeys(out);
   const urls = new Map<string, string>();
   for (const [key, local] of Object.entries(out)) urls.set(local, matched[key].split(" <- ")[1]);
   for (const [local, url] of urls) {
