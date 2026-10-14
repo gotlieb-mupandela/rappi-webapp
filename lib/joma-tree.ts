@@ -2583,9 +2583,14 @@ tuneKidsFolder("k1214g-skirts-dresses", {
  * every tile grid follows the portal. Folders the portal lacks keep their place
  * after the portal ones (they still hold products).
  */
-const PORTAL = portalStructure as {
+type PortalNode = { key: string; label: string; children: PortalNode[] };
+const PORTAL = portalStructure as unknown as {
   order: Record<string, string[]>;
   labels: Record<string, string>;
+  /** Portal folders we lacked, created under our parent key (or a root). */
+  added?: Record<string, PortalNode[]>;
+  /** Our folders the portal lacks whose products all sit in portal folders. */
+  removed?: string[];
 };
 export const PORTAL_LABEL_KEYS = new Set(Object.keys(PORTAL.labels));
 function applyPortalStructure() {
@@ -2608,6 +2613,36 @@ function applyPortalStructure() {
     }
   };
   for (const list of Object.values(roots)) walk(list);
+  const toDef = (node: PortalNode): JomaFolderDef => ({
+    key: node.key,
+    label: node.label,
+    ...(node.children.length ? { children: node.children.map(toDef) } : {}),
+  });
+  for (const [parent, nodes] of Object.entries(PORTAL.added ?? {})) {
+    let list: JomaFolderDef[] | undefined;
+    if (parent.startsWith("root:")) list = roots[parent] as JomaFolderDef[] | undefined;
+    else {
+      const folder = byKey.get(parent) as { children?: JomaFolderDef[] } | undefined;
+      if (folder) list = folder.children ?? (folder.children = []);
+    }
+    if (!list) continue;
+    for (const node of nodes) {
+      if (list.some((f) => f.key === node.key)) continue;
+      const def = toDef(node);
+      list.push(def);
+      walk([def]);
+    }
+  }
+  const removed = new Set(PORTAL.removed ?? []);
+  if (removed.size) {
+    const prune = (list: readonly JomaFolderDef[] | undefined) => {
+      if (!list) return;
+      const kept = list.filter((f) => !removed.has(f.key));
+      if (kept.length !== list.length) (list as JomaFolderDef[]).splice(0, list.length, ...kept);
+      for (const f of kept) prune(f.children);
+    };
+    for (const list of Object.values(roots)) prune(list);
+  }
   const reorder = (list: readonly JomaFolderDef[] | undefined, keys: string[]) => {
     if (!list) return;
     const rank = new Map(keys.map((k, i) => [k, i]));

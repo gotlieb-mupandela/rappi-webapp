@@ -14,6 +14,8 @@ import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
 function folderLabel(folder: JomaFolderMeta, t: ReturnType<typeof useT>) {
+  // Portal (joma-sport.net) label, baked into the folder meta.
+  if (folder.label) return folder.label;
   const apparel = groupName("apparel", folder.key, t);
   if (apparel !== folder.key) return apparel;
   const footwear = groupName("footwear", folder.key, t);
