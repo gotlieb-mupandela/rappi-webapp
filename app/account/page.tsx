@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
+import { accountRoleKey, displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
 import { useOrders } from "@/lib/stores/orders";
 import { PushToggle } from "@/components/push-toggle";
@@ -51,8 +52,8 @@ export default function AccountPage() {
         </Link>
         <Link href="/account/profile" className="surface-card p-6">
           <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.profile")}</p>
-          <p className="mt-2 text-2xl font-semibold">{user.name}</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{t("account.profileHint")}</p>
+          <p className="mt-2 text-2xl font-semibold">{displayName(user)}</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">{t(accountRoleKey(user.role))}</p>
         </Link>
         <PushToggle />
         <button

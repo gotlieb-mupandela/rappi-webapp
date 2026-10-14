@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
+import { accountRoleKey, displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
 import { useT } from "@/components/locale-provider";
 
@@ -36,7 +37,7 @@ export default function ProfilePage() {
       <dl className="mt-8 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
         <div className="grid gap-1 border-b border-[var(--border)] px-4 py-3 text-sm sm:grid-cols-[140px_1fr] sm:gap-0">
           <dt className="uppercase tracking-wider text-[var(--muted)]">{t("account.name")}</dt>
-          <dd className="break-words">{user.name}</dd>
+          <dd className="break-words">{displayName(user)}</dd>
         </div>
         <div className="grid gap-1 border-b border-[var(--border)] px-4 py-3 text-sm sm:grid-cols-[140px_1fr] sm:gap-0">
           <dt className="uppercase tracking-wider text-[var(--muted)]">{t("account.email")}</dt>
@@ -44,7 +45,7 @@ export default function ProfilePage() {
         </div>
         <div className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-[140px_1fr] sm:gap-0">
           <dt className="uppercase tracking-wider text-[var(--muted)]">{t("account.role")}</dt>
-          <dd>{t("account.roleValue")}</dd>
+          <dd>{t(accountRoleKey(user.role))}</dd>
         </div>
       </dl>
     </div>
