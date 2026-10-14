@@ -16,7 +16,7 @@ export function FolderGrid({
           key={g.key}
           slug={slug}
           name={g.name}
-          nameSubcategory={g.nameGroup ? undefined : g.key}
+          nameSubcategory={g.nameGroup || g.exactName ? undefined : g.key}
           nameGroup={g.nameGroup}
           href={g.href}
           product={g.sample ?? undefined}

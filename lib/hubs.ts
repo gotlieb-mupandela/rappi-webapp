@@ -53,6 +53,25 @@ import {
 } from "@/lib/joma-nav";
 import { tileImageUrl } from "@/lib/media";
 import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
+import portalStructure from "@/data/joma-portal-structure.json";
+import { PORTAL_LABEL_KEYS } from "@/lib/joma-tree";
+
+const PORTAL_LANDING = (portalStructure as {
+  landing?: Record<string, { order: string[]; labels: Record<string, string> }>;
+}).landing ?? {};
+
+/** Joma portal names and order for a landing grid (images are resolved first, by our label). */
+function portalLanding<T extends { label: string; labelKey?: string }>(page: string, tiles: T[]): T[] {
+  const spec = PORTAL_LANDING[page];
+  if (!spec) return tiles;
+  const rank = new Map(spec.order.map((label, i) => [label, i]));
+  return [...tiles]
+    .sort((a, b) => (rank.get(a.label) ?? 1e6) - (rank.get(b.label) ?? 1e6))
+    .map((tile) => {
+      const label = spec.labels[tile.label];
+      return label ? { ...tile, label, labelKey: undefined } : tile;
+    });
+}
 import { productInHub } from "@/lib/hub-membership";
 import {
   brandCoverIfSafe,
@@ -78,6 +97,8 @@ export type HubFolderTile = {
   sample?: Product | null;
   banner?: string;
   cover?: string;
+  /** Portal tile name: show `name` verbatim (no i18n group label). */
+  exactName?: boolean;
   /** When set, HubTile should use groupName i18n instead of subName. */
   nameGroup?: {
     kind: "shoes" | "kids" | "rugby" | "brama" | "footwear" | "apparel";
@@ -150,7 +171,9 @@ function tilesFromJomaFolders(
         href: hrefFor(folder),
         sample: picture.sample,
         cover: picture.cover,
-        nameGroup: { kind: groupKind, key: folder.key },
+        ...(PORTAL_LABEL_KEYS.has(folder.key)
+          ? { exactName: true }
+          : { nameGroup: { kind: groupKind, key: folder.key } }),
       } satisfies HubFolderTile;
     })
     .filter((g) => includeEmpty || g.count > 0);
@@ -720,7 +743,7 @@ export function audienceLandingTiles(
   audience: "men" | "women",
   catalog: Product[] = bundled,
 ) {
-  return jomaAudienceLandingTiles(audience).map((tile) => ({
+  return portalLanding(audience === "men" ? "men" : "women", jomaAudienceLandingTiles(audience).map((tile) => ({
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
@@ -728,7 +751,7 @@ export function audienceLandingTiles(
       jomaLandingTileImage(`${audience}`, tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       landingTileImage(tile.hub, tile.cover, audience, catalog),
-  }));
+  })));
 }
 
 /** Prefer an audience-scoped footwear photo; fall back to any shoes / hub cover. */
@@ -763,7 +786,7 @@ function footwearLandingImage(
 
 /** Footwear first-view tiles: Men / Women / Kids / Outlet. */
 export function footwearLandingTiles(catalog: Product[] = bundled) {
-  return jomaFootwearLandingTiles().map((tile) => ({
+  return portalLanding("footwear", jomaFootwearLandingTiles().map((tile) => ({
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
@@ -774,12 +797,12 @@ export function footwearLandingTiles(catalog: Product[] = bundled) {
     banner: tile.banner,
     bannerKey: tile.bannerKey,
     bannerTone: tile.banner ? ("magenta" as const) : undefined,
-  }));
+  })));
 }
 
 /** Children first-view tiles: 4 age/gender destinations matching header dropdown. */
 export function kidsLandingTiles(catalog: Product[] = bundled) {
-  return jomaKidsLandingTiles().map((tile, index) => ({
+  return portalLanding("kids", jomaKidsLandingTiles().map((tile, index) => ({
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
@@ -787,7 +810,7 @@ export function kidsLandingTiles(catalog: Product[] = bundled) {
       jomaLandingTileImage("kids", tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
-  }));
+  })));
 }
 
 /** Prefer a real catalog product photo for Teams tiles (packshot or model gallery). */
@@ -878,18 +901,18 @@ function teamsLandingImage(
 export function teamsLandingTiles(catalog: Product[] = bundled) {
   const usedUrls = new Set<string>();
   const usedIds = new Set<string>();
-  return jomaTeamsLandingTiles().map((tile) => ({
+  return portalLanding("teams", jomaTeamsLandingTiles().map((tile) => ({
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
     imageSrc:
       jomaLandingTileImage("teams", tile.label) || teamsLandingImage(tile, catalog, usedUrls, usedIds),
-  }));
+  })));
 }
 
 /** Official Kits hub: 3 portrait tiles matching header dropdown. */
 export function officialKitsLandingTiles(catalog: Product[] = bundled) {
-  return jomaOfficialKitsLandingTiles().map((tile) => ({
+  return portalLanding("official-kits", jomaOfficialKitsLandingTiles().map((tile) => ({
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
@@ -898,12 +921,12 @@ export function officialKitsLandingTiles(catalog: Product[] = bundled) {
       imageForProductIds(tile.productIds, catalog) ||
       tile.cover ||
       landingTileImage(tile.hub, undefined, "men", catalog),
-  }));
+  })));
 }
 
 /** Outlet hub: photo promos + orange category cards + red price cards. */
 export function outletLandingTiles(catalog: Product[] = bundled) {
-  return jomaOutletLandingTiles().map((tile, index) => {
+  return portalLanding("outlet", jomaOutletLandingTiles().map((tile, index) => {
     let imageSrc = "";
     if (tile.kind === "photo") {
       imageSrc = imageForProductIds(tile.productIds, catalog);
@@ -931,7 +954,7 @@ export function outletLandingTiles(catalog: Product[] = bundled) {
       barLabelKey: tile.barLabelKey,
       key: `${tile.label}-${index}`,
     };
-  });
+  }));
 }
 
 /** Prefer subcategory product photo; brand cover; hub cover; empty = gray tile. */
@@ -968,7 +991,7 @@ function accessoriesLandingTileImage(
 
 /** Accessories first-view tiles: dense B2B grid matching Accessories dropdown. */
 export function accessoriesLandingTiles(catalog: Product[] = bundled) {
-  return jomaAccessoriesLandingTiles().map((tile, index) => ({
+  return portalLanding("accessories", jomaAccessoriesLandingTiles().map((tile, index) => ({
     label: tile.label,
     labelKey: tile.labelKey,
     href: tile.href,
@@ -976,7 +999,7 @@ export function accessoriesLandingTiles(catalog: Product[] = bundled) {
       jomaLandingTileImage("accessories", tile.label) ||
       imageForProductIds(tile.productIds, catalog) ||
       accessoriesLandingTileImage(tile, catalog, index),
-  }));
+  })));
 }
 export function audienceTiles(
   catalog: Product[] = bundled,
