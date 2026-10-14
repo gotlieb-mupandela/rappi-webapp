@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
+import { TabbedFolderProducts, tabbedCount } from "@/components/tabbed-folder-products";
+import { folderTabs } from "@/lib/folder-tabs";
 import { FolderGrid } from "@/components/folder-grid";
 import { NoStockBody } from "@/components/no-stock-body";
 import { PageHeader } from "@/components/page-header";
@@ -334,11 +336,29 @@ export default async function ShopListingPage({
     ...(subKey ? [{ sub: subKey }] : []),
   ];
 
+  // Joma portal folders with in-page tabs: full portal list, tab strip + sections.
+  const tabs = groupKey && wantsProducts && !subKey && !showFolders ? folderTabs(groupKey) : [];
+  const activeTab = firstSearchParam(sp.tab) ?? "";
+  const tabbedListing = tabs.length
+    ? audienceFromPath
+      ? buildListing(catalog, { ...query, page: undefined, audience: audienceFromPath.slug }, { pageSize: 5000 })
+      : buildListing(catalog, { ...query, page: undefined }, { categorySlug: hubSlug, pageSize: 5000 })
+    : null;
+  const tabHref = (slug: string) => {
+    const params = new URLSearchParams();
+    if (activeAudience && !audienceFromPath) params.set("audience", activeAudience.slug);
+    params.set("group", groupKey);
+    if (slug) params.set("tab", slug);
+    return `${shopPath}?${params.toString()}`;
+  };
+
   const titleCount = showFolders
     ? undefined
-    : groupKey || subKey
-      ? listing.total
-      : undefined;
+    : tabbedListing
+      ? tabbedCount(tabbedListing.products, tabs, activeTab)
+      : groupKey || subKey
+        ? listing.total
+        : undefined;
 
   const titleAudienceSlug =
     !groupKey && !subKey
@@ -395,6 +415,15 @@ export default async function ShopListingPage({
               <TLink href="/search" k="common.browseCatalog" variant="outline" />
             </div>
           </section>
+        ) : tabbedListing ? (
+          <div className="pt-2">
+            <TabbedFolderProducts
+              products={tabbedListing.products}
+              tabs={tabs}
+              activeTab={activeTab}
+              hrefFor={tabHref}
+            />
+          </div>
         ) : (
           <CatalogBrowser
             initialListing={listing}
