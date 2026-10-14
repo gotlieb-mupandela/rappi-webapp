@@ -1,5 +1,5 @@
-import { FolderTabs } from "@/components/folder-tabs";
-import { folderTabs, tabSlug } from "@/lib/folder-tabs";
+import { TabbedFolderProducts, tabbedCount } from "@/components/tabbed-folder-products";
+import { folderTabs } from "@/lib/folder-tabs";
 import { jomaFolderTileImage } from "@/lib/joma-tile-images";
 import type { Metadata } from "next";
 import { AudienceLandingGrid } from "@/components/audience-landing";
@@ -101,32 +101,27 @@ export default async function TeamwearPage({
       const listing = buildListing(catalog, parseListingQuery({ group }), { pageSize: 5000 });
       const tabs = folderTabs(group);
       const activeTab = firstSearchParam(sp.tab) ?? "";
-      const tab = tabs.find((t) => tabSlug(t.label) === activeTab);
-      let products = listing.products;
-      if (tab) {
-        const byCode = new Map(products.map((p) => [p.code, p]));
-        products = tab.codes.map((c) => byCode.get(c)).filter((p): p is (typeof products)[number] => Boolean(p));
-      }
       return (
         <div className="bg-white">
           <PageHeader
             crumbs={crumbs}
             titleKey="nav.officialKits"
             titleSub={group}
-            titleCount={tab ? products.length : listing.total}
+            titleCount={tabs.length ? tabbedCount(listing.products, tabs, activeTab) : listing.total}
           />
           <div className="page-shell pb-10 pt-1 sm:pb-12 sm:pt-3">
             {tabs.length ? (
-              <FolderTabs
+              <TabbedFolderProducts
+                products={listing.products}
                 tabs={tabs}
-                active={tab ? activeTab : ""}
-                allLabel="All"
+                activeTab={activeTab}
                 hrefFor={(slug) =>
                   `/teamwear?view=kits&group=${encodeURIComponent(group)}${slug ? `&tab=${slug}` : ""}`
                 }
               />
-            ) : null}
-            <ProductGrid products={products} grouped={!tabs.length} />
+            ) : (
+              <ProductGrid products={listing.products} grouped />
+            )}
           </div>
         </div>
       );
