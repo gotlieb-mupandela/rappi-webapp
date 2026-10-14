@@ -882,12 +882,12 @@
   "k610-brama": [],
   "k610-pants-tights": [
    "k610-pants-tights-pants-corto",
+   "jp-0b5c4d3ed8",
    "k610-pants-tights-leggings",
+   "jp-5a6e964c5c",
    "k610-pants-tights-outlet",
    "k610-pants-tights-pants-largo",
-   "k610-pants-tights-pants-largo-cotton",
-   "jp-0b5c4d3ed8",
-   "jp-5a6e964c5c"
+   "k610-pants-tights-pants-largo-cotton"
   ],
   "k610-beachwear": [],
   "k610-accessories": [],
@@ -1380,8 +1380,8 @@
   ],
   "k1214g-tw-football-accessories": [
    "k1214g-tw-football-accessories-balls",
-   "k1214g-tw-football-accessories-accessories-of-football",
-   "jp-1b7bf5884b"
+   "jp-1b7bf5884b",
+   "k1214g-tw-football-accessories-accessories-of-football"
   ],
   "k1214g-tw-football": [
    "k1214g-tw-football-tshirts",
@@ -1736,6 +1736,7 @@
   "kit-fed-fidal": [],
   "kits-federations": [
    "kit-fed-rfea",
+   "jp-e2eef8a985",
    "jp-235f5c67cb",
    "kit-fed-coe",
    "jp-52d5f4276a",
@@ -1751,8 +1752,7 @@
    "kit-fed-rugby",
    "kit-fed-handball",
    "kit-fed-honduras",
-   "kit-fed-sala",
-   "jp-e2eef8a985"
+   "kit-fed-sala"
   ],
   "kit-sp-football": [],
   "kit-sp-running": [],
@@ -1779,6 +1779,47 @@
    "kits-federations",
    "kits-special",
    "kits-replicas"
+  ],
+  "jp-9ec1469982": [
+   "jp-af573976c7",
+   "jp-6e32e6263e",
+   "jp-020789a5f9",
+   "jp-6e73b4cc68",
+   "jp-b93bb410a8",
+   "jp-f74b17cf6b",
+   "jp-e1cfebfe5c",
+   "jp-b809acf752",
+   "jp-011bb5b7c6",
+   "jp-be2174a695",
+   "jp-4e59e74e99",
+   "jp-1137a8f9fa",
+   "jp-d388bb3f8a",
+   "jp-1b4b09cf9d",
+   "jp-697cca878e",
+   "jp-356ef0b97c",
+   "jp-248a7c186c",
+   "jp-ca37bf0b68",
+   "jp-087e8fc75a",
+   "jp-e7cb4a6b94",
+   "jp-842901cf96",
+   "jp-398448fd8b",
+   "jp-6d7df95471",
+   "jp-85ad2ae115",
+   "jp-560e2fd828",
+   "jp-ff5e632990",
+   "jp-68f0e42c4f",
+   "jp-daae6c648d",
+   "jp-3d7dac92d2",
+   "jp-65e111ba9f",
+   "jp-e632c11642",
+   "jp-13940718bd",
+   "jp-ad252f117c",
+   "jp-ec727387b6",
+   "jp-a590d8e398",
+   "jp-561330da6e",
+   "jp-5ca8e632d8",
+   "jp-8cbc8d4ca8",
+   "jp-1f645cc0e9"
   ]
  },
  "labels": {
