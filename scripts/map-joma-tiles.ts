@@ -202,6 +202,19 @@ function assertNoHomeKeys(map: Record<string, string>) {
   if (bad.length) throw new Error(`Refusing to map home-page tiles: ${bad.join(", ")}`);
 }
 
+/** Level-exact matches from scripts/joma-structure-diff.py win over label search. */
+const structurePath = path.join(process.cwd(), "data/joma-portal-structure.json");
+if (existsSync(structurePath)) {
+  const images = (JSON.parse(readFileSync(structurePath, "utf8")).images ?? {}) as Record<string, string>;
+  for (const [key, url] of Object.entries(images)) {
+    if (!/^https?:\/\//.test(url) || /no-image/i.test(url)) continue;
+    const k = `folder:${key}`;
+    want(k, { path: "(portal structure)", label: key, image_url: url }, key);
+    const i = unmatched.findIndex((u) => u.startsWith(`${k} `));
+    if (i >= 0) unmatched.splice(i, 1);
+  }
+}
+
 async function main() {
   assertNoHomeKeys(out);
   const urls = new Map<string, string>();
