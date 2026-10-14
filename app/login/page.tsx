@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand-logo";
+import { GoogleSignInButton } from "@/components/google-sign-in";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isGoogleIdentityConfigured } from "@/lib/auth/google-identity";
 import { authCallbackUrl, safeNextPath, userFromProfile } from "@/lib/auth/session";
 import { isNativeApp } from "@/lib/native";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
-import { useT } from "@/components/locale-provider";
+import { useLocale } from "@/components/locale-provider";
 
 const LOGIN_VISUAL = "/brand/hero-athlete.png";
 
@@ -23,14 +25,21 @@ function LoginForm() {
   const login = useAuth((s) => s.login);
   const setUser = useAuth((s) => s.setUser);
   const user = useAuth((s) => s.user);
-  const t = useT();
+  const { t, market } = useLocale();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [gisDown, setGisDown] = useState(false);
+  const nativeApp = useSyncExternalStore(
+    () => () => {},
+    isNativeApp,
+    () => false,
+  );
   const configured = isSupabaseConfigured();
+  const useGoogleIdentity = configured && isGoogleIdentityConfigured() && !nativeApp && !gisDown;
 
   useEffect(() => {
     if (searchParams.get("error") === "auth") {
@@ -55,6 +64,28 @@ function LoginForm() {
       .maybeSingle();
     setUser(userFromProfile(authUser, profile));
     return true;
+  }
+
+  async function onGoogleCredential(idToken: string, nonce: string) {
+    if (!configured) {
+      toast.error(t("login.supabaseRequired"));
+      return;
+    }
+    setGoogleLoading(true);
+    const { error } = await createClient().auth.signInWithIdToken({
+      provider: "google",
+      token: idToken,
+      nonce,
+    });
+    if (error) {
+      setGoogleLoading(false);
+      toast.error(error.message || t("login.authError"));
+      return;
+    }
+    await applySessionUser();
+    toast.success(t("login.welcome"));
+    setGoogleLoading(false);
+    router.push(next);
   }
 
   async function onGoogle() {
@@ -186,7 +217,15 @@ function LoginForm() {
             {next === "/checkout" ? t("login.checkoutHint") : t("login.hint")}
           </p>
 
-          {configured ? (
+          {useGoogleIdentity ? (
+            <GoogleSignInButton
+              locale={market === "eu" ? "fr" : "en"}
+              disabled={googleLoading || loading}
+              onCredential={onGoogleCredential}
+              onUnavailable={() => setGisDown(true)}
+            />
+          ) : null}
+          {configured && !useGoogleIdentity ? (
             <Button
               type="button"
               variant="outline"
