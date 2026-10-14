@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isGoogleIdentityConfigured } from "@/lib/auth/google-identity";
-import { authCallbackUrl, safeNextPath, userFromAuth } from "@/lib/auth/session";
+import { authCallbackUrl, safeNextPath, userFromProfile } from "@/lib/auth/session";
 import { isNativeApp } from "@/lib/native";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
@@ -59,13 +59,10 @@ function LoginForm() {
     if (!authUser) return false;
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email, full_name")
+      .select("email, full_name, role")
       .eq("id", authUser.id)
       .maybeSingle();
-    setUser({
-      email: profile?.email ?? authUser.email ?? email,
-      name: profile?.full_name || userFromAuth(authUser).name,
-    });
+    setUser(userFromProfile(authUser, profile));
     return true;
   }
 

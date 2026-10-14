@@ -49,9 +49,7 @@ export function Providers({
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(userFromAuth(session.user));
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-          void syncFromSupabase();
-        }
+        void syncFromSupabase();
         return;
       }
       if (event === "SIGNED_OUT") {

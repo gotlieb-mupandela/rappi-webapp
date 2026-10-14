@@ -93,4 +93,6 @@ export type Order = {
 export type User = {
   email: string;
   name: string;
+  /** Storefront label source. Anything other than admin is shown as Customer. */
+  role?: "customer" | "admin";
 };

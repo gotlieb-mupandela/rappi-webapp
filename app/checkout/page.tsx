@@ -17,6 +17,7 @@ import { sizeDisplayLabel } from "@/lib/product-stock";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { feedVariantId } from "@/lib/meta/ids";
 import { trackMeta } from "@/lib/meta/pixel";
+import { displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import type { Product } from "@/lib/types";
@@ -70,7 +71,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!user) return;
-    setName((prev) => prev || user.name || "");
+    setName((prev) => prev || displayName(user) || "");
     setEmail((prev) => prev || user.email || "");
   }, [user]);
 
