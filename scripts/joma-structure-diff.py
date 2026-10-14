@@ -29,6 +29,7 @@ rows=json.load(open(TILES))
 kids=collections.OrderedDict(); img={}
 for r in rows:
     p=html.unescape(r['path']); l=html.unescape(r['label']).strip()
+    if not l.endswith('.jpg'): l=l.split('|')[0].strip()  # drop tile status caption (N.O.S / CONTINUITY, AVAILABLE UNTIL ...)
     if JUNK.search(l): continue
     parts=p.split(' > ')
     parent=parts[:-1] if norm(parts[-1])==norm(l) else parts
