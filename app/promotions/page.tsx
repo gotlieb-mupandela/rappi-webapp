@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { PageHeader } from "@/components/page-header";
+import { TabbedFolderProducts, tabbedCount } from "@/components/tabbed-folder-products";
+import { folderTabs } from "@/lib/folder-tabs";
 import { outletLandingTiles } from "@/lib/hubs";
 import { isJomaBrowseFolder, isOutletFolderKey, jomaFolderAncestorKeys } from "@/lib/joma-tree";
 import { outletGroupForLegacyMax } from "@/lib/joma-nav";
@@ -67,6 +69,17 @@ export default async function PromotionsPage({
   // this catalog has none, which made every outlet child an empty New Collections page.
   const listing = buildListing(catalog, query);
   const ancestors = jomaFolderAncestorKeys(folderKey);
+  const tabs = firstSearchParam(sp.sub) ? [] : folderTabs(folderKey);
+  const activeTab = firstSearchParam(sp.tab) ?? "";
+  const tabbedListing = tabs.length
+    ? buildListing(catalog, { ...query, page: undefined }, { pageSize: 5000 })
+    : null;
+  const tabHref = (slug: string) => {
+    const params = new URLSearchParams();
+    params.set("group", folderKey);
+    if (slug) params.set("tab", slug);
+    return `/promotions?${params.toString()}`;
+  };
 
   return (
     <div>
@@ -82,9 +95,19 @@ export default async function PromotionsPage({
           { sub: folderKey },
         ]}
         titleSub={folderKey}
-        titleCount={listing.total}
+        titleCount={tabbedListing ? tabbedCount(tabbedListing.products, tabs, activeTab) : listing.total}
       />
       <div className="page-shell pb-10 pt-1">
+        {tabbedListing ? (
+          <div className="pt-2">
+            <TabbedFolderProducts
+              products={tabbedListing.products}
+              tabs={tabs}
+              activeTab={activeTab}
+              hrefFor={tabHref}
+            />
+          </div>
+        ) : (
         <CatalogBrowser
           initialListing={listing}
           basePath="/promotions"
@@ -95,6 +118,7 @@ export default async function PromotionsPage({
           showLayoutToggle
           emptyBodyKey="shop.emptyBody"
         />
+        )}
       </div>
     </div>
   );
