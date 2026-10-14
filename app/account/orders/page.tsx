@@ -39,7 +39,7 @@ export default function OrdersPage() {
   }, [syncRemote]);
 
   // Show every order saved on this device, plus anything pulled from Supabase.
-  // Do not filter by login email — checkout email often differs from the demo account.
+  // Do not filter by login email — the checkout email can differ from the signed-in account.
   const mine = useMemo(() => orders, [orders]);
 
   if (!user) {
