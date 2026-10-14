@@ -1,4 +1,7 @@
 import { isZeroStockVisible } from "@/lib/visibility";
+import portalListKeys from "@/data/joma-portal-list-keys.json";
+
+const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
 import { matchesAudienceInFolder, productAudience } from "@/lib/audience";
 import {
   AUDIENCES,
@@ -161,7 +164,14 @@ export function filterListing(
     list = catalog.filter((p) => productHasImage(p) && listingInFolder(p, jomaGroup));
     // Women's footwear folders (wf-*) show the portal's Footwear > WOMAN list as is,
     // including boots our classifier files under another hub.
-    if (scopedCat && scopedCat !== "all" && !jomaGroup.startsWith("wf-")) {
+    // Folders with a portal product list show that list as is: the portal decides
+    // membership, not our hub classifier (e.g. Footshape FOR20S2727 in Running).
+    if (
+      scopedCat &&
+      scopedCat !== "all" &&
+      !jomaGroup.startsWith("wf-") &&
+      !PORTAL_LIST_KEYS.has(jomaGroup)
+    ) {
       list = list.filter((p) => listingInHub(p, scopedCat));
     }
   } else {
