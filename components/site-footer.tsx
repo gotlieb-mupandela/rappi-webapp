@@ -33,6 +33,7 @@ export function SiteFooter({
     { href: "/cart", label: t("footer.cart") },
     { href: "/teamwear", label: t("home.teamwearEyebrow") },
     { href: "/store", label: t("footer.findStore") },
+    { href: "/about", label: t("footer.about") },
     { href: "/privacy", label: t("footer.privacy") },
     { href: "/terms", label: t("footer.terms") },
     { href: "/returns", label: t("footer.returns") },
