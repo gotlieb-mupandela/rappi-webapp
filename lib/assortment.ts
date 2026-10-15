@@ -232,10 +232,12 @@ function explicitPackInfo(product: Product): AssortmentInfo | null {
     };
   }
   if (sellAs === "assortment") {
+    const packSize = n && n > 1 ? n : null;
+    const unit = isFootwearSku(product) ? "pairs" : "pcs";
     return {
       isAssortment: true,
-      packSize: n && n > 1 ? n : null,
-      label: "Assortment pack",
+      packSize,
+      label: packSize ? `Assortment · ${packSize} ${unit}` : "Assortment pack",
       pairHint: null,
       kind: "assortment",
     };
@@ -259,7 +261,8 @@ function explicitPackInfo(product: Product): AssortmentInfo | null {
 }
 
 const EU_SHOE_SIZE = /^(?:2[8-9]|[3-4]\d|5[0-2])(?:\.5)?$/;
-const SURTIDO_CURVE = /^S\d{1,2}$/i;
+/** Joma surtido box codes are S plus two digits (S27), never a wearable size. */
+const SURTIDO_CODE = /^S\d{2}$/i;
 
 /**
  * Curve code → pairs, taken from supplier-confirmed surtido rows where one
@@ -372,7 +375,7 @@ export function surtidoCurveSizes(product: Product): string[] | null {
   const sizes = product.sizeOptions ?? [];
   if (!sizes.length) return null;
   if (sizes.some((size) => EU_SHOE_SIZE.test(size))) return null;
-  if (!sizes.every((size) => SURTIDO_CURVE.test(size))) return null;
+  if (!sizes.every((size) => SURTIDO_CODE.test(size))) return null;
   return sizes;
 }
 
@@ -382,16 +385,20 @@ export function curvePairCount(size: string): number | null {
 }
 
 /**
- * Column / picker label for a surtido curve. Known curves name the pairs
- * ("Assortment · 12 pairs"). Unknown curves stay "Assortment".
+ * Picker / hover label. A single confirmed curve may say "Assortment · 12 pairs".
+ * Unknown or mixed curves stay "Assortment pack" — no per-code pair count.
  */
 function surtidoSizeParts(product: Product, size: string): { n: number | null } | null {
   const info = getAssortment(product);
   if (!info || info.kind !== "assortment") return null;
   const curve = size.toUpperCase();
-  if (SURTIDO_CURVE.test(curve)) return { n: curvePairCount(curve) };
-  if (/^(PACK|SKU)$/i.test(size)) return { n: info.packSize && info.packSize > 1 ? info.packSize : null };
-  return null;
+  const isCurve = SURTIDO_CODE.test(curve);
+  const isPackSlot = /^(PACK|SKU)$/i.test(size);
+  if (!isCurve && !isPackSlot) return null;
+  // Mixed or unknown boxes do not borrow a count from one of the curves.
+  if (!(info.packSize && info.packSize > 1)) return { n: null };
+  if (isCurve) return { n: curvePairCount(curve) ?? info.packSize };
+  return { n: info.packSize };
 }
 
 /** English label for toasts that have no locale function. */
@@ -399,7 +406,7 @@ export function surtidoSizeText(product: Product, size: string): string | null {
   const parts = surtidoSizeParts(product, size);
   if (!parts) return null;
   const unit = isFootwearSku(product) ? "pairs" : "pcs";
-  return parts.n && parts.n > 1 ? `Assortment · ${parts.n} ${unit}` : "Assortment";
+  return parts.n && parts.n > 1 ? `Assortment · ${parts.n} ${unit}` : "Assortment pack";
 }
 
 export function surtidoSizeLabel(product: Product, size: string, t: TFunction): string | null {
@@ -409,7 +416,7 @@ export function surtidoSizeLabel(product: Product, size: string, t: TFunction): 
     const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
     return t("product.assortmentNamed", { n: parts.n, unit });
   }
-  return t("product.assortment");
+  return t("product.assortmentPack");
 }
 
 function inferredCurveAssortment(product: Product): AssortmentInfo | null {
@@ -420,7 +427,7 @@ function inferredCurveAssortment(product: Product): AssortmentInfo | null {
   return {
     isAssortment: true,
     packSize,
-    label: packSize ? `Assortment · ${packSize} pairs` : "Assortment",
+    label: packSize ? `Assortment · ${packSize} pairs` : "Assortment pack",
     pairHint: null,
     kind: "assortment",
   };
@@ -514,7 +521,8 @@ export function getAssortment(
     };
   }
 
-  // Curve codes (S27, S11, …) are boxes even when sellAs was not baked.
+  // Runtime fallback when products.json has no sellAs: a row whose only
+  // sizes are S-codes (S\d\d) is a surtido box, not a wearable size.
   return inferredCurveAssortment(product);
 }
 
@@ -554,7 +562,7 @@ export function assortmentCopy(
     }
     return {
       ...info,
-      label: t("product.assortment"),
+      label: t("product.assortmentPack"),
       pairHint: null,
     };
   }

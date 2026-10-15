@@ -11,6 +11,23 @@ import {
 } from "@/lib/product-stock";
 import { cn } from "@/lib/utils";
 
+type MatrixCol = { size: string; label: string; stock: number };
+
+/** Mixed surtido curves share one label. Show that pack once, not S05 and S09. */
+function collapseAssortmentColumns(cols: MatrixCol[]): MatrixCol[] {
+  if (cols.length < 2) return cols;
+  const label = cols[0]?.label;
+  if (!label || !/assort/i.test(label)) return cols;
+  if (!cols.every((col) => col.label === label)) return cols;
+  return [
+    {
+      size: "PACK",
+      label,
+      stock: cols.reduce((sum, col) => sum + col.stock, 0),
+    },
+  ];
+}
+
 /** Full size/price/stock panel — no clipped scroll; all columns visible. */
 export function StockMatrix({
   product,
@@ -27,7 +44,7 @@ export function StockMatrix({
     const label = surtidoSizeLabel(product, col.size, t);
     return label ? [{ size: col.size, label, stock: col.stock }] : [];
   });
-  const cols =
+  const cols = collapseAssortmentColumns(
     labeled.length > 0
       ? labeled
       : rows.length === 0
@@ -42,7 +59,8 @@ export function StockMatrix({
             size: col.size,
             label: sizeDisplayLabel(col.size, t),
             stock: col.stock,
-          }));
+          })),
+  );
 
   if (!cols.length || cols.every((r) => r.stock <= 0)) return null;
 

@@ -64,11 +64,11 @@ function hasRecordedSizeRun(product: Product) {
   return true;
 }
 
-const SURTIDO_CURVE = /^S\d{1,2}$/i;
+const SURTIDO_CURVE = /^S\d{2}$/i;
 
 /** Surtido curve codes are not wearable sizes. Sell the box as one pack. */
 function asSurtidoPack<T extends Product>(product: T, total: number, sizes: string[]): T | null {
-  if (sizes.length !== 1 || !SURTIDO_CURVE.test(sizes[0] ?? "")) return null;
+  if (!sizes.length || sizes.some((size) => !SURTIDO_CURVE.test(size))) return null;
   const info = getAssortment({ ...product, sizeOptions: sizes });
   if (!info?.isAssortment || info.preserveSizes || info.kind !== "assortment") return null;
   return {
@@ -139,6 +139,8 @@ export function withCatalogSizes<T extends Product>(product: T): T {
   const fromSheet = parseSizeList(sheet?.sizes);
   if (fromSheet.length && !(fromSheet.length === 1 && fromSheet[0] === "ONE" && !isTrueOneSize(product))) {
     const rows = rowsFromSizes(fromSheet, total);
+    const packed = asSurtidoPack(product, total, rows.map((r) => r.size));
+    if (packed) return packed;
     return {
       ...product,
       sizeOptions: rows.map((r) => r.size),
@@ -151,6 +153,8 @@ export function withCatalogSizes<T extends Product>(product: T): T {
   if (recorded) {
     const rows = (product.sizes?.length ? product.sizes : product.sizeOptions.map((size) => ({ size, stock: total })))
       .map((row) => ({ size: row.size, stock: row.stock > 0 && total > 0 ? row.stock : 0 }));
+    const packed = asSurtidoPack(product, total, rows.map((r) => r.size));
+    if (packed) return packed;
     return { ...product, sizes: rows, stockQty: total, totalQty: total };
   }
 
