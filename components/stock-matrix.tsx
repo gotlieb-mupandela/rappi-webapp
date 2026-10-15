@@ -2,6 +2,7 @@
 
 import type { Product } from "@/lib/types";
 import { useLocale } from "@/components/locale-provider";
+import { surtidoSizeLabel } from "@/lib/assortment";
 import {
   isSoldOut,
   pickerSizes,
@@ -22,10 +23,26 @@ export function StockMatrix({
   if (isSoldOut(product)) return null;
 
   const rows = pickerSizes(product);
+  const labeled = rows.flatMap((col) => {
+    const label = surtidoSizeLabel(product, col.size, t);
+    return label ? [{ size: col.size, label, stock: col.stock }] : [];
+  });
   const cols =
-    rows.length === 0
-      ? [{ size: "SKU", stock: skuStock(product) }]
-      : rows;
+    labeled.length > 0
+      ? labeled
+      : rows.length === 0
+        ? [
+            {
+              size: "SKU",
+              label: surtidoSizeLabel(product, "SKU", t) ?? sizeDisplayLabel("SKU", t),
+              stock: skuStock(product),
+            },
+          ]
+        : rows.map((col) => ({
+            size: col.size,
+            label: sizeDisplayLabel(col.size, t),
+            stock: col.stock,
+          }));
 
   if (!cols.length || cols.every((r) => r.stock <= 0)) return null;
 
@@ -52,7 +69,7 @@ export function StockMatrix({
                 key={col.size}
                 className="whitespace-nowrap px-2.5 py-1.5 text-center font-semibold uppercase tracking-[0.04em] text-ink"
               >
-                {sizeDisplayLabel(col.size, t)}
+                {col.label}
               </th>
             ))}
           </tr>

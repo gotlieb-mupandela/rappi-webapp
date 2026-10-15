@@ -10,7 +10,7 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment, isFootwearSku, packTitleSuffix } from "@/lib/assortment";
+import { getAssortment, isFootwearSku, packTitleSuffix, surtidoSizeLabel } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -45,6 +45,8 @@ export function ProductDetail({ product }: { product: Product }) {
   const assortment = getAssortment(product);
   const details = productDescription(product, { t, market });
   const showPicker = hasVisibleSizePicker(product);
+  const assortmentPicker =
+    visible.length > 0 && visible.every((row) => surtidoSizeLabel(product, row.size, t));
   const unitLabel = sizeDisplayLabel(size, t);
   const symbol = currencySymbol(market);
 
@@ -162,7 +164,7 @@ export function ProductDetail({ product }: { product: Product }) {
         {showPicker ? (
           <div className="mt-8">
             <p className="mb-3 text-[11px] font-medium uppercase tracking-normal text-[var(--muted)]">
-              {t("product.size")}
+              {assortmentPicker ? t("product.assortment") : t("product.size")}
             </p>
             <div className="flex flex-wrap gap-2">
               {visible.map((row) => (
@@ -182,7 +184,7 @@ export function ProductDetail({ product }: { product: Product }) {
                     row.stock === 0 && "cursor-not-allowed opacity-35",
                   )}
                 >
-                  {sizeDisplayLabel(row.size, t)}
+                  {surtidoSizeLabel(product, row.size, t) ?? sizeDisplayLabel(row.size, t)}
                 </button>
               ))}
             </div>

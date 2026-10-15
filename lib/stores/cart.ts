@@ -6,6 +6,7 @@ import { feedVariantId } from "@/lib/meta/ids";
 import { trackMeta } from "@/lib/meta/pixel";
 import type { CartLine, CartLineSnapshot, Product } from "@/lib/types";
 import { getAssortment } from "@/lib/assortment";
+import { surtidoSizeText } from "@/lib/assortment";
 import { sizeDisplayLabel, sizeStock, skuStock } from "@/lib/product-stock";
 
 type CartMessage = {
@@ -41,8 +42,12 @@ function snapshotFromProduct(product: Product, size: string): CartLineSnapshot {
     subcategory: product.subcategory,
     gender: product.gender,
     badge: product.badge,
-    sellAs: product.sellAs,
-    packSize: product.packSize ?? null,
+    sellAs:
+      product.sellAs ??
+      (pack?.kind === "pack" || pack?.kind === "assortment" || pack?.kind === "multipack"
+        ? pack.kind
+        : undefined),
+    packSize: product.packSize ?? pack?.packSize ?? null,
   };
 }
 
@@ -105,7 +110,7 @@ export const useCart = create<CartState>()(
         } else {
           set({ lines: [...get().lines, { ...line, qty }] });
         }
-        const label = sizeDisplayLabel(size);
+        const label = surtidoSizeText(product, size) ?? sizeDisplayLabel(size);
         const variantId = feedVariantId(product.code, size);
         const unit = product.unitPrice || product.price;
         trackMeta("AddToCart", {

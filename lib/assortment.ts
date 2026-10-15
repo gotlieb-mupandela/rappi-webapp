@@ -260,9 +260,6 @@ function explicitPackInfo(product: Product): AssortmentInfo | null {
 
 const EU_SHOE_SIZE = /^(?:2[8-9]|[3-4]\d|5[0-2])(?:\.5)?$/;
 const SURTIDO_CURVE = /^S\d{1,2}$/i;
-/** Pack NAD floor. Confirmed surtido boxes sit well above single-pair retail. */
-const SURTIDO_PRICE_FLOOR = 2000;
-const SURTIDO_PACK_SIZES = [8, 12, 24] as const;
 
 /**
  * Curve code → pairs, taken from supplier-confirmed surtido rows where one
@@ -276,6 +273,8 @@ const CURVE_PAIRS: Record<string, number> = {
   S12: 8,
   S16: 12,
   S22: 8,
+  // S23 is 12 on every single-curve assortment that already carries a count (27 packs).
+  S23: 12,
   S24: 12,
   S25: 8,
   // S26 is 12 on every labelled footwear row that carries it (22 packs, none at 8).
@@ -318,21 +317,10 @@ const SHOE_SUBS = new Set([
   "shoes",
 ]);
 
-const NOT_SURTIDO_NAME = /\b(bag|sock|bib|shirt|t-shirts?|tee|polo|shorts?|bermuda|jacket|pants?|tights?|leggings?|hoodie|glove|cap|hat)\b/i;
 const SHOE_HINT = /\b(boot|shoe|sneaker|futsal|turf|barefoot|trainer|firm ground|artificial grass|soft ground|indoor|cleat)\b/i;
-
-function codePrefix(code: string) {
-  return /^([A-Z]{3,})/.exec(code)?.[1] ?? "";
-}
-
-function isSurtidoFootwear(product: Product) {
-  const text = blob(product);
-  if (/\b(bag|sock|bib)\b/i.test(text)) return false;
-  if (NOT_SURTIDO_NAME.test(text) && !SHOE_HINT.test(text)) return false;
-  if (product.category === "shoes" || SHOE_SUBS.has(product.subcategory)) return true;
-  if (isFootwearSku(product)) return true;
-  return SHOE_HINT.test(text);
-}
+/** Not a footwear box, even when the size column is S01 / S10. */
+const NOT_SURTIDO_BOX =
+  /\b(bags?|bolsas?|socks?|calcet(?:ines|in)?|bibs?|shirts?|t-shirts?|tees?|polos?|shorts?|bermudas?|jackets?|pants?|tights?|leggings?|hoodies?|gloves?|caps?|hats?|hangers?|masks?|wristbands?|calves|calf)\b/i;
 
 type CurveRead =
   | { kind: "locked"; n: number }
@@ -361,69 +349,97 @@ function readCurve(sizes: string[]): CurveRead {
   return { kind: "locked", n: votes[0] };
 }
 
-function curveConsensus(sizes: string[]) {
-  const read = readCurve(sizes);
-  return read.kind === "locked" ? read.n : null;
+/**
+ * Footwear whose every size is a surtido curve (S27, S09, …), not an EU size.
+ * Those codes are boxes, not a wearable size. Returns null for apparel, bibs,
+ * and anything that still has a real size run.
+ */
+function isSurtidoBox(product: Product): boolean {
+  const text = blob(product);
+  if (NOT_SURTIDO_BOX.test(text)) return false;
+  if (product.subcategory === "socks" || product.subcategory === "tees") return false;
+  if (product.category === "shoes" || SHOE_SUBS.has(product.subcategory)) return true;
+  // Boots filed on the sport hub (football / futsal / turf) rather than Shoes.
+  if (SHOE_HINT.test(text) && !/\bindoor gym\b/i.test(text)) return true;
+  // Joma footwear refs have no dot (SGOMES2601). Dotted codes are apparel and accessories.
+  if (!product.code.includes(".") && /^[A-Z]/i.test(product.code)) return true;
+  return false;
+}
+
+export function surtidoCurveSizes(product: Product): string[] | null {
+  if (isTrainingBibPack(product)) return null;
+  if (!isSurtidoBox(product)) return null;
+  const sizes = product.sizeOptions ?? [];
+  if (!sizes.length) return null;
+  if (sizes.some((size) => EU_SHOE_SIZE.test(size))) return null;
+  if (!sizes.every((size) => SURTIDO_CURVE.test(size))) return null;
+  return sizes;
+}
+
+/** Confirmed pairs for one curve code. Unknown codes stay null — never guessed. */
+export function curvePairCount(size: string): number | null {
+  return CURVE_PAIRS[size.toUpperCase()] ?? null;
+}
+
+/**
+ * Column / picker label for a surtido curve. Known curves name the pairs
+ * ("Assortment · 12 pairs"). Unknown curves stay "Assortment".
+ */
+function surtidoSizeParts(product: Product, size: string): { n: number | null } | null {
+  const info = getAssortment(product);
+  if (!info || info.kind !== "assortment") return null;
+  const curve = size.toUpperCase();
+  if (SURTIDO_CURVE.test(curve)) return { n: curvePairCount(curve) };
+  if (/^(PACK|SKU)$/i.test(size)) return { n: info.packSize && info.packSize > 1 ? info.packSize : null };
+  return null;
+}
+
+/** English label for toasts that have no locale function. */
+export function surtidoSizeText(product: Product, size: string): string | null {
+  const parts = surtidoSizeParts(product, size);
+  if (!parts) return null;
+  const unit = isFootwearSku(product) ? "pairs" : "pcs";
+  return parts.n && parts.n > 1 ? `Assortment · ${parts.n} ${unit}` : "Assortment";
+}
+
+export function surtidoSizeLabel(product: Product, size: string, t: TFunction): string | null {
+  const parts = surtidoSizeParts(product, size);
+  if (!parts) return null;
+  if (parts.n && parts.n > 1) {
+    const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+    return t("product.assortmentNamed", { n: parts.n, unit });
+  }
+  return t("product.assortment");
+}
+
+function inferredCurveAssortment(product: Product): AssortmentInfo | null {
+  const sizes = surtidoCurveSizes(product);
+  if (!sizes) return null;
+  const curve = readCurve(sizes);
+  const packSize = curve.kind === "locked" ? curve.n : null;
+  return {
+    isAssortment: true,
+    packSize,
+    label: packSize ? `Assortment · ${packSize} pairs` : "Assortment",
+    pairHint: null,
+    kind: "assortment",
+  };
 }
 
 /**
  * Surtido boxes are filed as curve codes (S28, S25, …), not EU sizes.
- * A fully known curve locks the pair count. A same-line single
- * (price ≈ single × 8/12/24) is used only when no curve code is known.
- * The selling price stays the pack NAD — never split per pair.
+ * A fully known curve locks the pair count. Unknown or mixed curves are still
+ * assortments — the count stays blank rather than a price guess.
+ * The selling price is never changed here.
  */
 export function applyInferredSurtidoAssortments<T extends Product>(catalog: T[]) {
-  const singles = new Map<string, number[]>();
-  for (const product of catalog) {
-    if (product.sellAs) continue;
-    const sizes = product.sizeOptions ?? [];
-    if (!sizes.some((size) => EU_SHOE_SIZE.test(size))) continue;
-    if (!isSurtidoFootwear(product)) continue;
-    const price = Number(product.price) || 0;
-    if (price <= 0 || price >= SURTIDO_PRICE_FLOOR) continue;
-    const prefix = codePrefix(product.code);
-    if (!prefix) continue;
-    const list = singles.get(prefix);
-    if (list) list.push(price);
-    else singles.set(prefix, [price]);
-  }
-
   let labeled = 0;
   for (const product of catalog) {
     if (product.sellAs) continue;
-    if (!isSurtidoFootwear(product)) continue;
-    const sizes = product.sizeOptions ?? [];
-    if (!sizes.length || sizes.some((size) => EU_SHOE_SIZE.test(size))) continue;
-    if (!sizes.every((size) => SURTIDO_CURVE.test(size))) continue;
-    const price = Number(product.price) || 0;
-    if (price < SURTIDO_PRICE_FLOOR) continue;
-
-    const curve = readCurve(sizes);
-    // Unknown or mixed curves are not a count. Do not invent one from price.
-    if (curve.kind === "conflict" || curve.kind === "partial") continue;
-    let packSize = curve.kind === "locked" ? curve.n : null;
-    if (!packSize) {
-      const prefix = codePrefix(product.code);
-      const units = prefix ? (singles.get(prefix) ?? []) : [];
-      let bestErr = 0.04;
-      const seen = new Set<number>();
-      for (const unit of units) {
-        if (seen.has(unit) || unit <= 0) continue;
-        seen.add(unit);
-        const ratio = price / unit;
-        for (const n of SURTIDO_PACK_SIZES) {
-          const err = Math.abs(ratio - n) / n;
-          if (err <= bestErr) {
-            bestErr = err;
-            packSize = n;
-          }
-        }
-      }
-    }
-    if (!packSize) continue;
+    const info = inferredCurveAssortment(product);
+    if (!info) continue;
     product.sellAs = "assortment";
-    product.packSize = packSize;
-    if (product.unitPrice !== product.price) product.unitPrice = product.price;
+    product.packSize = info.packSize;
     labeled += 1;
   }
   return labeled;
@@ -498,7 +514,8 @@ export function getAssortment(
     };
   }
 
-  return null;
+  // Curve codes (S27, S11, …) are boxes even when sellAs was not baked.
+  return inferredCurveAssortment(product);
 }
 
 export function assortmentCopy(
