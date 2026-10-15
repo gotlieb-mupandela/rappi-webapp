@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
-import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment, isFootwearSku, packTitleSuffix } from "@/lib/assortment";
+import { AssortmentBadge, AssortmentCurves, AssortmentHint } from "@/components/assortment-label";
+import { getAssortment, isFootwearSku, packTitleSuffix, surtidoPackLines, surtidoSizeLabel } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -43,8 +43,16 @@ export function ProductDetail({ product }: { product: Product }) {
   const catName = hubName(product.category, t);
   const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
   const assortment = getAssortment(product);
+  const curveLines = surtidoPackLines(product);
+  const curvePairs =
+    curveLines.length > 0 &&
+    curveLines.every((line) => line.pairs && line.pairs === curveLines[0].pairs)
+      ? curveLines[0].pairs
+      : null;
   const details = productDescription(product, { t, market });
   const showPicker = hasVisibleSizePicker(product);
+  const assortmentPicker =
+    visible.length > 0 && visible.every((row) => surtidoSizeLabel(product, row.size, t));
   const unitLabel = sizeDisplayLabel(size, t);
   const symbol = currencySymbol(market);
 
@@ -137,13 +145,19 @@ export function ProductDetail({ product }: { product: Product }) {
               {assortment.packSize === 10 && assortment.preserveSizes
                 ? t("product.pack10", { symbol })
                 : assortment.kind === "assortment"
-                  ? assortment.packSize && assortment.packSize > 1
+                  ? curvePairs && curvePairs > 1
                     ? t("product.packAssortmentNamed", {
-                        n: assortment.packSize,
+                        n: curvePairs,
                         unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
                         symbol,
                       })
-                    : t("product.packAssortmentPack", { symbol })
+                    : assortment.packSize && assortment.packSize > 1
+                      ? t("product.packAssortmentNamed", {
+                          n: assortment.packSize,
+                          unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
+                          symbol,
+                        })
+                      : t("product.packAssortmentPack", { symbol })
                   : assortment.kind === "multipack"
                     ? t("product.packMultipack", { symbol })
                     : assortment.kind === "pack"
@@ -162,7 +176,7 @@ export function ProductDetail({ product }: { product: Product }) {
         {showPicker ? (
           <div className="mt-8">
             <p className="mb-3 text-[11px] font-medium uppercase tracking-normal text-[var(--muted)]">
-              {t("product.size")}
+              {assortmentPicker ? t("product.assortment") : t("product.size")}
             </p>
             <div className="flex flex-wrap gap-2">
               {visible.map((row) => (
@@ -182,7 +196,7 @@ export function ProductDetail({ product }: { product: Product }) {
                     row.stock === 0 && "cursor-not-allowed opacity-35",
                   )}
                 >
-                  {sizeDisplayLabel(row.size, t)}
+                  {surtidoSizeLabel(product, row.size, t) ?? sizeDisplayLabel(row.size, t)}
                 </button>
               ))}
             </div>
@@ -195,15 +209,18 @@ export function ProductDetail({ product }: { product: Product }) {
                     : stockLabel(product, t)}
               </p>
             ) : null}
+            <AssortmentCurves product={product} className="mt-4" />
           </div>
         ) : (
           <p className="mt-8 text-sm text-[var(--muted)]">
             {assortment?.packSize === 10 && assortment.preserveSizes
               ? t("product.orderPack10")
               : assortment?.kind === "assortment"
-                ? assortment.packSize && assortment.packSize > 1
-                  ? t("product.orderAssortmentNamed", { n: assortment.packSize })
-                  : t("product.orderAssortment")
+                ? curvePairs && curvePairs > 1
+                  ? t("product.orderAssortmentNamed", { n: curvePairs })
+                  : assortment.packSize && assortment.packSize > 1
+                    ? t("product.orderAssortmentNamed", { n: assortment.packSize })
+                    : t("product.orderAssortment")
                 : assortment?.kind === "multipack"
                   ? t("product.orderMultipack")
                   : assortment?.kind === "pack"

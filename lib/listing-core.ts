@@ -2,6 +2,7 @@ import { isZeroStockVisible } from "@/lib/visibility";
 import portalListKeys from "@/data/joma-portal-list-keys.json";
 
 const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
+import { surtidoCurveSizes } from "@/lib/assortment";
 import { matchesAudienceInFolder, productAudience } from "@/lib/audience";
 import {
   AUDIENCES,
@@ -258,8 +259,12 @@ function facetSubs(list: ListingItem[]): ListingFacet[] {
 function facetSizes(list: ListingItem[]): string[] {
   const set = new Set<string>();
   for (const p of list) {
+    const curves = surtidoCurveSizes(p);
+    const curveSet = curves ? new Set(curves.map((size) => size.toUpperCase())) : null;
     p.sizes.forEach((s) => {
-      if (!/^(ONE|SKU|PACK)$/i.test(s.size) && s.stock > 0) set.add(s.size);
+      if (/^(ONE|SKU|PACK)$/i.test(s.size) || s.stock <= 0) return;
+      if (curveSet?.has(s.size.toUpperCase())) return;
+      set.add(s.size);
     });
   }
   const order = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "ONE"];

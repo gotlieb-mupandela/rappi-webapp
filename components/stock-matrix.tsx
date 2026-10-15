@@ -2,6 +2,7 @@
 
 import type { Product } from "@/lib/types";
 import { useLocale } from "@/components/locale-provider";
+import { curveSplitText, surtidoSizeLabel } from "@/lib/assortment";
 import {
   isSoldOut,
   pickerSizes,
@@ -9,6 +10,8 @@ import {
   skuStock,
 } from "@/lib/product-stock";
 import { cn } from "@/lib/utils";
+
+type MatrixCol = { size: string; label: string; stock: number; split: string | null };
 
 /** Full size/price/stock panel — no clipped scroll; all columns visible. */
 export function StockMatrix({
@@ -22,10 +25,31 @@ export function StockMatrix({
   if (isSoldOut(product)) return null;
 
   const rows = pickerSizes(product);
-  const cols =
-    rows.length === 0
-      ? [{ size: "SKU", stock: skuStock(product) }]
-      : rows;
+  const labeled = rows.flatMap((col) => {
+    const label = surtidoSizeLabel(product, col.size, t);
+    return label
+      ? [{ size: col.size, label, stock: col.stock, split: curveSplitText(col.size) }]
+      : [];
+  });
+  const cols: MatrixCol[] =
+    labeled.length > 0
+      ? labeled
+      : rows.length === 0
+        ? [
+            {
+              size: "SKU",
+              label: surtidoSizeLabel(product, "SKU", t) ?? sizeDisplayLabel("SKU", t),
+              stock: skuStock(product),
+              split: null,
+            },
+          ]
+        : rows.map((col) => ({
+            size: col.size,
+            label: sizeDisplayLabel(col.size, t),
+            stock: col.stock,
+            split: null,
+          }));
+  const splits = cols.filter((col) => col.split);
 
   if (!cols.length || cols.every((r) => r.stock <= 0)) return null;
 
@@ -52,7 +76,7 @@ export function StockMatrix({
                 key={col.size}
                 className="whitespace-nowrap px-2.5 py-1.5 text-center font-semibold uppercase tracking-[0.04em] text-ink"
               >
-                {sizeDisplayLabel(col.size, t)}
+                {col.label}
               </th>
             ))}
           </tr>
@@ -92,6 +116,17 @@ export function StockMatrix({
           </tr>
         </tbody>
       </table>
+      {splits.length ? (
+        <div className="space-y-1 border-t border-black/15 px-2 py-1.5 text-left text-[10px] leading-snug text-ink">
+          {splits.map((col) => (
+            <p key={col.size}>
+              <span className="font-semibold">{col.label}</span>
+              {": "}
+              {col.split}
+            </p>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -13,13 +13,14 @@ import { SelectMenu } from "@/components/ui/select-menu";
 import { useLocale } from "@/components/locale-provider";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { shippingName } from "@/lib/i18n/labels";
+import { surtidoSizeLabel } from "@/lib/assortment";
 import { sizeDisplayLabel } from "@/lib/product-stock";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { feedVariantId } from "@/lib/meta/ids";
 import { trackMeta } from "@/lib/meta/pixel";
 import { displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
-import { cartCount, useCart } from "@/lib/stores/cart";
+import { cartCount, cartLineAsProduct, useCart } from "@/lib/stores/cart";
 import type { Product } from "@/lib/types";
 import { defaultVatCountry, formatVatRate, quoteVat, VAT_COUNTRIES } from "@/lib/vat";
 
@@ -109,8 +110,10 @@ export default function CheckoutPage() {
         price: line.price,
         sellAs: line.sellAs,
         packSize: line.packSize ?? null,
+        sizeLabel:
+          surtidoSizeLabel(cartLineAsProduct(line), line.size, t) ?? sizeDisplayLabel(line.size, t),
       })),
-    [lines],
+    [lines, t],
   );
 
   const subtotal = rows.reduce((s, r) => s + r.price * r.qty, 0);
@@ -286,7 +289,7 @@ export default function CheckoutPage() {
               {rows.map((r) => (
                 <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
                   <span className="break-all">
-                    {r.code} · {sizeDisplayLabel(r.size, t)} × {r.qty}
+                    {r.code} · {r.sizeLabel} × {r.qty}
                     {r.sellAs ? (
                       <span className="mt-1 block text-xs normal-case tracking-normal text-[var(--muted)]">
                         {r.name}
@@ -434,7 +437,7 @@ export default function CheckoutPage() {
               {rows.map((r) => (
                 <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
                   <span className="break-all">
-                    {r.code} · {sizeDisplayLabel(r.size, t)} × {r.qty}
+                    {r.code} · {r.sizeLabel} × {r.qty}
                     {r.sellAs ? (
                       <span className="mt-1 block text-xs normal-case tracking-normal text-[var(--muted)]">
                         {r.name}

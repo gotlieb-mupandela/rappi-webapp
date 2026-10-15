@@ -247,9 +247,29 @@ const INFERRED_SHOE_SUBS = new Set([
   "boots", "futsal", "turf", "football-fg", "football-ag", "football-sg", "sandals", "barefoot",
   "kids-shoes", "training-shoes", "shoes",
 ]);
+function curveOnlyFootwear(p) {
+  const sizes = p.sizeOptions || [];
+  if (!sizes.length) return false;
+  if (sizes.some((s) => /^(?:2[8-9]|[3-4]\d|5[0-2])(?:\.5)?$/.test(String(s)))) return false;
+  if (!sizes.every((s) => /^S\d{1,2}$/i.test(String(s)))) return false;
+  const name = `${p.displayName || ""} ${p.name || ""} ${p.item || ""}`;
+  if (/\b(bags?|bolsas?|socks?|calcet(?:ines|in)?|bibs?|shirts?|t-shirts?|tees?|hangers?|masks?|wristbands?|calves|calf)\b/i.test(name)) {
+    return false;
+  }
+  if (p.subcategory === "socks" || p.subcategory === "tees") return false;
+  if (p.category === "shoes" || INFERRED_SHOE_SUBS.has(p.subcategory)) return true;
+  if (!String(p.code).includes(".") && /^[A-Z]/i.test(String(p.code))) return true;
+  return /\b(boot|shoe|sneaker|sandal|futsal|turf|firm ground|artificial grass|barefoot)\b/i.test(name);
+}
 function inferredAssortmentOk(p) {
-  if (!INFERRED_PACK_SIZES.has(p.packSize)) return false;
-  if (p.price !== p.unitPrice || !Number.isInteger(p.price) || p.price < 2000) return false;
+  if (p.packSize != null && !INFERRED_PACK_SIZES.has(p.packSize)) return false;
+  if (p.price !== p.unitPrice || !Number.isInteger(p.price) || !(p.price > 0)) return false;
+  const curves = curveOnlyFootwear(p);
+  // Unknown curves stay labelled, with no invented pair count.
+  if (p.packSize == null && !curves) return false;
+  // The old 2000 NAD floor hid outlet boxes whose only size is a curve code.
+  if (!curves && p.price < 2000) return false;
+  if (curves) return true;
   if (p.category === "shoes" || INFERRED_SHOE_SUBS.has(p.subcategory)) return true;
   const name = `${p.displayName || ""} ${p.name || ""} ${p.item || ""}`;
   if (/\b(bag|sock|bib|shirt|short|pant|jacket)\b/i.test(name) && !/\b(boot|firm ground|turf|futsal|artificial grass|indoor)\b/i.test(name)) {
@@ -301,6 +321,22 @@ for (const p of listing) {
 }
 console.log(`info zero-stock sold-out rows in listing index: ${soldOutListedCount}`);
 
+// Outlet sandals reported as unlabeled single sizes. Curve codes are boxes.
+for (const [code, packSize] of [
+  ["SGOMES2601", 12],
+  ["SGOMES2623", 12],
+  ["SNORLS2613V", 12],
+  ["SOCEJS2604V", 12],
+  ["SWAVJS2625V", 12],
+  ["SBOAJS2603V", 12],
+]) {
+  const p = byCode.get(code);
+  if (!p) fail(`missing surtido SKU ${code}`);
+  else if (p.sellAs !== "assortment" || p.packSize !== packSize) {
+    fail(`${code} flags ${p.sellAs}/${p.packSize}, expected assortment/${packSize}`);
+  }
+}
+
 // Headline regression asserts from the task verify matrix.
 for (const [code, nad] of [
   ["400855.220", 9396],
@@ -315,6 +351,8 @@ for (const [code, nad] of [
   ["101686.200", 783],
   ["400356.308", 3758],
   ["TI41800B5101", 3495],
+  ["SGOMES2623", 2227],
+  ["SGOMES2601", 2227],
 ]) {
   const p = byCode.get(code);
   if (!p) fail(`missing SKU ${code}`);
