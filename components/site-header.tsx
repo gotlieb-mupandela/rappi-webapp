@@ -496,6 +496,12 @@ export function SiteHeader({
                   ))}
                 </ul>
                 <div className="mt-5 grid gap-2">
+                  <Link
+                    href="/about"
+                    className="flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50"
+                  >
+                    {t("footer.about")}
+                  </Link>
                   <Button asChild className="w-full" variant="outline">
                     <Link href="/teamwear?view=quote">{t("home.teamwearCta")}</Link>
                   </Button>
