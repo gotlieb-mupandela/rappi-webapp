@@ -324,18 +324,17 @@ console.log(`info zero-stock sold-out rows in listing index: ${soldOutListedCoun
 // Outlet sandals reported as unlabeled single sizes. Curve codes are boxes.
 for (const [code, packSize] of [
   ["SGOMES2601", 12],
+  ["SGOMES2623", 12],
   ["SNORLS2613V", 12],
+  ["SOCEJS2604V", 12],
+  ["SWAVJS2625V", 12],
+  ["SBOAJS2603V", 12],
 ]) {
   const p = byCode.get(code);
   if (!p) fail(`missing surtido SKU ${code}`);
   else if (p.sellAs !== "assortment" || p.packSize !== packSize) {
     fail(`${code} flags ${p.sellAs}/${p.packSize}, expected assortment/${packSize}`);
   }
-}
-for (const code of ["SOCEJS2604V", "SWAVJS2625V", "SBOAJS2603V"]) {
-  const p = byCode.get(code);
-  if (!p) fail(`missing surtido SKU ${code}`);
-  else if (p.sellAs !== "assortment") fail(`${code} is not labelled as an assortment`);
 }
 
 // Headline regression asserts from the task verify matrix.
@@ -352,6 +351,8 @@ for (const [code, nad] of [
   ["101686.200", 783],
   ["400356.308", 3758],
   ["TI41800B5101", 3495],
+  ["SGOMES2623", 2227],
+  ["SGOMES2601", 2227],
 ]) {
   const p = byCode.get(code);
   if (!p) fail(`missing SKU ${code}`);

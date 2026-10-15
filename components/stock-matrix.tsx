@@ -2,7 +2,7 @@
 
 import type { Product } from "@/lib/types";
 import { useLocale } from "@/components/locale-provider";
-import { surtidoSizeLabel } from "@/lib/assortment";
+import { curveSplitText, surtidoSizeLabel } from "@/lib/assortment";
 import {
   isSoldOut,
   pickerSizes,
@@ -11,22 +11,7 @@ import {
 } from "@/lib/product-stock";
 import { cn } from "@/lib/utils";
 
-type MatrixCol = { size: string; label: string; stock: number };
-
-/** Mixed surtido curves share one label. Show that pack once, not S05 and S09. */
-function collapseAssortmentColumns(cols: MatrixCol[]): MatrixCol[] {
-  if (cols.length < 2) return cols;
-  const label = cols[0]?.label;
-  if (!label || !/assort/i.test(label)) return cols;
-  if (!cols.every((col) => col.label === label)) return cols;
-  return [
-    {
-      size: "PACK",
-      label,
-      stock: cols.reduce((sum, col) => sum + col.stock, 0),
-    },
-  ];
-}
+type MatrixCol = { size: string; label: string; stock: number; split: string | null };
 
 /** Full size/price/stock panel — no clipped scroll; all columns visible. */
 export function StockMatrix({
@@ -42,9 +27,11 @@ export function StockMatrix({
   const rows = pickerSizes(product);
   const labeled = rows.flatMap((col) => {
     const label = surtidoSizeLabel(product, col.size, t);
-    return label ? [{ size: col.size, label, stock: col.stock }] : [];
+    return label
+      ? [{ size: col.size, label, stock: col.stock, split: curveSplitText(col.size) }]
+      : [];
   });
-  const cols = collapseAssortmentColumns(
+  const cols: MatrixCol[] =
     labeled.length > 0
       ? labeled
       : rows.length === 0
@@ -53,14 +40,16 @@ export function StockMatrix({
               size: "SKU",
               label: surtidoSizeLabel(product, "SKU", t) ?? sizeDisplayLabel("SKU", t),
               stock: skuStock(product),
+              split: null,
             },
           ]
         : rows.map((col) => ({
             size: col.size,
             label: sizeDisplayLabel(col.size, t),
             stock: col.stock,
-          })),
-  );
+            split: null,
+          }));
+  const splits = cols.filter((col) => col.split);
 
   if (!cols.length || cols.every((r) => r.stock <= 0)) return null;
 
@@ -127,6 +116,17 @@ export function StockMatrix({
           </tr>
         </tbody>
       </table>
+      {splits.length ? (
+        <div className="space-y-1 border-t border-black/15 px-2 py-1.5 text-left text-[10px] leading-snug text-ink">
+          {splits.map((col) => (
+            <p key={col.size}>
+              <span className="font-semibold">{col.label}</span>
+              {": "}
+              {col.split}
+            </p>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

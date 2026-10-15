@@ -269,8 +269,11 @@ const SURTIDO_CODE = /^S\d{2}$/i;
  * code mapped to a single pack size (S25 → 8, S28 → 12, …).
  */
 const CURVE_PAIRS: Record<string, number> = {
-  S05: 8,
+  // Joma B2B: S05 is 12 pairs (22–29), not 8.
+  S05: 12,
   S08: 8,
+  // Joma B2B: S09 is 12 pairs (30–38).
+  S09: 12,
   S10: 12,
   S11: 12,
   S12: 8,
@@ -282,11 +285,57 @@ const CURVE_PAIRS: Record<string, number> = {
   S25: 8,
   // S26 is 12 on every labelled footwear row that carries it (22 packs, none at 8).
   S26: 12,
-  // S27 is 12 on every single-curve assortment that already carries a count (35 packs).
+  // Joma B2B: S27 is 12 pairs (39–46).
   S27: 12,
   S28: 12,
   S32: 12,
   S35: 8,
+};
+
+/**
+ * Pairs of each EU size inside one Joma assortment code.
+ * Confirmed on the B2B portal. Codes without a row here get no invented run.
+ */
+const CURVE_SPLIT: Record<string, ReadonlyArray<readonly [number, number]>> = {
+  S05: [
+    [22, 1],
+    [23, 1],
+    [24, 1],
+    [25, 1],
+    [26, 2],
+    [27, 2],
+    [28, 2],
+    [29, 2],
+  ],
+  S09: [
+    [30, 2],
+    [31, 2],
+    [32, 2],
+    [33, 1],
+    [34, 1],
+    [35, 1],
+    [36, 1],
+    [37, 1],
+    [38, 1],
+  ],
+  S11: [
+    [36, 1],
+    [37, 2],
+    [38, 3],
+    [39, 3],
+    [40, 2],
+    [41, 1],
+  ],
+  S27: [
+    [39, 1],
+    [40, 1],
+    [41, 2],
+    [42, 2],
+    [43, 2],
+    [44, 2],
+    [45, 1],
+    [46, 1],
+  ],
 };
 
 const SHOE_SUBS = new Set([
@@ -384,21 +433,42 @@ export function curvePairCount(size: string): number | null {
   return CURVE_PAIRS[size.toUpperCase()] ?? null;
 }
 
+/** EU sizes inside one confirmed assortment code, e.g. "39×1, 40×1, 41×2". */
+export function curveSplitText(size: string): string | null {
+  const rows = CURVE_SPLIT[size.toUpperCase()];
+  if (!rows?.length) return null;
+  return rows.map(([eu, pairs]) => `${eu}×${pairs}`).join(", ");
+}
+
+export type SurtidoPackLine = {
+  code: string;
+  pairs: number | null;
+  split: string | null;
+};
+
+/** One line per pack code on the product. No size run is invented. */
+export function surtidoPackLines(product: Product): SurtidoPackLine[] {
+  const sizes = surtidoCurveSizes(product);
+  if (!sizes) return [];
+  return sizes.map((size) => {
+    const code = size.toUpperCase();
+    return { code, pairs: curvePairCount(code), split: curveSplitText(code) };
+  });
+}
+
 /**
- * Picker / hover label. A single confirmed curve may say "Assortment · 12 pairs".
- * Unknown or mixed curves stay "Assortment pack" — no per-code pair count.
+ * Picker / hover label for one pack code: "S27 · 12 pairs".
+ * A code with no confirmed count stays "S27 · Assortment".
  */
-function surtidoSizeParts(product: Product, size: string): { n: number | null } | null {
+function surtidoSizeParts(product: Product, size: string): { code: string | null; n: number | null } | null {
   const info = getAssortment(product);
   if (!info || info.kind !== "assortment") return null;
   const curve = size.toUpperCase();
   const isCurve = SURTIDO_CODE.test(curve);
   const isPackSlot = /^(PACK|SKU)$/i.test(size);
   if (!isCurve && !isPackSlot) return null;
-  // Mixed or unknown boxes do not borrow a count from one of the curves.
-  if (!(info.packSize && info.packSize > 1)) return { n: null };
-  if (isCurve) return { n: curvePairCount(curve) ?? info.packSize };
-  return { n: info.packSize };
+  if (isCurve) return { code: curve, n: curvePairCount(curve) };
+  return { code: null, n: info.packSize && info.packSize > 1 ? info.packSize : null };
 }
 
 /** English label for toasts that have no locale function. */
@@ -406,17 +476,21 @@ export function surtidoSizeText(product: Product, size: string): string | null {
   const parts = surtidoSizeParts(product, size);
   if (!parts) return null;
   const unit = isFootwearSku(product) ? "pairs" : "pcs";
-  return parts.n && parts.n > 1 ? `Assortment · ${parts.n} ${unit}` : "Assortment pack";
+  if (parts.code && parts.n && parts.n > 1) return `${parts.code} · ${parts.n} ${unit}`;
+  if (parts.code) return `${parts.code} · Assortment`;
+  return parts.n && parts.n > 1 ? `Assortment · ${parts.n} ${unit}` : "Assortment";
 }
 
 export function surtidoSizeLabel(product: Product, size: string, t: TFunction): string | null {
   const parts = surtidoSizeParts(product, size);
   if (!parts) return null;
-  if (parts.n && parts.n > 1) {
-    const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
-    return t("product.assortmentNamed", { n: parts.n, unit });
+  const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+  if (parts.code && parts.n && parts.n > 1) {
+    return t("product.assortmentCode", { code: parts.code, n: parts.n, unit });
   }
-  return t("product.assortmentPack");
+  if (parts.code) return `${parts.code} · ${t("product.assortment")}`;
+  if (parts.n && parts.n > 1) return t("product.assortmentNamed", { n: parts.n, unit });
+  return t("product.assortment");
 }
 
 function inferredCurveAssortment(product: Product): AssortmentInfo | null {
@@ -552,6 +626,15 @@ export function assortmentCopy(
     };
   }
   if (info.kind === "assortment") {
+    // Joma's listing tiles use one word: ASSORTMENT. Pair counts and the
+    // EU size split belong on the product page and the hover, per code.
+    if (surtidoCurveSizes(product)) {
+      return {
+        ...info,
+        label: t("product.assortment"),
+        pairHint: null,
+      };
+    }
     if (info.packSize && info.packSize > 1) {
       const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
       return {
@@ -615,6 +698,9 @@ export function assortmentCopy(
 export function packTitleSuffix(product: Product, t: TFunction): string | null {
   const info = getAssortment(product);
   if (!info) return null;
+  if (info.kind === "assortment" && surtidoCurveSizes(product)) {
+    return ` · ${t("product.assortment")}`;
+  }
   if (info.packSize && info.packSize > 1) {
     if (info.kind === "assortment") {
       const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
