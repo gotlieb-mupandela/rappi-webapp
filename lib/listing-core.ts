@@ -23,6 +23,7 @@ import {
   type ListingQuery,
   type ListingResult,
 } from "@/lib/listing-types";
+import { versionProductImages } from "@/lib/image-cache";
 import type { Product } from "@/lib/types";
 
 export { LISTING_PAGE_SIZE } from "@/lib/listing-types";
@@ -308,7 +309,7 @@ export function paginateListing(
 /** Drop server-only search/folder helpers before sending a row to the browser. */
 export function toClientProduct(product: Product): Product {
   const { hay: _hay, folders: _folders, ...rest } = product as ListingItem;
-  return rest;
+  return versionProductImages(rest);
 }
 
 export function buildListing(

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 43123",
-    "build": "next build",
+    "brand-versions": "node scripts/brand-versions.mjs",
+    "build": "node scripts/brand-versions.mjs && next build",
     "start": "next start --hostname 127.0.0.1 --port 43123",
     "lint": "eslint",
     "catalog": "python3 scripts/write-source.py",
