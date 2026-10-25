@@ -94,4 +94,4 @@ curl -X POST -H "Authorization: Bearer $CATALOG_REVALIDATE_SECRET" \
   https://www.rappisportshub.com/api/catalog/revalidate
 ```
 
-The catalog tag expires immediately (`revalidateTag('catalog', { expire: 0 })`). The same call also revalidates `/api/catalog`, `/api/search`, `/api/mobile/storefront`, `/api/catalog/nav`, `/api/catalog/folders`, `/api/feeds/meta-catalog`, and `/api/products/[...code]`, so those cached responses refresh on the next request instead of waiting out their edge TTL. The next listing request loads a fresh overlay.
+The catalog tag expires immediately (`revalidateTag` on the fixed tag `catalog`, with `expire: 0`). That is the only purge. It does not call `revalidatePath`, and it does not clear the rest of the site. The next listing request loads a fresh overlay. A valid secret can trigger this at most 12 times per hour (`consume_rate_limit` key `catalog-revalidate`). An error from that limiter, or a missing secret, does not clear the cache.

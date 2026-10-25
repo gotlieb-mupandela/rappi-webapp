@@ -9,12 +9,9 @@ import Module from "node:module";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CATALOG_CACHE_TAG } from "../lib/catalog-cache-tag";
+import { secretsMatch } from "../lib/catalog-revalidate-auth";
 import { catalogVersion } from "../lib/catalog-version";
-import {
-  CATALOG_CACHE_TAG,
-  CATALOG_REVALIDATE_DYNAMIC_PATHS,
-  CATALOG_REVALIDATE_PATHS,
-} from "../lib/catalog-revalidate-paths";
 import type { Product } from "../lib/types";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -96,39 +93,54 @@ assert.match(empty, /^[0-9a-f]{12}$/);
 assert.equal(empty, createHash("sha256").digest("hex").slice(0, 12));
 
 assert.equal(CATALOG_CACHE_TAG, "catalog");
-for (const path of CATALOG_REVALIDATE_PATHS) {
-  assert.equal(path.startsWith("/api/"), true);
-  assert.equal(path.includes("?"), false);
-  assert.equal(path.includes("$"), false);
-}
-assert.equal(CATALOG_REVALIDATE_PATHS.includes("/api/catalog"), true);
-assert.equal(CATALOG_REVALIDATE_PATHS.includes("/api/search"), true);
-assert.equal(CATALOG_REVALIDATE_PATHS.includes("/api/mobile/storefront"), true);
-assert.deepEqual(CATALOG_REVALIDATE_DYNAMIC_PATHS, [
-  { path: "/api/products/[...code]", type: "page" },
-]);
+assert.equal(secretsMatch("same-secret-value", "same-secret-value"), true);
+assert.equal(secretsMatch("same-secret-valuX", "same-secret-value"), false);
+assert.equal(secretsMatch("short", "same-secret-value"), false);
+assert.equal(secretsMatch("", "same-secret-value"), false);
+assert.equal(secretsMatch("same-secret-value", ""), false);
 
 const revalidateRoute = read("app/api/catalog/revalidate/route.ts");
-assert.equal(revalidateRoute.includes("timingSafeEqual"), true);
+assert.equal(revalidateRoute.includes("timingSafeEqual"), false);
+assert.equal(revalidateRoute.includes("secretsMatch"), true);
 assert.equal(revalidateRoute.includes('headers.get("authorization")'), true);
 assert.equal(revalidateRoute.includes("x-catalog-revalidate-secret"), true);
 assert.equal(revalidateRoute.includes("searchParams"), false);
 assert.equal(revalidateRoute.includes("request.url"), false);
 assert.equal(revalidateRoute.includes("console."), false);
+assert.equal(revalidateRoute.includes("NEXT_PUBLIC_"), false);
+assert.equal(revalidateRoute.includes('status: 405'), true);
+assert.equal(revalidateRoute.includes('status: 503'), true);
+assert.equal(revalidateRoute.includes('status: 429'), true);
+assert.equal(secretsMatch("abc", "€€€"), false);
+assert.equal(revalidateRoute.includes("consumeRateLimit(REVALIDATE_LIMIT_KEY"), true);
+assert.equal(revalidateRoute.includes("export function GET()"), true);
+assert.equal(revalidateRoute.includes("revalidatePath"), false);
+
+const authLib = read("lib/catalog-revalidate-auth.ts");
+assert.equal(authLib.includes("timingSafeEqual"), true);
+assert.equal(authLib.includes("provided.length === expected.length"), true);
 
 const revalidateLib = read("lib/admin/revalidate-catalog.ts");
+assert.equal(revalidateLib.includes('import "server-only"'), true);
 assert.equal(revalidateLib.includes("export function revalidateCatalog()"), true);
 assert.equal(revalidateLib.includes("revalidateTag(CATALOG_CACHE_TAG, { expire: 0 })"), true);
-assert.equal(revalidateLib.includes("CATALOG_REVALIDATE_PATHS"), true);
-assert.equal(revalidateLib.includes("CATALOG_REVALIDATE_DYNAMIC_PATHS"), true);
+assert.equal(revalidateLib.includes("revalidatePath"), false);
+assert.equal(revalidateLib.includes('revalidatePath("/", "layout")'), false);
 
 const action = read("lib/admin/revalidate-catalog-action.ts");
 assert.equal(action.includes("export async function revalidateCatalogAfterWrite()"), true);
 assert.equal(action.includes('supabase.rpc("is_admin")'), true);
+const adminCheck = action.indexOf('supabase.rpc("is_admin")');
+const revalidateCall = action.indexOf("revalidateCatalog()");
+assert.equal(adminCheck > -1 && revalidateCall > adminCheck, true);
 assert.equal(action.includes("searchParams"), false);
+assert.equal(action.includes("CATALOG_REVALIDATE_SECRET"), false);
 
 const editor = read("components/admin/product-editor.tsx");
 assert.equal(editor.includes("revalidateCatalogAfterWrite"), true);
+assert.equal(editor.includes("CATALOG_REVALIDATE_SECRET"), false);
+assert.equal(editor.includes("revalidateTag"), false);
+assert.equal(editor.includes("revalidatePath"), false);
 const uploadStart = editor.indexOf("async function onUpload");
 const uploadEnd = editor.indexOf("async function refreshCatalogueCache");
 assert.equal(editor.slice(uploadStart, uploadEnd).includes("revalidateCatalogAfterWrite"), false);
@@ -148,7 +160,7 @@ async function main() {
   assert.equal(baked.length > 40, true);
 
   console.log(
-    `catalog version ok (${baked.length} baked products, version ${bakedVersion}, paths ${CATALOG_REVALIDATE_PATHS.length})`,
+    `catalog version ok (${baked.length} baked products, version ${bakedVersion}, tag ${CATALOG_CACHE_TAG})`,
   );
 }
 
