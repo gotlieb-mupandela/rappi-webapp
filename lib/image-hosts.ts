@@ -1,13 +1,10 @@
-import { metaSiteUrl } from "./meta/site";
-
 export type AllowedImageHost = {
   host: string;
   /** Path prefix on that host. "/" allows every path. */
   pathnamePrefix: string;
   /**
    * When false, cardImage may use the host and next/image remotePatterns must not.
-   * The site host is resolved from relative paths. The proxy host would let
-   * /_next/image fetch arbitrary URLs.
+   * The proxy host would let /_next/image fetch arbitrary URLs.
    */
   nextImage: boolean;
 };
@@ -21,7 +18,6 @@ export type AllowedImageHost = {
  * This module does not set a Content-Security-Policy header.
  */
 export const ALLOWED_IMAGE_HOSTS: readonly AllowedImageHost[] = [
-  { host: "www.rappisportshub.com", pathnamePrefix: "/", nextImage: false },
   { host: "wsrv.nl", pathnamePrefix: "/", nextImage: false },
   {
     host: "wzmzwerzbyudcvoiiege.supabase.co",
@@ -32,18 +28,9 @@ export const ALLOWED_IMAGE_HOSTS: readonly AllowedImageHost[] = [
   { host: "v1.joma-sport.net", pathnamePrefix: "/files/", nextImage: true },
 ];
 
-/** The editable list, plus the canonical site host when an env override names another one. */
+/** The card-image host list. The canonical site origin is not a row in this list. */
 export function allowedImageHosts(): readonly AllowedImageHost[] {
-  let hostname = "";
-  try {
-    hostname = new URL(metaSiteUrl()).hostname;
-  } catch {
-    hostname = "";
-  }
-  if (!hostname || ALLOWED_IMAGE_HOSTS.some((rule) => rule.host === hostname)) {
-    return ALLOWED_IMAGE_HOSTS;
-  }
-  return [{ host: hostname, pathnamePrefix: "/", nextImage: false }, ...ALLOWED_IMAGE_HOSTS];
+  return ALLOWED_IMAGE_HOSTS;
 }
 
 export function imageHostAllows(hostname: string, pathname: string, rule: AllowedImageHost) {
@@ -51,7 +38,7 @@ export function imageHostAllows(hostname: string, pathname: string, rule: Allowe
 }
 
 /**
- * Optimizer hosts only. Excludes nextImage: false (the site host and wsrv.nl).
+ * Optimizer hosts only. Excludes nextImage: false (wsrv.nl).
  * next.config.ts does not call this. It lists the same three hosts itself.
  */
 export function imageRemotePatterns() {

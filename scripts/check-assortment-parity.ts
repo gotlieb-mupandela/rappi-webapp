@@ -403,6 +403,10 @@ function assertAbsoluteCardImages(products: Product[]) {
     fail("100807.400 site card no longer uses the catalogue photo path");
   }
 
+  const absoluteSite = `${metaSiteUrl()}/catalog-photos/100807.400.jpg`;
+  if (cardImageUrl({ imageUrl: absoluteSite, images: [absoluteSite] }) !== absoluteSite) {
+    fail("absolute canonical card image was dropped");
+  }
   const remote = cardImageUrl({ imageUrl: "https://wsrv.nl/photo.jpg", images: [] });
   if (remote !== "https://wsrv.nl/photo.jpg") fail("allowed remote card image was rewritten");
   if (cardImageUrl({ imageUrl: "https://example.com/a.jpg", images: [] }) !== null) {
@@ -438,10 +442,9 @@ function assertAbsoluteCardImages(products: Product[]) {
     }
   }
   const wsrv = ALLOWED_IMAGE_HOSTS.find((rule) => rule.host === "wsrv.nl");
-  const site = ALLOWED_IMAGE_HOSTS.find((rule) => rule.host === "www.rappisportshub.com");
   if (!wsrv || wsrv.nextImage) fail("wsrv.nl must stay on the card list and out of next/image");
-  if (!site || site.nextImage || site.pathnamePrefix !== "/") {
-    fail("the site host must stay on the card list with pathname / and out of next/image");
+  if (ALLOWED_IMAGE_HOSTS.some((rule) => rule.host === "www.rappisportshub.com")) {
+    fail("the site host is a row in ALLOWED_IMAGE_HOSTS");
   }
   const root = dirname(fileURLToPath(import.meta.url));
   const configSource = readFileSync(join(root, "../next.config.ts"), "utf8");
@@ -479,6 +482,9 @@ function assertAbsoluteCardImages(products: Product[]) {
   }
   if (/imageContentSecurityPolicy|IMAGE_CSP_EXTRAS/.test(hostsSource)) {
     fail("lib/image-hosts.ts still builds a Content-Security-Policy");
+  }
+  if (hostsSource.includes("rappisportshub.com")) {
+    fail("lib/image-hosts.ts names the site host");
   }
 }
 

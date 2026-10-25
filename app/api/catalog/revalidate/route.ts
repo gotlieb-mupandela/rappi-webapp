@@ -27,9 +27,7 @@ function authorized(request: Request) {
   const header = request.headers.get("authorization") ?? "";
   const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   const custom = request.headers.get("x-catalog-revalidate-secret") ?? "";
-  const bearerOk = secretsMatch(bearer, expected);
-  const customOk = secretsMatch(custom, expected);
-  return bearerOk || customOk;
+  return secretsMatch(bearer, expected) || secretsMatch(custom, expected);
 }
 
 function methodNotAllowed() {

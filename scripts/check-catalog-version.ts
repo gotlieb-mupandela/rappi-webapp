@@ -129,10 +129,9 @@ const authCheck = revalidateRoute.indexOf("if (!authorized(request))");
 const limitCheck = revalidateRoute.indexOf("consumeRateLimit(REVALIDATE_LIMIT_KEY");
 const purge = revalidateRoute.lastIndexOf("revalidateCatalog()");
 assert.equal(missingSecret > -1 && missingSecret < authCheck && authCheck < limitCheck && limitCheck < purge, true);
-const bearerOk = revalidateRoute.indexOf("const bearerOk = secretsMatch(bearer, expected);");
-const customOk = revalidateRoute.indexOf("const customOk = secretsMatch(custom, expected);");
-const authReturn = revalidateRoute.indexOf("return bearerOk || customOk;");
-assert.equal(bearerOk > -1 && bearerOk < customOk && customOk < authReturn, true);
+const authReturn = "return secretsMatch(bearer, expected) || secretsMatch(custom, expected);";
+assert.equal(revalidateRoute.includes(authReturn), true);
+assert.equal(revalidateRoute.includes("bearerOk"), false);
 
 const authLib = read("lib/catalog-revalidate-auth.ts");
 assert.equal(authLib.includes(secretCompare.replace("function secretsMatch", "export function secretsMatch")), true);

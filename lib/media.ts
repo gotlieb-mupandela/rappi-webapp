@@ -1,7 +1,7 @@
 import extraGalleryByCode from "@/data/ai-gallery-urls.json";
 import preTileImages from "@/data/pre-person-tile-images.json";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
-import { metaAbsoluteUrl } from "@/lib/meta/site";
+import { metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
 import type { Product } from "@/lib/types";
 
 const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -106,9 +106,20 @@ export function productCardImageCandidates(product: {
   ];
 }
 
+/** https URL whose origin is metaSiteUrl(). Not an allow-list row, and not a remotePattern. */
+function isCanonicalSiteImage(parsed: URL) {
+  try {
+    const site = new URL(metaSiteUrl());
+    return parsed.protocol === "https:" && parsed.origin === site.origin;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Hosts from ALLOWED_IMAGE_HOSTS. A same-origin path is allowed before it is
- * resolved. An absolute URL must be https on one of those hosts.
+ * Hosts from ALLOWED_IMAGE_HOSTS, or the canonical site origin.
+ * A same-origin path is allowed before it is resolved. An absolute URL must
+ * be https on an allow-list host, or on that canonical origin.
  */
 export function isAllowedProductImageUrl(url: string) {
   if (!url || url.startsWith("//")) return false;
@@ -120,6 +131,7 @@ export function isAllowedProductImageUrl(url: string) {
     return false;
   }
   if (parsed.protocol !== "https:") return false;
+  if (isCanonicalSiteImage(parsed)) return true;
   return allowedImageHosts().some((rule) => imageHostAllows(parsed.hostname, parsed.pathname, rule));
 }
 
