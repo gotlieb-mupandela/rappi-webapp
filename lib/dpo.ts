@@ -1,6 +1,15 @@
 import "server-only";
 import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
+import {
+  buildCreateTokenXml,
+  dpoCurrency,
+  escapeXml,
+  isoCustomerCountry,
+  xmlTag,
+} from "@/lib/dpo-xml";
+
+export { dpoCurrency, escapeXml, isoCustomerCountry, xmlTag };
 
 const DEFAULT_API_URL = "https://secure.3gdirectpay.com/API/v6/";
 const DEFAULT_PAY_URL = "https://secure.3gdirectpay.com/payv3.php";
@@ -27,36 +36,9 @@ export function requestSiteUrl(_req?: Request) {
   return dpoSiteUrl();
 }
 
-export function dpoCurrency() {
-  return process.env.DPO_CURRENCY || "NAD";
-}
-
-export function isoCustomerCountry(value?: string) {
-  const raw = String(value ?? "").trim();
-  if (/^[A-Za-z]{2}$/.test(raw)) return raw.toUpperCase();
-  if (/namibia/i.test(raw)) return "NA";
-  if (/south africa|rsa/i.test(raw)) return "ZA";
-  if (/france/i.test(raw)) return "FR";
-  return "NA";
-}
-
 export function dpoPaymentUrl(transToken: string) {
   const base = (process.env.DPO_PAY_URL || DEFAULT_PAY_URL).replace(/\/$/, "");
   return `${base}?ID=${encodeURIComponent(transToken)}`;
-}
-
-export function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-export function xmlTag(xml: string, tag: string) {
-  const match = xml.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i"));
-  return match ? match[1].trim() : null;
 }
 
 export function parseDpoXml(raw: string): DpoXmlResult {
@@ -201,39 +183,17 @@ export async function createToken(input: {
   siteUrl?: string;
 }) {
   const { companyToken, serviceType } = dpoConfig();
-  const site = (input.siteUrl || dpoSiteUrl()).replace(/\/$/, "");
-  const country = isoCustomerCountry(input.customer.country);
-  const phone = (input.customer.phone || "").trim();
-  const xml = `<?xml version="1.0" encoding="utf-8"?>
-<API3G>
-  <CompanyToken>${escapeXml(companyToken)}</CompanyToken>
-  <Request>createToken</Request>
-  <Transaction>
-    <PaymentAmount>${input.amount.toFixed(2)}</PaymentAmount>
-    <PaymentCurrency>${escapeXml(input.currency)}</PaymentCurrency>
-    <CompanyRef>${escapeXml(input.companyRef)}</CompanyRef>
-    <RedirectURL>${escapeXml(`${site}/checkout/return`)}</RedirectURL>
-    <BackURL>${escapeXml(`${site}/checkout/cancel`)}</BackURL>
-    <CompanyRefUnique>0</CompanyRefUnique>
-    <PTL>5</PTL>
-    <TransactionSource>Website</TransactionSource>
-    <DefaultPayment>CC</DefaultPayment>
-    <customerFirstName>${escapeXml(input.customer.firstName)}</customerFirstName>
-    <customerLastName>${escapeXml(input.customer.lastName)}</customerLastName>
-    <customerEmail>${escapeXml(input.customer.email)}</customerEmail>
-    ${phone ? `<customerPhone>${escapeXml(phone)}</customerPhone>` : ""}
-    <customerAddress>${escapeXml(input.customer.address || "")}</customerAddress>
-    <customerCity>${escapeXml(input.customer.city || "")}</customerCity>
-    <customerCountry>${escapeXml(country)}</customerCountry>
-  </Transaction>
-  <Services>
-    <Service>
-      <ServiceType>${escapeXml(serviceType)}</ServiceType>
-      <ServiceDescription>${escapeXml(input.description)}</ServiceDescription>
-      <ServiceDate>${serviceDate()}</ServiceDate>
-    </Service>
-  </Services>
-</API3G>`;
+  const xml = buildCreateTokenXml({
+    companyToken,
+    serviceType,
+    companyRef: input.companyRef,
+    amount: input.amount,
+    currency: input.currency,
+    description: input.description,
+    serviceDate: serviceDate(),
+    customer: input.customer,
+    siteUrl: input.siteUrl || dpoSiteUrl(),
+  });
   return postDpoXml(xml);
 }
 
