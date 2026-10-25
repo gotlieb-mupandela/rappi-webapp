@@ -72,6 +72,35 @@ export function dpoCancelOutcome(input: {
   return { writeCancelled: false, status: "pending", confirming: true };
 }
 
+/** Row update for a cancel. Null means the pending row is left untouched, including verify_result. */
+export function dpoCancelRowUpdate(
+  outcome: { writeCancelled: boolean },
+  verifyResult?: string | null,
+): { status: "cancelled"; verify_result: string } | null {
+  if (!outcome.writeCancelled) return null;
+  const code = verifyResult?.trim() ?? "";
+  if (!DPO_MAY_CANCEL.has(code)) return null;
+  return { status: "cancelled", verify_result: code };
+}
+
+/**
+ * Runs verifyToken for a pending cancel. A throw is an unavailable answer:
+ * no cancelled write and no verify_result write.
+ */
+export async function decideCancelAfterVerify(input: {
+  localStatus: string;
+  verify: () => Promise<{ result: string | null }>;
+}) {
+  let verifyResult: string | null = null;
+  try {
+    verifyResult = (await input.verify()).result ?? null;
+  } catch {
+    verifyResult = null;
+  }
+  const outcome = dpoCancelOutcome({ localStatus: input.localStatus, verifyResult });
+  return { verifyResult, outcome, update: dpoCancelRowUpdate(outcome, verifyResult) };
+}
+
 export function dpoVerificationGrantsAccess(
   verification: DpoTokenVerification | null | undefined,
   paymentCompanyRef: string,

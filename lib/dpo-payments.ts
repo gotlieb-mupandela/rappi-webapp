@@ -1,7 +1,7 @@
 import { verifyToken } from "@/lib/dpo";
 import {
   DPO_CANCEL_CONFIRMING,
-  dpoCancelOutcome,
+  decideCancelAfterVerify,
   resolveDpoPaymentAccess,
   type DpoPaymentTrust,
 } from "@/lib/dpo-payment-access";
@@ -205,21 +205,6 @@ export async function fulfillDpoPayment(input: {
   };
 }
 
-async function verifyResultBeforeCancel(access: {
-  verification: { result: string | null } | null;
-  transToken: string | null;
-  payment: Payment;
-}) {
-  if (access.verification) return access.verification.result;
-  const token = access.transToken || access.payment.trans_token;
-  if (!token) return null;
-  try {
-    return (await verifyToken(token)).result;
-  } catch {
-    return null;
-  }
-}
-
 export async function cancelDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
@@ -232,20 +217,36 @@ export async function cancelDpoPayment(input: {
   if (payment.status === "paid") {
     return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
   }
+  if (payment.status !== "pending") {
+    return {
+      ok: true,
+      status: payment.status,
+      message: `Payment is ${payment.status}.`,
+      payment,
+      orderId: payment.order_id,
+    };
+  }
 
-  const verifyResult = payment.status === "pending" ? await verifyResultBeforeCancel(access) : null;
-  const outcome = dpoCancelOutcome({ localStatus: payment.status, verifyResult });
-  if (!outcome.writeCancelled) {
-    if (outcome.status === "paid") {
+  const decided = await decideCancelAfterVerify({
+    localStatus: payment.status,
+    verify: async () => {
+      if (access.verification) return access.verification;
+      const token = access.transToken || payment.trans_token;
+      if (!token) return { result: null };
+      return verifyToken(token);
+    },
+  });
+  if (!decided.update) {
+    if (decided.outcome.status === "paid") {
       return {
         ok: true,
         status: "paid",
-        message: verifyResult?.trim() === "001" ? "Card authorized" : "Already paid.",
+        message: decided.verifyResult?.trim() === "001" ? "Card authorized" : "Already paid.",
         payment,
         orderId: payment.order_id,
       };
     }
-    if (outcome.confirming) {
+    if (decided.outcome.confirming) {
       return {
         ok: true,
         status: payment.status,
@@ -266,7 +267,7 @@ export async function cancelDpoPayment(input: {
   const admin = createAdminClient();
   const { data: updated } = await admin
     .from("payments")
-    .update({ status: "cancelled", verify_result: "904" })
+    .update(decided.update)
     .eq("id", payment.id)
     .eq("status", "pending")
     .select("*")

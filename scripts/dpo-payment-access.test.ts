@@ -7,7 +7,9 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   DPO_CANCEL_CONFIRMING,
+  decideCancelAfterVerify,
   dpoCancelOutcome,
+  dpoCancelRowUpdate,
   dpoVerificationGrantsAccess,
   resolveDpoPaymentAccess,
   trustForCheckoutCaller,
@@ -233,11 +235,45 @@ test("DPO result 001 does not cancel the payment", () => {
 });
 
 test("a clear not-paid DPO code still cancels a pending payment", () => {
-  for (const verifyResult of ["900", "904"]) {
+  for (const verifyResult of ["900", "901", "903", "904"]) {
     const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    const update = dpoCancelRowUpdate(outcome, verifyResult);
     assert.equal(outcome.writeCancelled, true, verifyResult);
-    assert.equal(outcome.status, "cancelled");
     assert.equal(outcome.confirming, false);
+    assert.deepEqual(update, { status: "cancelled", verify_result: verifyResult });
+  }
+});
+
+test("a verify call that throws does not write cancelled or verify_result", async () => {
+  let calls = 0;
+  const decided = await decideCancelAfterVerify({
+    localStatus: "pending",
+    verify: async () => {
+      calls += 1;
+      throw new Error("DPO timed out");
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(decided.verifyResult, null);
+  assert.equal(decided.outcome.writeCancelled, false);
+  assert.equal(decided.outcome.status, "pending");
+  assert.equal(decided.outcome.confirming, true);
+  assert.equal(decided.update, null);
+});
+
+test("pending-on-failure does not write verify_result", () => {
+  for (const verifyResult of [null, undefined, "", "801", "802", "803", "804", "902", "950"]) {
+    const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    assert.equal(dpoCancelRowUpdate(outcome, verifyResult), null, String(verifyResult));
+  }
+});
+
+test("000 and 001 stay unpaid in the row and show paid on the page", () => {
+  for (const verifyResult of ["000", "001"]) {
+    const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    assert.equal(outcome.writeCancelled, false);
+    assert.equal(outcome.status, "paid");
+    assert.equal(dpoCancelRowUpdate(outcome, verifyResult), null);
   }
 });
 
@@ -320,8 +356,8 @@ test("fulfill and cancel use the explicit trust decision", () => {
   assert.equal(payments.includes("userId === undefined"), false);
   assert.equal(payments.includes("resolveDpoPaymentAccess"), true);
   assert.match(payments, /access\.verification \?\? \(await verifyToken\(token\)\)/);
-  assert.match(payments, /dpoCancelOutcome/);
-  assert.match(payments, /status: "cancelled"/);
+  assert.match(payments, /decideCancelAfterVerify/);
+  assert.equal(payments.includes('verify_result: "904"'), false);
   assert.match(webhook, /trusted:\s*"webhook"/);
   assert.match(webhook, /function authorized/);
   assert.match(ret, /trustForCheckoutCaller\(user\)/);
