@@ -2,7 +2,7 @@
 
 import type { Product } from "@/lib/types";
 import { useLocale } from "@/components/locale-provider";
-import { curveSplitText, surtidoSizeLabel } from "@/lib/assortment";
+import { clientAssortment, curveSplitText, renderAssortmentLabel, surtidoSizeLabel } from "@/lib/assortment";
 import {
   isSoldOut,
   pickerSizes,
@@ -25,11 +25,18 @@ export function StockMatrix({
   if (isSoldOut(product)) return null;
 
   const rows = pickerSizes(product);
+  const packView = clientAssortment(product);
+  const bySize = new Map(packView.sizes.map((row) => [row.size, row]));
+  const labelFor = (size: string) => {
+    const row = bySize.get(size);
+    if (row) return renderAssortmentLabel(row.labelKey, row.labelParams, t, row.label) ?? row.label;
+    return surtidoSizeLabel(product, size, t);
+  };
   const labeled = rows.flatMap((col) => {
-    const label = surtidoSizeLabel(product, col.size, t);
-    return label
-      ? [{ size: col.size, label, stock: col.stock, split: curveSplitText(col.size) }]
-      : [];
+    const label = labelFor(col.size);
+    if (!label) return [];
+    const split = bySize.get(col.size)?.split ?? curveSplitText(col.size);
+    return [{ size: col.size, label, stock: col.stock, split }];
   });
   const cols: MatrixCol[] =
     labeled.length > 0
@@ -38,7 +45,7 @@ export function StockMatrix({
         ? [
             {
               size: "SKU",
-              label: surtidoSizeLabel(product, "SKU", t) ?? sizeDisplayLabel("SKU", t),
+              label: labelFor("SKU") ?? sizeDisplayLabel("SKU", t),
               stock: skuStock(product),
               split: null,
             },

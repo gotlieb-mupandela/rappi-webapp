@@ -10,7 +10,7 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentCurves, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment, isFootwearSku, packTitleSuffix, surtidoPackLines, surtidoSizeLabel } from "@/lib/assortment";
+import { clientAssortment, getAssortment, isFootwearSku, packTitleSuffix, surtidoSizeLabel } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -43,12 +43,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const catName = hubName(product.category, t);
   const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
   const assortment = getAssortment(product);
-  const curveLines = surtidoPackLines(product);
-  const curvePairs =
-    curveLines.length > 0 &&
-    curveLines.every((line) => line.pairs && line.pairs === curveLines[0].pairs)
-      ? curveLines[0].pairs
-      : null;
+  const packView = clientAssortment(product);
   const details = productDescription(product, { t, market });
   const showPicker = hasVisibleSizePicker(product);
   const assortmentPicker =
@@ -145,19 +140,13 @@ export function ProductDetail({ product }: { product: Product }) {
               {assortment.packSize === 10 && assortment.preserveSizes
                 ? t("product.pack10", { symbol })
                 : assortment.kind === "assortment"
-                  ? curvePairs && curvePairs > 1
+                  ? packView.pairCount && packView.pairCount > 1
                     ? t("product.packAssortmentNamed", {
-                        n: curvePairs,
+                        n: packView.pairCount,
                         unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
                         symbol,
                       })
-                    : assortment.packSize && assortment.packSize > 1
-                      ? t("product.packAssortmentNamed", {
-                          n: assortment.packSize,
-                          unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
-                          symbol,
-                        })
-                      : t("product.packAssortmentPack", { symbol })
+                    : t("product.packAssortmentPack", { symbol })
                   : assortment.kind === "multipack"
                     ? t("product.packMultipack", { symbol })
                     : assortment.kind === "pack"
@@ -216,11 +205,9 @@ export function ProductDetail({ product }: { product: Product }) {
             {assortment?.packSize === 10 && assortment.preserveSizes
               ? t("product.orderPack10")
               : assortment?.kind === "assortment"
-                ? curvePairs && curvePairs > 1
-                  ? t("product.orderAssortmentNamed", { n: curvePairs })
-                  : assortment.packSize && assortment.packSize > 1
-                    ? t("product.orderAssortmentNamed", { n: assortment.packSize })
-                    : t("product.orderAssortment")
+                ? packView.pairCount && packView.pairCount > 1
+                  ? t("product.orderAssortmentNamed", { n: packView.pairCount })
+                  : t("product.orderAssortment")
                 : assortment?.kind === "multipack"
                   ? t("product.orderMultipack")
                   : assortment?.kind === "pack"

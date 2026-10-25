@@ -2,7 +2,7 @@ import { isZeroStockVisible } from "@/lib/visibility";
 import portalListKeys from "@/data/joma-portal-list-keys.json";
 
 const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
-import { surtidoCurveSizes } from "@/lib/assortment";
+import { clientAssortment, surtidoCurveSizes, type ClientAssortment } from "@/lib/assortment";
 import { matchesAudienceInFolder, productAudience } from "@/lib/audience";
 import {
   AUDIENCES,
@@ -307,9 +307,12 @@ export function paginateListing(
 }
 
 /** Drop server-only search/folder helpers before sending a row to the browser. */
-export function toClientProduct(product: Product): Product {
+export function toClientProduct(product: Product): Product & { assortment: ClientAssortment } {
   const { hay: _hay, folders: _folders, ...rest } = product as ListingItem;
-  return versionProductImages(rest);
+  return {
+    ...versionProductImages(rest),
+    assortment: clientAssortment(product),
+  };
 }
 
 export function buildListing(
