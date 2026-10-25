@@ -1,5 +1,5 @@
-import { isZeroStockVisible } from "@/lib/visibility";
 import portalListKeys from "@/data/joma-portal-list-keys.json";
+import { DPO_TEST_CODE } from "@/lib/dpo-test-product";
 
 const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
 import { clientAssortment, surtidoCurveSizes, type ClientAssortment } from "@/lib/assortment";
@@ -14,7 +14,7 @@ import {
 } from "@/lib/catalog";
 import { sortByFolderOrder } from "@/lib/folder-order";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
-import { hasUsableProductImage } from "@/lib/media";
+import { cardImageUrl, hasUsableProductImage } from "@/lib/media";
 import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
@@ -182,13 +182,9 @@ export function filterListing(
       list = list.filter((p) => listingInHub(p, scopedCat));
     }
   }
-  // Pack-price guard: hidden SKUs never surface in listings (covers the
-  // Joma folder path too, which bypasses searchListing).
-  // Joma folder listings also show zero-stock items as "Sold out" (portal parity).
+  // Unavailable rows and the checkout test SKU stay out of totals, pages, and facets.
   list = list.filter(
-    (p) =>
-      (p as { available?: boolean }).available !== false ||
-      (Boolean(jomaGroup) && !q && isZeroStockVisible(p as Parameters<typeof isZeroStockVisible>[0])),
+    (p) => p.code !== DPO_TEST_CODE && (p as { available?: boolean }).available !== false,
   );
 
   if (opts?.badges?.length) {
@@ -307,10 +303,15 @@ export function paginateListing(
 }
 
 /** Drop server-only search/folder helpers before sending a row to the browser. */
-export function toClientProduct(product: Product): Product & { assortment: ClientAssortment } {
-  const { hay: _hay, folders: _folders, ...rest } = product as ListingItem;
+export function toClientProduct(
+  product: Product & { cardImage?: string | null },
+): Product & { assortment: ClientAssortment; cardImage: string | null } {
+  const { hay: _hay, folders: _folders, cardImage: existing, ...rest } = product as ListingItem & {
+    cardImage?: string | null;
+  };
   return {
     ...versionProductImages(rest),
+    cardImage: "cardImage" in product ? (existing ?? null) : cardImageUrl(product),
     assortment: clientAssortment(product),
   };
 }

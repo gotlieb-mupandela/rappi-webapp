@@ -105,13 +105,48 @@ export function productCardImageCandidates(product: {
 }
 
 /**
- * Prefer Demandware `medium` gallery shots for cards, then Joma.net primary.
+ * Prefer the medium gallery shot for cards, then the supplier CDN primary.
  */
+const ALLOWED_REMOTE_IMAGES = [
+  { host: "wsrv.nl", pathnamePrefix: "/" },
+  {
+    host: "wzmzwerzbyudcvoiiege.supabase.co",
+    pathnamePrefix: "/storage/v1/object/public/product-images/",
+  },
+  { host: "www.joma-sport.com", pathnamePrefix: "/on/demandware.static/" },
+  { host: "v1.joma-sport.net", pathnamePrefix: "/files/" },
+] as const;
+
+/** Same hosts as `images.remotePatterns` / local paths in next.config.ts. */
+export function isAllowedProductImageUrl(url: string) {
+  if (!url || url.startsWith("//")) return false;
+  if (url.startsWith("/")) return true;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:") return false;
+  return ALLOWED_REMOTE_IMAGES.some(
+    (rule) => parsed.hostname === rule.host && parsed.pathname.startsWith(rule.pathnamePrefix),
+  );
+}
+
+/** First card candidate, or null when that URL is missing or not an allowed host. */
+export function cardImageUrl(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}): string | null {
+  const first = productCardImageCandidates(product)[0] ?? "";
+  return first && isAllowedProductImageUrl(first) ? first : null;
+}
+
 export function productCardImageUrl(product: {
   imageUrl?: string | null;
   images?: string[] | null;
 }) {
-  return productCardImageCandidates(product)[0] ?? "";
+  return cardImageUrl(product) ?? "";
 }
 
 /**
@@ -228,5 +263,8 @@ export function listingCardCandidates(
   const code = product.code ?? "";
   if (audience === "kids" && !/^[56]\d{5}\./.test(code)) return tileImageCandidates(product);
   if (audience === "women" && !/^9\d{5}\./.test(code)) return tileImageCandidates(product);
-  return productCardImageCandidates(product);
+  const urls = productCardImageCandidates(product);
+  const primary = cardImageUrl(product);
+  if (!primary || urls[0] === primary) return urls;
+  return [primary, ...urls.filter((url) => url !== primary)];
 }

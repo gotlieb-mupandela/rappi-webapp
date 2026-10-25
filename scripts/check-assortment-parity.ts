@@ -28,7 +28,9 @@ import {
   surtidoSizeLabel,
   type ClientAssortment,
 } from "../lib/assortment";
-import { toClientProduct } from "../lib/listing-core";
+import { toClientProduct, buildListing, filterListing } from "../lib/listing-core";
+import { cardImageUrl, isAllowedProductImageUrl, listingCardCandidates, productCardImageCandidates } from "../lib/media";
+import { versionProductImages } from "../lib/image-cache";
 import { makeT } from "../lib/i18n/translate";
 import type { Product } from "../lib/types";
 
@@ -183,6 +185,27 @@ function checkProduct(product: Product) {
   if (client.price !== product.price || client.unitPrice !== product.unitPrice) {
     fail(`${product.code} price changed`);
   }
+  if (client.imageUrl !== versionProductImages(product).imageUrl) {
+    fail(`${product.code} imageUrl changed`);
+  }
+  const siteCard = listingCardCandidates(product)[0] || null;
+  const expectedCard = cardImageUrl(product);
+  if (client.cardImage !== expectedCard) {
+    fail(`${product.code} cardImage !== cardImageUrl()`);
+  }
+  if (expectedCard !== (productCardImageCandidates(product)[0] ?? null) && expectedCard !== null) {
+    fail(`${product.code} cardImage is not the first card candidate`);
+  }
+  if (siteCard && isAllowedProductImageUrl(siteCard) && client.cardImage !== siteCard) {
+    fail(`${product.code} cardImage !== site card candidate`);
+  }
+  if (client.cardImage !== null && !isAllowedProductImageUrl(client.cardImage)) {
+    fail(`${product.code} cardImage host is not allowed`);
+  }
+  const again = toClientProduct(client);
+  if (again.cardImage !== client.cardImage || again.imageUrl !== client.imageUrl) {
+    fail(`${product.code} cardImage is not stable`);
+  }
   if (client.packSize !== product.packSize || client.sellAs !== product.sellAs) {
     fail(`${product.code} packSize or sellAs changed`);
   }
@@ -320,6 +343,25 @@ async function main() {
   if (apparel.length < 10) fail(`expected at least 10 apparel rows with several photos, found ${apparel.length}`);
   if (footwear.length < 10) fail(`expected at least 10 footwear rows with several photos, found ${footwear.length}`);
   if (sample.size < 40) fail(`expected a sample of at least 40 products, found ${sample.size}`);
+  const withCard = products.filter((product) => cardImageUrl(product)).length;
+  if (withCard < 40) fail(`expected card images on at least 40 products, found ${withCard}`);
+
+  for (const cat of ["shoes", "sportswear"] as const) {
+    const listing = buildListing(products, { cat });
+    const rows = filterListing(products, { cat });
+    if (listing.total !== rows.length) fail(`${cat} total ${listing.total} !== filtered ${rows.length}`);
+    const pageCount = Math.max(1, Math.ceil(rows.length / listing.pageSize));
+    if (listing.pageCount !== pageCount) fail(`${cat} pageCount drifted`);
+    if (rows.some((product) => product.available === false || product.code === "DPO-TEST")) {
+      fail(`${cat} listing still contains an unavailable or test product`);
+    }
+    console.log(`${cat} total ${listing.total} pageCount ${listing.pageCount}`);
+  }
+  const trail = filterListing(products, { cat: "shoes", group: "running-trail" });
+  if (trail.some((product) => product.available === false || product.code === "DPO-TEST")) {
+    fail("shoes running-trail still lists an unavailable product");
+  }
+  console.log(`shoes running-trail ${trail.length}`);
 
   const issues: Issue[] = [];
   for (const product of products) {
