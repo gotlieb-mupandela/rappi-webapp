@@ -1,5 +1,5 @@
 import { verifyToken } from "@/lib/dpo";
-import { resolveDpoPaymentAccess, type DpoPaymentTrust } from "@/lib/dpo-payment-access";
+import { dpoCancelOutcome, resolveDpoPaymentAccess, type DpoPaymentTrust } from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
@@ -200,6 +200,21 @@ export async function fulfillDpoPayment(input: {
   };
 }
 
+async function verifyResultBeforeCancel(access: {
+  verification: { result: string | null } | null;
+  transToken: string | null;
+  payment: Payment;
+}) {
+  if (access.verification) return access.verification.result;
+  const token = access.transToken || access.payment.trans_token;
+  if (!token) return null;
+  try {
+    return (await verifyToken(token)).result;
+  } catch {
+    return null;
+  }
+}
+
 export async function cancelDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
@@ -212,7 +227,19 @@ export async function cancelDpoPayment(input: {
   if (payment.status === "paid") {
     return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
   }
-  if (payment.status !== "pending") {
+
+  const verifyResult = payment.status === "pending" ? await verifyResultBeforeCancel(access) : null;
+  const outcome = dpoCancelOutcome({ localStatus: payment.status, verifyResult });
+  if (!outcome.writeCancelled) {
+    if (outcome.status === "paid") {
+      return {
+        ok: true,
+        status: "paid",
+        message: verifyResult?.trim() === "001" ? "Card authorized" : "Already paid.",
+        payment,
+        orderId: payment.order_id,
+      };
+    }
     return {
       ok: true,
       status: payment.status,

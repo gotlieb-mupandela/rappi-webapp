@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  dpoCancelOutcome,
   dpoVerificationGrantsAccess,
   resolveDpoPaymentAccess,
   trustForCheckoutCaller,
@@ -214,6 +215,42 @@ test("recognized DPO transaction results grant token access and request errors d
   assert.equal(dpoVerificationGrantsAccess(verified("000", null), "RSH-OWNED"), true);
 });
 
+test("DPO result 000 does not cancel the payment", () => {
+  const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult: "000" });
+  assert.equal(outcome.writeCancelled, false);
+  assert.equal(outcome.status, "paid");
+});
+
+test("DPO result 001 does not cancel the payment", () => {
+  const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult: "001" });
+  assert.equal(outcome.writeCancelled, false);
+  assert.equal(outcome.status, "paid");
+});
+
+test("a normal DPO cancel code still cancels a pending payment", () => {
+  const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult: "904" });
+  assert.equal(outcome.writeCancelled, true);
+  assert.equal(outcome.status, "cancelled");
+});
+
+test("an already-paid payment is never moved to cancelled", () => {
+  const answers = ["000", "001", "904", "900", "801", "802", "803", "804", "902", "950", null, undefined, ""];
+  for (const verifyResult of answers) {
+    const outcome = dpoCancelOutcome({ localStatus: "paid", verifyResult });
+    assert.equal(outcome.writeCancelled, false, `cancelled a paid payment for ${String(verifyResult)}`);
+    assert.equal(outcome.status, "paid");
+  }
+});
+
+test("a DPO request-failure code still follows the pending cancel rule", () => {
+  for (const verifyResult of ["801", "802", "803", "804", "902", "950", null]) {
+    const pending = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    assert.equal(pending.writeCancelled, true, String(verifyResult));
+    const paid = dpoCancelOutcome({ localStatus: "paid", verifyResult });
+    assert.equal(paid.writeCancelled, false, String(verifyResult));
+  }
+});
+
 test("fulfill and cancel use the explicit trust decision", () => {
   const payments = readSource("lib/dpo-payments.ts");
   const webhook = readSource("app/api/payments/dpo/webhook/route.ts");
@@ -222,6 +259,8 @@ test("fulfill and cancel use the explicit trust decision", () => {
   assert.equal(payments.includes("userId === undefined"), false);
   assert.equal(payments.includes("resolveDpoPaymentAccess"), true);
   assert.match(payments, /access\.verification \?\? \(await verifyToken\(token\)\)/);
+  assert.match(payments, /dpoCancelOutcome/);
+  assert.match(payments, /status: "cancelled"/);
   assert.match(webhook, /trusted:\s*"webhook"/);
   assert.match(webhook, /function authorized/);
   assert.match(ret, /trustForCheckoutCaller\(user\)/);

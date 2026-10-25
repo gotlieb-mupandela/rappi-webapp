@@ -45,6 +45,24 @@ export function trustForCheckoutCaller(user: { id?: string | null } | null | und
   return user ? "user" : "dpo-token";
 }
 
+/**
+ * Whether cancel may write status "cancelled".
+ * 000 and 001 mean DPO has paid or authorized the transaction, so the row is left as it is
+ * and the cancel page shows the paid result. Request-failure codes (801-804, 902, 950)
+ * and any other answer keep today's rule: only a pending row is cancelled.
+ * A row that is already paid is never cancelled.
+ */
+export function dpoCancelOutcome(input: {
+  localStatus: string;
+  verifyResult?: string | null;
+}): { writeCancelled: boolean; status: string } {
+  if (input.localStatus === "paid") return { writeCancelled: false, status: "paid" };
+  const code = input.verifyResult?.trim() ?? "";
+  if (code === "000" || code === "001") return { writeCancelled: false, status: "paid" };
+  if (input.localStatus === "pending") return { writeCancelled: true, status: "cancelled" };
+  return { writeCancelled: false, status: input.localStatus };
+}
+
 export function dpoVerificationGrantsAccess(
   verification: DpoTokenVerification | null | undefined,
   paymentCompanyRef: string,
