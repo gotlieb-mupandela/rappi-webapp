@@ -102,14 +102,12 @@ export async function fulfillDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
   userId?: string | null;
-  /** Set only by the secret-checked DPO webhook. Skips the customer check. */
-  trusted?: boolean;
 }): Promise<DpoFulfillResult> {
-  if (!input.trusted && input.userId !== undefined && !input.userId) {
+  if (input.userId !== undefined && !input.userId) {
     return PAYMENT_NOT_FOUND;
   }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || (!input.trusted && !ownsPayment(payment, input.userId))) {
+  if (!payment || !ownsPayment(payment, input.userId)) {
     return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {
