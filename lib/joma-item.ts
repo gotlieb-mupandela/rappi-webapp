@@ -10,6 +10,9 @@ const SECTION_STOP =
 /** Whole-word supplier token. Never copied into a public line label. */
 const SUPPLIER_TOKEN = /^joma$/i;
 
+/** Joiner kept between two words. A public line must not end on one of these. */
+const LINE_SEPARATOR = /^(?:&|\/|-)$/;
+
 /** Normalized supplier `item` family (drops a trailing [n] pack marker). Server use only. */
 export function itemFamilyOf(product: Pick<Product, "item">) {
   return normalizeFamily(product.item || "");
@@ -31,9 +34,12 @@ function titleCase(value: string) {
 
 /**
  * Public product-line label.
- * Same one-or-two-word title the shop grid uses for a line section:
+ * Same short title the shop grid uses for a line section:
  * drop the trailing [n], drop the supplier token, keep the first word and the
- * second word unless it is a colour or edition stop, then title-case.
+ * second word unless it is a colour or edition stop. When that second word is
+ * a separator (&, /, -), also keep the word after it. The stop-word rule
+ * applies to that third word only: if it is a stop word, or there is no third
+ * word, drop the separator and keep the first word. Title-case the result.
  * An empty source returns "" so clients can fall back to their own "More".
  */
 export function productLineLabel(item: string | null | undefined): string {
@@ -41,9 +47,19 @@ export function productLineLabel(item: string | null | undefined): string {
   if (!fam) return "";
   const tokens = fam.split(" ").filter((token) => token && !SUPPLIER_TOKEN.test(token));
   if (!tokens.length) return "";
-  const out = [tokens[0]];
-  if (tokens[1] && !SECTION_STOP.test(tokens[1])) out.push(tokens[1]);
-  return titleCase(out.join(" "));
+  const kept = [tokens[0]];
+  const second = tokens[1];
+  if (second && !SECTION_STOP.test(second)) {
+    if (LINE_SEPARATOR.test(second)) {
+      const third = tokens[2];
+      if (third && !SECTION_STOP.test(third)) kept.push(second, third);
+    } else {
+      kept.push(second);
+    }
+  }
+  while (kept.length > 0 && LINE_SEPARATOR.test(kept[kept.length - 1])) kept.pop();
+  if (!kept.length) return "";
+  return titleCase(kept.join(" "));
 }
 
 export function productLineOf(product: Pick<Product, "item" | "line">) {

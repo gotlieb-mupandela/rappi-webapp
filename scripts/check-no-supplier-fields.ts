@@ -1,7 +1,10 @@
 /**
- * Public payloads must not carry supplier line fields.
+ * Public payloads must not carry supplier line fields, and a public `line`
+ * must not end in &, /, or -.
  * Scans public/listing-index.json, a local sample of client product JSON,
  * and built client chunks under .next/static.
+ * Prerendered pages under .next/server/app are scanned only when that
+ * directory exists, which a full `npm run build` creates.
  *
  * Run after `npm run build` so the chunk scan has output to read.
  */
@@ -18,8 +21,24 @@ const staticDir = join(root, ".next", "static");
 
 const BANNED = ["Joma Flow [", "JOMA KIDS SET"];
 const SUPPLIER_TOKEN = /joma/i;
+const TRAILING_SEPARATOR = /(?:&|\/|-)$/;
 const STRING_KEY = /"(item|sheetCategory)"\s*:\s*"/g;
 const LINE_VALUE = /"line"\s*:\s*"([^"\\]*)"/gi;
+
+const LINE_CASES: Array<[string, string]> = [
+  ["Jackets & Sweatshirts [186]", "Jackets & Sweatshirts"],
+  ["Pants / Shorts [200]", "Pants / Shorts"],
+  ["T-shirt / Top [183]", "T-Shirt / Top"],
+  ["Tennis - Padel woman [48]", "Tennis - Padel"],
+  ["3.99 - 4.99 [164]", "3.99 - 4.99"],
+  ["Atheletes / Combat [23]", "Atheletes / Combat"],
+  ["Sweatshirt / Jacket [124]", "Sweatshirt"],
+  ["T-shirts & Polo Shirts [62]", "T-Shirts & Polo"],
+  ["Fitness / Gym Accessories [64]", "Fitness / Gym"],
+  ["Jackets & Black", "Jackets"],
+  ["Jackets &", "Jackets"],
+  ["JOMA Jackets & Sweatshirts", "Jackets & Sweatshirts"],
+];
 
 let failed = 0;
 
@@ -54,9 +73,16 @@ function assertNoSupplierKeys(rows: Array<Record<string, unknown>>, label: strin
       fail(`${label} ${code} is missing line`);
       continue;
     }
-    if (SUPPLIER_TOKEN.test(row.line)) {
-      fail(`${label} ${code} line contains a supplier token`);
-    }
+    assertPublicLine(row.line, `${label} ${code}`);
+  }
+}
+
+function assertPublicLine(line: string, label: string) {
+  if (SUPPLIER_TOKEN.test(line)) {
+    fail(`${label} line contains a supplier token`);
+  }
+  if (TRAILING_SEPARATOR.test(line.trim())) {
+    fail(`${label} line ends in a separator: ${JSON.stringify(line)}`);
   }
 }
 
@@ -85,6 +111,14 @@ if (kidsSet !== "Kids Set" || SUPPLIER_TOKEN.test(kidsSet)) {
 }
 if (productLineLabel("") !== "") fail("empty item must produce an empty line");
 if (productLineLabel("   ") !== "") fail("blank item must produce an empty line");
+for (const [source, expected] of LINE_CASES) {
+  const line = productLineLabel(source);
+  if (line !== expected) fail(`line label drifted for ${JSON.stringify(source)}: ${JSON.stringify(line)}`);
+  assertPublicLine(line, `label ${JSON.stringify(source)}`);
+}
+for (const product of catalog) {
+  assertPublicLine(productLineLabel(product.item), `catalog ${product.code}`);
+}
 
 function scanText(file: string, text: string) {
   for (const needle of bannedHits(text)) {
@@ -95,7 +129,7 @@ function scanText(file: string, text: string) {
   const lineRe = new RegExp(LINE_VALUE.source, "gi");
   let match: RegExpExecArray | null;
   while ((match = lineRe.exec(text))) {
-    if (SUPPLIER_TOKEN.test(match[1] ?? "")) fail(`${file} line value contains a supplier token`);
+    assertPublicLine(match[1] ?? "", file);
   }
 }
 
@@ -131,5 +165,5 @@ if (failed) {
 }
 
 console.log(
-  `ok listing-index ${listing.length} rows, client sample ${clientRows.length} rows, no supplier line fields`,
+  `ok listing-index ${listing.length} rows, client sample ${clientRows.length} rows, no supplier line fields, no line ending in a separator`,
 );
