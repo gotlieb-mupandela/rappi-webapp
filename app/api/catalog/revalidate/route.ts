@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { revalidateCatalog } from "@/lib/admin/revalidate-catalog";
 
@@ -6,9 +6,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function secretsMatch(provided: string, expected: string) {
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
+  // An unset secret must never match, including an empty Authorization header.
+  // Hashing first keeps the compare the same length, so a short guess does not
+  // return before timingSafeEqual.
+  if (!expected) return false;
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
 }
 
 function authorized(request: Request) {
