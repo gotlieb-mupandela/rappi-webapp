@@ -1,0 +1,175 @@
+[
+  {
+    "code": "CARD-MEDIUM",
+    "name": "Match jersey",
+    "price": 304,
+    "category": "sportswear",
+    "gender": "men",
+    "folders": ["teamwear"],
+    "imageUrl": "https://v1.joma-sport.net/files/card-primary.jpg",
+    "images": ["https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/CARD_1.jpg"]
+  },
+  {
+    "code": "REL-PATH",
+    "name": "Court short",
+    "price": 199,
+    "category": "sportswear",
+    "folders": ["running-trail"],
+    "imageUrl": "/catalog-photos/rel-path.jpg",
+    "images": ["/catalog-photos/rel-path.jpg"]
+  },
+  {
+    "code": "PACK-25",
+    "name": "Training cones",
+    "price": 2218,
+    "category": "football",
+    "subcategory": "equipment",
+    "sellAs": "pack",
+    "packSize": 25,
+    "folders": ["acc-balls"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/PACK25_1.jpg"
+  },
+  {
+    "code": "ASSORT-12",
+    "name": "Indoor court shoe",
+    "price": 4656,
+    "category": "shoes",
+    "subcategory": "sneakers",
+    "gender": "men",
+    "sellAs": "assortment",
+    "packSize": 12,
+    "folders": ["footwear-outlet"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/ASSORT12_1.jpg"
+  },
+  {
+    "code": "KIDS-14",
+    "name": "Junior tee",
+    "price": 250,
+    "category": "sportswear",
+    "gender": "kids",
+    "folders": ["kids-1-4"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/KIDS14_1.jpg"
+  },
+  {
+    "code": "WOMAN-CYCLE",
+    "name": "Road jersey",
+    "price": 890,
+    "category": "sportswear",
+    "gender": "women",
+    "folders": ["w-cycling"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/CYCLE_1.jpg"
+  },
+  {
+    "code": "LONG-NAME",
+    "name": "Lightweight training layer for match day and travel, with a roomy cut, a number print area, and a plain colourway for clubs that want one shirt across a full squad list",
+    "price": 640,
+    "category": "sportswear",
+    "folders": ["lifestyle-apparel"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/LONG_1.jpg"
+  },
+  {
+    "code": "STRIP-BRAND",
+    "name": "Club Joma boot",
+    "price": 1200,
+    "category": "shoes",
+    "subcategory": "sneakers",
+    "gender": "men",
+    "folders": ["cycling"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/BOOT_1.jpg"
+  },
+  {
+    "code": "PRICE-1083",
+    "name": "Travel polo",
+    "price": 1083,
+    "category": "lifestyle",
+    "folders": ["resort"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/POLO_1.jpg"
+  },
+  {
+    "code": "OUTLET-ONE",
+    "name": "Clearance tee",
+    "price": 199,
+    "category": "sportswear",
+    "folders": ["outlet-promotions"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/OUTLET_1.jpg"
+  },
+  {
+    "code": "HTTP-DROP",
+    "name": "Plain http photo",
+    "price": 150,
+    "category": "sportswear",
+    "imageUrl": "http://example.com/hidden.jpg",
+    "images": ["http://example.com/hidden.jpg"]
+  },
+  {
+    "code": "MULTI-6",
+    "name": "Bottle pack",
+    "price": 420,
+    "category": "sportswear",
+    "sellAs": "multipack",
+    "packSize": 6,
+    "folders": ["acc-backpacks"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/MULTI_1.jpg"
+  },
+  {
+    "code": "PLAIN-01",
+    "name": "Training short",
+    "price": 280,
+    "category": "football",
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/P01_1.jpg"
+  },
+  {
+    "code": "PLAIN-02",
+    "name": "Gym tee",
+    "price": 310,
+    "category": "running-fitness",
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/P02_1.jpg"
+  },
+  {
+    "code": "PLAIN-03",
+    "name": "Match sock",
+    "price": 90,
+    "category": "football",
+    "subcategory": "socks",
+    "folders": ["acc-socks"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/P03_1.jpg"
+  },
+  {
+    "code": "PLAIN-04",
+    "name": "Court visor",
+    "price": 140,
+    "category": "padel",
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/P04_1.jpg"
+  },
+  {
+    "code": "PLAIN-05",
+    "name": "Rain shell",
+    "price": 760,
+    "category": "hiking",
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/P05_1.jpg"
+  },
+  {
+    "code": "PLAIN-06",
+    "name": "Base layer",
+    "price": 330,
+    "category": "brama",
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/P06_1.jpg"
+  },
+  {
+    "code": "HIDDEN-UNAVAIL",
+    "name": "Hidden tee",
+    "price": 10,
+    "available": false,
+    "category": "sportswear",
+    "folders": ["kids-6-10"],
+    "imageUrl": "https://www.joma-sport.com/on/demandware.static/Sites-joma-sport/images/medium/HIDDEN_1.jpg"
+  },
+  {
+    "code": "DPO-TEST",
+    "name": "Checkout probe",
+    "price": 10,
+    "category": "sportswear",
+    "imageUrl": "/dpo-test.svg",
+    "images": ["/dpo-test.svg"]
+  }
+]

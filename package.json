@@ -14,6 +14,8 @@
     "check:pack-prices": "node scripts/check-pack-prices.mjs",
     "check:assortment": "npx tsx scripts/check-assortment-parity.ts",
     "check:catalog-version": "npx tsx scripts/check-catalog-version.ts",
+    "check:feed": "npx tsx scripts/check-feed.ts",
+    "dev:fixture": "npx tsx scripts/dev-fixture.ts",
     "descriptions:joma": "node scripts/fetch-joma-descriptions.mjs",
     "check:i18n": "npx tsx scripts/check-i18n.ts",
     "bake:catalog": "npx tsx scripts/bake-catalog.ts",
