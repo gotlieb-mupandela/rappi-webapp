@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
+  DPO_CANCEL_CONFIRMING,
   dpoCancelOutcome,
   dpoVerificationGrantsAccess,
   resolveDpoPaymentAccess,
@@ -231,10 +232,13 @@ test("DPO result 001 does not cancel the payment", () => {
   assert.equal(outcome.status, "paid");
 });
 
-test("a normal DPO cancel code still cancels a pending payment", () => {
-  const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult: "904" });
-  assert.equal(outcome.writeCancelled, true);
-  assert.equal(outcome.status, "cancelled");
+test("a clear not-paid DPO code still cancels a pending payment", () => {
+  for (const verifyResult of ["900", "904"]) {
+    const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    assert.equal(outcome.writeCancelled, true, verifyResult);
+    assert.equal(outcome.status, "cancelled");
+    assert.equal(outcome.confirming, false);
+  }
 });
 
 test("an already-paid payment is never moved to cancelled", () => {
@@ -246,12 +250,21 @@ test("an already-paid payment is never moved to cancelled", () => {
   }
 });
 
-test("a DPO request-failure code still follows the pending cancel rule", () => {
-  for (const verifyResult of ["801", "802", "803", "804", "902", "950", null]) {
-    const pending = dpoCancelOutcome({ localStatus: "pending", verifyResult });
-    assert.equal(pending.writeCancelled, true, String(verifyResult));
-    const paid = dpoCancelOutcome({ localStatus: "paid", verifyResult });
-    assert.equal(paid.writeCancelled, false, String(verifyResult));
+test("a failed or thrown verify leaves a pending payment pending", () => {
+  for (const verifyResult of [null, undefined, ""]) {
+    const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    assert.equal(outcome.writeCancelled, false, String(verifyResult));
+    assert.equal(outcome.status, "pending");
+    assert.equal(outcome.confirming, true);
+  }
+});
+
+test("DPO request-failure codes do not cancel a pending payment", () => {
+  for (const verifyResult of ["801", "802", "803", "804", "902", "950"]) {
+    const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
+    assert.equal(outcome.writeCancelled, false, verifyResult);
+    assert.equal(outcome.status, "pending");
+    assert.equal(outcome.confirming, true);
   }
 });
 
@@ -313,6 +326,10 @@ test("fulfill and cancel use the explicit trust decision", () => {
   assert.match(webhook, /function authorized/);
   assert.match(ret, /trustForCheckoutCaller\(user\)/);
   assert.match(cancel, /trustForCheckoutCaller\(user\)/);
+  assert.match(cancel, /DPO_CANCEL_CONFIRMING/);
+  assert.match(cancel, /checkout\.paymentStatusConfirming/);
+  assert.match(makeT("na")("checkout.paymentStatusConfirming"), /has not been cancelled/i);
+  assert.equal(DPO_CANCEL_CONFIRMING === makeT("na")("checkout.paymentStatusConfirming"), false);
 });
 
 const OTHER_USER_PAYMENT = {

@@ -378,6 +378,7 @@ export const en = {
     failed: "Checkout failed.",
     paymentConfirmFailed:
       "We could not confirm this payment right now. If you were charged, please contact us with your order reference.",
+    paymentStatusConfirming: "We are confirming this payment status. It has not been cancelled.",
   },
   shipping: {
     standard: "Standard (5–8 days)",
@@ -1577,6 +1578,7 @@ export const fr: Messages = {
     failed: "Échec de la commande.",
     paymentConfirmFailed:
       "Nous n’avons pas pu confirmer ce paiement pour le moment. Si vous avez été débité, contactez-nous avec votre référence de commande.",
+    paymentStatusConfirming: "Nous confirmons le statut de ce paiement. Il n’a pas été annulé.",
   },
   shipping: {
     standard: "Standard (5–8 jours)",

@@ -1,5 +1,10 @@
 import { verifyToken } from "@/lib/dpo";
-import { dpoCancelOutcome, resolveDpoPaymentAccess, type DpoPaymentTrust } from "@/lib/dpo-payment-access";
+import {
+  DPO_CANCEL_CONFIRMING,
+  dpoCancelOutcome,
+  resolveDpoPaymentAccess,
+  type DpoPaymentTrust,
+} from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
@@ -236,6 +241,15 @@ export async function cancelDpoPayment(input: {
         ok: true,
         status: "paid",
         message: verifyResult?.trim() === "001" ? "Card authorized" : "Already paid.",
+        payment,
+        orderId: payment.order_id,
+      };
+    }
+    if (outcome.confirming) {
+      return {
+        ok: true,
+        status: payment.status,
+        message: DPO_CANCEL_CONFIRMING,
         payment,
         orderId: payment.order_id,
       };

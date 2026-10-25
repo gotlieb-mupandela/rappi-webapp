@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { presentCheckoutFailure } from "@/lib/checkout-payment-error";
-import { trustForCheckoutCaller } from "@/lib/dpo-payment-access";
+import { DPO_CANCEL_CONFIRMING, trustForCheckoutCaller } from "@/lib/dpo-payment-access";
 import { cancelDpoPayment } from "@/lib/dpo-payments";
 import { getT } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -47,6 +47,8 @@ export default async function CheckoutCancelPage({
       });
       if (result.status === "paid") {
         body = "This payment was already verified as paid.";
+      } else if (result.message === DPO_CANCEL_CONFIRMING) {
+        body = t("checkout.paymentStatusConfirming");
       } else if (result.payment) {
         body = `Payment ${result.payment.company_ref} is ${result.status}.`;
       }

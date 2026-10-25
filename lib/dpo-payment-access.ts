@@ -45,22 +45,31 @@ export function trustForCheckoutCaller(user: { id?: string | null } | null | und
   return user ? "user" : "dpo-token";
 }
 
+/** Sentinel for the cancel page. Visitors see the localized confirming copy instead. */
+export const DPO_CANCEL_CONFIRMING = "status-confirming";
+
+/** DPO answers that clearly mean the transaction was not paid or was cancelled. */
+const DPO_MAY_CANCEL = new Set(["900", "901", "903", "904"]);
+
 /**
  * Whether cancel may write status "cancelled".
- * 000 and 001 mean DPO has paid or authorized the transaction, so the row is left as it is
- * and the cancel page shows the paid result. Request-failure codes (801-804, 902, 950)
- * and any other answer keep today's rule: only a pending row is cancelled.
+ * 000 and 001 leave the row unchanged and the page shows the paid result.
+ * A missing answer, a thrown verify, or a request-failure code (801-804, 902, 950)
+ * leaves a pending row pending. Only a clear not-paid or cancelled code may cancel it.
  * A row that is already paid is never cancelled.
  */
 export function dpoCancelOutcome(input: {
   localStatus: string;
   verifyResult?: string | null;
-}): { writeCancelled: boolean; status: string } {
-  if (input.localStatus === "paid") return { writeCancelled: false, status: "paid" };
+}): { writeCancelled: boolean; status: string; confirming: boolean } {
+  if (input.localStatus === "paid") return { writeCancelled: false, status: "paid", confirming: false };
   const code = input.verifyResult?.trim() ?? "";
-  if (code === "000" || code === "001") return { writeCancelled: false, status: "paid" };
-  if (input.localStatus === "pending") return { writeCancelled: true, status: "cancelled" };
-  return { writeCancelled: false, status: input.localStatus };
+  if (code === "000" || code === "001") return { writeCancelled: false, status: "paid", confirming: false };
+  if (input.localStatus !== "pending") {
+    return { writeCancelled: false, status: input.localStatus, confirming: false };
+  }
+  if (DPO_MAY_CANCEL.has(code)) return { writeCancelled: true, status: "cancelled", confirming: false };
+  return { writeCancelled: false, status: "pending", confirming: true };
 }
 
 export function dpoVerificationGrantsAccess(
