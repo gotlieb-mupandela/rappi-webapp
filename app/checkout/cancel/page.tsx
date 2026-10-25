@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
+import { presentCheckoutFailure } from "@/lib/checkout-payment-error";
 import { trustForCheckoutCaller } from "@/lib/dpo-payment-access";
 import { cancelDpoPayment } from "@/lib/dpo-payments";
+import { getT } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +28,7 @@ export default async function CheckoutCancelPage({
   const params = await searchParams;
   const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
+  const t = await getT();
   const supabase = await createClient();
   const {
     data: { user },
@@ -48,7 +51,7 @@ export default async function CheckoutCancelPage({
         body = `Payment ${result.payment.company_ref} is ${result.status}.`;
       }
     } catch (err) {
-      body = err instanceof Error ? err.message : "Could not update the cancelled payment.";
+      body = presentCheckoutFailure(err, t("checkout.paymentConfirmFailed"), "cancel");
     }
   }
 

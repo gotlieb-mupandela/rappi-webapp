@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   dpoCancelOutcome,
   dpoVerificationGrantsAccess,
@@ -12,6 +14,8 @@ import {
   type DpoPaymentTrust,
   type DpoTokenVerification,
 } from "../lib/dpo-payment-access";
+import { presentCheckoutFailure } from "../lib/checkout-payment-error";
+import { makeT } from "../lib/i18n/translate";
 import { readDpoPaymentStatus, type DpoStatusDeps } from "../lib/dpo-payment-status";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -249,6 +253,50 @@ test("a DPO request-failure code still follows the pending cancel rule", () => {
     const paid = dpoCancelOutcome({ localStatus: "paid", verifyResult });
     assert.equal(paid.writeCancelled, false, String(verifyResult));
   }
+});
+
+test("an internal payment error never appears in the rendered output", () => {
+  const secret = "tok_secret_value";
+  const err = new Error(
+    `Supabase admin is not configured. TransactionToken=${secret} Bearer ${secret}.jwt.part`,
+  );
+  const logs: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => {
+    logs.push(args.map((part) => String(part)).join(" "));
+  };
+  let shown = "";
+  try {
+    shown = presentCheckoutFailure(err, makeT("na")("checkout.paymentConfirmFailed"), "return");
+    const cancelShown = presentCheckoutFailure(err, makeT("eu")("checkout.paymentConfirmFailed"), "cancel");
+    const html = renderToStaticMarkup(
+      createElement(
+        "div",
+        null,
+        createElement("p", null, shown),
+        createElement("p", null, cancelShown),
+      ),
+    );
+    assert.equal(html.includes("Supabase admin is not configured"), false);
+    assert.equal(html.includes(secret), false);
+    assert.match(html, /could not confirm this payment right now/i);
+    assert.match(html, /confirmer ce paiement/);
+    assert.equal(shown, makeT("na")("checkout.paymentConfirmFailed"));
+  } finally {
+    console.error = original;
+  }
+  const logged = logs.join("\n");
+  assert.match(logged, /Supabase admin is not configured/);
+  assert.equal(logged.includes(secret), false);
+  assert.match(logged, /checkout return/);
+  assert.match(logged, /checkout cancel/);
+
+  const ret = readSource("app/checkout/return/page.tsx");
+  const cancel = readSource("app/checkout/cancel/page.tsx");
+  assert.equal(ret.includes("err.message"), false);
+  assert.equal(cancel.includes("err.message"), false);
+  assert.match(ret, /presentCheckoutFailure\(err, t\("checkout\.paymentConfirmFailed"\), "return"\)/);
+  assert.match(cancel, /presentCheckoutFailure\(err, t\("checkout\.paymentConfirmFailed"\), "cancel"\)/);
 });
 
 test("fulfill and cancel use the explicit trust decision", () => {

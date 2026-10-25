@@ -376,6 +376,8 @@ export const en = {
     invalidLine: "Invalid cart line for {code}.",
     lineStock: "Only {max} in stock for {code} size {size}.",
     failed: "Checkout failed.",
+    paymentConfirmFailed:
+      "We could not confirm this payment right now. If you were charged, please contact us with your order reference.",
   },
   shipping: {
     standard: "Standard (5–8 days)",
@@ -1573,6 +1575,8 @@ export const fr: Messages = {
     invalidLine: "Ligne de panier invalide pour {code}.",
     lineStock: "Plus que {max} en stock pour {code} taille {size}.",
     failed: "Échec de la commande.",
+    paymentConfirmFailed:
+      "Nous n’avons pas pu confirmer ce paiement pour le moment. Si vous avez été débité, contactez-nous avec votre référence de commande.",
   },
   shipping: {
     standard: "Standard (5–8 jours)",
