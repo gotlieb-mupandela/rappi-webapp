@@ -29,7 +29,9 @@ import {
   type ClientAssortment,
 } from "../lib/assortment";
 import { toClientProduct, buildListing, filterListing } from "../lib/listing-core";
+import { productDescription } from "../lib/copy";
 import { cardImageUrl, isAllowedProductImageUrl, listingCardCandidates, productCardImageCandidates } from "../lib/media";
+import { metaAbsoluteUrl, metaSiteUrl } from "../lib/meta/site";
 import { versionProductImages } from "../lib/image-cache";
 import { makeT } from "../lib/i18n/translate";
 import type { Product } from "../lib/types";
@@ -38,6 +40,16 @@ const en = makeT();
 const fr = makeT("eu");
 const BRAND = "Joma";
 const EM_DASH = "\u2014";
+
+/** Named tees with no stored sellAs or packSize. The title still says Pack of 25. */
+const PACK_OF_25 = [
+  "100807.040",
+  "100807.200",
+  "100807.250",
+  "100807.400",
+  "100807.600",
+  "100807.700",
+] as const;
 
 let failed = 0;
 
@@ -190,14 +202,28 @@ function checkProduct(product: Product) {
   }
   const siteCard = listingCardCandidates(product)[0] || null;
   const expectedCard = cardImageUrl(product);
+  const first = productCardImageCandidates(product)[0] ?? "";
   if (client.cardImage !== expectedCard) {
     fail(`${product.code} cardImage !== cardImageUrl()`);
   }
-  if (expectedCard !== (productCardImageCandidates(product)[0] ?? null) && expectedCard !== null) {
-    fail(`${product.code} cardImage is not the first card candidate`);
+  if (expectedCard) {
+    if (!/^https:\/\//i.test(expectedCard)) {
+      fail(`${product.code} cardImage is not an absolute https URL`);
+    }
+    const resolved = first.startsWith("/") ? metaAbsoluteUrl(first) : first;
+    if (expectedCard !== resolved) {
+      fail(`${product.code} cardImage is not the first card candidate`);
+    }
   }
-  if (siteCard && isAllowedProductImageUrl(siteCard) && client.cardImage !== siteCard) {
-    fail(`${product.code} cardImage !== site card candidate`);
+  if (siteCard) {
+    const siteAbsolute = siteCard.startsWith("/") ? metaAbsoluteUrl(siteCard) : siteCard;
+    if (
+      /^https:\/\//i.test(siteAbsolute) &&
+      isAllowedProductImageUrl(siteAbsolute) &&
+      client.cardImage !== siteAbsolute
+    ) {
+      fail(`${product.code} cardImage !== site card candidate`);
+    }
   }
   if (client.cardImage !== null && !isAllowedProductImageUrl(client.cardImage)) {
     fail(`${product.code} cardImage host is not allowed`);
@@ -256,6 +282,97 @@ function checkProduct(product: Product) {
 
 function photos(product: Product) {
   return product.images?.length ?? 0;
+}
+
+/**
+ * These six rows store no sellAs and no packSize. The product title still
+ * appends "Pack of 25" through packTitleSuffix, which reads clientAssortment.
+ */
+function assertPackOf25(products: Product[]) {
+  for (const code of PACK_OF_25) {
+    const product = products.find((row) => row.code === code);
+    if (!product) {
+      fail(`missing explicit pack case ${code}`);
+      continue;
+    }
+    if (product.sellAs) fail(`${code} stores sellAs ${product.sellAs}`);
+    if (product.packSize != null) fail(`${code} stores packSize ${product.packSize}`);
+
+    const info = getAssortment(product);
+    const view = clientAssortment(product);
+    const client = toClientProduct(product);
+    const suffix = packTitleSuffix(product, en);
+    const phrase = renderAssortmentLabel(view.titleKey, view.titleParams, en, null);
+    const badge = renderAssortmentLabel(view.labelKey, view.labelParams, en, view.label);
+    const title = (product.displayName || product.item) + (suffix ?? "");
+    const description = productDescription(product, { t: en });
+
+    if (phrase !== "Pack of 25") fail(`${code} title phrase is "${phrase}"`);
+    if (suffix !== " · Pack of 25") fail(`${code} title suffix is "${suffix}"`);
+    if (view.titleSuffix !== suffix || client.assortment.titleSuffix !== suffix) {
+      fail(`${code} API titleSuffix is not the site title suffix`);
+    }
+    if (!title.includes("Pack of 25")) fail(`${code} product title does not show Pack of 25`);
+    if (!/pack of 25/i.test(description)) fail(`${code} description does not say pack of 25`);
+    if (badge !== "Pack · 25 pcs") fail(`${code} badge is "${badge}"`);
+    if (badge !== view.label || client.assortment.label !== view.label) {
+      fail(`${code} API badge is not the site badge`);
+    }
+    if (!view.isPack || !client.assortment.isPack) fail(`${code} isPack is false`);
+    if (view.pairCount !== 25 || client.assortment.pairCount !== 25) {
+      fail(`${code} pack size is ${view.pairCount}`);
+    }
+    if (info?.packSize !== 25) fail(`${code} getAssortment pack size is ${info?.packSize ?? "blank"}`);
+    if (view.titleParams?.n !== 25) fail(`${code} title param is ${String(view.titleParams?.n)}`);
+    if (!JSON.stringify(client.assortment).includes("Pack of 25")) {
+      fail(`${code} assortment field does not include Pack of 25`);
+    }
+  }
+}
+
+function assertAbsoluteCardImages(products: Product[]) {
+  let absoluteCards = 0;
+  for (const product of products) {
+    const card = toClientProduct(product).cardImage;
+    if (!card) continue;
+    absoluteCards += 1;
+    if (!/^https:\/\//i.test(card)) fail(`${product.code} cardImage is not absolute https`);
+    if (!isAllowedProductImageUrl(card)) fail(`${product.code} cardImage host is not allowed`);
+  }
+  if (absoluteCards < 40) fail(`expected absolute cardImage on at least 40 products, found ${absoluteCards}`);
+  console.log(`absolute cardImage ${absoluteCards}`);
+
+  const lime = products.find((row) => row.code === "100807.400");
+  const photo = "/catalog-photos/100807.400.jpg";
+  const expected = metaAbsoluteUrl(photo);
+  if (!lime) {
+    fail("missing 100807.400");
+    return;
+  }
+  if (productCardImageCandidates(lime)[0] !== photo) {
+    fail(`100807.400 first photo is ${productCardImageCandidates(lime)[0] ?? "blank"}`);
+  }
+  const card = toClientProduct(lime).cardImage;
+  if (card !== expected) fail(`100807.400 cardImage ${card} !== ${expected}`);
+  if (!expected.startsWith("https://")) fail("100807.400 resolved photo is not https");
+  if (new URL(expected).hostname !== new URL(metaSiteUrl()).hostname) {
+    fail("100807.400 cardImage host is not the canonical site origin");
+  }
+  if (listingCardCandidates(lime)[0] !== photo) {
+    fail("100807.400 site card no longer uses the catalogue photo path");
+  }
+
+  const remote = cardImageUrl({ imageUrl: "https://wsrv.nl/photo.jpg", images: [] });
+  if (remote !== "https://wsrv.nl/photo.jpg") fail("allowed remote card image was rewritten");
+  if (cardImageUrl({ imageUrl: "https://example.com/a.jpg", images: [] }) !== null) {
+    fail("cardImage returned a host that is not allowed");
+  }
+  if (cardImageUrl({ imageUrl: "http://wsrv.nl/photo.jpg", images: [] }) !== null) {
+    fail("cardImage returned an http URL");
+  }
+  if (cardImageUrl({ imageUrl: "//wsrv.nl/photo.jpg", images: [] }) !== null) {
+    fail("cardImage returned a protocol-relative URL");
+  }
 }
 
 function take(products: Product[], count: number, pred: (product: Product) => boolean) {
@@ -333,6 +450,12 @@ async function main() {
   for (const product of [...packs, ...headwear, ...balls, ...apparel, ...footwear]) {
     sample.set(product.code, product);
   }
+  for (const code of PACK_OF_25) {
+    const product = products.find((row) => row.code === code);
+    if (product) sample.set(product.code, product);
+  }
+  assertPackOf25(products);
+  assertAbsoluteCardImages(products);
 
   console.log(
     `sample ${sample.size} (packs ${packs.length}, headwear ${headwear.length}, balls ${balls.length}, apparel photos ${apparel.length}, footwear photos ${footwear.length})`,
