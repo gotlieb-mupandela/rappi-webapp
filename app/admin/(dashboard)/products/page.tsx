@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { adminProductSearchFilter } from "@/lib/admin/product-search";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,9 @@ export default async function AdminProductsPage({
     .select("id, code, item, name, category_slug, price, stock_qty, badge, image_url")
     .order("code");
 
-  if (sp.q?.trim()) {
-    const q = sp.q.trim();
-    query = query.or(`code.ilike.%${q}%,item.ilike.%${q}%,name.ilike.%${q}%`);
+  const searchFilter = sp.q ? adminProductSearchFilter(sp.q) : null;
+  if (searchFilter) {
+    query = query.or(searchFilter);
   }
   if (sp.low === "1") {
     query = query.gt("stock_qty", 0).lt("stock_qty", 5);
