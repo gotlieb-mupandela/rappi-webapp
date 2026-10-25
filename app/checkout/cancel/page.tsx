@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
+import { trustForCheckoutCaller } from "@/lib/dpo-payment-access";
 import { cancelDpoPayment } from "@/lib/dpo-payments";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,8 +37,10 @@ export default async function CheckoutCancelPage({
       const result = await cancelDpoPayment({
         transToken,
         companyRef,
-        // Native checkouts use a browser without the app's Supabase cookie.
         userId: user?.id,
+        // Same trust rule as the return page. A signed-out cancel still
+        // needs a TransactionToken that DPO has verified.
+        trusted: trustForCheckoutCaller(user),
       });
       if (result.status === "paid") {
         body = "This payment was already verified as paid.";

@@ -37,7 +37,8 @@ export async function POST(req: Request) {
 
   if (transToken || companyRef) {
     try {
-      await fulfillDpoPayment({ transToken, companyRef });
+      // The secret check above is the trust decision. A missing user id is not.
+      await fulfillDpoPayment({ transToken, companyRef, trusted: "webhook" });
     } catch {
       // Always acknowledge so DPO does not retry a poison payload.
     }

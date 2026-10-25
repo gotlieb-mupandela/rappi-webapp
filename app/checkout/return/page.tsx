@@ -4,6 +4,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { ClearCartOnPaid } from "@/components/clear-cart-on-paid";
 import { MetaPurchase } from "@/components/meta-purchase";
+import { trustForCheckoutCaller } from "@/lib/dpo-payment-access";
 import { fulfillDpoPayment } from "@/lib/dpo-payments";
 import { formatPrice } from "@/lib/format";
 import { purchaseContentsFromPayment } from "@/lib/meta/capi";
@@ -49,9 +50,11 @@ export default async function CheckoutReturnPage({
       const result = await fulfillDpoPayment({
         transToken,
         companyRef,
-        // DPO's signed transaction token is verified server-side. Mobile
-        // checkouts return in a browser that does not share the app session.
         userId: user?.id,
+        // Signed-in shoppers must own the payment. Mobile returns have no
+        // app session, so only a DPO TransactionToken verified server-side
+        // can open the payment. A company reference alone cannot.
+        trusted: trustForCheckoutCaller(user),
       });
       paid = result.ok && result.status === "paid";
       heading = paid ? "Payment received" : "Payment not complete";
