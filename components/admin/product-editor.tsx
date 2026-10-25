@@ -14,6 +14,19 @@ type SizeRow = { id?: string; size: string; stock: number };
 type Category = { slug: string; name: string };
 
 const GENDERS = ["men", "women", "kids", "unisex"] as const;
+const PRODUCT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const PRODUCT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+
+function productImageRejection(file: File) {
+  const label = file.name || "Image";
+  if (!PRODUCT_IMAGE_TYPES.has(file.type)) {
+    return `${label} must be JPEG, PNG, WebP, or AVIF.`;
+  }
+  if (file.size > PRODUCT_IMAGE_MAX_BYTES) {
+    return `${label} must be 5 MB or smaller.`;
+  }
+  return null;
+}
 
 export function ProductEditor({ productId }: { productId: string | null }) {
   const router = useRouter();
@@ -97,8 +110,14 @@ export function ProductEditor({ productId }: { productId: string | null }) {
     const supabase = createClient();
     const safe = safeProductCode(code || id || "upload");
     const uploaded: string[] = [...images];
+    let added = 0;
     for (let i = 0; i < Math.min(files.length, 5); i++) {
       const file = files[i];
+      const rejection = productImageRejection(file);
+      if (rejection) {
+        toast.error(rejection);
+        continue;
+      }
       const idx = String(uploaded.length + 1).padStart(2, "0");
       const path = `${safe}/${idx}.webp`;
       const { error } = await supabase.storage
@@ -110,10 +129,11 @@ export function ProductEditor({ productId }: { productId: string | null }) {
       }
       const { data } = supabase.storage.from("product-images").getPublicUrl(path);
       uploaded.push(data.publicUrl);
+      added += 1;
     }
     setImages(uploaded.slice(0, 5));
     if (!imageUrl && uploaded[0]) setImageUrl(uploaded[0]);
-    toast.success("Images uploaded");
+    if (added) toast.success("Images uploaded");
   }
 
   async function onSubmit(e: FormEvent) {
@@ -356,7 +376,7 @@ export function ProductEditor({ productId }: { productId: string | null }) {
           <Label>Upload to product-images (webp preferred)</Label>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/avif"
             multiple
             className="mt-2 block w-full text-sm"
             onChange={(e) => void onUpload(e.target.files)}
