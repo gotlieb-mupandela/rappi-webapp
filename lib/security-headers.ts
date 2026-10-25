@@ -34,7 +34,7 @@ export function securityHeaders(env: ContentSecurityPolicyEnv = securityHeaderEn
     },
     {
       key: "Strict-Transport-Security",
-      value: "max-age=31536000; includeSubDomains",
+      value: "max-age=31536000",
     },
   ];
 }

@@ -100,6 +100,16 @@ test("img-src allowlist is the header set next.config sends", async () => {
   }
 });
 
+test("HSTS is one year and does not include subdomains or preload", async () => {
+  const built = securityHeaders().find((header) => header.key === "Strict-Transport-Security");
+  assert.equal(built?.value, "max-age=31536000");
+  const routes = await nextConfig.headers?.();
+  const site = routes?.find((route) => route.source === "/:path*");
+  const sent = site?.headers?.find((header) => header.key === "Strict-Transport-Security");
+  assert.equal(sent?.value, "max-age=31536000");
+  assert.doesNotMatch(sent?.value ?? "", /includeSubDomains|preload/i);
+});
+
 test("a non-https DPO or Supabase value falls back to the known hosts", () => {
   const policy = contentSecurityPolicyReportOnly({
     supabaseUrl: "http://evil.example",
