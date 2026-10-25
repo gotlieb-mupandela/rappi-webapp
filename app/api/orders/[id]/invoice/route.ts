@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { buildInvoicePdf, invoiceFilename, loadInvoiceData } from "@/lib/invoice-pdf";
-import { canReadInvoice } from "@/lib/invoice-access";
 import { createRequestClient } from "@/lib/supabase/request";
 
 export const runtime = "nodejs";
@@ -18,6 +17,10 @@ async function currentUser(req: Request) {
   return { user, isAdmin: Boolean(isAdmin) };
 }
 
+function canReadInvoice(session: { user: { id: string }; isAdmin: boolean }, orderUserId: string | null) {
+  return session.isAdmin || Boolean(orderUserId && orderUserId === session.user.id);
+}
+
 export async function GET(req: Request, context: RouteContext) {
   const session = await currentUser(req);
   if (!session) {
@@ -27,7 +30,7 @@ export async function GET(req: Request, context: RouteContext) {
   const { id } = await context.params;
   try {
     const data = await loadInvoiceData(id);
-    if (!data || !canReadInvoice(session.isAdmin, data.order.user_id, session.user.id)) {
+    if (!data || !canReadInvoice(session, data.order.user_id)) {
       return NextResponse.json({ error: "Invoice not found." }, { status: 404 });
     }
 
