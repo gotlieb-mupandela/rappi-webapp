@@ -1,36 +1,32 @@
 import type { NextConfig } from "next";
+import {
+  CSP_REPORT_ONLY_HEADER,
+  contentSecurityPolicyReportOnly,
+} from "./lib/content-security-policy";
 
 // Report-only on purpose. Next inlines bootstrap scripts and style attributes,
 // Google Identity Services loads accounts.google.com (script plus button frame),
-// the Meta Pixel loads connect.facebook.net and www.facebook.com, product
-// photos load from wsrv.nl and the next/image remote hosts, and the browser
-// talks to the Supabase project for auth and storage. Vercel preview toolbar
-// assets are included so a later enforce step does not blank previews.
-// Checkout leaves via window.location to https://secure.3gdirectpay.com/payv3.php.
-// This policy does not set navigate-to, so that top-level redirect is not
-// blocked. DPO sends the shopper back with a top-level redirect to
-// /checkout/return or /checkout/cancel. Nothing in the app frames this site,
-// so X-Frame-Options DENY is not on that return path.
-const contentSecurityPolicyReportOnly = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "script-src 'self' 'unsafe-inline' https://accounts.google.com https://connect.facebook.net https://vercel.live https://*.vercel-scripts.com",
-  "style-src 'self' 'unsafe-inline' https://accounts.google.com https://vercel.live",
-  "img-src 'self' data: https://wzmzwerzbyudcvoiiege.supabase.co https://wsrv.nl https://www.joma-sport.com https://v1.joma-sport.net https://www.facebook.com https://accounts.google.com https://assets.vercel.com",
-  "font-src 'self' https://assets.vercel.com",
-  "connect-src 'self' https://wzmzwerzbyudcvoiiege.supabase.co wss://wzmzwerzbyudcvoiiege.supabase.co https://accounts.google.com https://www.facebook.com https://connect.facebook.net https://secure.3gdirectpay.com https://vercel.live",
-  "frame-src 'self' https://accounts.google.com https://secure.3gdirectpay.com https://vercel.live",
-  "form-action 'self' https://secure.3gdirectpay.com",
-  "worker-src 'self'",
-  "manifest-src 'self'",
-].join("; ");
+// the Meta Pixel loads connect.facebook.net and www.facebook.com, and product
+// photos load from wsrv.nl plus the supplier and Supabase hosts in
+// images.remotePatterns. The browser talks to NEXT_PUBLIC_SUPABASE_URL for
+// auth, data, and storage. Checkout assigns window.location to DPO_PAY_URL
+// (default https://secure.3gdirectpay.com/payv3.php). DPO_API_URL is called
+// only from the server. navigate-to lists that pay host, the Supabase host,
+// accounts.google.com, WhatsApp, and mailto. It is report-only, so a missing
+// host is logged and not blocked. DPO sends the shopper back with a top-level
+// redirect to /checkout/return or /checkout/cancel. Nothing in the app frames
+// this site, so X-Frame-Options DENY is not on that return path.
+const contentSecurityPolicy = contentSecurityPolicyReportOnly({
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  dpoPayUrl: process.env.DPO_PAY_URL,
+  instagramUrl: process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+  facebookUrl: process.env.NEXT_PUBLIC_FACEBOOK_URL,
+});
 
 const securityHeaders = [
   {
-    key: "Content-Security-Policy-Report-Only",
-    value: contentSecurityPolicyReportOnly,
+    key: CSP_REPORT_ONLY_HEADER,
+    value: contentSecurityPolicy,
   },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
