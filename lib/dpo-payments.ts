@@ -1,5 +1,4 @@
 import { verifyToken } from "@/lib/dpo";
-import { customerOwnsPayment } from "@/lib/dpo-ownership";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
@@ -94,21 +93,23 @@ const PAYMENT_NOT_FOUND: DpoFulfillResult = {
   orderId: null,
 };
 
+function ownsPayment(payment: Payment, userId?: string | null) {
+  if (userId === undefined) return true;
+  return Boolean(userId && payment.user_id === userId);
+}
+
 export async function fulfillDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
   userId?: string | null;
-  /**
-   * DPO server notify, or the signed-out browser return.
-   * Skips the customer check. Do not show amount or line items from that result.
-   */
+  /** Set only by the secret-checked DPO webhook. Skips the customer check. */
   trusted?: boolean;
 }): Promise<DpoFulfillResult> {
-  if (!input.trusted && !input.userId) {
+  if (!input.trusted && input.userId !== undefined && !input.userId) {
     return PAYMENT_NOT_FOUND;
   }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || (!input.trusted && !customerOwnsPayment(payment.user_id, input.userId))) {
+  if (!payment || (!input.trusted && !ownsPayment(payment, input.userId))) {
     return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {
@@ -202,33 +203,16 @@ export async function fulfillDpoPayment(input: {
   };
 }
 
-/**
- * Signed-out DPO browser return. Still verifies the payment so a mobile
- * browser without the app cookie can complete checkout, but returns no
- * amount, order id, or line items.
- */
-export async function fulfillUnsignedDpoReturn(input: {
-  transToken?: string | null;
-  companyRef?: string | null;
-}): Promise<{ paid: boolean }> {
-  const result = await fulfillDpoPayment({
-    transToken: input.transToken,
-    companyRef: input.companyRef,
-    trusted: true,
-  });
-  return { paid: Boolean(result.ok && result.status === "paid") };
-}
-
 export async function cancelDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
   userId?: string | null;
 }): Promise<DpoFulfillResult> {
-  if (!input.userId) {
+  if (input.userId !== undefined && !input.userId) {
     return PAYMENT_NOT_FOUND;
   }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || !customerOwnsPayment(payment.user_id, input.userId)) {
+  if (!payment || !ownsPayment(payment, input.userId)) {
     return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {

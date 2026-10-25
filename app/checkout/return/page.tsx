@@ -4,7 +4,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { ClearCartOnPaid } from "@/components/clear-cart-on-paid";
 import { MetaPurchase } from "@/components/meta-purchase";
-import { fulfillDpoPayment, fulfillUnsignedDpoReturn } from "@/lib/dpo-payments";
+import { fulfillDpoPayment } from "@/lib/dpo-payments";
 import { formatPrice } from "@/lib/format";
 import { purchaseContentsFromPayment } from "@/lib/meta/capi";
 import { createClient } from "@/lib/supabase/server";
@@ -46,33 +46,23 @@ export default async function CheckoutReturnPage({
 
   if (transToken || companyRef) {
     try {
-      if (user?.id) {
-        const result = await fulfillDpoPayment({
-          transToken,
-          companyRef,
-          userId: user.id,
-        });
-        paid = result.ok && result.status === "paid";
-        heading = paid ? "Payment received" : "Payment not complete";
-        body = result.message;
-        ref = result.payment?.company_ref ?? companyRef;
-        orderId = result.orderId;
-        if (result.payment) {
-          amount = formatPrice(Number(result.payment.amount));
-          purchaseEventId = result.payment.id;
-          purchaseValue = Number(result.payment.amount);
-          purchaseContents = purchaseContentsFromPayment(result.payment);
-        }
-      } else {
-        // Mobile checkouts can land here without the app cookie. Verify the
-        // payment, but do not show amount, reference, order id, or line items.
-        const result = await fulfillUnsignedDpoReturn({ transToken, companyRef });
-        paid = result.paid;
-        heading = paid ? "Payment received" : "Payment not complete";
-        body = paid
-          ? "Your payment was received. Sign in to view the order."
-          : "This payment is not complete.";
-        ref = null;
+      const result = await fulfillDpoPayment({
+        transToken,
+        companyRef,
+        // DPO's signed transaction token is verified server-side. Mobile
+        // checkouts return in a browser that does not share the app session.
+        userId: user?.id,
+      });
+      paid = result.ok && result.status === "paid";
+      heading = paid ? "Payment received" : "Payment not complete";
+      body = result.message;
+      ref = result.payment?.company_ref ?? companyRef;
+      orderId = result.orderId;
+      if (result.payment) {
+        amount = formatPrice(Number(result.payment.amount));
+        purchaseEventId = result.payment.id;
+        purchaseValue = Number(result.payment.amount);
+        purchaseContents = purchaseContentsFromPayment(result.payment);
       }
     } catch (err) {
       heading = "Payment not verified";
