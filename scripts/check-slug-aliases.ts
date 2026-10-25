@@ -6,7 +6,9 @@
  * Run: npx tsx scripts/check-slug-aliases.ts
  */
 import assert from "node:assert/strict";
+import { NextRequest } from "next/server";
 import nextConfig from "../next.config";
+import { middleware } from "../middleware";
 import { buildListing, filterListing, listingHref, parseListingQuery } from "../lib/listing-core";
 import { jomaFolderByKey } from "../lib/joma-tree";
 import type { ListingItem } from "../lib/listing-types";
@@ -132,6 +134,15 @@ for (const target of slugRedirectTargets()) {
 }
 
 async function main() {
+  const flowRedirect = await middleware(new NextRequest("https://evil.example/shop/joma-flow"));
+  assert.equal(flowRedirect.status, 308);
+  assert.equal(flowRedirect.headers.get("location"), "/shop/shoes?group=flow");
+  const evilNext = await middleware(
+    new NextRequest("https://evil.example/shop/joma-flow?next=https://evil.example"),
+  );
+  assert.notEqual(evilNext.status, 308);
+  assert.equal(evilNext.headers.get("location"), null);
+
   const loadRedirects = nextConfig.redirects;
   if (!loadRedirects) throw new Error("next redirects are missing");
   const redirects = await loadRedirects();
