@@ -62,23 +62,24 @@ export function StoreVisit() {
           {t("store.socialTitle")}
         </h2>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t("store.socialBody")}</p>
-        <ul className="mt-4 space-y-2 text-sm">
-          {ig ? (
-            <li>
-              <a href={ig} target="_blank" rel="noreferrer" className="hover:text-[var(--accent)]">
-                Instagram
-              </a>
-            </li>
-          ) : null}
-          {fb ? (
-            <li>
-              <a href={fb} target="_blank" rel="noreferrer" className="hover:text-[var(--accent)]">
-                Facebook
-              </a>
-            </li>
-          ) : null}
-          {!ig && !fb ? <li className="text-[var(--muted)]">{t("store.socialSoon")}</li> : null}
-        </ul>
+        {ig || fb ? (
+          <ul className="mt-4 space-y-2 text-sm">
+            {ig ? (
+              <li>
+                <a href={ig} target="_blank" rel="noreferrer" className="hover:text-[var(--accent)]">
+                  Instagram
+                </a>
+              </li>
+            ) : null}
+            {fb ? (
+              <li>
+                <a href={fb} target="_blank" rel="noreferrer" className="hover:text-[var(--accent)]">
+                  Facebook
+                </a>
+              </li>
+            ) : null}
+          </ul>
+        ) : null}
       </section>
     </div>
   );
