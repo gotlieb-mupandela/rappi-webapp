@@ -21,6 +21,12 @@ import { isAvailable } from "../lib/product-stock";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "../lib/taxonomy";
 import type { Product } from "../lib/types";
 
+/** Portal crawl misspells Athletes. Correct display fields only; folder aliases stay in lib/joma-tree.ts. */
+function correctAthleteDisplay<T extends string | null | undefined>(value: T): T {
+  if (typeof value !== "string") return value;
+  return value.replaceAll("Atheletes", "Athletes").replaceAll("atheletes", "athletes") as T;
+}
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const catalogDest = join(root, "data", "products.json");
 const folderMapDest = join(root, "data", "product-folders.json");
@@ -123,6 +129,15 @@ function enforcePackPolicy(catalog: Product[]) {
       `pack policy enforced (prices pinned: ${pinned}, labels pinned: ${relabeled}, re-hidden: ${rehidden})`,
     );
   }
+}
+
+for (const product of raw as Product[]) {
+  product.item = correctAthleteDisplay(product.item);
+  product.title = correctAthleteDisplay(product.title);
+  product.name = correctAthleteDisplay(product.name);
+  product.displayName = correctAthleteDisplay(product.displayName);
+  product.sheetCategory = correctAthleteDisplay(product.sheetCategory);
+  product.description = correctAthleteDisplay(product.description);
 }
 
 enforcePackPolicy(raw as Product[]);

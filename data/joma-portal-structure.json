@@ -1845,7 +1845,7 @@
   "rk-tw-basicos": "BASICS",
   "ls-basicos": "Basics",
   "brama-intimi": "Intimate",
-  "athletes-combat": "Atheletes / Combat",
+  "athletes-combat": "Athletes / Combat",
   "wtw-polyester": "POLYESTER",
   "wtw-cotton": "COTTON",
   "wouter-chubasqueros": "RAINCOATS",
@@ -1863,7 +1863,7 @@
   "wls-basicos": "Basics",
   "underwear-brama-woman": "Underwear/Brama",
   "wbrama-intimi": "Intimate",
-  "w-athletes-combat": "Atheletes / Combat",
+  "w-athletes-combat": "Athletes / Combat",
   "kids-1-4": "1-4 years",
   "k14-tw-tshirts": "T-SHIRTS & SETS",
   "k14-tw-tracksuit": "TRACK-SUIT",
@@ -3236,7 +3236,7 @@
    "labels": {
     "RUNNING / TRAILRUNNING": "Running / Trail",
     "CYCLING": "Cycling / Triathlon",
-    "ATHLETES / COMBAT": "Atheletes / Combat"
+    "ATHLETES / COMBAT": "Athletes / Combat"
    }
   },
   "women": {
@@ -3261,7 +3261,7 @@
     "CYCLING": "Cycling/Triathlon",
     "HIKING / OUTDOOR": "Hiking/Outdoor",
     "UNDERWEAR / BRAMA": "Underwear/Brama",
-    "ATHLETES / COMBAT": "Atheletes / Combat"
+    "ATHLETES / COMBAT": "Athletes / Combat"
    }
   },
   "kids": {

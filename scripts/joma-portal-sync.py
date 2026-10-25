@@ -83,7 +83,7 @@ def build_new(ppath,parent_key):
     product list anywhere below are not created (they would be empty); they are reported."""
     pk=tuple(norm(x) for x in ppath); key=newkey(ppath)
     if not has_data(pk): skipped_empty.append(' > '.join(ppath[1:])); return None
-    node={'key':key,'label':ppath[-1],'children':[]}
+    node={'key':key,'label':ns['display_label'](ppath[-1]),'children':[]}
     path_key[pk]=key; newfolders.append((' > '.join(ppath[1:]),key))
     u=img.get(pk)
     if u: images[key]=u
@@ -110,7 +110,7 @@ def walk(nodes,ppath,pkey):
         if n['key'] in pairs:
             i=pairs[n['key']]; pl=portal[i]; slot[i]=n['key']; paired.add(n['key'])
             path_key[pk+(pn[i],)]=n['key']
-            if pl.strip().lower()!=n['label'].strip().lower(): labels[n['key']]=pl
+            if pl.strip().lower()!=n['label'].strip().lower(): labels[n['key']]=ns['display_label'](pl)
             u=img.get(pk+(pn[i],))
             if u: images[n['key']]=u
             walk(n['children'],ppath+[pl],n['key'])
