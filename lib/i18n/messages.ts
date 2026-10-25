@@ -320,11 +320,11 @@ export const en = {
     introNad:
       "Select a delivery address and shipping method, then pay with DPO. Merchandise and shipping are in Namibian dollars (N$).",
     introEur:
-      "Select a delivery address and shipping method, then pay with DPO. Merchandise and shipping are shown in euros (converted from NAD).",
+      "Select a delivery address and shipping method, then pay with DPO. The amount due is in Namibian dollars (N$). Any euro figure is approximate.",
     introDpo:
       "This bag is the DPO sandbox product. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     introDpoEur:
-      "This bag is the DPO sandbox product. Totals are shown in euros (from NAD). Pay with a DPO test card (expiry 01/26). Do not use a live card.",
+      "This bag is the DPO sandbox product. The amount due is in Namibian dollars (N$). Any euro figure is approximate. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     address: "Shipping address",
     method: "Shipping method",
     fullName: "Full name",
@@ -341,10 +341,12 @@ export const en = {
     shipping: "Shipping",
     vat: "VAT ({rate}%)",
     total: "Total",
+    approxCharged: "Approx. EUR {eur} (you are charged {charged})",
     placeOrder: "Place order",
     placing: "Placing…",
     totalsNad: "Totals in N$. You will complete payment securely on DPO.",
-    totalsEur: "Totals in € (from NAD). You will complete payment securely on DPO.",
+    totalsEur:
+      "Charged in N$. The euro amount under the total is approximate. You will complete payment securely on DPO.",
     totalsDpo: "Sandbox payment via DPO. Test card expiry 01/26.",
     payDpo: "Pay with DPO",
     payingDpo: "Starting DPO…",
@@ -1517,11 +1519,11 @@ export const fr: Messages = {
     introNad:
       "Choisissez une adresse et un mode de livraison, puis payez avec DPO. Marchandises et livraison en dollars namibiens (N$).",
     introEur:
-      "Choisissez une adresse et un mode de livraison, puis payez avec DPO. Marchandises et livraison affichées en euros (convertis depuis le NAD).",
+      "Choisissez une adresse et un mode de livraison, puis payez avec DPO. Le montant dû est en dollars namibiens (N$). Tout montant en euros est approximatif.",
     introDpo:
       "Ce panier contient uniquement le produit sandbox DPO. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     introDpoEur:
-      "Ce panier contient uniquement le produit sandbox DPO. Totaux affichés en euros (depuis le NAD). Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
+      "Ce panier contient uniquement le produit sandbox DPO. Le montant dû est en dollars namibiens (N$). Tout montant en euros est approximatif. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     address: "Adresse de livraison",
     method: "Mode de livraison",
     fullName: "Nom complet",
@@ -1538,10 +1540,12 @@ export const fr: Messages = {
     shipping: "Livraison",
     vat: "TVA ({rate} %)",
     total: "Total",
+    approxCharged: "Environ EUR {eur} (vous êtes débité de {charged})",
     placeOrder: "Passer la commande",
     placing: "Envoi…",
     totalsNad: "Totaux en N$. Le paiement se finalise de façon sécurisée sur DPO.",
-    totalsEur: "Totaux en € (depuis le NAD). Le paiement se finalise de façon sécurisée sur DPO.",
+    totalsEur:
+      "Débit en N$. Le montant en euros sous le total est approximatif. Le paiement se finalise de façon sécurisée sur DPO.",
     totalsDpo: "Paiement sandbox via DPO. Expiration de la carte de test : 01/26.",
     payDpo: "Payer avec DPO",
     payingDpo: "Ouverture de DPO…",
