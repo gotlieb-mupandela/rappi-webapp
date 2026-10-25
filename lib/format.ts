@@ -9,6 +9,16 @@ export function formatPrice(value: number) {
   return `N$${n}`;
 }
 
+/** Payable NAD amount: thousands separator and two decimals (N$1,234.50). */
+export function formatChargeNad(value: number) {
+  const rounded = Math.round((Number(value) || 0) * 100) / 100;
+  const n = new Intl.NumberFormat("en-NA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(rounded);
+  return `N$${n}`;
+}
+
 export function roundNad(value: number) {
   return Math.round(Number(value) || 0);
 }

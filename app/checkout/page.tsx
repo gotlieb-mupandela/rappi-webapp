@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectMenu } from "@/components/ui/select-menu";
 import { useLocale } from "@/components/locale-provider";
-import { formatPrice } from "@/lib/format";
+import { formatChargeNad, formatPrice } from "@/lib/format";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { nadToEur } from "@/lib/i18n/currency";
 import { shippingName } from "@/lib/i18n/labels";
@@ -494,7 +494,7 @@ export default function CheckoutPage() {
         <div className="mx-auto flex max-w-[1440px] items-center gap-3">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t("checkout.total")}</p>
-            <p className="price text-lg font-semibold">{formatPrice(total)}</p>
+            <p className="price text-lg font-semibold">{formatChargeNad(total)}</p>
             {approx ? (
               <p className="max-w-[11rem] text-[10px] font-normal leading-tight text-[var(--muted)]">
                 {approx}
@@ -517,16 +517,6 @@ export default function CheckoutPage() {
   );
 }
 
-/** Two-decimal NAD string matching the amount DPO sends (`PaymentAmount` toFixed(2)). */
-function formatChargedNad(value: number) {
-  const rounded = Math.round((Number(value) || 0) * 100) / 100;
-  const n = new Intl.NumberFormat("en-NA", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(rounded);
-  return `N$${n}`;
-}
-
 /**
  * Euro is display-only. The charge currency comes from server-only `dpoCurrency()`
  * (`DPO_CURRENCY`, default NAD) and is not on the client, so the payable line stays N$.
@@ -535,7 +525,7 @@ function approxCharge(total: number, market: Market, t: TFunction) {
   if (market !== "eu") return null;
   return t("checkout.approxCharged", {
     eur: nadToEur(total).toFixed(2),
-    charged: formatChargedNad(total),
+    charged: formatChargeNad(total),
   });
 }
 
@@ -554,7 +544,7 @@ function ChargeTotal({
     <div>
       <p className={`flex justify-between text-lg font-semibold ${rowClassName}`.trim()}>
         <span>{label}</span>
-        <span>{formatPrice(total)}</span>
+        <span>{formatChargeNad(total)}</span>
       </p>
       {approx ? (
         <p className="mt-1 text-right text-xs font-normal leading-snug text-[var(--muted)]">{approx}</p>
