@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { buildInvoicePdf, invoiceFilename, loadInvoiceData } from "@/lib/invoice-pdf";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 
 export const runtime = "nodejs";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-async function currentUser() {
-  const supabase = await createClient();
+async function currentUser(req: Request) {
+  const supabase = await createRequestClient(req);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -21,8 +21,8 @@ function canReadInvoice(session: { user: { id: string }; isAdmin: boolean }, ord
   return session.isAdmin || Boolean(orderUserId && orderUserId === session.user.id);
 }
 
-export async function GET(_req: Request, context: RouteContext) {
-  const session = await currentUser();
+export async function GET(req: Request, context: RouteContext) {
+  const session = await currentUser(req);
   if (!session) {
     return NextResponse.json({ error: "Sign in to view this invoice." }, { status: 401 });
   }
@@ -47,8 +47,8 @@ export async function GET(_req: Request, context: RouteContext) {
   }
 }
 
-export async function POST(_req: Request, context: RouteContext) {
-  const session = await currentUser();
+export async function POST(req: Request, context: RouteContext) {
+  const session = await currentUser(req);
   if (!session) {
     return NextResponse.json({ error: "Sign in to email this invoice." }, { status: 401 });
   }
