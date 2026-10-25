@@ -88,7 +88,7 @@ export async function POST(req: Request) {
 
   const quote = checkoutPaymentQuote(lines, shippingMethod, country);
   const amount = quote.total;
-  if (amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Cart total must be greater than zero." }, { status: 400 });
   }
 

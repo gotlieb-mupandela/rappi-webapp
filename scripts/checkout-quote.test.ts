@@ -86,6 +86,23 @@ expectThrow(
   "unknown code",
 );
 
+function catalogWithPrice(price: unknown) {
+  const item = product("BAD", 1);
+  (item as { price: unknown }).price = price;
+  return item;
+}
+
+for (const price of [null, Number.NaN, 0, -1]) {
+  expectThrow(
+    () =>
+      priceCheckoutLines(
+        [{ code: "BAD", size: "M", qty: 1 }],
+        new Map([["BAD", catalogWithPrice(price)]]),
+      ),
+    `rejected price ${String(price)}`,
+  );
+}
+
 try {
   priceCheckoutLines([{ code: "SKU1", size: "<img>", qty: 1 }], new Map([["SKU1", product("SKU1", 10)]]));
   fail("bad size should throw");
@@ -232,6 +249,9 @@ if (!createRoute.includes("const quote = checkoutPaymentQuote(lines, shippingMet
 }
 if (!createRoute.includes("const amount = quote.total;")) {
   fail("create route does not charge quote.total");
+}
+if (!createRoute.includes("!Number.isFinite(amount) || amount <= 0")) {
+  fail("create route accepts a non-finite or non-positive amount");
 }
 if (!/createToken\(\{[\s\S]*amount,[\s\S]*currency,/.test(createRoute)) {
   fail("createToken is not called with the quote amount");

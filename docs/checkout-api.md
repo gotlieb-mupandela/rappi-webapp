@@ -4,7 +4,9 @@ The server prices every checkout. The mobile app displays these responses and do
 
 The signed-in bag loads current unit prices from `POST /api/cart/prices`. That replaces a direct read of `products.price`. When the shopper is choosing shipping and country, call `POST /api/checkout/quote`. `total` on that response is the amount `POST /api/payments/dpo/create` sends to DPO as `PaymentAmount`.
 
-No API key, DPO token, or service role key is sent by the client. Prices on the request are ignored. Only `POST` is accepted. Both read routes are limited to 60 requests per minute per IP through the existing `consume_rate_limit` database function. There is no new environment variable.
+`POST /api/checkout/quote` and `POST /api/cart/prices` need no sign-in. Prices and stock are public.
+
+No API key, DPO token, or service role key is sent by the client. Prices on the request are ignored. Only `POST` is accepted. Both read routes are limited to 60 requests per minute per IP through the existing `consume_rate_limit` database function. There is no new environment variable. That per-IP limit reads `x-forwarded-for`. It is safe only because Vercel overwrites that header. Do not trust it behind any other proxy.
 
 Catalog codes and sizes on a successful response are the database values. Error strings that include a rejected code or size are HTML-escaped.
 
@@ -20,7 +22,7 @@ Catalog codes and sizes on a successful response are the database values. Error 
 
 ## POST /api/checkout/quote
 
-Read-only. No sign-in.
+Read-only. No sign-in. Prices and stock are public.
 
 ### Request
 
@@ -49,7 +51,7 @@ Any `price`, `unitPrice`, or `lineTotal` on a line is ignored. Unknown product c
 
 ## POST /api/cart/prices
 
-Read-only. No sign-in. Same line rules as the quote. Shipping method and country are not required.
+Read-only. No sign-in. Prices and stock are public. Same line rules as the quote. Shipping method and country are not required.
 
 ### Response `200`
 
@@ -91,4 +93,4 @@ Added fields, same names and meaning as `POST /api/checkout/quote`:
 | `400` | Invalid JSON, bad quantity, more than 50 lines, unknown code, unknown size, insufficient stock, missing shipping method, or missing country. |
 | `429` | Rate limit. |
 
-Payment create still returns its existing errors, including `401` when signed out. A quote total of zero is returned by the read routes. Payment create still rejects a total that is not greater than zero.
+Payment create still returns its existing errors, including `401` when signed out. A quote total of zero is returned by the read routes. Payment create rejects a total that is not finite or not greater than zero. A catalog price that is missing, not a finite number, zero, or negative is rejected before that total is built.

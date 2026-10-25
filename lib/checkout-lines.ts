@@ -71,12 +71,16 @@ function priceLine(product: Product, size: string, qty: number): DpoCartLine {
       `Only ${sizeRow.stock} in stock for ${product.code} size ${size}.`,
     );
   }
+  const price = Number(product.price);
+  if (!(Number.isFinite(price) && price > 0)) {
+    throw new CartResolveError(400, `Product ${product.code} has an invalid price.`);
+  }
   return {
     code: product.code,
     name: product.displayName || product.name,
     size: sizeRow.size,
     qty,
-    price: Number(product.price),
+    price,
   };
 }
 
