@@ -1,3 +1,5 @@
+import { canonicalSlug } from "@/lib/slug-aliases";
+
 export type CategoryDef = {
   slug: string;
   name: string;
@@ -332,7 +334,7 @@ export function subcategoryChipRank(slug: string) {
 
 /** Public subcategory slug. Older stored rows still say joma-flow. */
 export function publicSubcategorySlug(slug: string) {
-  return slug === "joma-flow" ? "flow" : slug;
+  return canonicalSlug(slug);
 }
 
 /** Shop-like order: clothes first, then shoes, then extras. */
@@ -368,12 +370,16 @@ const SUB_TO_TYPE_FOLDER: Record<string, string> = Object.fromEntries(
 );
 
 export function typeFolderForSubcategory(sub: string) {
-  return SUB_TO_TYPE_FOLDER[sub] ?? sub;
+  const key = publicSubcategorySlug(sub);
+  return SUB_TO_TYPE_FOLDER[key] ?? SUB_TO_TYPE_FOLDER[sub] ?? key;
 }
 
 export function matchesTypeFolder(subcategory: string, group: string) {
-  const slugs = TYPE_FOLDERS[group];
-  return slugs ? slugs.includes(subcategory) : subcategory === group;
+  const key = canonicalSlug(group);
+  const slugs = TYPE_FOLDERS[key];
+  const sub = publicSubcategorySlug(subcategory);
+  if (slugs) return slugs.some((slug) => publicSubcategorySlug(slug) === sub);
+  return sub === publicSubcategorySlug(key);
 }
 
 /** Legacy / short hub paths that should resolve to a live category slug. */

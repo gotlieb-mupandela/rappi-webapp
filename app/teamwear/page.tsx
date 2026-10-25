@@ -15,6 +15,7 @@ import {
   productsInJomaFolder,
 } from "@/lib/joma-tree";
 import { buildListing, parseListingQuery } from "@/lib/listing-core";
+import { canonicalSlug } from "@/lib/slug-aliases";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const revalidate = 21600;
@@ -60,7 +61,7 @@ export default async function TeamwearPage({
   }
 
   if (view === "kits") {
-    const group = firstSearchParam(sp.group);
+    const group = canonicalSlug(firstSearchParam(sp.group) ?? "");
     const catalog = await getCatalog();
     // Official Kits drill-down: mid node → club/federation tiles,
     // leaf node → product listing (hub-agnostic, kits span hubs).
@@ -81,7 +82,7 @@ export default async function TeamwearPage({
           const sample = productsInJomaFolder(child.key)[0];
           return {
             label: child.label,
-            href: `/teamwear?view=kits&group=${encodeURIComponent(child.key)}`,
+            href: `/teamwear?view=kits&group=${encodeURIComponent(canonicalSlug(child.key))}`,
             imageSrc: jomaFolderTileImage(child.key) || (sample?.imageUrl ?? ""),
           };
         });
@@ -100,7 +101,7 @@ export default async function TeamwearPage({
       }
       const listing = buildListing(catalog, parseListingQuery({ group }), { pageSize: 5000 });
       const tabs = folderTabs(group);
-      const activeTab = firstSearchParam(sp.tab) ?? "";
+      const activeTab = canonicalSlug(firstSearchParam(sp.tab) ?? "");
       return (
         <div className="bg-white">
           <PageHeader

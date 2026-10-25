@@ -8,6 +8,7 @@ import { outletLandingTiles } from "@/lib/hubs";
 import { isJomaBrowseFolder, isOutletFolderKey, jomaFolderAncestorKeys } from "@/lib/joma-tree";
 import { outletGroupForLegacyMax } from "@/lib/joma-nav";
 import { buildListing, parseListingQuery } from "@/lib/listing-core";
+import { canonicalSlug } from "@/lib/slug-aliases";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const revalidate = 21600;
@@ -23,7 +24,7 @@ export default async function PromotionsPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const sp = await searchParams;
-  const groupParam = firstSearchParam(sp.group) ?? "";
+  const groupParam = canonicalSlug(firstSearchParam(sp.group) ?? "");
   const maxParam = firstSearchParam(sp.max);
   const viewAll = firstSearchParam(sp.view) === "all";
 
@@ -70,7 +71,7 @@ export default async function PromotionsPage({
   const listing = buildListing(catalog, query);
   const ancestors = jomaFolderAncestorKeys(folderKey);
   const tabs = firstSearchParam(sp.sub) ? [] : folderTabs(folderKey);
-  const activeTab = firstSearchParam(sp.tab) ?? "";
+  const activeTab = canonicalSlug(firstSearchParam(sp.tab) ?? "");
   const tabbedListing = tabs.length
     ? buildListing(catalog, { ...query, page: undefined }, { pageSize: 5000 })
     : null;

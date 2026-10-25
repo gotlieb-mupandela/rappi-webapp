@@ -6,6 +6,7 @@ import {
 } from "@/lib/catalog";
 import { filterListing } from "@/lib/listing-core";
 import { jomaFolderByKey } from "@/lib/joma-tree";
+import { canonicalQuerySlug, canonicalSlug, canonicalSlugLabel } from "@/lib/slug-aliases";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const runtime = "nodejs";
@@ -27,7 +28,7 @@ const GROUP_LABELS: Record<string, string> = {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const cat = (url.searchParams.get("cat") ?? "").trim();
-  const group = (url.searchParams.get("group") ?? "").trim();
+  const group = canonicalQuerySlug(url.searchParams.get("group")) ?? "";
   if (!cat) {
     return NextResponse.json({ error: "Missing category." }, { status: 400 });
   }
@@ -38,18 +39,21 @@ export async function GET(request: Request) {
   if (group) {
     const node = jomaFolderByKey(group);
     folders = (node?.children ?? [])
-      .map((child) => ({
-        key: child.key,
-        name: child.label,
-        count: filterListing(catalog, { cat, group: child.key }).length,
-        hasChildren: Boolean(child.children?.length),
-      }))
+      .map((child) => {
+        const key = canonicalSlug(child.key);
+        return {
+          key,
+          name: canonicalSlugLabel(key, child.label),
+          count: filterListing(catalog, { cat, group: key }).length,
+          hasChildren: Boolean(child.children?.length),
+        };
+      })
       .filter((folder) => folder.count > 0);
   } else {
     const products = filterListing(catalog, { cat });
     const counts = new Map<string, number>();
     for (const product of products) {
-      const key = typeFolderForSubcategory(product.subcategory);
+      const key = canonicalSlug(typeFolderForSubcategory(product.subcategory));
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const rank = new Map<string, number>(
@@ -58,7 +62,7 @@ export async function GET(request: Request) {
     folders = [...counts.entries()]
       .map(([key, count]) => ({
         key,
-        name: GROUP_LABELS[key] ?? SUBCATEGORY_LABELS[key] ?? key,
+        name: GROUP_LABELS[key] ?? SUBCATEGORY_LABELS[key] ?? canonicalSlugLabel(key),
         count,
         hasChildren: false,
       }))

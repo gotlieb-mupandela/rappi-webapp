@@ -12,6 +12,7 @@ import {
 import { applyBrandHash, brandPath } from "@/lib/image-cache";
 import { productCardImageUrl } from "@/lib/media";
 import { metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
+import { canonicalSlug } from "@/lib/slug-aliases";
 import { pinnedTileImageUrl, productForPin } from "@/lib/tile-covers";
 
 const TEAMWEAR_COVER = "/brand/hub-teampro-2026.webp";
@@ -92,7 +93,7 @@ function tileKey(href: string | undefined, label: string, menu: string): string 
     try {
       const url = new URL(href, "https://www.rappisportshub.com");
       const group = url.searchParams.get("group");
-      if (group) return group;
+      if (group) return canonicalSlug(group);
       if (menu === "shoes") {
         const audience = url.searchParams.get("audience");
         if (audience) return audience;

@@ -1,4 +1,5 @@
 import { folderKeysForCode, sortByFolderOrder } from "@/lib/folder-order";
+import { canonicalSlug } from "@/lib/slug-aliases";
 import type { Product } from "@/lib/types";
 import portalStructure from "@/data/joma-portal-structure.json";
 
@@ -188,7 +189,7 @@ export function jomaFolderMetaSnapshot(): JomaFolderMetaRow[] {
 }
 
 export function jomaFolderByKey(key: string) {
-  return JOMA_FOLDER_BY_KEY.get(key);
+  return JOMA_FOLDER_BY_KEY.get(key) ?? JOMA_FOLDER_BY_KEY.get(canonicalSlug(key));
 }
 
 export function jomaFolderHasChildren(key: string) {
@@ -2742,7 +2743,7 @@ for (const f of OUTLET_FOLDERS) indexParents(f);
 
 /** All known Joma browse folder keys (for listing filters). */
 export function isJomaBrowseFolder(key: string) {
-  return JOMA_FOLDER_BY_KEY.has(key);
+  return JOMA_FOLDER_BY_KEY.has(key) || JOMA_FOLDER_BY_KEY.has(canonicalSlug(key));
 }
 
 /** True for the Outlet root and its Part B children (`outlet-*`). */
@@ -2765,13 +2766,13 @@ export function footwearFoldersForAudience(audience: string | null | undefined) 
 
 /** Immediate parent folder key, if any. */
 export function jomaFolderParentKey(key: string) {
-  return JOMA_FOLDER_PARENT.get(key);
+  return JOMA_FOLDER_PARENT.get(key) ?? JOMA_FOLDER_PARENT.get(canonicalSlug(key));
 }
 
 /** Ancestor keys from root → parent (excludes `key` itself). */
 export function jomaFolderAncestorKeys(key: string): string[] {
   const chain: string[] = [];
-  let cur = JOMA_FOLDER_PARENT.get(key);
+  let cur = jomaFolderParentKey(key);
   while (cur) {
     chain.unshift(cur);
     cur = JOMA_FOLDER_PARENT.get(cur);
