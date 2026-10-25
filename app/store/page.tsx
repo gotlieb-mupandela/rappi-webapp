@@ -5,7 +5,7 @@ import { StoreVisit } from "@/components/store-visit";
 
 export const metadata: Metadata = {
   title: "Find our store",
-  description: "RAPPI Sports Hub — sportswear, equipment and teamwear for Namibia.",
+  description: "RAPPI Sports Hub: sportswear, equipment and teamwear for Namibia.",
 };
 
 export default function StorePage() {

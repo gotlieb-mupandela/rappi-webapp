@@ -411,12 +411,12 @@ export const AUDIENCES = [
   {
     slug: "men",
     name: "Men",
-    blurb: "Men’s kit from the current drop — tees, shorts, shoes, and match gear.",
+    blurb: "Men’s kit from the current drop: tees, shorts, shoes, and match gear.",
   },
   {
     slug: "women",
     name: "Women",
-    blurb: "Women’s kit from the current drop — training layers, shoes, and court wear.",
+    blurb: "Women’s kit from the current drop: training layers, shoes, and court wear.",
   },
   {
     slug: "kids",

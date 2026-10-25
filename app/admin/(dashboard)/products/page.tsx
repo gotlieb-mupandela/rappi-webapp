@@ -167,7 +167,7 @@ export default async function AdminProductsPage({
                       {p.badge}
                     </Badge>
                   ) : (
-                    <span className="text-[var(--muted-2)]">—</span>
+                    <span className="text-[var(--muted-2)]">-</span>
                   )}
                 </td>
               </tr>

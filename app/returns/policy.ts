@@ -61,7 +61,7 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
     items: [
       "We will inspect the item and, where required, send it to the supplier or manufacturer for assessment.",
       "Assessment normally takes up to 14 working days. We will keep you informed and give you a written reference number.",
-      "If the fault is confirmed as a manufacturing defect, we will repair the item, replace it, or refund you — and we will discuss which of these suits you best.",
+      "If the fault is confirmed as a manufacturing defect, we will repair the item, replace it, or refund you, and we will discuss which of these suits you best.",
       "If the assessment finds the damage was caused by normal wear and tear, misuse, accident, poor fit, incorrect care or unauthorised repair, we will return the item to you unrepaired and explain why.",
     ],
     after: [
@@ -72,7 +72,7 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
     number: 4,
     title: "Manufacturer warranties",
     body: [
-      "Some items — bicycles, fitness equipment, electronics, watches and similar goods — carry a manufacturer warranty that runs longer than our own return period. Warranty terms are set by the manufacturer, not by us. We will help you lodge a warranty claim and act as the point of contact, but the manufacturer decides the outcome.",
+      "Some items (bicycles, fitness equipment, electronics, watches and similar goods) carry a manufacturer warranty that runs longer than our own return period. Warranty terms are set by the manufacturer, not by us. We will help you lodge a warranty claim and act as the point of contact, but the manufacturer decides the outcome.",
     ],
   },
   {
@@ -140,14 +140,14 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
     number: 12,
     title: "Limits",
     body: [
-      "Except where the law says otherwise, RAPPI Sports Hub is not liable for indirect or consequential loss arising from a defective item — for example missed competitions, travel costs or lost earnings. Nothing in this policy excludes or limits liability for death or personal injury caused by our negligence, or for fraud.",
+      "Except where the law says otherwise, RAPPI Sports Hub is not liable for indirect or consequential loss arising from a defective item: for example missed competitions, travel costs or lost earnings. Nothing in this policy excludes or limits liability for death or personal injury caused by our negligence, or for fraud.",
     ],
   },
   {
     number: 13,
     title: "If you are not satisfied",
     body: [
-      "Speak to the manager on duty first — most matters are resolved on the spot. If you are still not satisfied, put your complaint in writing to sales@rappisportshub.com and we will respond within 7 working days. This does not affect any legal rights you may have.",
+      "Speak to the manager on duty first. Most matters are resolved on the spot. If you are still not satisfied, put your complaint in writing to sales@rappisportshub.com and we will respond within 7 working days. This does not affect any legal rights you may have.",
     ],
   },
 ];
