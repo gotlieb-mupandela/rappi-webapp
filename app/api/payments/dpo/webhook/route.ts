@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
   if (transToken || companyRef) {
     try {
-      await fulfillDpoPayment({ transToken, companyRef });
+      await fulfillDpoPayment({ transToken, companyRef, trusted: true });
     } catch {
       // Always acknowledge so DPO does not retry a poison payload.
     }

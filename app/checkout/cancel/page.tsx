@@ -31,13 +31,13 @@ export default async function CheckoutCancelPage({
   } = await supabase.auth.getUser();
 
   let body = "Checkout was closed before payment. Your bag is still saved.";
-  if (transToken || companyRef) {
+  // Signed-out visitors cannot cancel a payment or read its reference.
+  if ((transToken || companyRef) && user?.id) {
     try {
       const result = await cancelDpoPayment({
         transToken,
         companyRef,
-        // Native checkouts use a browser without the app's Supabase cookie.
-        userId: user?.id,
+        userId: user.id,
       });
       if (result.status === "paid") {
         body = "This payment was already verified as paid.";
