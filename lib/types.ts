@@ -6,7 +6,13 @@ export type SizeStock = {
 export type Product = {
   id: string;
   code: string;
-  item: string;
+  /**
+   * Supplier line label. Read on the server (and on staff screens) for
+   * classification. Public payloads omit it and send `line` instead.
+   */
+  item?: string;
+  /** Shop section title derived from `item`. Empty string when `item` is empty. */
+  line?: string;
   title: string;
   name: string;
   displayName: string;
@@ -18,7 +24,8 @@ export type Product = {
   price: number;
   unitPrice: number;
   currency: "NAD";
-  sheetCategory: string | null;
+  /** Supplier sheet label. Server and staff only. Omitted from public payloads. */
+  sheetCategory?: string | null;
   totalQty: number;
   stockQty: number;
   badge: "new" | "offer" | null;
@@ -44,7 +51,6 @@ export type CartLineSnapshot = {
   name: string;
   displayName: string;
   title: string;
-  item: string;
   price: number;
   unitPrice: number;
   imageUrl: string;

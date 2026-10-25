@@ -11,7 +11,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentCurves, AssortmentHint } from "@/components/assortment-label";
 import { getAssortment, isFootwearSku, packTitleSuffix, surtidoPackLines, surtidoSizeLabel } from "@/lib/assortment";
-import { productDescription } from "@/lib/copy";
+import { productDescription, productHeading } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
 import { hubName, subName } from "@/lib/i18n/labels";
@@ -41,7 +41,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const stock = sizeStock(product, size);
   const soldOut = isSoldOut(product);
   const catName = hubName(product.category, t);
-  const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
+  const title = productHeading(product) + (packTitleSuffix(product, t) ?? "");
   const assortment = getAssortment(product);
   const curveLines = surtidoPackLines(product);
   const curvePairs =

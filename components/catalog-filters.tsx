@@ -7,7 +7,7 @@ import { ListingPagination } from "@/components/listing-pagination";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { listingHref, parseListingQuery } from "@/lib/listing-core";
+import { listingHref, parseListingQuery } from "@/lib/listing-query";
 import type { ListingQuery, ListingResult } from "@/lib/listing-types";
 import { LayoutGrid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
