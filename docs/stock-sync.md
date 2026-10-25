@@ -94,4 +94,4 @@ curl -X POST -H "Authorization: Bearer $CATALOG_REVALIDATE_SECRET" \
   https://www.rappisportshub.com/api/catalog/revalidate
 ```
 
-The catalog tag expires immediately (`revalidateTag('catalog', { expire: 0 })`). The next listing request loads a fresh overlay.
+The catalog tag expires immediately (`revalidateTag('catalog', { expire: 0 })`). The same call also revalidates `/api/catalog`, `/api/search`, `/api/mobile/storefront`, `/api/catalog/nav`, `/api/catalog/folders`, `/api/feeds/meta-catalog`, and `/api/products/[...code]`, so those cached responses refresh on the next request instead of waiting out their edge TTL. The next listing request loads a fresh overlay.
