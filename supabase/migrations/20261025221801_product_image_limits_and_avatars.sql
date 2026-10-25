@@ -3,16 +3,23 @@
 --
 -- Rollback (also not applied): supabase/rollbacks/20261025221801_product_image_limits_and_avatars.sql
 -- That file is not in supabase/migrations, so a migrate will not run it.
--- It restores the anonymous SELECT policies below and leaves both buckets
--- public, so a known object URL still downloads.
+-- It only drops product_images_admin_select and recreates
+-- product_images_public_read. It does not touch avatars policies.
 --
--- product-images stays a public bucket, so a known object URL still downloads.
--- The broad SELECT policy is what lets an anonymous client list SKU paths.
--- Drop that policy. Admins keep SELECT so replace-upload (upsert) still works.
+-- Live product-images is public, with no size limit and no MIME limit.
+-- Live policies: product_images_admin_delete, product_images_admin_insert,
+-- product_images_admin_update, and product_images_public_read (SELECT, public).
+-- There is no product_images_admin_select. This file adds the 5 MB limit and
+-- jpeg/png/webp/avif, creates the admin SELECT, and drops the public SELECT.
+-- The bucket stays public, so a known object URL still downloads.
 --
--- avatars is public for the same known-path read. There is no anonymous
--- SELECT policy, so anonymous listing is denied. Writes stay in the owner's
--- folder. The owner SELECT is what account deletion uses to list that folder.
+-- Live avatars already exists: public, 5 MB, jpeg/png/webp, no avif.
+-- Live policies are owner-folder only: avatars_own_read (SELECT, authenticated),
+-- avatars_own_insert, avatars_own_update, avatars_own_delete.
+-- There is no anonymous SELECT and no avatars_public_read.
+-- This file does not drop or add any avatars SELECT policy, and it does not
+-- recreate the owner policies. avif is not added, because live does not allow
+-- it. The update sets the same limits, so on live it is a no-op.
 
 update storage.buckets
 set
@@ -31,68 +38,17 @@ create policy product_images_admin_select
     and (select public.is_admin())
   );
 
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values (
-  'avatars',
-  'avatars',
-  true,
-  5242880,
-  array['image/jpeg', 'image/png', 'image/webp', 'image/avif']
-)
-on conflict (id) do update
+update storage.buckets
 set
   public = true,
   file_size_limit = 5242880,
-  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
-
-drop policy if exists avatars_public_read on storage.objects;
-drop policy if exists avatars_owner_select on storage.objects;
-create policy avatars_owner_select
-  on storage.objects for select
-  to authenticated
-  using (
-    bucket_id = 'avatars'
-    and (storage.foldername(name))[1] = (select auth.uid()::text)
-  );
-
-drop policy if exists avatars_owner_insert on storage.objects;
-create policy avatars_owner_insert
-  on storage.objects for insert
-  to authenticated
-  with check (
-    bucket_id = 'avatars'
-    and (storage.foldername(name))[1] = (select auth.uid()::text)
-  );
-
-drop policy if exists avatars_owner_update on storage.objects;
-create policy avatars_owner_update
-  on storage.objects for update
-  to authenticated
-  using (
-    bucket_id = 'avatars'
-    and (storage.foldername(name))[1] = (select auth.uid()::text)
-  )
-  with check (
-    bucket_id = 'avatars'
-    and (storage.foldername(name))[1] = (select auth.uid()::text)
-  );
-
-drop policy if exists avatars_owner_delete on storage.objects;
-create policy avatars_owner_delete
-  on storage.objects for delete
-  to authenticated
-  using (
-    bucket_id = 'avatars'
-    and (storage.foldername(name))[1] = (select auth.uid()::text)
-  );
+  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']
+where id = 'avatars';
 
 -- Down SQL, commented so this migration does not run it. Same statements as
 -- supabase/rollbacks/20261025221801_product_image_limits_and_avatars.sql.
--- product_images_public_read is the policy from 20260907100003_admin_panel.sql.
--- avatars_public_read is that same anonymous SELECT for the avatars bucket,
--- which this migration drops. Buckets stay public, so known object URLs
--- still download after the rollback. The rollback does not restore earlier
--- size or MIME limits. Those limits stay.
+-- Recreates only product_images_public_read. avatars_public_read never existed
+-- live, so it is not created here. Size and MIME limits are left in place.
 --
 -- drop policy if exists product_images_admin_select on storage.objects;
 --
@@ -100,8 +56,3 @@ create policy avatars_owner_delete
 -- create policy product_images_public_read
 --   on storage.objects for select
 --   using (bucket_id = 'product-images');
---
--- drop policy if exists avatars_public_read on storage.objects;
--- create policy avatars_public_read
---   on storage.objects for select
---   using (bucket_id = 'avatars');

@@ -2,15 +2,14 @@
 -- applied, and then needs to be undone. This file is not in supabase/migrations,
 -- so migrate will not pick it up.
 --
--- Restores the anonymous list policies. Both buckets stay public, so a known
--- object URL still downloads.
---
--- product_images_public_read matches 20260907100003_admin_panel.sql.
--- avatars_public_read is that same policy for the avatars bucket (the SELECT
--- this forward migration drops). Owner-folder write policies are left in place.
+-- Drops product_images_admin_select and recreates product_images_public_read
+-- (SELECT, public), matching the live policy this forward file would drop.
+-- It does not recreate avatars_public_read. That policy does not exist live,
+-- and the forward file does not drop any avatars SELECT policy.
+-- Owner policies on both buckets are left in place.
 -- This rollback does not restore earlier file size or MIME limits.
--- Those limits stay as the forward migration set them. There is no
--- previous limit to put back.
+-- product-images would keep the 5 MB jpeg/png/webp/avif limit.
+-- avatars stays at its live limit (5 MB, jpeg/png/webp).
 
 drop policy if exists product_images_admin_select on storage.objects;
 
@@ -18,8 +17,3 @@ drop policy if exists product_images_public_read on storage.objects;
 create policy product_images_public_read
   on storage.objects for select
   using (bucket_id = 'product-images');
-
-drop policy if exists avatars_public_read on storage.objects;
-create policy avatars_public_read
-  on storage.objects for select
-  using (bucket_id = 'avatars');
