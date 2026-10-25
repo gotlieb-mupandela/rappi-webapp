@@ -18,10 +18,69 @@ export type CheckoutLineRequest = {
   qty: number;
 };
 
+/** JSON numbers only. Strings, booleans, null, floats, and NaN are rejected. */
 export function parseQty(value: unknown) {
-  const qty = typeof value === "number" ? value : Number(value);
-  if (!Number.isInteger(qty) || qty < 1 || qty > 99) return null;
-  return qty;
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 99) return null;
+  return value;
+}
+
+function lineKey(code: string, size: string) {
+  return `${code}\0${size}`;
+}
+
+/** Same code and size become one line. A summed quantity above 99 is rejected. */
+export function mergeCheckoutLineRequests(lines: CheckoutLineRequest[]): CheckoutLineRequest[] {
+  const order: string[] = [];
+  const merged = new Map<string, CheckoutLineRequest>();
+  for (const line of lines) {
+    const key = lineKey(line.code, line.size);
+    const prev = merged.get(key);
+    if (!prev) {
+      merged.set(key, { code: line.code, size: line.size, qty: line.qty });
+      order.push(key);
+      continue;
+    }
+    prev.qty += line.qty;
+  }
+  return order.map((key) => {
+    const line = merged.get(key)!;
+    if (!Number.isInteger(line.qty) || line.qty < 1 || line.qty > 99) {
+      throw new CartResolveError(
+        400,
+        `Quantity for ${line.code} size ${line.size} must be from 1 to 99.`,
+      );
+    }
+    return line;
+  });
+}
+
+/** Priced lines returned by the quote. Same code and size keep one unit price. */
+export function mergePricedLines(lines: DpoCartLine[]): DpoCartLine[] {
+  const order: string[] = [];
+  const merged = new Map<string, DpoCartLine>();
+  for (const line of lines) {
+    const key = lineKey(line.code, line.size);
+    const prev = merged.get(key);
+    if (!prev) {
+      merged.set(key, { ...line });
+      order.push(key);
+      continue;
+    }
+    if (prev.price !== line.price) {
+      throw new CartResolveError(400, `Product ${line.code} has an invalid price.`);
+    }
+    prev.qty += line.qty;
+  }
+  return order.map((key) => {
+    const line = merged.get(key)!;
+    if (!Number.isInteger(line.qty) || line.qty < 1 || line.qty > 99) {
+      throw new CartResolveError(
+        400,
+        `Quantity for ${line.code} size ${line.size} must be from 1 to 99.`,
+      );
+    }
+    return line;
+  });
 }
 
 export function parseShippingMethod(value: unknown) {
@@ -84,14 +143,18 @@ function priceLine(product: Product, size: string, qty: number): DpoCartLine {
   };
 }
 
-/** Prices parsed lines from catalog products. Unknown codes are rejected. */
+/**
+ * Prices parsed lines from catalog products. Duplicate code and size rows are
+ * merged before the stock check. Unknown codes are rejected.
+ */
 export function priceCheckoutLines(
   parsed: CheckoutLineRequest[],
   products: Map<string, Product>,
 ): DpoCartLine[] {
+  const rows = mergeCheckoutLineRequests(parsed);
   const lines: DpoCartLine[] = [];
   const missing: string[] = [];
-  for (const row of parsed) {
+  for (const row of rows) {
     const product = products.get(row.code);
     if (!product) {
       if (!missing.includes(row.code)) missing.push(row.code);

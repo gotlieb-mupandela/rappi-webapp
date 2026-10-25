@@ -29,11 +29,13 @@ Read-only. No sign-in. Prices and stock are public.
 | Field | Type | Rules |
 | --- | --- | --- |
 | `lines` | array | 1 to 50 objects. Each object is `code`, `size`, `qty`. |
-| `lines[].qty` | integer | 1 to 99. |
+| `lines[].qty` | number | A JSON number that is an integer from 1 to 99. Strings such as `"5"`, booleans, null, floats, and NaN are rejected. |
 | `shippingMethod` | string | `standard` (100), `express` (150), or `pickup` (0). NAD. |
 | `country` | string | VAT country name or alias (`NA`, `France`, `za`). |
 
 Any `price`, `unitPrice`, or `lineTotal` on a line is ignored. Unknown product codes are rejected. Pickup with an empty or unknown country uses Namibia, the same fallback as payment create. Any other method with an unknown country is rejected.
+
+Lines with the same `code` and `size` are merged by summing `qty` before the stock check. Quote, bag prices, and payment create share that step, then `checkoutPaymentQuote` merges again and returns one item per code and size. The merged quantity must stay from 1 to 99. A merged quantity above 99 is rejected. Stock is checked against that summed quantity, so duplicate lines cannot each pass a separate stock check.
 
 ### Response `200`
 
@@ -90,7 +92,7 @@ Added fields, same names and meaning as `POST /api/checkout/quote`:
 
 | Status | When |
 | --- | --- |
-| `400` | Invalid JSON, bad quantity, more than 50 lines, unknown code, unknown size, insufficient stock, missing shipping method, or missing country. |
+| `400` | Invalid JSON, a quantity that is not an integer number from 1 to 99, a merged quantity above 99, more than 50 lines, unknown code, unknown size, merged quantity above stock, missing shipping method, or missing country. |
 | `429` | Rate limit. |
 
 Payment create still returns its existing errors, including `401` when signed out. A quote total of zero is returned by the read routes. Payment create rejects a total that is not finite or not greater than zero. A catalog price that is missing, not a finite number, zero, or negative is rejected before that total is built.

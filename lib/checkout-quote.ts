@@ -1,3 +1,4 @@
+import { mergePricedLines } from "@/lib/checkout-lines";
 import type { DpoCartLine } from "@/lib/dpo-payload";
 import { dpoCurrency } from "@/lib/dpo-currency";
 import { shippingCostById } from "@/lib/shipping";
@@ -65,11 +66,12 @@ export function checkoutPaymentQuote(
   country: string,
   currency = dpoCurrency(),
 ): CheckoutQuote {
-  const subtotal = merchandiseSubtotal(lines);
+  const merged = mergePricedLines(lines);
+  const subtotal = merchandiseSubtotal(merged);
   const shipping = shippingCostById(shippingMethod);
   const vat = quoteVat(country, subtotal + shipping);
   return {
-    items: quoteItems(lines),
+    items: quoteItems(merged),
     subtotal: roundMoney(subtotal),
     shipping,
     vat: { rate: vat.rate, amount: vat.amount },

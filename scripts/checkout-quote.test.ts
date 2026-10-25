@@ -114,8 +114,62 @@ try {
 
 if (parseShippingMethod("standard") !== "standard") fail("standard shipping");
 if (parseShippingMethod("air") !== null) fail("unknown shipping should be rejected");
-if (parseCheckoutLineInput([{ code: "A", size: "M", qty: "2" }])[0].qty !== 2) {
-  fail("numeric string qty");
+for (const qty of ["5", true, null, 1.5, Number.NaN]) {
+  expectThrow(
+    () => parseCheckoutLineInput([{ code: "A", size: "M", qty }]),
+    `rejected qty ${String(qty)}`,
+  );
+}
+if (parseCheckoutLineInput([{ code: "A", size: "M", qty: 2 }])[0].qty !== 2) {
+  fail("integer qty should be accepted");
+}
+
+const dupProduct = product("DUP", 10, "M", 77);
+const dupCatalog = new Map([["DUP", dupProduct]]);
+const mergedFit = priceCheckoutLines(
+  Array.from({ length: 50 }, () => ({ code: "DUP", size: "M", qty: 1 })),
+  dupCatalog,
+);
+if (mergedFit.length !== 1 || mergedFit[0].qty !== 50) fail("duplicates that fit were not merged");
+const fitQuote = checkoutPaymentQuote(mergedFit, "standard", "Namibia");
+if (fitQuote.items.length !== 1 || fitQuote.items[0].qty !== 50 || fitQuote.total !== 690) {
+  fail(`merged quote qty ${fitQuote.items[0]?.qty} total ${fitQuote.total}`);
+}
+
+try {
+  priceCheckoutLines(
+    [
+      { code: "DUP", size: "M", qty: 40 },
+      { code: "DUP", size: "M", qty: 40 },
+    ],
+    dupCatalog,
+  );
+  fail("duplicates that exceed stock were accepted");
+} catch (err) {
+  if (!(err instanceof CartResolveError) || !err.message.includes("in stock")) {
+    fail("duplicates over stock should fail the stock check");
+  }
+}
+
+expectThrow(
+  () =>
+    priceCheckoutLines(
+      [
+        { code: "DUP", size: "M", qty: 60 },
+        { code: "DUP", size: "M", qty: 40 },
+      ],
+      new Map([["DUP", product("DUP", 10, "M", 500)]]),
+    ),
+  "merged qty above 99",
+);
+
+const quotedDupes = checkoutPaymentQuote(
+  [line("A", 10, 2), line("A", 10, 3), line("B", 5, 1)],
+  "pickup",
+  "United States",
+);
+if (quotedDupes.items.length !== 2 || quotedDupes.items[0].qty !== 5 || quotedDupes.items[0].lineTotal !== 50) {
+  fail("checkoutPaymentQuote did not return merged lines");
 }
 
 const carts: Array<{
@@ -244,7 +298,7 @@ function source(path: string) {
 }
 
 const createRoute = source("app/api/payments/dpo/create/route.ts");
-if (!createRoute.includes("const quote = checkoutPaymentQuote(lines, shippingMethod, country);")) {
+if (!createRoute.includes("quote = checkoutPaymentQuote(lines, shippingMethod, country);")) {
   fail("create route does not call checkoutPaymentQuote");
 }
 if (!createRoute.includes("const amount = quote.total;")) {

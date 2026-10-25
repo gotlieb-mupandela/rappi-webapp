@@ -77,8 +77,10 @@ export async function POST(req: Request) {
   const country = vatCountry.name;
 
   let lines;
+  let quote;
   try {
     lines = await resolveCheckoutLines(body.lines);
+    quote = checkoutPaymentQuote(lines, shippingMethod, country);
   } catch (err) {
     if (err instanceof CartResolveError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
@@ -86,7 +88,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not price the cart." }, { status: 400 });
   }
 
-  const quote = checkoutPaymentQuote(lines, shippingMethod, country);
   const amount = quote.total;
   if (!Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Cart total must be greater than zero." }, { status: 400 });
