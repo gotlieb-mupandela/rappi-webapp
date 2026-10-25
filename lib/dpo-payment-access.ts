@@ -101,6 +101,33 @@ export async function decideCancelAfterVerify(input: {
   return { verifyResult, outcome, update: dpoCancelRowUpdate(outcome, verifyResult) };
 }
 
+/**
+ * Applies a pending-only cancel write.
+ * A null write means the guard matched 0 rows: re-read and return that row.
+ * The re-read path does not write.
+ */
+export async function commitPendingCancel<T extends { status: string }>(input: {
+  update: { status: "cancelled"; verify_result: string };
+  writeIfPending: (update: { status: "cancelled"; verify_result: string }) => Promise<T | null>;
+  reread: () => Promise<T | null>;
+}): Promise<{ payment: T | null; status: string; wrote: boolean }> {
+  const updated = await input.writeIfPending(input.update);
+  if (updated) return { payment: updated, status: updated.status, wrote: true };
+  const current = await input.reread();
+  if (!current) return { payment: null, status: "pending", wrote: false };
+  return { payment: current, status: current.status, wrote: false };
+}
+
+/** Visitor copy for the cancel page. Keys only: no raw errors and no DPO codes. */
+export function cancelVisitorMessageKey(input: { status: string; message?: string | null }): string {
+  if (input.status === "paid") return "checkout.paymentAlreadyPaid";
+  if (input.message === DPO_CANCEL_CONFIRMING || input.status === "pending") {
+    return "checkout.paymentStatusConfirming";
+  }
+  if (input.status === "cancelled") return "checkout.paymentCancelled";
+  return "checkout.paymentNotCancelled";
+}
+
 export function dpoVerificationGrantsAccess(
   verification: DpoTokenVerification | null | undefined,
   paymentCompanyRef: string,

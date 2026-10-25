@@ -7,6 +7,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   DPO_CANCEL_CONFIRMING,
+  cancelVisitorMessageKey,
+  commitPendingCancel,
   decideCancelAfterVerify,
   dpoCancelOutcome,
   dpoCancelRowUpdate,
@@ -268,6 +270,52 @@ test("pending-on-failure does not write verify_result", () => {
   }
 });
 
+test("a cancel update that matches 0 rows returns the re-read paid payment", async () => {
+  const paid = { id: "pay-1", status: "paid" };
+  const writes: { status: "cancelled"; verify_result: string }[] = [];
+  let reads = 0;
+  const settled = await commitPendingCancel({
+    update: { status: "cancelled", verify_result: "904" },
+    writeIfPending: async (update) => {
+      writes.push(update);
+      return null;
+    },
+    reread: async () => {
+      reads += 1;
+      return paid;
+    },
+  });
+  assert.deepEqual(writes, [{ status: "cancelled", verify_result: "904" }]);
+  assert.equal(reads, 1);
+  assert.equal(settled.wrote, false);
+  assert.equal(settled.status, "paid");
+  assert.equal(settled.payment, paid);
+});
+
+test("a cancel update that matches 0 rows returns a re-read cancelled or pending payment", async () => {
+  for (const status of ["cancelled", "pending"]) {
+    const row = { id: "pay-1", status };
+    const writes: unknown[] = [];
+    let reads = 0;
+    const settled = await commitPendingCancel({
+      update: { status: "cancelled", verify_result: "901" },
+      writeIfPending: async (update) => {
+        writes.push(update);
+        return null;
+      },
+      reread: async () => {
+        reads += 1;
+        return row;
+      },
+    });
+    assert.equal(writes.length, 1, status);
+    assert.equal(reads, 1, status);
+    assert.equal(settled.wrote, false, status);
+    assert.equal(settled.status, status);
+    assert.equal(settled.payment, row);
+  }
+});
+
 test("000 and 001 stay unpaid in the row and show paid on the page", () => {
   for (const verifyResult of ["000", "001"]) {
     const outcome = dpoCancelOutcome({ localStatus: "pending", verifyResult });
@@ -358,14 +406,41 @@ test("fulfill and cancel use the explicit trust decision", () => {
   assert.match(payments, /access\.verification \?\? \(await verifyToken\(token\)\)/);
   assert.match(payments, /decideCancelAfterVerify/);
   assert.equal(payments.includes('verify_result: "904"'), false);
+  const cancelFn = payments.slice(payments.indexOf("export async function cancelDpoPayment"));
+  assert.equal(cancelFn.includes('{ ...payment, status: "cancelled" }'), false);
+  assert.ok(cancelFn.indexOf('payment.status === "paid"') < cancelFn.indexOf("decideCancelAfterVerify"));
+  assert.match(cancelFn, /commitPendingCancel/);
   assert.match(webhook, /trusted:\s*"webhook"/);
   assert.match(webhook, /function authorized/);
   assert.match(ret, /trustForCheckoutCaller\(user\)/);
   assert.match(cancel, /trustForCheckoutCaller\(user\)/);
-  assert.match(cancel, /DPO_CANCEL_CONFIRMING/);
-  assert.match(cancel, /checkout\.paymentStatusConfirming/);
+  assert.match(cancel, /cancelVisitorMessageKey/);
+  assert.equal(cancel.includes("This payment was already verified as paid."), false);
+  assert.equal(cancel.includes("Payment ${"), false);
+  assert.equal(cancel.includes("DPO_CANCEL_CONFIRMING"), false);
   assert.match(makeT("na")("checkout.paymentStatusConfirming"), /has not been cancelled/i);
   assert.equal(DPO_CANCEL_CONFIRMING === makeT("na")("checkout.paymentStatusConfirming"), false);
+  for (const status of ["paid", "cancelled", "pending", "error"]) {
+    const key = cancelVisitorMessageKey({
+      status,
+      message: status === "pending" ? DPO_CANCEL_CONFIRMING : "Payment cancelled.",
+    });
+    const en = makeT("na")(key);
+    const fr = makeT("eu")(key);
+    assert.equal(en.includes("904"), false, key);
+    assert.equal(en.includes("Supabase"), false, key);
+    assert.equal(fr.includes("904"), false, key);
+    assert.notEqual(en, fr, key);
+    assert.notEqual(en, key);
+  }
+  assert.equal(cancelVisitorMessageKey({ status: "paid" }), "checkout.paymentAlreadyPaid");
+  assert.equal(
+    cancelVisitorMessageKey({ status: "pending", message: DPO_CANCEL_CONFIRMING }),
+    "checkout.paymentStatusConfirming",
+  );
+  assert.equal(cancelVisitorMessageKey({ status: "cancelled" }), "checkout.paymentCancelled");
+  assert.equal(cancelVisitorMessageKey({ status: "error" }), "checkout.paymentNotCancelled");
+  assert.match(makeT("na")("checkout.paymentAlreadyPaid"), /already verified as paid/i);
 });
 
 const OTHER_USER_PAYMENT = {

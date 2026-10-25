@@ -1,6 +1,7 @@
 import { verifyToken } from "@/lib/dpo";
 import {
   DPO_CANCEL_CONFIRMING,
+  commitPendingCancel,
   decideCancelAfterVerify,
   resolveDpoPaymentAccess,
   type DpoPaymentTrust,
@@ -265,19 +266,57 @@ export async function cancelDpoPayment(input: {
   }
 
   const admin = createAdminClient();
-  const { data: updated } = await admin
-    .from("payments")
-    .update(decided.update)
-    .eq("id", payment.id)
-    .eq("status", "pending")
-    .select("*")
-    .single();
+  const settled = await commitPendingCancel({
+    update: decided.update,
+    writeIfPending: async (update) => {
+      const { data, error } = await admin
+        .from("payments")
+        .update(update)
+        .eq("id", payment.id)
+        .eq("status", "pending")
+        .select("*");
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+    reread: async () => {
+      const { data, error } = await admin.from("payments").select("*").eq("id", payment.id).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
+  if (!settled.payment || settled.status === "pending") {
+    return {
+      ok: true,
+      status: "pending",
+      message: DPO_CANCEL_CONFIRMING,
+      payment: settled.payment ?? payment,
+      orderId: settled.payment?.order_id ?? payment.order_id,
+    };
+  }
+  if (settled.status === "paid") {
+    return {
+      ok: true,
+      status: "paid",
+      message: "Already paid.",
+      payment: settled.payment,
+      orderId: settled.payment.order_id,
+    };
+  }
+  if (settled.status === "cancelled") {
+    return {
+      ok: true,
+      status: "cancelled",
+      message: "Payment cancelled.",
+      payment: settled.payment,
+      orderId: settled.payment.order_id,
+    };
+  }
   return {
     ok: true,
-    status: "cancelled",
-    message: "Payment cancelled.",
-    payment: updated ?? { ...payment, status: "cancelled" },
-    orderId: payment.order_id,
+    status: settled.status,
+    message: `Payment is ${settled.status}.`,
+    payment: settled.payment,
+    orderId: settled.payment.order_id,
   };
 }
