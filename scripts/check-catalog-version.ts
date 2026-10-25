@@ -4,15 +4,25 @@
  * that catalogue cache paths are fixed literals.
  */
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import Module from "node:module";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CATALOG_CACHE_TAG } from "../lib/catalog-cache-tag";
-import { secretsMatch } from "../lib/catalog-revalidate-auth";
 import { catalogVersion } from "../lib/catalog-version";
 import type { Product } from "../lib/types";
+
+/** Same body as POST /api/catalog/revalidate. The route owns this function. */
+function secretsMatch(provided: string, expected: string) {
+  // An unset secret must never match, including an empty Authorization header.
+  // Hashing first keeps the compare the same length, so a short guess does not
+  // return before timingSafeEqual.
+  if (!expected) return false;
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
+}
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const shim = join(root, "scripts/shims/server-only.cjs");
@@ -133,11 +143,7 @@ const authReturn = "return secretsMatch(bearer, expected) || secretsMatch(custom
 assert.equal(revalidateRoute.includes(authReturn), true);
 assert.equal(revalidateRoute.includes("bearerOk"), false);
 
-const authLib = read("lib/catalog-revalidate-auth.ts");
-assert.equal(authLib.includes(secretCompare.replace("function secretsMatch", "export function secretsMatch")), true);
-assert.equal(authLib.includes("timingSafeEqual"), true);
-assert.equal(authLib.includes('createHash("sha256")'), true);
-assert.equal(authLib.includes("if (!expected) return false;"), true);
+assert.equal(existsSync(join(root, "lib/catalog-revalidate-auth.ts")), false);
 
 const revalidateLib = read("lib/admin/revalidate-catalog.ts");
 assert.equal(revalidateLib.includes('import "server-only"'), true);

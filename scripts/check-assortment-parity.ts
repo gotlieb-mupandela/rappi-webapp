@@ -53,6 +53,49 @@ const PACK_OF_25 = [
   "100807.700",
 ] as const;
 
+/**
+ * Empty sellAs rows that still have a site badge. The badge is the API label.
+ * 21 read "Pack · 25 pcs", 9 read "Multipack", plus the bib and the nail box.
+ * RMETLW2620 stores sellAs assortment. Its curves are 12 and 8, so the badge
+ * stays "Assortment" and no single quantity is invented.
+ */
+const QA_PACK_25 = [
+  ...PACK_OF_25,
+  "105463.040",
+  "105463.100",
+  "105463.200",
+  "105463.250",
+  "105463.400",
+  "105463.450",
+  "105463.600",
+  "105463.700",
+  "105463.900",
+  "900475.040",
+  "900475.200",
+  "900475.400",
+  "900475.500",
+  "900475.600",
+  "900475.700",
+] as const;
+
+const QA_MULTIPACK = [
+  "300022.001",
+  "300117.001",
+  "300119.001",
+  "300163.002",
+  "300206.003",
+  "300213.003",
+  "300273.001",
+  "300274.001",
+  "300275.001",
+] as const;
+
+const QA_NAMED = [
+  ["101689.050", "Pack of 10"],
+  ["900-027", "Pack · 100 pcs"],
+  ["RMETLW2620", "Assortment"],
+] as const;
+
 let failed = 0;
 
 function fail(message: string) {
@@ -286,6 +329,13 @@ function photos(product: Product) {
   return product.images?.length ?? 0;
 }
 
+/** English text the product card badge renders. */
+function siteCardLabel(product: Product): string | null {
+  const view = clientAssortment(product);
+  const info = assortmentCopy(product, en, formatPrice) ?? getAssortment(product);
+  return renderAssortmentLabel(view.labelKey, view.labelParams, en, view.label) ?? info?.label ?? null;
+}
+
 function printFieldCounts(products: Product[]) {
   let labels = 0;
   let pairCounts = 0;
@@ -293,11 +343,18 @@ function printFieldCounts(products: Product[]) {
   let absoluteCards = 0;
   let relativeFirst = 0;
   let relativeFirstResolved = 0;
+  let mainPhotos = 0;
+  let mainLogos = 0;
+  const unresolvedMains: string[] = [];
+  const kinds: Record<string, number> = {};
   const relativePaths = new Set<string>();
   const resolvedPaths = new Set<string>();
+  const noLabel: string[] = [];
   for (const product of products) {
     const view = clientAssortment(product);
+    kinds[view.kind] = (kinds[view.kind] ?? 0) + 1;
     if (view.label) labels += 1;
+    else noLabel.push(product.code);
     if (view.pairCount != null) pairCounts += 1;
     if (view.isPack) packs += 1;
     const card = cardImageUrl(product);
@@ -306,6 +363,14 @@ function printFieldCounts(products: Product[]) {
     if (first.startsWith("/") && !first.startsWith("//")) {
       relativeFirst += 1;
       if (card && /^https:\/\//i.test(card)) relativeFirstResolved += 1;
+    }
+    const main = product.imageUrl?.trim() ?? "";
+    if (main.startsWith("/") && !main.startsWith("//")) {
+      if (main.startsWith("/catalog-photos/")) mainPhotos += 1;
+      else if (/logo/i.test(main)) mainLogos += 1;
+      if (!card || !/^https:\/\//i.test(card) || !isAllowedProductImageUrl(card)) {
+        unresolvedMains.push(product.code);
+      }
     }
     const urls = [product.imageUrl, ...(product.images ?? [])].filter((url): url is string => Boolean(url));
     for (const url of urls) {
@@ -318,11 +383,22 @@ function printFieldCounts(products: Product[]) {
   console.log(`labels ${labels}`);
   console.log(`pairCount ${pairCounts}`);
   console.log(`isPack ${packs}`);
+  console.log(`labels by kind ${JSON.stringify(kinds)}`);
+  console.log(`label null ${noLabel.length}`);
   console.log(`absolute cardImage ${absoluteCards}`);
   console.log(`relative first candidates ${relativeFirst}`);
   console.log(`relative first candidates resolved to absolute https ${relativeFirstResolved}`);
   console.log(`relative image paths ${relativePaths.size}`);
   console.log(`relative image paths resolved to absolute https ${resolvedPaths.size}`);
+  console.log(`relative main images catalog-photos ${mainPhotos}`);
+  console.log(`relative main images logo ${mainLogos}`);
+  console.log(
+    `relative main images not absolute ${unresolvedMains.length}${unresolvedMains.length ? `: ${unresolvedMains.join(", ")}` : ""}`,
+  );
+  if (unresolvedMains.length > 0) {
+    fail(`relative main images did not resolve: ${unresolvedMains.join(", ")}`);
+  }
+  return { kinds, noLabel, mainPhotos, mainLogos };
 }
 
 /**
@@ -369,6 +445,50 @@ function assertPackOf25(products: Product[]) {
       fail(`${code} assortment field does not include Pack of 25`);
     }
   }
+}
+
+function assertSiteLabels(products: Product[]) {
+  const byCode = new Map(products.map((product) => [product.code, product]));
+  const missing: string[] = [];
+  const expected = new Map<string, string>();
+  for (const code of QA_PACK_25) expected.set(code, "Pack · 25 pcs");
+  for (const code of QA_MULTIPACK) expected.set(code, "Multipack");
+  for (const [code, label] of QA_NAMED) expected.set(code, label);
+
+  for (const product of products) {
+    const view = clientAssortment(product);
+    const client = toClientProduct(product);
+    const card = siteCardLabel(product);
+    if ((view.label ?? null) !== (card ?? null) || client.assortment.label !== view.label) {
+      fail(`${product.code} API label "${view.label}" !== site card "${card}"`);
+    }
+    if ((view.isPack || Boolean(product.sellAs)) && !view.label) {
+      missing.push(product.code);
+      fail(`${product.code} is a pack and has no label`);
+    }
+  }
+
+  if (QA_PACK_25.length !== 21) fail(`expected 21 pack-of-25 codes, found ${QA_PACK_25.length}`);
+  for (const [code, label] of expected) {
+    const product = byCode.get(code);
+    if (!product) {
+      missing.push(code);
+      fail(`missing label case ${code}`);
+      continue;
+    }
+    if (code !== "RMETLW2620" && product.sellAs) {
+      fail(`${code} stores sellAs ${product.sellAs}`);
+    }
+    const view = clientAssortment(product);
+    if (view.label !== label) {
+      if (!view.label) missing.push(code);
+      fail(`${code} label "${view.label}" !== site card "${label}"`);
+    }
+  }
+
+  const listed = [...new Set(missing)];
+  console.log(`qa labels ${expected.size}`);
+  console.log(`no computable label ${listed.length}${listed.length ? `: ${listed.join(", ")}` : ""}`);
 }
 
 function assertAbsoluteCardImages(products: Product[]) {
@@ -569,6 +689,7 @@ async function main() {
     if (product) sample.set(product.code, product);
   }
   assertPackOf25(products);
+  assertSiteLabels(products);
   assertAbsoluteCardImages(products);
 
   console.log(
