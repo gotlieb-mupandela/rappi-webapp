@@ -16,6 +16,9 @@ function authorized(req: Request) {
   const expected = process.env.DPO_WEBHOOK_SECRET?.trim() ?? "";
   if (!expected) return false;
   const url = new URL(req.url);
+  // ?token= stays so the current DPO notify URL keeps working.
+  // Retire the query param once DPO is updated to send the secret in a header
+  // (Authorization: Bearer, or x-dpo-secret). Query secrets land in access logs.
   const query = url.searchParams.get("token") ?? "";
   const header = req.headers.get("authorization") ?? "";
   const bearer = header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
