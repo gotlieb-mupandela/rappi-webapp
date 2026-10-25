@@ -14,6 +14,7 @@
     "check:pack-prices": "node scripts/check-pack-prices.mjs",
     "descriptions:joma": "node scripts/fetch-joma-descriptions.mjs",
     "check:i18n": "npx tsx scripts/check-i18n.ts",
+    "test:safe-next-path": "npx tsx --test scripts/safe-next-path.test.ts",
     "bake:catalog": "npx tsx scripts/bake-catalog.ts",
     "sync:joma": "node scripts/sync-joma-catalog.mjs",
     "sync:stock-db": "node scripts/sync-stock-db.mjs",
