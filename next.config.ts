@@ -9,12 +9,9 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24,
     qualities: [70, 75, 80],
     localPatterns: [{ pathname: "/brand/**" }, { pathname: "/**" }],
+    // wsrv.nl is the productImageLoader <img> src, not a next/image src.
+    // Do not add it here: /_next/image would then fetch arbitrary URLs through that proxy.
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "wsrv.nl",
-        pathname: "/**",
-      },
       {
         protocol: "https",
         hostname: "wzmzwerzbyudcvoiiege.supabase.co",
