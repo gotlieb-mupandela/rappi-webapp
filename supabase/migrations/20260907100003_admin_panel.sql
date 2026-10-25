@@ -272,13 +272,13 @@ begin
 
   insert into public.order_items (order_id, product_id, code, name, size, qty, unit_price)
   select v_id,
-         (select id from public.products where code = item->>'code'),
-         item->>'code',
-         item->>'name',
-         item->>'size',
-         (item->>'qty')::int,
-         (item->>'price')::numeric
-  from jsonb_array_elements(v_items) as item;
+         (select id from public.products where code = line_item->>'code'),
+         line_item->>'code',
+         line_item->>'name',
+         line_item->>'size',
+         (line_item->>'qty')::int,
+         (line_item->>'price')::numeric
+  from jsonb_array_elements(v_items) as t(line_item);
 
   return jsonb_build_object(
     'id', v_id,

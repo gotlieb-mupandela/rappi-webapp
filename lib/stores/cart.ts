@@ -2,9 +2,12 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartLine } from "@/lib/types";
-import { getProduct } from "@/lib/products";
-import { sizeDisplayLabel } from "@/lib/sizes";
+import { feedVariantId } from "@/lib/meta/ids";
+import { trackMeta } from "@/lib/meta/pixel";
+import type { CartLine, CartLineSnapshot, Product } from "@/lib/types";
+import { getAssortment } from "@/lib/assortment";
+import { surtidoSizeText } from "@/lib/assortment";
+import { sizeDisplayLabel, sizeStock, skuStock } from "@/lib/product-stock";
 
 type CartMessage = {
   ok: boolean;
@@ -14,37 +17,77 @@ type CartMessage = {
 
 type CartState = {
   lines: CartLine[];
-  add: (code: string, size: string, qty: number) => CartMessage;
+  add: (product: Product, size: string, qty: number) => CartMessage;
   setQty: (code: string, size: string, qty: number) => void;
   remove: (code: string, size: string) => void;
   clear: () => void;
 };
 
-function remainingSku(code: string, lines: CartLine[], ignoreSize?: string) {
-  const product = getProduct(code);
-  if (!product) return 0;
-  const cap = product.stockQty ?? 0;
+function snapshotFromProduct(product: Product, size: string): CartLineSnapshot {
+  const pack = getAssortment(product);
+  return {
+    id: product.id,
+    // Pack lines keep their baked pack wording ("· Pack of 12", "· Pack", …)
+    // so cart, checkout and order records never read as single units.
+    name: pack?.isAssortment ? product.displayName : product.name,
+    displayName: product.displayName,
+    title: product.title,
+    item: product.item,
+    price: product.price,
+    unitPrice: product.unitPrice,
+    imageUrl: product.imageUrl,
+    sizeStock: sizeStock(product, size),
+    stockQty: skuStock(product),
+    category: product.category,
+    subcategory: product.subcategory,
+    gender: product.gender,
+    badge: product.badge,
+    sellAs:
+      product.sellAs ??
+      (pack?.kind === "pack" || pack?.kind === "assortment" || pack?.kind === "multipack"
+        ? pack.kind
+        : undefined),
+    packSize: product.packSize ?? pack?.packSize ?? null,
+  };
+}
+
+function remainingSku(lines: CartLine[], code: string, stockQty: number, ignoreSize?: string) {
   const used = lines
     .filter((l) => l.code === code && l.size !== ignoreSize)
     .reduce((n, l) => n + l.qty, 0);
-  return Math.max(0, cap - used);
+  return Math.max(0, stockQty - used);
+}
+
+function isCompleteLine(line: Partial<CartLine>): line is CartLine {
+  return Boolean(
+    line.code &&
+      line.size &&
+      typeof line.qty === "number" &&
+      line.id &&
+      typeof line.price === "number" &&
+      typeof line.sizeStock === "number" &&
+      typeof line.stockQty === "number",
+  );
 }
 
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       lines: [],
-      add: (code, size, qty): CartMessage => {
-        const product = getProduct(code);
-        if (!product) return { ok: false, messageKey: "cart.productNotFound" };
-        const sizeRow = product.sizes.find((s) => s.size === size);
-        if (!sizeRow || sizeRow.stock <= 0) {
+      add: (product, size, qty): CartMessage => {
+        if ((product as { available?: boolean }).available === false) {
+          return { ok: false, messageKey: "cart.soldOut" };
+        }
+        const available = sizeStock(product, size);
+        if (available <= 0) {
           return { ok: false, messageKey: "cart.sizeNotInStock" };
         }
-        const existing = get().lines.find((l) => l.code === code && l.size === size);
+        const snap = snapshotFromProduct(product, size);
+        const existing = get().lines.find((l) => l.code === product.code && l.size === size);
         const nextQty = (existing?.qty ?? 0) + qty;
-        const left = remainingSku(code, get().lines, size) + (existing?.qty ?? 0);
-        const max = Math.min(sizeRow.stock, left, product.stockQty ?? sizeRow.stock);
+        const left =
+          remainingSku(get().lines, product.code, snap.stockQty, size) + (existing?.qty ?? 0);
+        const max = Math.min(available, left, snap.stockQty);
         if (nextQty > max) {
           return {
             ok: false,
@@ -52,16 +95,34 @@ export const useCart = create<CartState>()(
             values: { max },
           };
         }
+        const line: CartLine = {
+          code: product.code,
+          size,
+          qty: nextQty,
+          ...snap,
+        };
         if (existing) {
           set({
             lines: get().lines.map((l) =>
-              l.code === code && l.size === size ? { ...l, qty: nextQty } : l,
+              l.code === product.code && l.size === size ? { ...l, ...line } : l,
             ),
           });
         } else {
-          set({ lines: [...get().lines, { code, size, qty }] });
+          set({ lines: [...get().lines, { ...line, qty }] });
         }
-        const label = sizeDisplayLabel(size);
+        const label = surtidoSizeText(product, size) ?? sizeDisplayLabel(size);
+        const variantId = feedVariantId(product.code, size);
+        const unit = product.unitPrice || product.price;
+        trackMeta("AddToCart", {
+          content_ids: [variantId],
+          contents: [{ id: variantId, quantity: qty, item_price: unit }],
+          content_type: "product",
+          content_name: product.displayName || product.name,
+          content_category: product.category,
+          currency: "NAD",
+          value: unit * qty,
+          num_items: qty,
+        });
         return {
           ok: true,
           messageKey: "cart.added",
@@ -69,16 +130,15 @@ export const useCart = create<CartState>()(
         };
       },
       setQty: (code, size, qty) => {
-        const product = getProduct(code);
-        const sizeRow = product?.sizes.find((s) => s.size === size);
-        if (!sizeRow || sizeRow.stock <= 0) {
+        const existing = get().lines.find((l) => l.code === code && l.size === size);
+        if (!existing || existing.sizeStock <= 0) {
           set({
             lines: get().lines.filter((l) => !(l.code === code && l.size === size)),
           });
           return;
         }
-        const left = remainingSku(code, get().lines, size);
-        const max = Math.min(sizeRow.stock, left, product?.stockQty ?? sizeRow.stock);
+        const left = remainingSku(get().lines, code, existing.stockQty, size);
+        const max = Math.min(existing.sizeStock, left, existing.stockQty);
         const clamped = Math.max(0, Math.min(qty, max));
         if (clamped === 0) {
           set({
@@ -98,10 +158,47 @@ export const useCart = create<CartState>()(
         }),
       clear: () => set({ lines: [] }),
     }),
-    { name: "rappi-cart", skipHydration: true },
+    {
+      name: "rappi-cart",
+      version: 2,
+      skipHydration: true,
+      migrate: (persisted) => {
+        const state = persisted as { lines?: Partial<CartLine>[] } | undefined;
+        const lines = (state?.lines ?? []).filter(isCompleteLine);
+        return { lines };
+      },
+    },
   ),
 );
 
 export function cartCount(lines: CartLine[]) {
   return lines.reduce((n, l) => n + l.qty, 0);
+}
+
+/** Build a Product-shaped stub for image/alt helpers from a cart line snapshot. */
+export function cartLineAsProduct(line: CartLine): Product {
+  return {
+    id: line.id,
+    code: line.code,
+    item: line.item || line.name,
+    title: line.title || line.name,
+    name: line.name,
+    displayName: line.displayName || line.name,
+    category: line.category,
+    subcategory: line.subcategory,
+    gender: line.gender,
+    price: line.price,
+    unitPrice: line.unitPrice,
+    currency: "NAD",
+    sheetCategory: null,
+    totalQty: line.stockQty,
+    stockQty: line.stockQty,
+    badge: line.badge,
+    sellAs: line.sellAs,
+    packSize: line.packSize ?? null,
+    sizeOptions: [line.size],
+    sizes: [{ size: line.size, stock: line.sizeStock }],
+    imageUrl: line.imageUrl,
+    images: line.imageUrl ? [line.imageUrl] : [],
+  };
 }

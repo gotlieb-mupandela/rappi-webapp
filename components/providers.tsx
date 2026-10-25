@@ -3,8 +3,10 @@
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { LocaleProvider } from "@/components/locale-provider";
-import { useTheme } from "@/components/theme-provider";
+import { NativeShell } from "@/components/native-shell";
 import type { Market } from "@/lib/i18n/config";
+import { userFromAuth } from "@/lib/auth/session";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
 import { useCart } from "@/lib/stores/cart";
 import { useOrders } from "@/lib/stores/orders";
@@ -17,7 +19,8 @@ export function Providers({
   children: ReactNode;
   initialMarket: Market;
 }) {
-  const { theme } = useTheme();
+  const setUser = useAuth((s) => s.setUser);
+  const syncFromSupabase = useAuth((s) => s.syncFromSupabase);
 
   useEffect(() => {
     useCart.persist.rehydrate();
@@ -26,11 +29,42 @@ export function Providers({
     useWishlist.persist.rehydrate();
   }, []);
 
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.getRegistrations().then((regs) =>
+      Promise.all(regs.map((reg) => reg.unregister())),
+    );
+    if (!("caches" in window)) return;
+    void caches.keys().then((keys) =>
+      Promise.all(keys.filter((key) => key.startsWith("rappi-")).map((key) => caches.delete(key))),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    void syncFromSupabase();
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(userFromAuth(session.user));
+        void syncFromSupabase();
+        return;
+      }
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [setUser, syncFromSupabase]);
+
   return (
     <LocaleProvider initialMarket={initialMarket}>
+      <NativeShell />
       {children}
       <Toaster
-        theme={theme}
+        theme="light"
         position="bottom-right"
         offset={24}
         toastOptions={{

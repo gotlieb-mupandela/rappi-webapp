@@ -1,4 +1,6 @@
 import extraGalleryByCode from "@/data/ai-gallery-urls.json";
+import preTileImages from "@/data/pre-person-tile-images.json";
+import type { Product } from "@/lib/types";
 
 const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images`
@@ -6,8 +8,39 @@ const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const EXTRA_GALLERY = extraGalleryByCode as Record<string, string[]>;
 
+/** AI-generated renders (e.g. product-images/<code>/ai-02-back.webp) are never shown. */
+export function isAiImage(url: string | undefined | null) {
+  return Boolean(url && /\/ai-[^/]*$/i.test(url.split("?")[0]));
+}
+
 function isRemoteUrl(url: string | undefined | null) {
-  return Boolean(url && /^https?:\/\//i.test(url));
+  return Boolean(url && /^https?:\/\//i.test(url) && !isAiImage(url));
+}
+
+/** Official Joma catalogue on-model photos hosted in `public/catalog-photos/`. */
+export function isCatalogPhoto(url: string | undefined | null) {
+  return Boolean(url && url.startsWith("/catalog-photos/"));
+}
+
+function isGalleryUrl(url: string | undefined | null) {
+  return isRemoteUrl(url) || isCatalogPhoto(url);
+}
+
+/** True when the SKU has a real remote or brand-local photo (not a placeholder). */
+export function hasUsableProductImage(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}) {
+  const urls = [product.imageUrl, ...(product.images ?? [])].filter(
+    (url): url is string => Boolean(url),
+  );
+  return urls.some((url) => {
+    if (/^https?:\/\//i.test(url)) return true;
+    // Real local assets only — ignore invented `/products/{id}/…` placeholders
+    // that 404 and used to surface silhouette fallbacks.
+    if (url.startsWith("/products/")) return false;
+    return url.startsWith("/");
+  });
 }
 
 function extraGalleryUrls(product: { id: string; code?: string }) {
@@ -20,41 +53,73 @@ function mergeGallery(
   product: { id: string; code?: string },
   primary: string | undefined,
   images: string[],
+  upgrade: boolean,
 ) {
   const extras = extraGalleryUrls(product);
-  const upgraded = [...images, ...extras]
+  const mapped = [...images, ...extras]
     .filter(Boolean)
-    .map(upgradeProductImageUrl);
-  const first = primary ? upgradeProductImageUrl(primary) : upgraded[0];
-  const merged = [...new Set([...(first ? [first] : []), ...upgraded])];
+    .map((url) => (upgrade ? upgradeProductImageUrl(url) : url));
+  const first = primary
+    ? upgrade
+      ? upgradeProductImageUrl(primary)
+      : primary
+    : mapped[0];
+  const merged = [...new Set([...(first ? [first] : []), ...mapped])];
   if (first && merged[0] !== first) {
     return { imageUrl: first, images: [first, ...merged.filter((url) => url !== first)] };
   }
   return { imageUrl: first ?? "", images: merged };
 }
 
-/** Joma `_large.jpg` thumbs are ~30KB; the same path without `_large` is full-res. */
-export function upgradeProductImageUrl(url: string) {
-  return url.replace(/_large(?=\.(jpe?g|png|webp)(\?|$))/i, "");
+function isDemandwareMedium(url: string) {
+  return /\/images\/medium\//i.test(url);
 }
 
-function isUsableImageUrl(url: string | undefined | null): url is string {
-  return Boolean(url && (isRemoteUrl(url) || url.startsWith("/")));
+function isJomaNet(url: string) {
+  return /v1\.joma-sport\.net/i.test(url);
 }
 
 /**
- * Ordered photo URLs for a card/PDP. Primary first, then gallery extras.
- * Used so a failed Joma hotlink can fall through to Demandware / Storage copies
- * instead of the silhouette placeholder.
+ * Ordered card sources: first Demandware medium, then Joma.net primary (reliable
+ * fallback), then remaining gallery URLs. Callers should walk this list on error.
  */
-export function productImageCandidates(
-  product: { imageUrl?: string; images?: string[] },
-  preferred?: string | null,
-) {
-  const urls = [preferred, product.imageUrl, ...(product.images ?? [])]
-    .filter(isUsableImageUrl)
-    .map(upgradeProductImageUrl);
-  return [...new Set(urls)];
+export function productCardImageCandidates(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}): string[] {
+  const gallery = (product.images ?? []).filter(Boolean);
+  const primary = product.imageUrl?.trim() || "";
+  const catalog = [primary, ...gallery].filter(isCatalogPhoto);
+  const mediums = gallery.filter(isDemandwareMedium);
+  const nets = [primary, ...gallery].filter(isJomaNet);
+  const rest = [primary, ...gallery].filter(
+    (url) => url && !isDemandwareMedium(url) && !isJomaNet(url) && !isCatalogPhoto(url),
+  );
+  return [
+    ...new Set(
+      [catalog[0], mediums[0], nets[0], ...mediums.slice(1), ...nets.slice(1), ...rest].filter(
+        Boolean,
+      ),
+    ),
+  ];
+}
+
+/**
+ * Prefer Demandware `medium` gallery shots for cards, then Joma.net primary.
+ */
+export function productCardImageUrl(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}) {
+  return productCardImageCandidates(product)[0] ?? "";
+}
+
+/**
+ * Joma `_large.jpg` thumbs are ~30KB; the same path without `_large` is full-res.
+ * Catalog bake strips `_large`; PDP still upgrades defensively.
+ */
+export function upgradeProductImageUrl(url: string) {
+  return url.replace(/_large(?=\.(jpe?g|png|webp)(\?|$))/i, "");
 }
 
 export function productPublicUrls(id: string) {
@@ -72,32 +137,96 @@ export function productStorageUrls(id: string) {
   return { imageUrl: images[0], images };
 }
 
-/** Prefer real CDN/remote URLs already on the product; only invent local/storage paths as fallback. */
+/** Prefer real CDN/remote URLs already on the product; keep `_large` thumbs for listings. */
 export function withProductImages<
   T extends { id: string; imageUrl: string; images: string[]; code?: string },
 >(product: T): T {
-  const remoteImages = (product.images ?? []).filter(isRemoteUrl);
-  const remotePrimary = isRemoteUrl(product.imageUrl)
-    ? product.imageUrl
-    : remoteImages[0];
+  if (isRemoteUrl(product.imageUrl) || product.images?.some(isRemoteUrl)) {
+    const remoteImages = (product.images ?? []).filter(isGalleryUrl);
+    const remotePrimary =
+      remoteImages.find(isCatalogPhoto) ??
+      (isRemoteUrl(product.imageUrl) ? product.imageUrl : remoteImages[0]);
 
-  if (remotePrimary) {
+    if (remotePrimary) {
+      return {
+        ...product,
+        ...mergeGallery(
+          product,
+          remotePrimary,
+          remoteImages.length ? remoteImages : [remotePrimary],
+          false,
+        ),
+      };
+    }
+  }
+
+  if (product.imageUrl?.startsWith("/") && !product.imageUrl.startsWith("/products/")) {
+    const localImages = (product.images ?? []).filter((url) => url.startsWith("/"));
     return {
       ...product,
-      ...mergeGallery(
-        product,
-        remotePrimary,
-        remoteImages.length ? remoteImages : [remotePrimary],
-      ),
+      imageUrl: product.imageUrl,
+      images: localImages.length ? localImages : [product.imageUrl],
     };
   }
 
-  const local =
-    process.env.NODE_ENV !== "production" || !STORAGE_ROOT
-      ? productPublicUrls(product.id)
-      : productStorageUrls(product.id);
+  // No remote CDN shot and no real local asset — leave empty rather than inventing
+  // `/products/{id}/01.webp` paths that 404 into silhouette placeholders.
   return {
     ...product,
-    ...mergeGallery(product, local.imageUrl, local.images),
+    imageUrl: "",
+    images: [],
   };
+}
+
+/** Full-resolution gallery for PDP — strips Joma `_large` thumb suffix. */
+export function withFullResProductImages<T extends Product>(product: T): T {
+  return {
+    ...product,
+    imageUrl: product.imageUrl ? upgradeProductImageUrl(product.imageUrl) : product.imageUrl,
+    images: (product.images ?? []).map(upgradeProductImageUrl),
+  };
+}
+
+/**
+ * Card frame each product had before galleries were re-led with a person
+ * (PR #46). Folder, hub and landing tiles use these: a tile stands for a
+ * whole folder or audience, and a shared teamwear code's model is usually an
+ * adult man, which is wrong on Kids and Woman tiles. Product pages and cards
+ * keep the person lead.
+ */
+
+const PRE_TILE_IMAGES = preTileImages as Record<string, string>;
+
+export function tileImageCandidates(product: {
+  code?: string | null;
+  imageUrl?: string | null;
+  images?: string[] | null;
+}): string[] {
+  // Tiles keep the product-only frame: catalogue model shots are adults.
+  const base = productCardImageCandidates(product).filter((url) => !isCatalogPhoto(url));
+  const pre = product.code ? PRE_TILE_IMAGES[product.code] : "";
+  return pre ? [...new Set([pre, ...base])] : base;
+}
+
+export function tileImageUrl(product: {
+  code?: string | null;
+  imageUrl?: string | null;
+  images?: string[] | null;
+}) {
+  return tileImageCandidates(product)[0] ?? "";
+}
+
+/**
+ * Card frames for a listing scoped to one audience. A shared teamwear code's
+ * person lead is usually an adult man, so Kids listings (non 5/6xxxxx codes)
+ * and Woman listings (non 9xxxxx codes) use the earlier product-only frame.
+ */
+export function listingCardCandidates(
+  product: { code?: string | null; imageUrl?: string | null; images?: string[] | null },
+  audience?: string | null,
+): string[] {
+  const code = product.code ?? "";
+  if (audience === "kids" && !/^[56]\d{5}\./.test(code)) return tileImageCandidates(product);
+  if (audience === "women" && !/^9\d{5}\./.test(code)) return tileImageCandidates(product);
+  return productCardImageCandidates(product);
 }

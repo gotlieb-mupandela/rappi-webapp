@@ -94,9 +94,10 @@ export const CATEGORIES: CategoryDef[] = [
   },
   {
     slug: "shoes",
-    name: "Shoes",
+    name: "Footwear",
+    nav: "Footwear",
     featured: true,
-    blurb: "Sneakers, running, court, kids, sandals, and barefoot.",
+    blurb: "Football, running, trail, court, lifestyle, and kids footwear.",
   },
   {
     slug: "balls-bags",
@@ -125,15 +126,34 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   caps: "Caps",
   balls: "Balls",
   boots: "Boots",
+  futsal: "Futsal",
+  turf: "Turf",
+  "football-fg": "Terreno semiseco and duro",
+  "football-ag": "Césped artificial",
+  "football-sg": "Terreno blando",
   "shin-guards": "Shin Guards",
   "gk-gloves": "Goalkeeper Gloves",
   sets: "Sets",
   shoes: "Shoes",
   sneakers: "Sneakers",
-  sandals: "Sandals",
+  sandals: "Sandals confort",
   barefoot: "Barefoot",
-  "running-shoes": "Running shoes",
+  "running-shoes": "Running",
+  "trail-running": "Trail Running",
   "court-shoes": "Court shoes",
+  "tennis-shoes": "Tennis",
+  "padel-shoes": "Pádel",
+  "pickleball-shoes": "Pickleball",
+  "handball-shoes": "Handball",
+  "badminton-shoes": "Badminton",
+  "basketball-shoes": "Basketball",
+  "outdoor-shoes": "Outdoor",
+  "hockey-shoes": "Hockey",
+  "volleyball-shoes": "Volleyball",
+  "comfort-shoes": "Confort",
+  "joma-flow": "Flow",
+  "summer-shoes": "Summer shoes",
+  forloz: "Forloz",
   "kids-shoes": "Kids shoes",
   jerseys: "Jerseys",
   dresses: "Dresses",
@@ -143,7 +163,7 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   "scrum-caps": "Scrum Caps",
   protection: "Protection",
   clothing: "Clothing",
-  "training-shoes": "Training Shoes",
+  "training-shoes": "Training",
   tops: "Tops",
   mats: "Mats",
   towels: "Towels",
@@ -155,6 +175,198 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   accessories: "Accessories",
   general: "More",
 };
+
+/**
+ * Apparel-style folders for audience / category tiles.
+ * Unmapped labeled subcategories stay as their own folder.
+ * `general` is hidden — it is leftover stock, not a shop folder.
+ */
+export const TYPE_FOLDERS: Record<string, readonly string[]> = {
+  shirts: [
+    "tees",
+    "tees-men",
+    "tees-women",
+    "tees-kids",
+    "polos",
+    "jerseys",
+    "tops",
+    "clothing",
+    "sets",
+  ],
+  jackets: ["jackets", "jackets-kids", "hoodies"],
+  shorts: ["shorts"],
+  pants: ["pants", "sweatpants", "tights", "skins", "leggings", "tracksuits"],
+  dresses: ["dresses"],
+  skirts: ["skirts"],
+  bras: ["bras"],
+  swimwear: ["swimwear"],
+  shoes: [
+    "sneakers",
+    "running-shoes",
+    "trail-running",
+    "court-shoes",
+    "tennis-shoes",
+    "padel-shoes",
+    "pickleball-shoes",
+    "handball-shoes",
+    "badminton-shoes",
+    "basketball-shoes",
+    "outdoor-shoes",
+    "hockey-shoes",
+    "volleyball-shoes",
+    "comfort-shoes",
+    "joma-flow",
+    "summer-shoes",
+    "forloz",
+    "boots",
+    "futsal",
+    "turf",
+    "football-fg",
+    "football-ag",
+    "football-sg",
+    "sandals",
+    "barefoot",
+    "kids-shoes",
+    "training-shoes",
+    "shoes",
+  ],
+  accessories: [
+    "socks",
+    "caps",
+    "goggles",
+    "towels",
+    "mats",
+    "accessories",
+    "gk-gloves",
+    "protection",
+    "shin-guards",
+    "scrum-caps",
+  ],
+  equipment: ["balls", "bags", "equipment-bags", "ball-bags", "rackets"],
+};
+
+/**
+ * Chip order shared by every sport hub.
+ * Apparel lines line up across sports, then Joma footwear surfaces,
+ * then balls and protection. Rugby stays Jerseys → Shorts → Balls → Protection.
+ */
+export const SUBCATEGORY_CHIP_ORDER = [
+  "jerseys",
+  "tees",
+  "tees-men",
+  "tees-women",
+  "tees-kids",
+  "polos",
+  "tops",
+  "clothing",
+  "sets",
+  "swimwear",
+  "shorts",
+  "pants",
+  "sweatpants",
+  "tracksuits",
+  "leggings",
+  "tights",
+  "skins",
+  "jackets",
+  "jackets-kids",
+  "hoodies",
+  "dresses",
+  "skirts",
+  "bras",
+  "football-fg",
+  "football-ag",
+  "football-sg",
+  "futsal",
+  "turf",
+  "boots",
+  "running-shoes",
+  "trail-running",
+  "training-shoes",
+  "basketball-shoes",
+  "court-shoes",
+  "tennis-shoes",
+  "padel-shoes",
+  "pickleball-shoes",
+  "handball-shoes",
+  "badminton-shoes",
+  "volleyball-shoes",
+  "hockey-shoes",
+  "outdoor-shoes",
+  "sneakers",
+  "sandals",
+  "barefoot",
+  "comfort-shoes",
+  "joma-flow",
+  "summer-shoes",
+  "forloz",
+  "kids-shoes",
+  "shoes",
+  "balls",
+  "bags",
+  "ball-bags",
+  "equipment-bags",
+  "rackets",
+  "protection",
+  "scrum-caps",
+  "shin-guards",
+  "gk-gloves",
+  "socks",
+  "caps",
+  "goggles",
+  "towels",
+  "mats",
+  "accessories",
+] as const;
+
+const SUBCATEGORY_CHIP_RANK = new Map<string, number>(
+  SUBCATEGORY_CHIP_ORDER.map((slug, index) => [slug, index]),
+);
+
+export function subcategoryChipRank(slug: string) {
+  return SUBCATEGORY_CHIP_RANK.get(slug) ?? SUBCATEGORY_CHIP_ORDER.length;
+}
+
+/** Shop-like order: clothes first, then shoes, then extras. */
+export const TYPE_FOLDER_ORDER = [
+  "shirts",
+  "jackets",
+  "swimwear",
+  "shorts",
+  "pants",
+  "dresses",
+  "skirts",
+  "bras",
+  "shoes",
+  "accessories",
+  "equipment",
+] as const;
+
+/** Warehouse leftovers — never their own shop tiles. `sets` fold into shirts. */
+export const HIDDEN_TYPE_FOLDERS = new Set(["general", "sets"]);
+
+/** Adult women-coded families — unisex leftovers in these stay off Men. */
+export const WOMEN_CODED_TYPE_FOLDERS = new Set([
+  "dresses",
+  "skirts",
+  "bras",
+  "swimwear",
+]);
+
+const SUB_TO_TYPE_FOLDER: Record<string, string> = Object.fromEntries(
+  Object.entries(TYPE_FOLDERS).flatMap(([folder, slugs]) =>
+    slugs.map((slug) => [slug, folder]),
+  ),
+);
+
+export function typeFolderForSubcategory(sub: string) {
+  return SUB_TO_TYPE_FOLDER[sub] ?? sub;
+}
+
+export function matchesTypeFolder(subcategory: string, group: string) {
+  const slugs = TYPE_FOLDERS[group];
+  return slugs ? slugs.includes(subcategory) : subcategory === group;
+}
 
 /** Legacy / short hub paths that should resolve to a live category slug. */
 export const CATEGORY_ALIASES: Record<string, string> = {
@@ -219,6 +431,4 @@ export function audienceBySlug(slug: string) {
   return AUDIENCES.find((a) => a.slug === slug);
 }
 
-export const DEMO_EMAIL = "shop@rappi.com";
-export const DEMO_PASSWORD = "rappi123";
 export const TAGLINE = "GEAR UP. SHOW UP. LEVEL UP.";

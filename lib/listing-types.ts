@@ -1,11 +1,30 @@
+import type { ListingAudience } from "@/lib/audience";
 import type { Product } from "@/lib/types";
 
-export const LISTING_PAGE_SIZE = 48;
+export const LISTING_PAGE_SIZE = 24;
+
+/** Slim catalog row for client listing (full Product fields + search/facet helpers). */
+export type ListingItem = Product & {
+  audience?: ListingAudience;
+  hay?: string;
+  /** Precomputed at catalog load — avoids re-scanning image URLs per request. */
+  hasImage?: boolean;
+  /** Joma browse folder keys (leaf + ancestors), baked for client filters. */
+  folders?: string[];
+};
+
+export type ListingFilterOpts = {
+  categorySlug?: string;
+  requireQuery?: boolean;
+  pageSize?: number;
+  badges?: Array<NonNullable<Product["badge"]>>;
+};
 
 export type ListingQuery = {
   q?: string;
   cat?: string;
   sub?: string;
+  group?: string;
   size?: string;
   max?: string;
   audience?: string;

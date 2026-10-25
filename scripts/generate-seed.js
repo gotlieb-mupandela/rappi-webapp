@@ -25,6 +25,12 @@ const categories = [
   ["running-fitness", "Running & Fitness", true, "Running tops, shorts, mats, and training towels.", 10],
   ["shoes", "Shoes", true, "Road, indoor, kids, and lifestyle trainers.", 11],
   ["balls-bags", "Balls & Bags", false, "Volleyballs, kit bags, and ball bags.", 12],
+  ["brama", "Brama", false, "Base layers and compression from the Brama range.", 13],
+  ["hiking", "Hiking", false, "Outdoor and trail apparel.", 14],
+  ["lifestyle", "Lifestyle", false, "Casual and lifestyle pieces.", 15],
+  ["padel", "Padel", false, "Padel rackets, shoes, and court wear.", 16],
+  ["resort", "Resort", false, "Resort and leisure collection.", 17],
+  ["teampro-2026", "Teampro 2026", false, "Teampro 2026 kit and apparel.", 18],
 ];
 
 const sql = [];

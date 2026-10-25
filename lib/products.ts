@@ -1,21 +1,31 @@
-import type { Product } from "@/lib/types";
-import { CATEGORIES, SUBCATEGORY_LABELS } from "@/lib/catalog";
-import { withStorefrontCategories, withStorefrontMerchandising } from "@/lib/classify";
-import { withProductImages } from "@/lib/media";
-import raw from "@/data/products.json";
+import "server-only";
 
-/** Bundled catalog — merchandised so cart/PDP/client prices and copy stay in sync. */
-export const products = withStorefrontCategories(
-  (raw as Product[]).map(withProductImages),
-);
+import { SUBCATEGORY_LABELS } from "@/lib/catalog";
+import { DPO_TEST_CODE, isDpoTestCheckoutEnabled } from "@/lib/dpo-test-product";
+import { searchListing } from "@/lib/listing-core";
+import {
+  categoryCountsFrom,
+  getProductByCode,
+  offlineCatalog,
+  productsByCategory as productsInCategory,
+} from "@/lib/offline-catalog";
+import type { Product } from "@/lib/types";
+
+export {
+  inStockSizes,
+  isLowStock,
+  totalStock,
+} from "@/lib/product-stock";
+
+export { categoryCountsFrom, getProductByCode, productsByCategory } from "@/lib/offline-catalog";
+
+/** Bundled catalog fallback — live data goes through getCatalog(). */
+export const products = offlineCatalog;
 
 export function getProduct(code: string, catalog: Product[] = products) {
-  const found = catalog.find((p) => p.code === code);
-  return found ? withStorefrontMerchandising(found) : undefined;
-}
-
-export function productsByCategory(slug: string, catalog: Product[] = products) {
-  return catalog.filter((p) => p.category === slug);
+  if (code === DPO_TEST_CODE && !isDpoTestCheckoutEnabled()) return undefined;
+  if (catalog === products) return getProductByCode(code);
+  return catalog.find((p) => p.code === code);
 }
 
 export function productsBySubcategory(
@@ -23,12 +33,12 @@ export function productsBySubcategory(
   sub: string,
   catalog: Product[] = products,
 ) {
-  return catalog.filter((p) => p.category === slug && p.subcategory === sub);
+  return productsInCategory(slug, catalog).filter((p) => p.subcategory === sub);
 }
 
 export function subcategoriesFor(slug: string, catalog: Product[] = products) {
   const seen = new Map<string, number>();
-  for (const p of productsByCategory(slug, catalog)) {
+  for (const p of productsInCategory(slug, catalog)) {
     seen.set(p.subcategory, (seen.get(p.subcategory) ?? 0) + 1);
   }
   return [...seen.entries()].map(([sub, count]) => ({
@@ -43,45 +53,7 @@ export function searchProducts(
   category?: string,
   catalog: Product[] = products,
 ) {
-  const q = query.trim().toLowerCase();
-  let list = catalog;
-  if (category && category !== "all") {
-    list = list.filter((p) => p.category === category);
-  }
-  if (!q) return list;
-  return list.filter((p) => {
-    const catName =
-      CATEGORIES.find((c) => c.slug === p.category)?.name.toLowerCase() ?? "";
-    const sub = (SUBCATEGORY_LABELS[p.subcategory] ?? p.subcategory).toLowerCase();
-    return (
-      p.code.toLowerCase().includes(q) ||
-      p.item.toLowerCase().includes(q) ||
-      p.name.toLowerCase().includes(q) ||
-      p.title.toLowerCase().includes(q) ||
-      (p.description ?? "").toLowerCase().includes(q) ||
-      catName.includes(q) ||
-      sub.includes(q) ||
-      p.category.includes(q)
-    );
-  });
-}
-
-export function totalStock(product: Product) {
-  return product.sizes.reduce((sum, s) => sum + s.stock, 0);
-}
-
-export function isLowStock(stock: number) {
-  return stock > 0 && stock < 5;
-}
-
-export function inStockSizes(product: Product) {
-  return product.sizes.filter((s) => s.stock > 0);
-}
-
-export function categoryCountsFrom(catalog: Product[]) {
-  return Object.fromEntries(
-    CATEGORIES.map((c) => [c.slug, productsByCategory(c.slug, catalog).length]),
-  ) as Record<string, number>;
+  return searchListing(catalog, query, category);
 }
 
 export const categoryCounts = categoryCountsFrom(products);

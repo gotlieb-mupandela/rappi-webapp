@@ -136,7 +136,7 @@ export function ProductEditor({ productId }: { productId: string | null }) {
       unit_price: Number(unitPrice || price),
       currency: "NAD",
       badge: badge || null,
-      image_url: imageUrl || "/brand/rappi-logo.png",
+      image_url: imageUrl || "/brand/rappi-logo-v2.png",
       images: images.length ? images : imageUrl ? [imageUrl] : [],
     };
 
@@ -363,7 +363,7 @@ export function ProductEditor({ productId }: { productId: string | null }) {
           />
         </div>
         {images.length ? (
-          <div className="mt-4 grid grid-cols-5 gap-2">
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
             {images.map((src) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img

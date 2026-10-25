@@ -1,170 +1,297 @@
+import portalListKeys from "@/data/joma-portal-list-keys.json";
 import {
   firstImagedProduct,
+  hasUsableProductImage,
   isStorefrontFootwear,
   sampleForCategory,
   sampleFromList,
 } from "@/lib/classify";
-import { AUDIENCES, CAMPAIGN_COLLECTIONS, categoryBySlug, type AudienceSlug } from "@/lib/catalog";
+import {
+  AUDIENCES,
+  CAMPAIGN_COLLECTIONS,
+  HIDDEN_TYPE_FOLDERS,
+  SUBCATEGORY_LABELS,
+  TYPE_FOLDER_ORDER,
+  TYPE_FOLDERS,
+  WOMEN_CODED_TYPE_FOLDERS,
+  categoryBySlug,
+  matchesTypeFolder,
+  typeFolderForSubcategory,
+  type AudienceSlug,
+} from "@/lib/catalog";
 import type { Product } from "@/lib/types";
 import { products as bundled, productsByCategory } from "@/lib/products";
+import {
+  isKidsProduct,
+  isKidsShoe,
+  matchesAudience,
+  matchesAudienceInFolder,
+  productAudience,
+} from "@/lib/audience";
+import {
+  APPAREL_FOLDERS,
+  FOOTWEAR_FOLDERS,
+  KIDS_APPAREL_FOLDERS,
+  KIDS_FOOTWEAR_FOLDERS,
+  apparelFoldersForAudience,
+  footwearFoldersForAudience,
+  folderMatchesProduct,
+  hasJomaFolderIndex,
+  jomaFolderByKey,
+  jomaFolderHasChildren,
+  productsInJomaFolder,
+  type JomaFolderDef,
+} from "@/lib/joma-tree";
+import {
+  jomaAccessoriesLandingTiles,
+  jomaAudienceLandingTiles,
+  jomaFootwearLandingTiles,
+  jomaKidsLandingTiles,
+  jomaOfficialKitsLandingTiles,
+  jomaOutletLandingTiles,
+  jomaTeamsLandingTiles,
+  type AccessoriesLandingTileDef,
+} from "@/lib/joma-nav";
+import { tileImageUrl } from "@/lib/media";
+import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
+import portalStructure from "@/data/joma-portal-structure.json";
+import { isLiveFolder } from "@/lib/joma-live";
+import { PORTAL_LABEL_KEYS } from "@/lib/joma-tree";
 
-const KIDS_NAME_RE = /\b(junior| jr\b|kids|child|baby|youth|teen)\b/;
-const WOMEN_NAME_RE = /\b(lady|ladies|women|woman|female|womens)\b/;
-const MEN_NAME_RE = /\b(men|man|male|mens)\b/;
+const PORTAL_LANDING = (portalStructure as {
+  landing?: Record<string, { order: string[]; labels: Record<string, string> }>;
+}).landing ?? {};
 
-export function isKidsShoe(product: Product) {
-  if (product.gender === "kids") return true;
-  if (product.subcategory === "kids-shoes" || product.subcategory === "tees-kids") return true;
-  if (/^J[A-Z]/i.test(product.code)) return true;
-  const blob = `${product.displayName} ${product.name} ${product.item}`.toLowerCase();
-  if (KIDS_NAME_RE.test(blob)) return true;
-  const nums = product.sizeOptions
-    .map((s) => Number.parseFloat(s))
-    .filter((n) => Number.isFinite(n));
-  return nums.length > 0 && Math.max(...nums) <= 35;
-}
+/** Joma portal names and order for a landing grid (images are resolved first, by our label). */
+const PORTAL_TREE = portalStructure as unknown as {
+  order: Record<string, string[]>;
+  added?: Record<string, { key: string; label: string }[]>;
+  removed?: string[];
+};
+const PORTAL_REMOVED = new Set(PORTAL_TREE.removed ?? []);
+const LANDING_ROOT: Record<string, string> = {
+  men: "root:Man",
+  women: "root:Woman",
+  kids: "root:Children",
+  accessories: "root:Accessories",
+  outlet: "root:Outlet",
+  "official-kits": "root:OfficialKits",
+};
+const groupOf = (href: string) => /[?&]group=([^&]+)/.exec(href)?.[1];
 
-export function isKidsProduct(product: Product) {
-  if (product.gender === "kids") return true;
-  if (
-    product.subcategory === "tees-kids" ||
-    product.subcategory === "jackets-kids" ||
-    product.subcategory === "kids-shoes"
-  ) {
-    return true;
+/**
+ * Landing tiles in joma-sport.net order and wording. Tiles for folders the portal
+ * sync removed are dropped; root folders the sync added get a tile (exact Joma image).
+ */
+function portalLanding<T extends { label: string; labelKey?: string; href?: string; imageSrc?: string }>(
+  page: string,
+  input: T[],
+): T[] {
+  const spec = PORTAL_LANDING[page];
+  const root = LANDING_ROOT[page];
+  let tiles = input.filter((t) => {
+    const k = groupOf(t.href ?? "") ?? "";
+    return !PORTAL_REMOVED.has(k) && isLiveFolder(k, Boolean(k && jomaFolderByKey(k)));
+  });
+  const template = tiles.find((t) => groupOf(t.href ?? ""));
+  if (root && template?.href) {
+    for (const node of PORTAL_TREE.added?.[root] ?? []) {
+      if (tiles.some((t) => groupOf(t.href ?? "") === node.key)) continue;
+      tiles.push({
+        ...template,
+        label: node.label,
+        labelKey: undefined,
+        href: template.href.replace(/([?&]group=)[^&]+/, `$1${node.key}`),
+        imageSrc: jomaFolderTileImage(node.key) || template.imageSrc,
+      });
+    }
   }
-  const blob = `${product.displayName} ${product.name} ${product.item}`.toLowerCase();
-  if (KIDS_NAME_RE.test(blob)) return true;
-  if (product.category === "shoes") return isKidsShoe(product);
-  return false;
+  const rootRank = new Map((root ? PORTAL_TREE.order[root] ?? [] : []).map((k, i) => [k, i]));
+  const rank = new Map((spec?.order ?? []).map((label, i) => [label, i]));
+  const score = (t: T) => {
+    const k = groupOf(t.href ?? "");
+    if (k && rootRank.has(k)) return rootRank.get(k)!;
+    return 1e5 + (rank.get(t.label) ?? 1e4);
+  };
+  tiles = [...tiles].sort((a, b) => score(a) - score(b));
+  if (!spec) return tiles;
+  return tiles.map((tile) => {
+    const label = spec.labels[tile.label];
+    return label ? { ...tile, label, labelKey: undefined } : tile;
+  });
+}
+import { productInHub } from "@/lib/hub-membership";
+import {
+  brandCoverIfSafe,
+  emptyFolderProduct,
+  familyChromeProduct,
+  pinnedFrameUrlForProduct,
+  pinnedTileImageUrl,
+  productForPin,
+  usableCatalogImageUrl,
+} from "@/lib/tile-covers";
+
+/** Folders with a Joma portal product list link to that list (group=key), not a type filter. */
+const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
+function hasPortalList(key: string) {
+  return PORTAL_LIST_KEYS.has(key);
 }
 
-export function productAudience(product: Product): AudienceSlug | "unisex" {
-  if (isKidsProduct(product)) return "kids";
-  const blob = `${product.displayName} ${product.name} ${product.item} ${product.title}`.toLowerCase();
-  if (product.gender === "women" || WOMEN_NAME_RE.test(blob)) return "women";
-  if (product.gender === "men" || MEN_NAME_RE.test(blob)) return "men";
-  return "unisex";
-}
-
-export function matchesAudience(product: Product, audience: string | null) {
-  if (!audience || audience === "all") return true;
-  const resolved = productAudience(product);
-  if (audience === "kids") return resolved === "kids";
-  if (audience === "women") return resolved === "women";
-  if (audience === "men") return resolved === "men";
-  if (audience === "adult") return resolved !== "kids";
-  return true;
-}
-
+export { isKidsProduct, isKidsShoe, matchesAudience, productAudience };
+export {
+  jomaFolderAncestorKeys,
+  jomaFolderHasChildren,
+  jomaFolderParentKey,
+} from "@/lib/joma-tree";
+/** Folder tile used on category hubs and shop folder landings. */
+export type HubFolderTile = {
+  key: string;
+  name: string;
+  count: number;
+  href: string;
+  sample?: Product | null;
+  banner?: string;
+  cover?: string;
+  /** Portal tile name: show `name` verbatim (no i18n group label). */
+  exactName?: boolean;
+  /** When set, HubTile should use groupName i18n instead of subName. */
+  nameGroup?: {
+    kind: "shoes" | "kids" | "rugby" | "brama" | "footwear" | "apparel";
+    key: string;
+  };
+};
 function footwearOnly(list: Product[]) {
   return list.filter(isStorefrontFootwear);
 }
 
-export function shoeHubGroups(catalog: Product[] = bundled) {
-  const shoes = footwearOnly(productsByCategory("shoes", catalog));
-  const running = shoes.filter(
-    (p) => p.subcategory === "running-shoes" || p.subcategory === "training-shoes",
-  );
-  const kids = shoes.filter((p) => isKidsShoe(p) && p.subcategory !== "running-shoes");
-  const sandals = shoes.filter((p) => p.subcategory === "sandals" || p.subcategory === "barefoot");
-  const adult = shoes.filter(
-    (p) =>
-      !isKidsShoe(p) &&
-      p.subcategory !== "running-shoes" &&
-      p.subcategory !== "training-shoes" &&
-      p.subcategory !== "sandals" &&
-      p.subcategory !== "barefoot",
-  );
-  const offers = shoes.filter((p) => p.badge === "offer" || p.badge === "new");
-  return [
-    {
-      key: "adult",
-      name: "Sneakers",
-      count: adult.length,
-      href: "/shop/shoes?sub=sneakers",
-      sample: sampleFromList(adult, "shoes") ?? firstImagedProduct(adult),
-    },
-    {
-      key: "kids",
-      name: "Kids",
-      count: kids.length,
-      href: "/shop/shoes?audience=kids",
-      sample: sampleFromList(kids, "shoes") ?? firstImagedProduct(kids),
-    },
-    {
-      key: "running",
-      name: "Running",
-      count: running.length,
-      href: "/shop/shoes?sub=running-shoes",
-      sample: sampleFromList(running, "shoes") ?? firstImagedProduct(running),
-    },
-    {
-      key: "sandals",
-      name: "Sandals & barefoot",
-      count: sandals.length,
-      href: "/shop/shoes?sub=sandals",
-      sample: sampleFromList(sandals, "shoes") ?? firstImagedProduct(sandals),
-    },
-    {
-      key: "offers",
-      name: "Outlet",
-      count: offers.length || shoes.length,
-      href: "/promotions",
-      sample: sampleFromList(offers.length ? offers : shoes, "shoes"),
-      banner: "Special offers",
-    },
-  ].filter((g) => g.count > 0);
+function imagedSample(product: Product | null | undefined) {
+  if (!product || !usableCatalogImageUrl(product)) return null;
+  return product;
 }
 
-export function kidsHubGroups(catalog: Product[] = bundled) {
+/**
+ * Picture for a folder tile. A pinned gallery file is the `cover`, so that
+ * tile stays on its pre-reorder photo. Otherwise HubTile uses the sample's
+ * card image. A /brand plate is only used when there is no product photo.
+ */
+function folderTilePicture(
+  folder: JomaFolderDef,
+  kind: "footwear" | "apparel" | "kids",
+  inFolder: Product | null,
+): { sample: Product | null; cover?: string } {
+  const sample =
+    productForPin(folder.key) ??
+    inFolder ??
+    emptyFolderProduct(folder.key) ??
+    familyChromeProduct(folder, bundled);
+  const pinned = pinnedTileImageUrl(folder.key);
+  if (sample) return pinned ? { sample, cover: pinned } : { sample };
+  const cover = brandCoverIfSafe(folder.cover, kind);
+  return { sample: null, cover: cover || undefined };
+}
+function tilesFromJomaFolders(
+  folders: readonly JomaFolderDef[],
+  pool: Product[],
+  hrefFor: (folder: JomaFolderDef) => string,
+  kind: "footwear" | "apparel" | "kids",
+  sampleHub?: string,
+  opts?: { includeEmpty?: boolean },
+): HubFolderTile[] {
+  const includeEmpty = opts?.includeEmpty ?? true;
+  const groupKind = kind === "kids" ? ("kids" as const) : kind;
+  const poolSet = hasJomaFolderIndex() ? new Set(pool) : null;
+  return folders
+    .filter((folder) => isLiveFolder(folder.key))
+    .map((folder) => {
+      const items = poolSet
+        ? productsInJomaFolder(folder.key).filter((p) => poolSet.has(p))
+        : pool.filter((p) => folderMatchesProduct(folder, p));
+      const photographed = items.filter((p) => usableCatalogImageUrl(p));
+      const inFolder = imagedSample(
+        sampleForTypeFolder(
+          photographed.length ? photographed : items,
+          folder.sub && (TYPE_FOLDERS.shoes as readonly string[]).includes(folder.sub)
+            ? "shoes"
+            : folder.key,
+          sampleHub,
+        ) ?? firstImagedProduct(photographed.length ? photographed : items),
+      );
+      const exact = jomaFolderTileImage(folder.key);
+      const picture = exact
+        ? { sample: inFolder, cover: exact }
+        : folderTilePicture(folder, kind, inFolder);
+      return {
+        key: folder.key,
+        name: folder.label,
+        count: items.length,
+        href: hrefFor(folder),
+        sample: picture.sample,
+        cover: picture.cover,
+        ...(PORTAL_LABEL_KEYS.has(folder.key)
+          ? { exactName: true }
+          : { nameGroup: { kind: groupKind, key: folder.key } }),
+      } satisfies HubFolderTile;
+    })
+    .filter((g) => includeEmpty || g.count > 0);
+}
+export function shoeHubGroups(catalog: Product[] = bundled): HubFolderTile[] {
+  const shoes = footwearOnly(productsByCategory("shoes", catalog));
+  const adult = shoes.filter((p) => !isKidsShoe(p));
+  return tilesFromJomaFolders(
+    FOOTWEAR_FOLDERS,
+    adult,
+    (folder) => {
+      if (folder.children?.length) {
+        return `/shop/shoes?group=${encodeURIComponent(folder.key)}`;
+      }
+      if (folder.sub && !hasPortalList(folder.key)) return `/shop/shoes?sub=${encodeURIComponent(folder.sub)}`;
+      return `/shop/shoes?group=${encodeURIComponent(folder.key)}`;
+    },
+    "footwear",
+    "shoes",
+    { includeEmpty: true },
+  );
+}
+export function kidsFootwearHubGroups(catalog: Product[] = bundled): HubFolderTile[] {
+  const kidsShoes = footwearOnly(productsByCategory("shoes", catalog)).filter(isKidsShoe);
+  return tilesFromJomaFolders(
+    KIDS_FOOTWEAR_FOLDERS,
+    kidsShoes,
+    (folder) => {
+      if (folder.sub && !hasPortalList(folder.key)) {
+        return `/shop/shoes?audience=kids&sub=${encodeURIComponent(folder.sub)}`;
+      }
+      return `/shop/shoes?audience=kids&group=${encodeURIComponent(folder.key)}`;
+    },
+    "footwear",
+    "shoes",
+    { includeEmpty: true },
+  );
+}
+export function kidsHubGroups(catalog: Product[] = bundled): HubFolderTile[] {
   const kidsApparel = catalog.filter(isKidsProduct);
-  const tees = kidsApparel.filter(
-    (p) =>
-      p.subcategory === "tees-kids" ||
-      p.item === "KIDS" ||
-      (p.subcategory === "tees" && /\b(junior| jr\b|kids)\b/.test(p.displayName.toLowerCase())),
-  );
-  const shorts = kidsApparel.filter(
-    (p) => p.item === "SHORTS KIDS" || p.subcategory === "shorts",
-  );
-  const jackets = kidsApparel.filter(
-    (p) => p.subcategory === "jackets-kids" || p.subcategory === "jackets",
+  const ageTiles = tilesFromJomaFolders(
+    KIDS_APPAREL_FOLDERS,
+    kidsApparel,
+    (folder) => `/shop/kids?group=${encodeURIComponent(folder.key)}`,
+    "kids",
+    undefined,
+    { includeEmpty: true },
   );
   const kidsShoes = footwearOnly(productsByCategory("shoes", catalog)).filter(isKidsShoe);
   return [
+    ...ageTiles,
     {
-      key: "tees",
-      name: "Kids tees",
-      count: tees.length,
-      href: "/shop/sportswear?sub=tees-kids",
-      sample: firstImagedProduct(tees),
-    },
-    {
-      key: "shorts",
-      name: "Kids shorts",
-      count: shorts.length,
-      href: "/shop/sportswear?sub=shorts",
-      sample: firstImagedProduct(shorts),
-    },
-    {
-      key: "jackets",
-      name: "Kids jackets",
-      count: jackets.length,
-      href: "/shop/sportswear?sub=jackets",
-      sample: firstImagedProduct(jackets),
-    },
-    {
-      key: "shoes",
-      name: "Kids shoes",
+      key: "kids-footwear",
+      name: "Footwear",
       count: kidsShoes.length,
       href: "/shop/shoes?audience=kids",
-      sample: sampleFromList(kidsShoes, "shoes") ?? firstImagedProduct(kidsShoes),
+      sample: imagedSample(sampleFromList(kidsShoes, "shoes") ?? firstImagedProduct(kidsShoes)),
+      nameGroup: { kind: "kids" as const, key: "kids-footwear" },
     },
-  ].filter((g) => g.count > 0);
+  ];
 }
-
-export function rugbyHubGroups(catalog: Product[] = bundled) {
+export function rugbyHubGroups(catalog: Product[] = bundled): HubFolderTile[] {
   const items = productsByCategory("rugby", catalog);
   const of = (sub: string) => items.filter((p) => p.subcategory === sub);
   const jerseys = of("jerseys");
@@ -177,7 +304,8 @@ export function rugbyHubGroups(catalog: Product[] = bundled) {
       name: "Jerseys",
       count: jerseys.length,
       href: "/shop/rugby?sub=jerseys",
-      sample: sampleFromList(jerseys, "rugby"),
+      sample: imagedSample(sampleFromList(jerseys, "rugby")),
+      nameGroup: { kind: "rugby" as const, key: "jerseys" },
     },
     {
       key: "shorts",
@@ -185,6 +313,7 @@ export function rugbyHubGroups(catalog: Product[] = bundled) {
       count: shorts.length,
       href: "/shop/rugby?sub=shorts",
       sample: sampleFromList(shorts, "rugby"),
+      nameGroup: { kind: "rugby" as const, key: "shorts" },
     },
     {
       key: "protection",
@@ -192,6 +321,7 @@ export function rugbyHubGroups(catalog: Product[] = bundled) {
       count: protection.length,
       href: "/shop/rugby?sub=protection",
       sample: sampleFromList(protection, "rugby"),
+      nameGroup: { kind: "rugby" as const, key: "protection" },
     },
     {
       key: "balls",
@@ -199,11 +329,11 @@ export function rugbyHubGroups(catalog: Product[] = bundled) {
       count: balls.length,
       href: "/shop/rugby?sub=balls",
       sample: sampleFromList(balls, "rugby"),
+      nameGroup: { kind: "rugby" as const, key: "balls" },
     },
   ].filter((g) => g.count > 0);
 }
-
-export function bramaHubGroups(catalog: Product[] = bundled) {
+export function bramaHubGroups(catalog: Product[] = bundled): HubFolderTile[] {
   const items = productsByCategory("brama", catalog);
   const skins = items.filter((p) => p.subcategory === "skins");
   const tights = items.filter((p) => p.subcategory === "tights");
@@ -215,6 +345,7 @@ export function bramaHubGroups(catalog: Product[] = bundled) {
       count: skins.length,
       href: "/shop/brama?sub=skins",
       sample: sampleFromList(skins, "brama") ?? firstImagedProduct(skins),
+      nameGroup: { kind: "brama" as const, key: "skins" },
     },
     {
       key: "tights",
@@ -222,6 +353,7 @@ export function bramaHubGroups(catalog: Product[] = bundled) {
       count: tights.length,
       href: "/shop/brama?sub=tights",
       sample: sampleFromList(tights, "brama") ?? firstImagedProduct(tights),
+      nameGroup: { kind: "brama" as const, key: "tights" },
     },
     {
       key: "shorts",
@@ -229,19 +361,705 @@ export function bramaHubGroups(catalog: Product[] = bundled) {
       count: shorts.length,
       href: "/shop/brama?sub=shorts",
       sample: sampleFromList(shorts, "brama") ?? firstImagedProduct(shorts),
+      nameGroup: { kind: "brama" as const, key: "shorts" },
     },
   ].filter((g) => g.count > 0);
 }
-
+/** Local lifestyle covers for homepage / hub audience tiles. */
+export const AUDIENCE_COVERS: Partial<Record<AudienceSlug, string>> = {
+  men: "/brand/audience-men.png?v=3",
+  women: "/brand/audience-women.png?v=4",
+};
+export const HOME_SPORTS = [
+  "rugby",
+  "football",
+  "running-fitness",
+  "basketball",
+  "padel",
+  "swimming",
+  "cricket",
+  "hockey",
+  "boxing",
+  "hiking",
+  "netball",
+] as const;
+export const HOME_CATEGORY_HUBS = ["shoes", "balls-bags", "lifestyle"] as const;
+/**
+ * Vision-aligned hub covers:
+ * - hub-shoes.png → running footwear (Shoes / Running)
+ * - hub-sportswear.png → training apparel
+ * - hub-teampro-2026.png → team kits
+ * hub-lifestyle.png, hub-rugby.png, and hub-kids.png are not pictures of
+ * those categories (adult activewear / a suit). Do not use them as covers.
+ */
+export const HUB_COVERS: Partial<Record<string, string>> = {
+  sportswear: "/brand/hub-sportswear.png?v=5",
+  shoes: "/brand/hub-shoes.png",
+  "teampro-2026": "/brand/hub-teampro-2026.webp",
+  "running-fitness": "/brand/hub-shoes.png",
+};
 function audienceSample(items: Product[], slug: AudienceSlug) {
   const preferred = items.filter((p) =>
     ["sportswear", "shoes", "running-fitness", "football", "rugby"].includes(p.category),
   );
   const pool = preferred.length ? preferred : items;
-  const hub = slug === "kids" ? "shoes" : slug === "men" || slug === "women" ? undefined : undefined;
-  return sampleFromList(pool, hub) ?? firstImagedProduct(pool);
+  return sampleFromList(pool, slug === "kids" ? "shoes" : undefined) ?? firstImagedProduct(pool);
+}
+function folderQueryParam(key: string) {
+  return TYPE_FOLDERS[key] || jomaFolderHasChildren(key) || jomaFolderByKey(key)
+    ? "group"
+    : "sub";
+}
+const FOLDER_LOOK: Partial<Record<string, RegExp>> = {
+  shirts: /\b(t-?shirt|tee|polo|jersey|shirt|top)\b/,
+  jackets: /\b(jacket|hoodie|sweatshirt|anorak|raincoat|soft shell|parka)\b/,
+  shorts: /\b(short|bermuda)\b/,
+  pants: /\b(pant|trouser|tight|legging|tracksuit|sweatpant)\b/,
+  equipment: /\b(ball|bag|racket|backpack|paddle)\b/,
+};
+function looksLikeFolder(product: Product, folderKey: string) {
+  const re = FOLDER_LOOK[folderKey];
+  if (!re) return true;
+  return re.test(`${product.displayName} ${product.item} ${product.name}`.toLowerCase());
+}
+/** Folder-tile photo only — do not reuse for hub/homepage footwear heroes. */
+function sampleForTypeFolder(list: Product[], folderKey: string, sampleHub?: string) {
+  // Skip SKUs whose only picture is the no-photo plate when the folder has
+  // a photographed product.
+  const photographed = list.filter((p) => usableCatalogImageUrl(p));
+  if (photographed.length && photographed.length < list.length) list = photographed;
+  const footwear = list.filter(isStorefrontFootwear);
+  const apparel = list.filter((p) => !isStorefrontFootwear(p));
+  if (
+    folderKey === "shoes" ||
+    folderKey.includes("running") ||
+    folderKey.includes("futsal") ||
+    folderKey.includes("turf") ||
+    folderKey.includes("football") ||
+    folderKey.includes("trail") ||
+    folderKey.includes("sneaker") ||
+    folderKey.includes("sandal") ||
+    folderKey.includes("barefoot")
+  ) {
+    const pool = footwear.length ? footwear : list;
+    return sampleFromList(pool, "shoes") ?? firstImagedProduct(pool);
+  }
+  const base = apparel.length ? apparel : list;
+  const look = base.filter((p) => looksLikeFolder(p, folderKey));
+  const pool = look.length ? look : base;
+  return firstImagedProduct(pool) ?? sampleFromList(pool, sampleHub);
+}
+function labeledSubcategoryGroups(
+  items: Product[],
+  hrefFor: (key: string) => string,
+  sampleHub?: string,
+) {
+  const byFolder = new Map<string, Product[]>();
+  for (const p of items) {
+    if (!SUBCATEGORY_LABELS[p.subcategory] && !isStorefrontFootwear(p)) continue;
+    const folder = isStorefrontFootwear(p)
+      ? "shoes"
+      : typeFolderForSubcategory(p.subcategory);
+    if (HIDDEN_TYPE_FOLDERS.has(folder)) continue;
+    if (
+      !(TYPE_FOLDER_ORDER as readonly string[]).includes(folder) &&
+      !TYPE_FOLDERS[folder]
+    ) {
+      continue;
+    }
+    const list = byFolder.get(folder);
+    if (list) list.push(p);
+    else byFolder.set(folder, [p]);
+  }
+  return [...byFolder.entries()]
+    .filter(([key, list]) => list.length > 0 && !HIDDEN_TYPE_FOLDERS.has(key))
+    .map(([key, list]) => ({
+      key,
+      name: SUBCATEGORY_LABELS[key] ?? SUBCATEGORY_LABELS[list[0]?.subcategory] ?? key,
+      count: list.length,
+      href: hrefFor(key),
+      sample: sampleForTypeFolder(list, key, sampleHub),
+    }))
+    .sort((a, b) => {
+      const ia = TYPE_FOLDER_ORDER.indexOf(a.key as (typeof TYPE_FOLDER_ORDER)[number]);
+      const ib = TYPE_FOLDER_ORDER.indexOf(b.key as (typeof TYPE_FOLDER_ORDER)[number]);
+      const ra = ia === -1 ? TYPE_FOLDER_ORDER.length : ia;
+      const rb = ib === -1 ? TYPE_FOLDER_ORDER.length : ib;
+      return ra - rb || a.name.localeCompare(b.name);
+    });
+}
+export function subcategoryHubGroups(hubSlug: string, catalog: Product[] = bundled): HubFolderTile[] {
+  return labeledSubcategoryGroups(
+    productsByCategory(hubSlug, catalog),
+    (key) => `/shop/${hubSlug}?${folderQueryParam(key)}=${encodeURIComponent(key)}`,
+    hubSlug,
+  );
+}
+/**
+ * Child tiles for a nested Joma folder (e.g. Football → surface types, Teamwear → sports).
+ */
+export function jomaChildFolderGroups(
+  groupKey: string,
+  catalog: Product[] = bundled,
+  opts?: { categorySlug?: string; audience?: AudienceSlug },
+): HubFolderTile[] {
+  const parent = jomaFolderByKey(groupKey);
+  if (!parent?.children?.length) return [];
+  const hubSlug = opts?.categorySlug;
+  const audience = opts?.audience;
+  let pool = hubSlug ? productsByCategory(hubSlug, catalog) : catalog;
+  if (audience) pool = pool.filter((p) => matchesAudienceInFolder(p, audience, groupKey));
+  const footwearParent =
+    FOOTWEAR_FOLDERS.some((f) => f.key === groupKey) ||
+    parent.children.some(
+      (c) => c.sub && (TYPE_FOLDERS.shoes as readonly string[]).includes(c.sub),
+    );
+  if (footwearParent || hubSlug === "shoes") {
+    pool = pool.filter(isStorefrontFootwear);
+  } else {
+    pool = pool.filter((p) => !isStorefrontFootwear(p));
+  }
+  const kind: "footwear" | "apparel" = footwearParent ? "footwear" : "apparel";
+  return tilesFromJomaFolders(
+    parent.children,
+    pool,
+    (folder) => {
+      const params = new URLSearchParams();
+      if (audience && hubSlug) params.set("audience", audience);
+      params.set("group", groupKey);
+      if (folder.sub) params.set("sub", folder.sub);
+      else params.set("group", folder.key);
+      const base = hubSlug
+        ? `/shop/${hubSlug}`
+        : audience
+          ? `/shop/${audience}`
+          : "/shop/sportswear";
+      if (folder.sub && !hasPortalList(folder.key)) {
+        const p = new URLSearchParams();
+        if (audience) p.set("audience", audience);
+        if (parent.children) p.set("group", groupKey);
+        p.set("sub", folder.sub);
+        return `${base}?${p.toString()}`;
+      }
+      const p = new URLSearchParams();
+      if (audience) p.set("audience", audience);
+      p.set("group", folder.key);
+      return `${base}?${p.toString()}`;
+    },
+    kind,
+    hubSlug,
+    { includeEmpty: true },
+  );
+}
+/**
+ * Joma series / season folder for a sport hub's second section.
+ * Men and women trees differ where the PDF forks them; the unscoped sport
+ * hub uses the man tree (woman drill-down lives under /shop/women).
+ */
+const SPORT_SERIES_FOLDER: Partial<Record<string, string>> = {
+  rugby: "tw-rugby",
+  football: "tw-football",
+  basketball: "tw-basketball",
+  "running-fitness": "running-trail",
+  padel: "racket-sports",
+  hiking: "hiking-outdoor",
+  swimming: "tw-swimming",
+  cricket: "tw-cricket",
+  boxing: "athletes-combat",
+};
+
+/** Series tiles under a sport hub (Phoenix III, R-City, football T-shirt, …). */
+export function sportSeriesFolders(hubSlug: string, catalog: Product[] = bundled): HubFolderTile[] {
+  const key = SPORT_SERIES_FOLDER[hubSlug];
+  if (!key || !jomaFolderHasChildren(key)) return [];
+  // Scope series tiles to this sport. Shared collection names (Phoenix, Championship)
+  // also match other hubs; the sport page should only count its own stock.
+  const tiles = jomaChildFolderGroups(key, catalog, { categorySlug: hubSlug });
+  if (!tiles.some((tile) => tile.count > 0)) return [];
+  return tiles;
 }
 
+/**
+ * Top-level folder tiles for a category shop landing.
+ * Shoes → PDF Footwear tree; brama/rugby curated; sportswear → PDF apparel mid folders.
+ */
+export function categoryHubFolders(hubSlug: string, catalog: Product[] = bundled): HubFolderTile[] {
+  if (hubSlug === "shoes") return shoeHubGroups(catalog);
+  if (hubSlug === "brama") return bramaHubGroups(catalog);
+  if (hubSlug === "rugby") return rugbyHubGroups(catalog);
+  if (hubSlug === "sportswear") {
+    const items = productsByCategory(hubSlug, catalog).filter((p) => !isStorefrontFootwear(p));
+    return tilesFromJomaFolders(
+      APPAREL_FOLDERS,
+      items,
+      (folder) =>
+        folder.children?.length
+          ? `/shop/sportswear?group=${encodeURIComponent(folder.key)}`
+          : `/shop/sportswear?group=${encodeURIComponent(folder.key)}`,
+      "apparel",
+      "sportswear",
+      { includeEmpty: true },
+    );
+  }
+  return subcategoryHubGroups(hubSlug, catalog);
+}
+/**
+ * Leaf subcategory folders inside a TYPE_FOLDER (e.g. Men → Shirts → Tees / Polos / Jerseys).
+ * Returns [] when the group is not a type folder or has fewer than 2 labeled leaves.
+ */
+export function typeFolderLeafGroups(
+  groupKey: string,
+  catalog: Product[] = bundled,
+  opts?: { categorySlug?: string; audience?: AudienceSlug },
+): HubFolderTile[] {
+  if (!TYPE_FOLDERS[groupKey]) return [];
+  const hubSlug = opts?.categorySlug;
+  const audience = opts?.audience;
+  let items = hubSlug ? productsByCategory(hubSlug, catalog) : catalog;
+  if (audience) items = items.filter((p) => matchesAudience(p, audience));
+  items = items.filter((p) => matchesTypeFolder(p.subcategory, groupKey));
+  const bySub = new Map<string, Product[]>();
+  for (const p of items) {
+    if (!SUBCATEGORY_LABELS[p.subcategory] || HIDDEN_TYPE_FOLDERS.has(p.subcategory)) continue;
+    const list = bySub.get(p.subcategory);
+    if (list) list.push(p);
+    else bySub.set(p.subcategory, [p]);
+  }
+  const leaves = [...bySub.entries()]
+    .filter(([, list]) => list.length > 0)
+    .map(([key, list]) => {
+      const params = new URLSearchParams();
+      if (hubSlug && audience) params.set("audience", audience);
+      params.set("group", groupKey);
+      params.set("sub", key);
+      const base = hubSlug
+        ? `/shop/${hubSlug}`
+        : audience
+          ? `/shop/${audience}`
+          : "/shop/sportswear";
+      return {
+        key,
+        name: SUBCATEGORY_LABELS[key] ?? key,
+        count: list.length,
+        href: `${base}?${params.toString()}`,
+        sample: sampleForTypeFolder(list, groupKey, hubSlug) ?? firstImagedProduct(list),
+      } satisfies HubFolderTile;
+    })
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return leaves.length >= 2 ? leaves : [];
+}
+export function audienceHubGroups(
+  audience: AudienceSlug,
+  catalog: Product[] = bundled,
+  opts?: { categorySlug?: string },
+): HubFolderTile[] {
+  const hubSlug = opts?.categorySlug;
+  const scoped = hubSlug ? productsByCategory(hubSlug, catalog) : catalog;
+  const items = scoped.filter((p) => matchesAudience(p, audience));
+  if (hubSlug === "shoes") {
+    const shoes = footwearOnly(items);
+    const folders =
+      audience === "kids"
+        ? KIDS_FOOTWEAR_FOLDERS
+        : // Portal: Outlet sits beside MAN/WOMAN/JUNIOR on Footwear, not inside MAN.
+          footwearFoldersForAudience(audience).filter((f) => f.key !== "footwear-outlet");
+    return tilesFromJomaFolders(
+      folders,
+      shoes,
+      (folder) => {
+        const params = new URLSearchParams();
+        params.set("audience", audience);
+        if (folder.children?.length) {
+          params.set("group", folder.key);
+        } else if (folder.sub && !hasPortalList(folder.key)) {
+          params.set("sub", folder.sub);
+        } else {
+          params.set("group", folder.key);
+        }
+        return `/shop/shoes?${params.toString()}`;
+      },
+      "footwear",
+      "shoes",
+      { includeEmpty: true },
+    );
+  }
+  if (audience === "kids" && !hubSlug) {
+    return kidsHubGroups(catalog);
+  }
+  if (!hubSlug) {
+    const apparelPool = items.filter((p) => !isStorefrontFootwear(p));
+    return tilesFromJomaFolders(
+      apparelFoldersForAudience(audience),
+      apparelPool,
+      (folder) => {
+        if (folder.children?.length) {
+          return `/shop/${audience}?group=${encodeURIComponent(folder.key)}`;
+        }
+        return `/shop/${audience}?group=${encodeURIComponent(folder.key)}`;
+      },
+      "apparel",
+      undefined,
+      { includeEmpty: true },
+    );
+  }
+  const groups = labeledSubcategoryGroups(
+    items,
+    (key) => {
+      const param = `${folderQueryParam(key)}=${encodeURIComponent(key)}`;
+      return hubSlug
+        ? `/shop/${hubSlug}?audience=${audience}&${param}`
+        : `/shop/${audience}?${param}`;
+    },
+    hubSlug,
+  );
+  if (audience === "men") {
+    return groups.filter((g) => !WOMEN_CODED_TYPE_FOLDERS.has(g.key));
+  }
+  return groups;
+}
+/** Resolve a non-blank cover for a Joma audience landing tile. */
+function landingTileImage(
+  hub: string,
+  cover: string | undefined,
+  audience: "men" | "women",
+  catalog: Product[],
+) {
+  // Explicit cover (including "") wins — empty string = gray Joma placeholder.
+  if (typeof cover === "string") return cover;
+
+  // Women tiles: prefer women-coded products, then unisex packshots in that hub
+  // (avoids men's lifestyle models and avoids repeating one audience cover).
+  const scoped =
+    audience === "women"
+      ? catalog.filter((p) => {
+          if (!productInHub(p, hub)) return false;
+          const resolved = productAudience(p);
+          return resolved === "women" || resolved === "unisex";
+        })
+      : catalog.filter(
+          (p) => productInHub(p, hub) && matchesAudience(p, audience),
+        );
+
+  const sample = sampleFromList(scoped, hub) ?? firstImagedProduct(scoped);
+  if (sample) {
+    const url = tileImageUrl(sample);
+    if (url) return url;
+  }
+
+  if (audience === "women") {
+    // Empty → gray plate rather than stamping the same portrait on every folder.
+    return "";
+  }
+
+  return (
+    HUB_COVERS[hub] ??
+    AUDIENCE_COVERS[audience] ??
+    HUB_COVERS.sportswear ??
+    "/brand/hub-sportswear.png?v=5"
+  );
+}
+
+/** Resolve a non-blank cover for a Children landing tile. */
+function kidsLandingTileImage(
+  hub: string,
+  cover: string | undefined,
+  catalog: Product[],
+  index: number,
+) {
+  if (cover) return cover;
+  const kids = catalog.filter((p) => isKidsProduct(p) && productInHub(p, hub));
+  const pool = kids.length ? kids : catalog.filter(isKidsProduct);
+  const imaged = pool.filter((p) => Boolean(tileImageUrl(p)));
+  const sample =
+    imaged[index % Math.max(imaged.length, 1)] ??
+    sampleFromList(pool, hub) ??
+    firstImagedProduct(pool);
+  if (sample) {
+    const url = tileImageUrl(sample);
+    if (url) return url;
+  }
+  return HUB_COVERS[hub] ?? "";
+}
+
+/** `tileImageUrl` for a pinned catalog id or code. Skips `default.jpg`. */
+function imageForProductIds(ids: string[] | undefined, catalog: Product[]) {
+  if (!ids?.length) return "";
+  for (const id of ids) {
+    const product = catalog.find((row) => row.id === id || row.code === id);
+    if (!product) continue;
+    const pinned = pinnedFrameUrlForProduct(product);
+    if (pinned) return pinned;
+    const url = tileImageUrl(product);
+    if (url && !/\/default\.jpe?g(\?|$)/i.test(url)) return url;
+    const fallback = usableCatalogImageUrl(product);
+    if (fallback) return fallback;
+  }
+  return "";
+}
+
+/** Man / Woman first-view tiles: image + uppercase label, Joma B2B order. */
+export function audienceLandingTiles(
+  audience: "men" | "women",
+  catalog: Product[] = bundled,
+) {
+  return portalLanding(audience === "men" ? "men" : "women", jomaAudienceLandingTiles(audience).map((tile) => ({
+    label: tile.label,
+    labelKey: tile.labelKey,
+    href: tile.href,
+    imageSrc:
+      jomaLandingTileImage(`${audience}`, tile.label) ||
+      imageForProductIds(tile.productIds, catalog) ||
+      landingTileImage(tile.hub, tile.cover, audience, catalog),
+  })));
+}
+
+/** Prefer an audience-scoped footwear photo; fall back to any shoes / hub cover. */
+function footwearLandingImage(
+  audience: "men" | "women" | "kids" | undefined,
+  catalog: Product[],
+  preferOffers = false,
+) {
+  const shoes = footwearOnly(productsByCategory("shoes", catalog));
+  const fallback = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
+  if (!shoes.length) return fallback;
+
+  let pool = shoes;
+  if (preferOffers) {
+    const offers = shoes.filter((p) => p.badge === "offer" || p.badge === "new");
+    if (offers.length) pool = offers;
+  } else if (audience === "kids") {
+    const kids = shoes.filter((p) => matchesAudience(p, "kids") || isKidsShoe(p));
+    if (kids.length) pool = kids;
+  } else if (audience) {
+    const scoped = shoes.filter((p) => matchesAudience(p, audience));
+    if (scoped.length) pool = scoped;
+  }
+
+  const sample = sampleFromList(pool, "shoes") ?? firstImagedProduct(pool);
+  if (sample) {
+    const url = tileImageUrl(sample);
+    if (url) return url;
+  }
+  return fallback;
+}
+
+/** Footwear first-view tiles: Men / Women / Kids / Outlet. */
+export function footwearLandingTiles(catalog: Product[] = bundled) {
+  return portalLanding("footwear", jomaFootwearLandingTiles().map((tile) => ({
+    label: tile.label,
+    labelKey: tile.labelKey,
+    href: tile.href,
+    imageSrc:
+      jomaLandingTileImage("footwear", tile.label) ||
+      imageForProductIds(tile.productIds, catalog) ||
+      footwearLandingImage(tile.audience, catalog, tile.label === "OUTLET"),
+    banner: tile.banner,
+    bannerKey: tile.bannerKey,
+    bannerTone: tile.banner ? ("magenta" as const) : undefined,
+  })));
+}
+
+/** Children first-view tiles: 4 age/gender destinations matching header dropdown. */
+export function kidsLandingTiles(catalog: Product[] = bundled) {
+  return portalLanding("kids", jomaKidsLandingTiles().map((tile, index) => ({
+    label: tile.label,
+    labelKey: tile.labelKey,
+    href: tile.href,
+    imageSrc:
+      jomaLandingTileImage("kids", tile.label) ||
+      imageForProductIds(tile.productIds, catalog) ||
+      kidsLandingTileImage(tile.hub, tile.cover, catalog, index),
+  })));
+}
+
+/** Prefer a real catalog product photo for Teams tiles (packshot or model gallery). */
+function teamsLandingImage(
+  tile: {
+    hub: string;
+    cover?: string;
+    match?: string;
+    prefer?: string;
+    exclude?: string;
+    productIds?: string[];
+  },
+  catalog: Product[],
+  usedUrls: Set<string>,
+  usedIds: Set<string>,
+) {
+  const hay = (p: Product) =>
+    `${p.displayName} ${p.item} ${p.name} ${p.sheetCategory ?? ""} ${p.subcategory ?? ""}`;
+
+  const take = (product: Product | undefined) => {
+    if (!product || usedIds.has(product.id) || !hasUsableProductImage(product)) {
+      return "";
+    }
+    const url = tileImageUrl(product);
+    if (!url || usedUrls.has(url) || /default\.jp/i.test(url)) return "";
+    usedIds.add(product.id);
+    usedUrls.add(url);
+    return url;
+  };
+
+  if (tile.productIds?.length) {
+    for (const id of tile.productIds) {
+      const hit = catalog.find((p) => p.id === id || p.code === id);
+      const url = take(hit);
+      if (url) return url;
+    }
+  }
+
+  // Brand covers only as last resort — Teams tiles should show real SKUs.
+  let pool = catalog.filter(
+    (p) => productInHub(p, tile.hub) && hasUsableProductImage(p),
+  );
+
+  if (tile.match) {
+    const re = new RegExp(tile.match, "i");
+    const matched = pool.filter((p) => re.test(hay(p)));
+    if (matched.length) pool = matched;
+  }
+  if (tile.exclude) {
+    const re = new RegExp(tile.exclude, "i");
+    const narrowed = pool.filter((p) => !re.test(hay(p)));
+    if (narrowed.length) pool = narrowed;
+  }
+
+  const preferRe = tile.prefer ? new RegExp(tile.prefer, "i") : null;
+  const ranked = [...pool]
+    .filter((p) => !usedIds.has(p.id))
+    .map((p) => {
+      const url = tileImageUrl(p);
+      let score = (p.images?.length ?? 0) * 2;
+      if (preferRe?.test(hay(p))) score += 40;
+      if (url && !usedUrls.has(url)) score += 5;
+      if (/default\.jp/i.test(url)) score -= 50;
+      return { p, score, url };
+    })
+    .filter((row) => row.url)
+    .sort((a, b) => b.score - a.score);
+
+  for (const row of ranked) {
+    const url = take(row.p);
+    if (url) return url;
+  }
+
+  if (tile.cover && !usedUrls.has(tile.cover)) {
+    usedUrls.add(tile.cover);
+    return tile.cover;
+  }
+
+  const fallback = HUB_COVERS[tile.hub] ?? "";
+  if (fallback && !usedUrls.has(fallback)) {
+    usedUrls.add(fallback);
+    return fallback;
+  }
+  return "";
+}
+
+/** Teams / Teamwear hub: dense sports & materials grid (Joma `#link=69`). */
+export function teamsLandingTiles(catalog: Product[] = bundled) {
+  const usedUrls = new Set<string>();
+  const usedIds = new Set<string>();
+  return portalLanding("teams", jomaTeamsLandingTiles().map((tile) => ({
+    label: tile.label,
+    labelKey: tile.labelKey,
+    href: tile.href,
+    imageSrc:
+      jomaLandingTileImage("teams", tile.label) || teamsLandingImage(tile, catalog, usedUrls, usedIds),
+  })));
+}
+
+/** Official Kits hub: 3 portrait tiles matching header dropdown. */
+export function officialKitsLandingTiles(catalog: Product[] = bundled) {
+  return portalLanding("official-kits", jomaOfficialKitsLandingTiles().map((tile) => ({
+    label: tile.label,
+    labelKey: tile.labelKey,
+    href: tile.href,
+    imageSrc:
+      jomaLandingTileImage("official-kits", tile.label) ||
+      imageForProductIds(tile.productIds, catalog) ||
+      tile.cover ||
+      landingTileImage(tile.hub, undefined, "men", catalog),
+  })));
+}
+
+/** Outlet hub: photo promos + orange category cards + red price cards. */
+export function outletLandingTiles(catalog: Product[] = bundled) {
+  return portalLanding("outlet", jomaOutletLandingTiles().map((tile, index) => {
+    let imageSrc = "";
+    if (tile.kind === "photo") {
+      imageSrc = imageForProductIds(tile.productIds, catalog);
+      const footwearTile = tile.hub === "shoes" || tile.label === "FOOTWEAR";
+      if (!imageSrc && footwearTile) {
+        imageSrc = footwearLandingImage(undefined, catalog, true);
+      } else if (!imageSrc && tile.hub && !tile.productIds?.length) {
+        imageSrc = landingTileImage(tile.hub, undefined, "men", catalog);
+      }
+      if (!imageSrc && footwearTile) {
+        imageSrc = HUB_COVERS.shoes ?? "/brand/hub-shoes.png";
+      }
+    }
+    if (tile.kind === "photo") imageSrc = jomaLandingTileImage("outlet", tile.label) || imageSrc;
+    return {
+      label: tile.label,
+      labelKey: tile.labelKey,
+      href: tile.href,
+      imageSrc,
+      banner: tile.banner,
+      bannerKey: tile.bannerKey,
+      bannerTone: tile.bannerTone,
+      outletKind: tile.kind,
+      barLabel: tile.barLabel,
+      barLabelKey: tile.barLabelKey,
+      key: `${tile.label}-${index}`,
+    };
+  }));
+}
+
+/** Prefer subcategory product photo; brand cover; hub cover; empty = gray tile. */
+function accessoriesLandingTileImage(
+  tile: AccessoriesLandingTileDef,
+  catalog: Product[],
+  index: number,
+) {
+  if (tile.hub) {
+    let pool = catalog.filter((p) => productInHub(p, tile.hub!));
+    if (tile.sub) {
+      const bySub = pool.filter((p) => p.subcategory === tile.sub);
+      if (bySub.length) pool = bySub;
+    }
+    const imaged = pool.filter((p) => Boolean(tileImageUrl(p)));
+    if (imaged.length) {
+      const sample = imaged[index % imaged.length];
+      const url = tileImageUrl(sample);
+      if (url) return url;
+    }
+    const sample =
+      sampleFromList(pool, tile.hub) ??
+      sampleForCategory(catalog, tile.hub) ??
+      firstImagedProduct(pool);
+    if (sample) {
+      const url = tileImageUrl(sample);
+      if (url) return url;
+    }
+  }
+  if (tile.cover) return tile.cover;
+  if (tile.hub) return HUB_COVERS[tile.hub] ?? "";
+  return "";
+}
+
+/** Accessories first-view tiles: dense B2B grid matching Accessories dropdown. */
+export function accessoriesLandingTiles(catalog: Product[] = bundled) {
+  return portalLanding("accessories", jomaAccessoriesLandingTiles().map((tile, index) => ({
+    label: tile.label,
+    labelKey: tile.labelKey,
+    href: tile.href,
+    imageSrc:
+      jomaLandingTileImage("accessories", tile.label) ||
+      imageForProductIds(tile.productIds, catalog) ||
+      accessoriesLandingTileImage(tile, catalog, index),
+  })));
+}
 export function audienceTiles(
   catalog: Product[] = bundled,
   opts?: { categorySlug?: string },
@@ -249,8 +1067,18 @@ export function audienceTiles(
   const scoped = opts?.categorySlug
     ? productsByCategory(opts.categorySlug, catalog)
     : catalog;
+  const buckets: Record<AudienceSlug, Product[]> = {
+    men: [],
+    women: [],
+    kids: [],
+  };
+  for (const p of scoped) {
+    if (matchesAudience(p, "kids")) buckets.kids.push(p);
+    else if (matchesAudience(p, "women")) buckets.women.push(p);
+    else if (matchesAudience(p, "men")) buckets.men.push(p);
+  }
   return AUDIENCES.map((a) => {
-    const items = scoped.filter((p) => matchesAudience(p, a.slug));
+    const items = buckets[a.slug];
     const href = opts?.categorySlug
       ? `/shop/${opts.categorySlug}?audience=${a.slug}`
       : `/shop/${a.slug}`;
@@ -260,10 +1088,10 @@ export function audienceTiles(
       count: items.length,
       href,
       sample: audienceSample(items, a.slug),
+      cover: AUDIENCE_COVERS[a.slug],
     };
   }).filter((g) => g.count > 0);
 }
-
 export function collectionTiles(catalog: Product[] = bundled) {
   return CAMPAIGN_COLLECTIONS.map((slug) => {
     const cat = categoryBySlug(slug);

@@ -1,95 +1,148 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
-import { ProductVisual } from "@/components/product-visual";
 import { productImageAlt } from "@/lib/copy";
-import { productImageCandidates } from "@/lib/media";
+import { productImageLoader } from "@/lib/product-image-loader";
+import { cn } from "@/lib/utils";
 
+/** One retry per URL, then walk the next fallback. */
 const RETRIES_PER_URL = 1;
 
 type LoadState = {
   key: string;
   index: number;
   attempt: number;
+  exhausted: boolean;
 };
 
+/** Empty media plate. Never silhouette shapes. */
+function ImagePlate({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn("bg-[var(--bg-elevated)]", className)}
+      aria-hidden
+    />
+  );
+}
+
+/**
+ * Product photos are multi-MB on supplier CDNs. We resize via wsrv.nl (custom loader)
+ * and walk fallback sources when a URL fails. Each URL is retried once first.
+ */
 export function ProductImage({
   product,
   src,
+  sources,
   alt,
   className,
   fallbackClassName,
   priority = false,
-  sizes,
   fill = false,
+  sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px",
+  width = 720,
+  height = 720,
+  quality = 75,
 }: {
   product: Product;
   src?: string | null;
+  /** Preferred ordered fallbacks (medium, then joma.net). */
+  sources?: string[] | null;
   alt?: string;
   className?: string;
   fallbackClassName?: string;
   priority?: boolean;
-  sizes?: string;
   fill?: boolean;
+  sizes?: string;
+  width?: number;
+  height?: number;
+  quality?: number;
 }) {
-  const candidates = productImageCandidates(product, src);
-  const sourceKey = candidates[0] ?? "";
+  const candidates = useMemo(() => {
+    // Prefer the explicit `src` (active gallery shot / card primary), then walk
+    // `sources` as fallbacks. Never drop `src` when sources is non-empty.
+    // Dropping it made every PDP thumbnail render the first gallery URL.
+    const list = [src, ...(sources ?? [])].filter(
+      (url): url is string => Boolean(url),
+    );
+    return [...new Set(list)];
+  }, [src, sources]);
+
+  const sourceKey = candidates.join("\n");
   const [load, setLoad] = useState<LoadState>({
     key: sourceKey,
     index: 0,
     attempt: 0,
+    exhausted: false,
   });
 
   if (load.key !== sourceKey) {
-    setLoad({ key: sourceKey, index: 0, attempt: 0 });
+    setLoad({
+      key: sourceKey,
+      index: 0,
+      attempt: 0,
+      exhausted: false,
+    });
   }
 
-  const current = candidates[load.key === sourceKey ? load.index : 0];
+  const active =
+    load.key === sourceKey
+      ? load
+      : { key: sourceKey, index: 0, attempt: 0, exhausted: false };
+  const current = !active.exhausted ? candidates[active.index] : undefined;
 
   if (!current) {
-    return (
-      <ProductVisual product={product} className={fallbackClassName ?? className} />
-    );
+    return <ImagePlate className={fallbackClassName ?? className} />;
   }
 
-  const altText = alt ?? productImageAlt(product);
-  const common = {
-    src: current,
-    className,
-    sizes:
-      sizes ??
-      (priority
-        ? "(max-width: 768px) 100vw, 42vw"
-        : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"),
-    priority,
-    loading: (priority ? "eager" : "lazy") as "eager" | "lazy",
-    referrerPolicy: "no-referrer" as const,
-    onError: () => {
-      setLoad((prev) => {
-        if (prev.key !== sourceKey) {
-          return { key: sourceKey, index: 0, attempt: 0 };
-        }
-        if (prev.attempt < RETRIES_PER_URL) {
-          return { ...prev, attempt: prev.attempt + 1 };
-        }
-        return { ...prev, index: prev.index + 1, attempt: 0 };
-      });
-    },
-  };
+  const remote = /^https?:\/\//i.test(current);
+
+  function advance() {
+    setLoad((prev) => {
+      if (prev.key !== sourceKey) {
+        return { key: sourceKey, index: 0, attempt: 0, exhausted: false };
+      }
+      if (prev.attempt < RETRIES_PER_URL) {
+        return { ...prev, attempt: prev.attempt + 1 };
+      }
+      if (prev.index + 1 < candidates.length) {
+        return { ...prev, index: prev.index + 1, attempt: 0, exhausted: false };
+      }
+      return { ...prev, exhausted: true };
+    });
+  }
 
   if (fill) {
-    return <Image key={`${current}:${load.attempt}`} fill alt={altText} {...common} />;
+    return (
+      <Image
+        key={`${current}:${active.attempt}`}
+        src={current}
+        alt={alt ?? productImageAlt(product)}
+        fill
+        sizes={sizes}
+        quality={quality}
+        priority={priority}
+        className={className}
+        loader={remote ? productImageLoader : undefined}
+        onError={advance}
+      />
+    );
   }
 
   return (
     <Image
-      key={`${current}:${load.attempt}`}
-      width={900}
-      height={1200}
-      alt={altText}
-      {...common}
+      key={`${current}:${active.attempt}`}
+      src={current}
+      alt={alt ?? productImageAlt(product)}
+      width={width}
+      height={height}
+      sizes={sizes}
+      quality={quality}
+      priority={priority}
+      className={className}
+      loader={remote ? productImageLoader : undefined}
+      onError={advance}
     />
   );
 }

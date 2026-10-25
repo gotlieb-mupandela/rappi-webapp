@@ -2,22 +2,27 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { AssortmentBadge } from "@/components/assortment-label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SelectMenu } from "@/components/ui/select-menu";
 import { useLocale } from "@/components/locale-provider";
-import { placeOrder } from "@/lib/place-order";
-import { getProduct } from "@/lib/products";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { shippingName } from "@/lib/i18n/labels";
+import { surtidoSizeLabel } from "@/lib/assortment";
+import { sizeDisplayLabel } from "@/lib/product-stock";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { feedVariantId } from "@/lib/meta/ids";
+import { trackMeta } from "@/lib/meta/pixel";
+import { displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
-import { useCart } from "@/lib/stores/cart";
-import { useOrders } from "@/lib/stores/orders";
-import type { Order } from "@/lib/types";
+import { cartCount, cartLineAsProduct, useCart } from "@/lib/stores/cart";
+import type { Product } from "@/lib/types";
+import { defaultVatCountry, formatVatRate, quoteVat, VAT_COUNTRIES } from "@/lib/vat";
 
 type ShippingRow = { id: string; name: string; cost: number };
 
@@ -26,20 +31,54 @@ const FALLBACK_SHIPPING: ShippingRow[] = shippingMethodsSnapshot();
 export default function CheckoutPage() {
   const router = useRouter();
   const lines = useCart((s) => s.lines);
-  const clear = useCart((s) => s.clear);
+  const removeLine = useCart((s) => s.remove);
   const user = useAuth((s) => s.user);
-  const addOrder = useOrders((s) => s.add);
   const { t, format, market } = useLocale();
   const [shippingOptions, setShippingOptions] = useState<ShippingRow[]>(FALLBACK_SHIPPING);
   const [submitting, setSubmitting] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
 
-  const [name, setName] = useState(user?.name ?? "");
-  const [email, setEmail] = useState(user?.email ?? "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
   const [method, setMethod] = useState(FALLBACK_SHIPPING[0].id);
   const [notes, setNotes] = useState("");
+  const checkoutTracked = useRef(false);
+
+  useEffect(() => {
+    setAuthReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (checkoutTracked.current || !lines.length) return;
+    checkoutTracked.current = true;
+    const contents = lines.map((line) => ({
+      id: feedVariantId(line.code, line.size),
+      quantity: line.qty,
+      item_price: line.price,
+    }));
+    trackMeta("InitiateCheckout", {
+      currency: "NAD",
+      value: lines.reduce((sum, line) => sum + line.price * line.qty, 0),
+      content_type: "product",
+      content_ids: contents.map((item) => item.id),
+      contents,
+      num_items: cartCount(lines),
+    });
+  }, [lines]);
+
+  useEffect(() => {
+    if (!user) return;
+    setName((prev) => prev || displayName(user) || "");
+    setEmail((prev) => prev || user.email || "");
+  }, [user]);
+
+  useEffect(() => {
+    setCountry((prev) => prev || defaultVatCountry(market));
+  }, [market]);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -57,32 +96,32 @@ export default function CheckoutPage() {
               cost: byId.has(d.id) ? byId.get(d.id)! : Number(d.cost),
             })),
           );
-          setMethod(data[0].id);
         }
       });
   }, []);
 
   const rows = useMemo(
     () =>
-      lines
-        .map((line) => {
-          const product = getProduct(line.code);
-          if (!product) return null;
-          return {
-            code: line.code,
-            name: product.name,
-            size: line.size,
-            qty: line.qty,
-            price: product.price,
-          };
-        })
-        .filter(Boolean) as Order["items"],
-    [lines],
+      lines.map((line) => ({
+        code: line.code,
+        name: line.name,
+        size: line.size,
+        qty: line.qty,
+        price: line.price,
+        sellAs: line.sellAs,
+        packSize: line.packSize ?? null,
+        sizeLabel:
+          surtidoSizeLabel(cartLineAsProduct(line), line.size, t) ?? sizeDisplayLabel(line.size, t),
+      })),
+    [lines, t],
   );
 
   const subtotal = rows.reduce((s, r) => s + r.price * r.qty, 0);
   const shipping = shippingOptions.find((s) => s.id === method) ?? shippingOptions[0];
-  const total = subtotal + (shipping?.cost ?? 0);
+  const vat = quoteVat(country, subtotal + (shipping?.cost ?? 0));
+  const total = vat.total;
+  const pickup = method === "pickup";
+  const addressRequired = !pickup;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -90,32 +129,82 @@ export default function CheckoutPage() {
       toast.error(t("checkout.cartEmpty"));
       return;
     }
-    if (!name || !email || !address || !city || !country) {
+    if (!user) {
+      toast.error(t("checkout.signInRequired"));
+      router.push("/login?next=/checkout");
+      return;
+    }
+    if (!name || !email) {
+      toast.error(t("checkout.completeNameEmail"));
+      return;
+    }
+    if (!phone.trim() || !/^\+?[\d\s().-]{7,20}$/.test(phone.trim())) {
+      toast.error(t("checkout.completePhone"));
+      return;
+    }
+    if (!country || (addressRequired && (!address || !city))) {
       toast.error(t("checkout.completeDetails"));
       return;
     }
     setSubmitting(true);
-    const result = await placeOrder({
-      email,
-      name,
-      address,
-      city,
-      country,
-      shippingMethod: shipping.id,
-      shippingCost: shipping.cost,
-      shippingLabel: shipping.name,
-      notes,
-      lines,
-    });
-    setSubmitting(false);
-    if (!result.ok) {
-      toast.error(result.message);
-      return;
+    try {
+      let paying = lines;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch("/api/payments/dpo/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            phone: phone.trim(),
+            address,
+            city,
+            country,
+            notes,
+            shippingMethod: shipping.id,
+            lines: paying.map((line) => ({
+              code: line.code,
+              size: line.size,
+              qty: line.qty,
+            })),
+          }),
+        });
+        const raw = await res.text();
+        let data: { paymentUrl?: string; error?: string } = {};
+        try {
+          data = raw ? (JSON.parse(raw) as { paymentUrl?: string; error?: string }) : {};
+        } catch {
+          toast.error(t("checkout.failed"));
+          return;
+        }
+        if (res.status === 401) {
+          toast.error(t("checkout.signInRequired"));
+          router.push("/login?next=/checkout");
+          return;
+        }
+        const missing = missingProductCodes(data.error);
+        if (missing.length) {
+          for (const line of paying) {
+            if (missing.includes(line.code)) removeLine(line.code, line.size);
+          }
+          toast.error(t("checkout.removedUnavailable", { codes: missing.join(", ") }));
+          paying = paying.filter((line) => !missing.includes(line.code));
+          if (paying.length && attempt === 0) continue;
+          if (!paying.length) toast.error(t("checkout.cartEmpty"));
+          return;
+        }
+        if (!res.ok || !data.paymentUrl) {
+          toast.error(friendlyCheckoutError(data.error, t("checkout.failed")));
+          return;
+        }
+        window.location.href = data.paymentUrl;
+        return;
+      }
+    } catch {
+      toast.error(t("checkout.failed"));
+    } finally {
+      setSubmitting(false);
     }
-    addOrder(result.order);
-    clear();
-    toast.success(t("checkout.placed"));
-    router.push(`/checkout/confirmation?id=${result.order.id}`);
   }
 
   if (!rows.length) {
@@ -163,6 +252,75 @@ export default function CheckoutPage() {
     );
   }
 
+  if (authReady && !user) {
+    return (
+      <div className="page-shell py-8">
+        <Breadcrumbs
+          items={[
+            { href: "/", label: t("common.home") },
+            { href: "/cart", label: t("cart.crumb") },
+            { label: t("checkout.crumb") },
+          ]}
+        />
+        <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-4xl">
+          {t("checkout.title")}
+        </h1>
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8">
+            <h2 className="font-[family-name:var(--font-oswald)] text-2xl uppercase">
+              {t("checkout.signInTitle")}
+            </h2>
+            <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">
+              {t("checkout.signInBody")}
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg">
+                <Link href="/login?next=/checkout">{t("checkout.signInCta")}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/login?next=/checkout">{t("checkout.createAccountCta")}</Link>
+              </Button>
+            </div>
+            <p className="mt-4 text-xs text-[var(--muted-2)]">{t("checkout.browseOk")}</p>
+          </section>
+          <aside className="h-fit rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-soft)]">
+            <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.summary")}</h2>
+            <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
+              {rows.map((r) => (
+                <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
+                  <span className="break-all">
+                    {r.code} · {r.sizeLabel} × {r.qty}
+                    {r.sellAs ? (
+                      <span className="mt-1 block text-xs normal-case tracking-normal text-[var(--muted)]">
+                        {r.name}
+                      </span>
+                    ) : null}
+                    {r.sellAs ? (
+                      <span className="mt-1 block">
+                        <AssortmentBadge
+                          product={{ code: r.code, sellAs: r.sellAs, packSize: r.packSize } as Product}
+                        />
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0">{format(r.price * r.qty)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 flex justify-between text-sm text-[var(--muted)]">
+              <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
+              <span>{vat.amount ? format(vat.amount) : t("common.free")}</span>
+            </p>
+            <p className="flex justify-between text-lg font-semibold">
+              <span>{t("checkout.total")}</span>
+              <span>{format(total)}</span>
+            </p>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-shell py-8">
       <Breadcrumbs
@@ -183,7 +341,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <form id="checkout-form" onSubmit={onSubmit} className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="space-y-4">
           <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
             <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.address")}</h2>
@@ -195,15 +353,45 @@ export default function CheckoutPage() {
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </Field>
               <div className="sm:col-span-2">
+                <Field label={t("checkout.phone")}>
+                  <Input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder={t("checkout.phonePlaceholder")}
+                    required
+                  />
+                </Field>
+              </div>
+              <div className="sm:col-span-2">
                 <Field label={t("checkout.street")}>
-                  <Input value={address} onChange={(e) => setAddress(e.target.value)} required />
+                  <Input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    required={addressRequired}
+                  />
                 </Field>
               </div>
               <Field label={t("checkout.city")}>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} required />
+                <Input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  required={addressRequired}
+                />
               </Field>
               <Field label={t("checkout.country")}>
-                <Input value={country} onChange={(e) => setCountry(e.target.value)} required />
+                <SelectMenu
+                  value={country}
+                  onChange={setCountry}
+                  required
+                  aria-label={t("checkout.country")}
+                  placeholder={t("checkout.countryPlaceholder")}
+                  options={[...VAT_COUNTRIES]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((row) => ({ value: row.name, label: row.name }))}
+                />
               </Field>
             </div>
           </section>
@@ -213,18 +401,19 @@ export default function CheckoutPage() {
               {shippingOptions.map((s) => (
                 <label
                   key={s.id}
-                  className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--border)] px-3 py-3 transition-colors has-[:checked]:border-[var(--accent)]"
+                  className="flex min-w-0 cursor-pointer flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] px-3 py-3 transition-colors has-[:checked]:border-[var(--accent)]"
                 >
-                  <span className="flex items-center gap-3 text-sm">
+                  <span className="flex min-w-0 items-center gap-3 text-sm">
                     <input
                       type="radio"
                       name="ship"
                       checked={method === s.id}
                       onChange={() => setMethod(s.id)}
+                      className="accent-[var(--accent)]"
                     />
-                    {shippingName(s.id, s.name, t)}
+                    <span className="min-w-0 break-words">{shippingName(s.id, s.name, t)}</span>
                   </span>
-                  <span className="text-sm font-semibold">
+                  <span className="shrink-0 text-sm font-semibold">
                     {s.cost ? format(s.cost) : t("common.free")}
                   </span>
                 </label>
@@ -242,19 +431,31 @@ export default function CheckoutPage() {
           </section>
         </div>
 
-        <aside className="h-fit rounded-xl border border-[var(--accent)]/25 bg-[var(--surface)] p-5 lg:sticky lg:top-28">
+        <aside className="h-fit rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-soft)] lg:sticky lg:top-28">
           <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.summary")}</h2>
-          <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
-            {rows.map((r) => (
-              <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
-                <span className="break-all">
-                  {r.code} · {r.size} × {r.qty}
-                </span>
-                <span className="shrink-0">{format(r.price * r.qty)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 space-y-1 text-sm">
+            <ul className="mt-4 divide-y divide-[var(--border)] text-sm">
+              {rows.map((r) => (
+                <li key={`${r.code}-${r.size}`} className="flex flex-col gap-1 py-2 sm:flex-row sm:justify-between">
+                  <span className="break-all">
+                    {r.code} · {r.sizeLabel} × {r.qty}
+                    {r.sellAs ? (
+                      <span className="mt-1 block text-xs normal-case tracking-normal text-[var(--muted)]">
+                        {r.name}
+                      </span>
+                    ) : null}
+                    {r.sellAs ? (
+                      <span className="mt-1 block">
+                        <AssortmentBadge
+                          product={{ code: r.code, sellAs: r.sellAs, packSize: r.packSize } as Product}
+                        />
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0">{format(r.price * r.qty)}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 space-y-1 text-sm">
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.merchandise")}</span>
               <span>{format(subtotal)}</span>
@@ -263,21 +464,65 @@ export default function CheckoutPage() {
               <span>{t("checkout.shipping")}</span>
               <span>{shipping.cost ? format(shipping.cost) : t("common.free")}</span>
             </p>
+            <p className="flex justify-between text-[var(--muted)]">
+              <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
+              <span>{vat.amount ? format(vat.amount) : t("common.free")}</span>
+            </p>
             <p className="flex justify-between pt-2 text-lg font-semibold">
               <span>{t("checkout.total")}</span>
               <span>{format(total)}</span>
             </p>
           </div>
-          <Button type="submit" size="lg" className="mt-6 w-full" disabled={submitting}>
-            {submitting ? t("checkout.placing") : t("checkout.placeOrder")}
+          <Button
+            type="submit"
+            size="lg"
+            className="mt-6 hidden w-full md:inline-flex"
+            disabled={submitting || !user}
+          >
+            {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
           </Button>
-          <p className="mt-3 text-center text-[11px] text-[var(--muted-2)]">
+          <p className="mt-3 hidden text-center text-xs text-[var(--muted-2)] md:block">
             {market === "eu" ? t("checkout.totalsEur") : t("checkout.totalsNad")}
           </p>
         </aside>
       </form>
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--header-bg-scrolled)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
+        <div className="mx-auto flex max-w-[1440px] items-center gap-3">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t("checkout.total")}</p>
+            <p className="price text-lg font-semibold">{format(total)}</p>
+          </div>
+          <Button
+            type="submit"
+            form="checkout-form"
+            size="lg"
+            className="min-w-0 flex-1"
+            disabled={submitting || !user}
+          >
+            {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
+          </Button>
+        </div>
+      </div>
+      <div className="h-24 md:hidden" />
     </div>
   );
+}
+
+function missingProductCodes(error: string | undefined) {
+  const match = error?.trim().match(/^Product (.+) was not found\.$/);
+  if (!match) return [];
+  return match[1]
+    .split(",")
+    .map((code) => code.trim())
+    .filter(Boolean);
+}
+
+function friendlyCheckoutError(error: string | undefined, fallback: string) {
+  const text = (error ?? "").trim();
+  if (!text || /^fetch failed$/i.test(text) || /failed to fetch/i.test(text)) {
+    return fallback;
+  }
+  return text;
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {

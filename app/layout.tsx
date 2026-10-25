@@ -1,32 +1,29 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter, Oswald } from "next/font/google";
+import type { ReactNode } from "react";
+import { Inter, Oswald } from "next/font/google";
 import Script from "next/script";
-import { BrandAtmosphere } from "@/components/brand-atmosphere";
+import { MetaPixel } from "@/components/meta-pixel";
 import { Providers } from "@/components/providers";
 import { StorefrontChrome } from "@/components/storefront-chrome";
-import { ThemeProvider } from "@/components/theme-provider";
 import { TAGLINE } from "@/lib/catalog";
-import { MARKET_BOOTSTRAP, htmlLang } from "@/lib/i18n/config";
-import { getMarket } from "@/lib/i18n/server";
-import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/listing";
-import { getCatalog } from "@/lib/supabase/catalog";
-import { THEME_BOOTSTRAP } from "@/lib/theme";
+import { DEFAULT_MARKET, MARKET_BOOTSTRAP, htmlLang } from "@/lib/i18n/config";
+import type { StorefrontTaxonomy } from "@/lib/listing-types";
+import storefrontNav from "@/data/storefront-nav.json";
 import "./globals.css";
-import "./tokens.css";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "600", "700"],
+  adjustFontFallback: false,
 });
 
 const oswald = Oswald({
   variable: "--font-oswald",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
 });
 
 export const viewport = {
@@ -36,14 +33,17 @@ export const viewport = {
   viewportFit: "cover" as const,
 };
 
+const description =
+  "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.";
+
 export const metadata: Metadata = {
   title: {
     default: `RAPPI SPORTS HUB · ${TAGLINE}`,
     template: "%s · RAPPI SPORTS HUB",
   },
-  description:
-    "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.",
+  description,
   applicationName: "RAPPI SPORTS HUB",
+  formatDetection: { telephone: false },
   openGraph: {
     title: "RAPPI SPORTS HUB",
     description: TAGLINE,
@@ -51,36 +51,36 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const catalog = await getCatalog();
-  const taxonomy = buildTaxonomy(catalog);
-  const categoryCounts = categoryCountsFromTaxonomy(taxonomy);
-  const market = await getMarket();
+const nav = storefrontNav as {
+  taxonomy: StorefrontTaxonomy;
+  categoryCounts: Record<string, number>;
+};
 
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
-      lang={htmlLang(market)}
-      data-theme="dark"
-      data-market={market}
+      lang={htmlLang(DEFAULT_MARKET)}
+      data-market={DEFAULT_MARKET}
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} ${oswald.variable} h-full antialiased`}
+      className={`${inter.variable} ${oswald.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-bg text-ink">
-        <Script id="rappi-theme" strategy="beforeInteractive">
-          {THEME_BOOTSTRAP}
-        </Script>
+      <body
+        className={`${inter.className} flex min-h-full flex-col bg-bg text-ink`}
+        suppressHydrationWarning
+      >
         <Script id="rappi-market" strategy="beforeInteractive">
           {MARKET_BOOTSTRAP}
         </Script>
-        <BrandAtmosphere />
+        <MetaPixel />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">
-          <ThemeProvider>
-            <Providers initialMarket={market}>
-              <StorefrontChrome taxonomy={taxonomy} categoryCounts={categoryCounts}>
-                {children}
-              </StorefrontChrome>
-            </Providers>
-          </ThemeProvider>
+          <Providers initialMarket={DEFAULT_MARKET}>
+            <StorefrontChrome
+              taxonomy={nav.taxonomy}
+              categoryCounts={nav.categoryCounts}
+            >
+              {children}
+            </StorefrontChrome>
+          </Providers>
         </div>
       </body>
     </html>

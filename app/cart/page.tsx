@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { AssortmentBadge } from "@/components/assortment-label";
 import { ProductImage } from "@/components/product-image";
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/components/locale-provider";
-import { getProduct } from "@/lib/products";
-import { cartCount, useCart } from "@/lib/stores/cart";
+import { cartCount, cartLineAsProduct, useCart } from "@/lib/stores/cart";
+import { QtyStepper } from "@/components/qty-stepper";
+import { surtidoSizeLabel } from "@/lib/assortment";
+import { sizeDisplayLabel } from "@/lib/product-stock";
 import { productPath } from "@/lib/utils";
 
 export default function CartPage() {
@@ -21,17 +24,11 @@ export default function CartPage() {
 
   const rows = useMemo(
     () =>
-      lines
-        .map((line) => {
-          const product = getProduct(line.code);
-          if (!product) return null;
-          return { line, product, lineTotal: product.price * line.qty };
-        })
-        .filter(Boolean) as Array<{
-        line: (typeof lines)[number];
-        product: NonNullable<ReturnType<typeof getProduct>>;
-        lineTotal: number;
-      }>,
+      lines.map((line) => ({
+        line,
+        product: cartLineAsProduct(line),
+        lineTotal: line.price * line.qty,
+      })),
     [lines],
   );
 
@@ -42,7 +39,7 @@ export default function CartPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <Breadcrumbs items={[{ href: "/", label: t("common.home") }, { label: t("cart.crumb") }]} />
-          <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-5xl">
+          <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl font-bold uppercase text-[var(--text-secondary)] sm:text-5xl">
             {t("cart.title")}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -81,69 +78,57 @@ export default function CartPage() {
           {rows.map(({ line, product, lineTotal }) => (
             <div
               key={`${line.code}-${line.size}`}
-              className="grid gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:grid-cols-[96px_minmax(0,1fr)_auto]"
+              className="grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-4"
             >
-              <Link href={productPath(product.code)} className="media-frame relative block aspect-square w-24 overflow-hidden rounded-lg">
+              <Link href={productPath(product.code)} className="media-frame block w-20 overflow-hidden rounded-lg sm:w-24">
                 <ProductImage
                   product={product}
-                  src={product.imageUrl}
-                  fill
-                  sizes="96px"
-                  className="object-cover"
-                  fallbackClassName="absolute inset-0"
+                  src={line.imageUrl}
+                  className="aspect-square w-full object-cover"
+                  fallbackClassName="aspect-square"
                 />
               </Link>
-              <div>
-                <Link href={productPath(product.code)} className="font-mono text-lg font-bold hover:text-[var(--accent)]">
+              <div className="min-w-0">
+                <Link href={productPath(product.code)} className="font-mono text-base font-bold hover:text-[var(--accent)] sm:text-lg">
                   {product.code}
                 </Link>
-                <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
+                <p className="mt-0.5 line-clamp-2 text-xs uppercase tracking-wider text-[var(--muted)]">
                   {product.name}
                 </p>
-                <div className="mt-3 overflow-x-auto">
-                  <table className="text-xs">
-                    <thead className="uppercase tracking-wider text-[var(--muted-2)]">
-                      <tr>
-                        <th className="pr-6 text-left font-medium">{t("cart.size")}</th>
-                        <th className="pr-6 text-left font-medium">{t("cart.price")}</th>
-                        <th className="pr-6 text-left font-medium">{t("cart.qty")}</th>
-                        <th className="text-left font-medium">{t("cart.line")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="pr-6 py-1 font-semibold">{line.size}</td>
-                        <td className="pr-6 py-1">{format(product.price)}</td>
-                        <td className="pr-6 py-1">
-                          <input
-                            type="number"
-                            min={0}
-                            max={product.sizes.find((s) => s.size === line.size)?.stock ?? line.qty}
-                            value={line.qty}
-                            onChange={(e) =>
-                              setQty(line.code, line.size, Number(e.target.value))
-                            }
-                            className="h-8 w-16 rounded-full border border-[var(--border)] bg-[var(--bg)] px-2"
-                          />
-                        </td>
-                        <td className="py-1 font-semibold">{format(lineTotal)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="mt-1.5">
+                  <AssortmentBadge product={product} />
                 </div>
-              </div>
-              <div className="flex items-start justify-end">
-                <button
-                  type="button"
-                  onClick={() => remove(line.code, line.size)}
-                  className="text-xs uppercase tracking-wider text-[var(--muted)] hover:text-ink"
-                >
-                  {t("common.remove")}
-                </button>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  {t("cart.size")}{" "}
+                  <span className="font-semibold text-ink">
+                    {surtidoSizeLabel(product, line.size, t) ?? sizeDisplayLabel(line.size, t)}
+                  </span>
+                  <span className="mx-2 text-[var(--border-strong)]">·</span>
+                  {format(line.price)}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <QtyStepper
+                    value={line.qty}
+                    min={0}
+                    max={line.sizeStock}
+                    onChange={(next) => setQty(line.code, line.size, next)}
+                    className="h-11 [&_button]:h-11 [&_button]:w-11"
+                  />
+                  <div className="flex items-center gap-3">
+                    <p className="price text-base font-semibold">{format(lineTotal)}</p>
+                    <button
+                      type="button"
+                      onClick={() => remove(line.code, line.size)}
+                      className="inline-flex min-h-11 items-center rounded-full px-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)] hover:bg-[var(--hover)] hover:text-ink"
+                    >
+                      {t("common.remove")}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
-          <div className="sticky bottom-0 z-20 flex flex-col gap-3 rounded-xl border border-[var(--accent)]/35 bg-[var(--header-bg-scrolled)] px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
+          <div className="sticky bottom-0 z-20 flex flex-col gap-3 rounded-xl border border-[var(--border-strong)] bg-white/95 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-soft)] backdrop-blur-xl sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
             <p className="text-sm uppercase tracking-wider text-[var(--muted)]">
               {t.plural("count.units", count)}
             </p>

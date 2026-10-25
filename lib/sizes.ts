@@ -2,7 +2,19 @@ import source from "@/data/products-source.json";
 import sizeMaster from "@/data/size-master.json";
 import { getAssortment } from "@/lib/assortment";
 import type { Product, SizeStock } from "@/lib/types";
-import type { TFunction } from "@/lib/i18n/translate";
+
+export {
+  buyableSizes,
+  hasVisibleSizePicker,
+  isSoldOut,
+  pickerSizes,
+  sizeDisplayLabel,
+  sizeStock,
+  skuStock,
+  stockLabel,
+} from "@/lib/product-stock";
+
+import { skuStock } from "@/lib/product-stock";
 
 type SourceRow = { code: string; sizes?: string | null; qty?: number };
 type MasterRow = {
@@ -39,11 +51,6 @@ function parseSizeList(raw: string | null | undefined): string[] {
     .filter(Boolean);
 }
 
-function skuStock(product: Product, overlayQty?: number) {
-  const n = overlayQty ?? product.stockQty ?? product.totalQty ?? 0;
-  return Number.isFinite(n) ? Math.max(0, n) : 0;
-}
-
 function isTrueOneSize(product: Product) {
   if (TRUE_ONE_SIZE_SUBS.has(product.subcategory)) return true;
   const blob = `${product.displayName} ${product.item} ${product.sheetCategory}`.toLowerCase();
@@ -55,6 +62,28 @@ function hasRecordedSizeRun(product: Product) {
   if (opts.length === 0) return false;
   if (opts.length === 1 && /^(ONE|SKU|PACK)$/i.test(opts[0])) return false;
   return true;
+}
+
+const SURTIDO_CURVE = /^S\d{2}$/i;
+
+/**
+ * Keep each Joma pack code (S27, S05, …) as its own row.
+ * The tile badge says Assortment; the page and hover explain the code.
+ */
+function asSurtidoPack<T extends Product>(product: T, total: number, rows: SizeStock[]): T | null {
+  const sizes = rows.map((row) => row.size);
+  if (!sizes.length || sizes.some((size) => !SURTIDO_CURVE.test(size))) return null;
+  const info = getAssortment({ ...product, sizeOptions: sizes });
+  if (!info?.isAssortment || info.preserveSizes || info.kind !== "assortment") return null;
+  return {
+    ...product,
+    sellAs: product.sellAs ?? "assortment",
+    packSize: product.packSize ?? info.packSize,
+    sizeOptions: sizes,
+    sizes: rows,
+    stockQty: total,
+    totalQty: total,
+  };
 }
 
 function rowsFromSizes(
@@ -78,13 +107,30 @@ function rowsFromSizes(
  * is not treated as a real size.
  */
 export function withCatalogSizes<T extends Product>(product: T): T {
+  if (product.code === "DPO-TEST") {
+    const stock = Math.max(skuStock(product), 1);
+    return {
+      ...product,
+      sizeOptions: ["ONE"],
+      sizes: [{ size: "ONE", stock }],
+      stockQty: stock,
+      totalQty: stock,
+    };
+  }
+
   const master = MASTER_BY_CODE.get(product.code);
   const sheet = SOURCE_BY_CODE.get(product.code);
   const recorded = hasRecordedSizeRun(product);
-  const total = skuStock(product, master?.qty ?? sheet?.qty);
+  const overlayQty = master?.qty ?? sheet?.qty;
+  const total = skuStock({
+    stockQty: overlayQty ?? product.stockQty,
+    totalQty: product.totalQty,
+  });
 
   if (master?.sizes?.length) {
     const rows = rowsFromSizes(master.sizes, total, master.perSize);
+    const packed = asSurtidoPack(product, total, rows);
+    if (packed) return packed;
     return {
       ...product,
       sizeOptions: rows.map((r) => r.size),
@@ -97,6 +143,8 @@ export function withCatalogSizes<T extends Product>(product: T): T {
   const fromSheet = parseSizeList(sheet?.sizes);
   if (fromSheet.length && !(fromSheet.length === 1 && fromSheet[0] === "ONE" && !isTrueOneSize(product))) {
     const rows = rowsFromSizes(fromSheet, total);
+    const packed = asSurtidoPack(product, total, rows);
+    if (packed) return packed;
     return {
       ...product,
       sizeOptions: rows.map((r) => r.size),
@@ -109,6 +157,8 @@ export function withCatalogSizes<T extends Product>(product: T): T {
   if (recorded) {
     const rows = (product.sizes?.length ? product.sizes : product.sizeOptions.map((size) => ({ size, stock: total })))
       .map((row) => ({ size: row.size, stock: row.stock > 0 && total > 0 ? row.stock : 0 }));
+    const packed = asSurtidoPack(product, total, rows);
+    if (packed) return packed;
     return { ...product, sizes: rows, stockQty: total, totalQty: total };
   }
 
@@ -141,41 +191,4 @@ export function withCatalogSizes<T extends Product>(product: T): T {
     stockQty: total,
     totalQty: total,
   };
-}
-
-export function buyableSizes(product: Product): SizeStock[] {
-  return (product.sizes ?? []).filter((s) => s.stock > 0);
-}
-
-export function isSoldOut(product: Product) {
-  return buyableSizes(product).length === 0 || skuStock(product) <= 0;
-}
-
-export function pickerSizes(product: Product): SizeStock[] {
-  return (product.sizes ?? []).filter((s) => !/^(SKU|PACK|ONE)$/i.test(s.size));
-}
-
-export function hasVisibleSizePicker(product: Product) {
-  return pickerSizes(product).length > 0;
-}
-
-export function sizeDisplayLabel(size: string, t?: TFunction) {
-  if (size === "PACK") return t ? t("product.assortmentPack") : "Assortment pack";
-  if (size === "SKU") return "SKU";
-  if (size === "ONE") return t ? t("product.oneSize") : "One size";
-  const bib: Record<string, string> = {
-    S01: "3XS",
-    S02: "XS",
-    S03: "M",
-    S04: "XL",
-  };
-  const mapped = bib[size.toUpperCase()];
-  return mapped ? `${size} · ${mapped}` : size;
-}
-
-export function stockLabel(product: Product, t?: TFunction) {
-  if (isSoldOut(product)) return t ? t("product.soldOut") : "Sold out";
-  const total = skuStock(product);
-  if (total < 5) return t ? t("product.left", { total }) : `${total} left`;
-  return t ? t("product.inStock", { total }) : `${total} in stock`;
 }

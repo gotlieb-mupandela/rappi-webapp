@@ -10,7 +10,7 @@ const badgeVariants = cva(
         new: "bg-[var(--accent)] text-[var(--on-accent)]",
         offer: "bg-[#FF2D6A] text-white",
         muted: "bg-[var(--hover-strong)] text-[var(--muted)]",
-        stock: "bg-[var(--accent-muted)] text-[var(--accent)] border border-[var(--border-accent)]",
+        stock: "bg-[var(--ok-muted)] text-[var(--ok)] border border-[var(--ok-border)]",
         low: "bg-[var(--warn)]/15 text-[var(--warn)] border border-[var(--warn)]/40",
       },
     },

@@ -1,0 +1,270 @@
+{
+  "source": "Catalog family price-ratio audit 2026-10-08",
+  "policy": "Only exact SKU-family or exact product-name peers with a 6x, 8x, or 10x pack-price ratio are listed.",
+  "products": [
+    {
+      "code": "103171.425",
+      "pack_size": 10
+    },
+    {
+      "code": "103629.322",
+      "pack_size": 8
+    },
+    {
+      "code": "103629.384",
+      "pack_size": 8
+    },
+    {
+      "code": "103629.404",
+      "pack_size": 8
+    },
+    {
+      "code": "103629.480",
+      "pack_size": 8
+    },
+    {
+      "code": "103629.488",
+      "pack_size": 8
+    },
+    {
+      "code": "103629.580",
+      "pack_size": 8
+    },
+    {
+      "code": "103629.748",
+      "pack_size": 8
+    },
+    {
+      "code": "104626.100",
+      "pack_size": 8
+    },
+    {
+      "code": "104626.200",
+      "pack_size": 8
+    },
+    {
+      "code": "104626.346",
+      "pack_size": 8
+    },
+    {
+      "code": "104626.931",
+      "pack_size": 8
+    },
+    {
+      "code": "500480.322",
+      "pack_size": 8
+    },
+    {
+      "code": "500680.579",
+      "pack_size": 8
+    },
+    {
+      "code": "500680.715",
+      "pack_size": 8
+    },
+    {
+      "code": "500747.475",
+      "pack_size": 8
+    },
+    {
+      "code": "500760.475",
+      "pack_size": 8
+    },
+    {
+      "code": "500760.549",
+      "pack_size": 8
+    },
+    {
+      "code": "500760.631",
+      "pack_size": 8
+    },
+    {
+      "code": "500789.929",
+      "pack_size": 8
+    },
+    {
+      "code": "500832.322",
+      "pack_size": 10
+    },
+    {
+      "code": "500832.404",
+      "pack_size": 10
+    },
+    {
+      "code": "500834.715",
+      "pack_size": 10
+    },
+    {
+      "code": "500938.100",
+      "pack_size": 10
+    },
+    {
+      "code": "500938.172",
+      "pack_size": 10
+    },
+    {
+      "code": "500938.609",
+      "pack_size": 10
+    },
+    {
+      "code": "900250.100",
+      "pack_size": 6
+    },
+    {
+      "code": "900250.727",
+      "pack_size": 6
+    },
+    {
+      "code": "900759.727",
+      "pack_size": 6
+    },
+    {
+      "code": "900759.738",
+      "pack_size": 6
+    },
+    {
+      "code": "900759.826",
+      "pack_size": 6
+    },
+    {
+      "code": "901170.100",
+      "pack_size": 6
+    },
+    {
+      "code": "901170.200",
+      "pack_size": 6
+    },
+    {
+      "code": "902289.322",
+      "pack_size": 8
+    },
+    {
+      "code": "CAREILW2503",
+      "pack_size": 8
+    },
+    {
+      "code": "CAREILW2513",
+      "pack_size": 8
+    },
+    {
+      "code": "CLACES2623",
+      "pack_size": 12
+    },
+    {
+      "code": "CNEROS2615H",
+      "pack_size": 12
+    },
+    {
+      "code": "COASILW2527",
+      "pack_size": 8
+    },
+    {
+      "code": "COASILW2529",
+      "pack_size": 8
+    },
+    {
+      "code": "CORIGLW2516",
+      "pack_size": 8
+    },
+    {
+      "code": "CTRILW2501",
+      "pack_size": 8
+    },
+    {
+      "code": "CTRILW2520",
+      "pack_size": 8
+    },
+    {
+      "code": "PICKLW2619",
+      "pack_size": 8
+    },
+    {
+      "code": "PICKW2612",
+      "pack_size": 8
+    },
+    {
+      "code": "PSTROLW2602",
+      "pack_size": 8
+    },
+    {
+      "code": "PSTROW2601",
+      "pack_size": 8
+    },
+    {
+      "code": "PSTROW2612",
+      "pack_size": 8
+    },
+    {
+      "code": "PSWILS2601",
+      "pack_size": 8
+    },
+    {
+      "code": "RRT50S2625",
+      "pack_size": 8
+    },
+    {
+      "code": "TPOILS2625AC",
+      "pack_size": 8
+    },
+    {
+      "code": "TPOILS2625C",
+      "pack_size": 8
+    },
+    {
+      "code": "TRAPS2601AC",
+      "pack_size": 8
+    },
+    {
+      "code": "TRAPS2601C",
+      "pack_size": 8
+    },
+    {
+      "code": "TRAPS2617AC",
+      "pack_size": 8
+    },
+    {
+      "code": "TRAPS2617C",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELS2601AC",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELS2601C",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELS2613AC",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELS2613C",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELS2627AC",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELW2601C",
+      "pack_size": 8
+    },
+    {
+      "code": "TSELW2627C",
+      "pack_size": 8
+    },
+    {
+      "code": "TSETW2631AC",
+      "pack_size": 12
+    },
+    {
+      "code": "V62SW2601",
+      "pack_size": 8
+    },
+    {
+      "code": "VDYNAW2611",
+      "pack_size": 8
+    }
+  ]
+}

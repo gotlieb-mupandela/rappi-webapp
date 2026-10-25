@@ -3,6 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
 
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  const isAdminRoute = path.startsWith("/admin");
+
+  // Anonymous storefront / account / API: skip auth round-trip (saves Edge + latency).
+  if (!isAdminRoute) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -28,11 +36,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
-  const isAdminRoute = path.startsWith("/admin");
   const isAdminLogin = path === "/admin/login";
-
-  if (!isAdminRoute) return supabaseResponse;
 
   if (isAdminLogin) {
     if (user) {

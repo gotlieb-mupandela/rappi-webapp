@@ -2,18 +2,26 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
+import { accountRoleKey, displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
 import { useOrders } from "@/lib/stores/orders";
+import { PushToggle } from "@/components/push-toggle";
 import { useT } from "@/components/locale-provider";
 
 export default function AccountPage() {
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
   const orders = useOrders((s) => s.orders);
+  const syncRemote = useOrders((s) => s.syncRemote);
   const router = useRouter();
   const t = useT();
+
+  useEffect(() => {
+    void syncRemote();
+  }, [syncRemote]);
 
   if (!user) {
     return (
@@ -35,8 +43,8 @@ export default function AccountPage() {
       <h1 className="mt-6 font-[family-name:var(--font-oswald)] text-4xl uppercase">
         {t("account.myAccount")}
       </h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">{t("account.signedInAs", { email: user.email })}</p>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <p className="mt-2 min-w-0 break-all text-sm text-[var(--muted)]">{t("account.signedInAs", { email: user.email })}</p>
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Link href="/account/orders" className="surface-card p-6">
           <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.orders")}</p>
           <p className="mt-2 text-2xl font-semibold">{orders.length}</p>
@@ -44,14 +52,14 @@ export default function AccountPage() {
         </Link>
         <Link href="/account/profile" className="surface-card p-6">
           <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.profile")}</p>
-          <p className="mt-2 text-2xl font-semibold">{user.name}</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{t("account.profileHint")}</p>
+          <p className="mt-2 text-2xl font-semibold">{displayName(user)}</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">{t(accountRoleKey(user.role))}</p>
         </Link>
+        <PushToggle />
         <button
           type="button"
           onClick={() => {
-            logout();
-            router.push("/");
+            void logout().then(() => router.push("/"));
           }}
           className="surface-card p-6 text-left"
         >
@@ -60,6 +68,12 @@ export default function AccountPage() {
           <p className="mt-1 text-sm text-[var(--muted)]">{t("account.logoutHint")}</p>
         </button>
       </div>
+      <Link
+        href="/account/delete"
+        className="mt-8 inline-block text-sm text-[var(--muted)] underline underline-offset-4 hover:text-red-500"
+      >
+        {t("account.deleteAccount")}
+      </Link>
     </div>
   );
 }

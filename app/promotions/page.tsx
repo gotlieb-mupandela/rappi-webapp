@@ -1,84 +1,124 @@
-import { CatalogFilters } from "@/components/catalog-filters";
-import { HubTile } from "@/components/hub-tile";
+import { redirect } from "next/navigation";
+import { AudienceLandingGrid } from "@/components/audience-landing";
+import { CatalogBrowser } from "@/components/catalog-browser";
 import { PageHeader } from "@/components/page-header";
-import { SectionHeading } from "@/components/section-heading";
-import { collectionTiles } from "@/lib/hubs";
-import { paginateListing } from "@/lib/listing";
+import { TabbedFolderProducts, tabbedCount } from "@/components/tabbed-folder-products";
+import { folderTabs } from "@/lib/folder-tabs";
+import { outletLandingTiles } from "@/lib/hubs";
+import { isJomaBrowseFolder, isOutletFolderKey, jomaFolderAncestorKeys } from "@/lib/joma-tree";
+import { outletGroupForLegacyMax } from "@/lib/joma-nav";
+import { buildListing, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
-import { getT } from "@/lib/i18n/server";
-import { hubName } from "@/lib/i18n/labels";
+
+export const revalidate = 21600;
+
+function firstSearchParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
 
 export default async function PromotionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    q?: string;
-    cat?: string;
-    sub?: string;
-    size?: string;
-    max?: string;
-    page?: string;
-  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const sp = await searchParams;
+  const groupParam = firstSearchParam(sp.group) ?? "";
+  const maxParam = firstSearchParam(sp.max);
+  const viewAll = firstSearchParam(sp.view) === "all";
+
+  // Legacy `?view=all` and `?max=N` links used to render the New Collections
+  // hub (badge filter, NAD max). Send them to the Part B outlet folder.
+  if (!groupParam || groupParam === "all") {
+    const legacyGroup = outletGroupForLegacyMax(maxParam);
+    if (legacyGroup) redirect(`/promotions?group=${legacyGroup}`);
+    if (viewAll || maxParam) redirect("/promotions?group=outlet-promotions");
+  }
+
+  const folderKey =
+    groupParam && groupParam !== "all" && isJomaBrowseFolder(groupParam) && isOutletFolderKey(groupParam)
+      ? groupParam
+      : "";
+
   const catalog = await getCatalog();
-  const t = await getT();
-  const highlighted = catalog.filter(
-    (p) => p.badge === "offer" || p.badge === "new",
-  );
-  const q = (sp.q ?? "").trim().toLowerCase();
-  const sub = sp.sub && sp.sub !== "all" ? sp.sub : "";
-  const max = sp.max ? Number(sp.max) : NaN;
-  const filtered = highlighted.filter((p) => {
-    if (sub && p.subcategory !== sub) return false;
-    if (Number.isFinite(max) && p.price > max) return false;
-    if (q) {
-      const hay = `${p.code} ${p.item} ${p.name} ${p.title} ${p.category}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
+
+  if (!folderKey) {
+    const tiles = outletLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          crumbs={[{ href: "/", key: "common.home" }, { key: "nav.outlet" }]}
+          titleKey="nav.outlet"
+        />
+        <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
+          <AudienceLandingGrid tiles={tiles} variant="outlet" />
+        </div>
+      </div>
+    );
+  }
+
+  const query = parseListingQuery({
+    q: firstSearchParam(sp.q),
+    sub: firstSearchParam(sp.sub),
+    group: folderKey,
+    size: firstSearchParam(sp.size),
+    audience: firstSearchParam(sp.audience),
+    page: firstSearchParam(sp.page),
   });
-  const listing = paginateListing(filtered, sp);
-  const collections = collectionTiles(catalog);
+  // Folder membership is the filter. Do not also require badge offer/new —
+  // this catalog has none, which made every outlet child an empty New Collections page.
+  const listing = buildListing(catalog, query);
+  const ancestors = jomaFolderAncestorKeys(folderKey);
+  const tabs = firstSearchParam(sp.sub) ? [] : folderTabs(folderKey);
+  const activeTab = firstSearchParam(sp.tab) ?? "";
+  const tabbedListing = tabs.length
+    ? buildListing(catalog, { ...query, page: undefined }, { pageSize: 5000 })
+    : null;
+  const tabHref = (slug: string) => {
+    const params = new URLSearchParams();
+    params.set("group", folderKey);
+    if (slug) params.set("tab", slug);
+    return `/promotions?${params.toString()}`;
+  };
 
   return (
     <div>
       <PageHeader
-        crumbs={[{ href: "/", label: t("common.home") }, { label: t("promotions.crumb") }]}
-        eyebrow={t("promotions.eyebrow")}
-        title={t("promotions.title")}
-        description={t("promotions.description")}
+        compact
+        crumbs={[
+          { href: "/", key: "common.home" },
+          { href: "/promotions", key: "nav.outlet" },
+          ...ancestors.map((key) => ({
+            href: `/promotions?group=${encodeURIComponent(key)}`,
+            sub: key,
+          })),
+          { sub: folderKey },
+        ]}
+        titleSub={folderKey}
+        titleCount={tabbedListing ? tabbedCount(tabbedListing.products, tabs, activeTab) : listing.total}
       />
-      <div className="page-shell py-10 lg:py-14">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
-          {collections.map((c) => (
-            <HubTile
-              key={c.key}
-              slug={c.key}
-              name={hubName(c.key, t)}
-              count={c.count}
-              href={c.href}
-              product={c.sample}
-              shape="square"
+      <div className="page-shell pb-10 pt-1">
+        {tabbedListing ? (
+          <div className="pt-2">
+            <TabbedFolderProducts
+              products={tabbedListing.products}
+              tabs={tabs}
+              activeTab={activeTab}
+              hrefFor={tabHref}
             />
-          ))}
-        </div>
-
-        <section className="mt-14">
-          <SectionHeading title={t("promotions.highlighted", { count: highlighted.length })} />
-          {highlighted.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">
-              {t("promotions.none")}
-            </p>
-          ) : (
-            <CatalogFilters
-              listing={listing}
-              query={sp}
-              basePath="/promotions"
-              grouped
-            />
-          )}
-        </section>
+          </div>
+        ) : (
+        <CatalogBrowser
+          initialListing={listing}
+          basePath="/promotions"
+          grouped
+          hideFilters
+          showCategoryFilter={false}
+          showAudienceFilter={false}
+          showLayoutToggle
+          emptyBodyKey="shop.emptyBody"
+        />
+        )}
       </div>
     </div>
   );

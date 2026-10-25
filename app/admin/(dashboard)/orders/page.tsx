@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { OrderStatusBadge } from "@/components/order-status-badge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatPrice } from "@/lib/format";
+import { ORDER_STATUSES, orderStatusClass } from "@/lib/order-status";
 
 export const metadata = { title: "Orders · Admin" };
 
-const STATUSES = ["reserved", "preparing", "shipped", "cancelled"] as const;
+const STATUSES = ORDER_STATUSES;
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -51,7 +53,7 @@ export default async function AdminOrdersPage({
             href={`/admin/orders?status=${s}`}
             className={`rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-wider ${
               sp.status === s
-                ? "border-[var(--accent)] text-[var(--accent)]"
+                ? `border-current ${orderStatusClass(s)}`
                 : "border-[var(--border)] text-[var(--muted)]"
             }`}
           >
@@ -60,9 +62,37 @@ export default async function AdminOrdersPage({
         ))}
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-[var(--border)]">
+      <div className="mt-6 space-y-3 md:hidden">
+        {(orders ?? []).length === 0 ? (
+          <p className="rounded-xl border border-[var(--border)] px-4 py-12 text-center text-[var(--muted)]">
+            No orders in this queue.
+          </p>
+        ) : (
+          (orders ?? []).map((o) => (
+            <Link
+              key={o.id}
+              href={`/admin/orders/${o.id}`}
+              className="block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+            >
+              <p className="break-all font-mono font-bold text-[var(--accent)]">{o.id}</p>
+              <p className="mt-1 text-sm">{o.full_name}</p>
+              <p className="text-xs text-[var(--muted)]">{o.email}</p>
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                {o.city}, {o.country}
+              </p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="font-semibold">{formatPrice(Number(o.total))}</span>
+                <OrderStatusBadge status={o.status} />
+              </div>
+              <p className="mt-2 text-xs text-[var(--muted)]">{formatDate(o.created_at)}</p>
+            </Link>
+          ))
+        )}
+      </div>
+
+      <div className="mt-6 hidden max-h-[calc(100dvh-14rem)] overflow-auto rounded-xl border border-[var(--border)] md:block">
         <table className="w-full min-w-[800px] text-left text-sm">
-          <thead className="bg-[var(--hover)] text-[11px] uppercase tracking-wider text-[var(--muted)]">
+          <thead className="sticky top-0 z-10 bg-[var(--surface)] text-[11px] uppercase tracking-wider text-[var(--muted)] shadow-[0_1px_0_var(--border)]">
             <tr>
               <th className="px-4 py-3">Order</th>
               <th className="px-4 py-3">Ship to</th>
@@ -96,8 +126,8 @@ export default async function AdminOrdersPage({
                     {o.city}, {o.country}
                   </td>
                   <td className="px-4 py-3">{formatPrice(Number(o.total))}</td>
-                  <td className="px-4 py-3 text-[11px] uppercase tracking-wider">
-                    {o.status}
+                  <td className="px-4 py-3">
+                    <OrderStatusBadge status={o.status} />
                   </td>
                   <td className="px-4 py-3 text-[var(--muted)]">
                     {formatDate(o.created_at)}

@@ -12,7 +12,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
       role="group"
       aria-label={t("locale.group")}
       className={cn(
-        "flex h-11 shrink-0 items-center rounded-full border border-[var(--border)] p-0.5 text-[10px] font-semibold uppercase tracking-wider",
+        "flex h-9 shrink-0 items-center rounded-full border border-[var(--border)] p-0.5 text-xs font-semibold uppercase tracking-wider sm:h-11",
         className,
       )}
     >
@@ -27,7 +27,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             aria-label={t(`locale.${id}`)}
             title={MARKET_META[id].label}
             className={cn(
-              "h-10 whitespace-nowrap rounded-full px-2 transition-colors sm:px-3",
+              "h-8 whitespace-nowrap rounded-full px-1.5 transition-colors sm:h-10 sm:px-3",
               active
                 ? "bg-[var(--accent)] text-[var(--on-accent)]"
                 : "text-ink hover:bg-[var(--hover)] hover:text-[var(--accent)]",

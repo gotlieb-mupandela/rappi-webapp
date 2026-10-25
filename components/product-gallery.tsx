@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "@/components/product-image";
-import { ProductVisual } from "@/components/product-visual";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { productImageAlt } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
@@ -19,52 +19,61 @@ export function ProductGallery({ product }: { product: Product }) {
 
   if (!current) {
     return (
-      <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)]">
-        <ProductVisual product={product} className="aspect-[3/4] max-h-[640px]" />
-      </div>
+      <div className="media-frame aspect-square w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] sm:aspect-[4/5]" />
     );
   }
 
+  const thumbs = shots.map((src, i) => (
+    <button
+      key={`${src}-${i}`}
+      type="button"
+      onClick={() => setActive(i)}
+      className={cn(
+        "media-frame h-20 w-20 shrink-0 overflow-hidden rounded-md border transition-[border-color,opacity] duration-300 sm:h-auto sm:w-auto sm:min-w-0",
+        i === active
+          ? "border-[var(--accent)] opacity-100"
+          : "border-transparent opacity-55 hover:opacity-100",
+      )}
+      aria-label={`View photo ${i + 1}`}
+      aria-current={i === active ? "true" : undefined}
+    >
+      <ProductImage
+        product={product}
+        src={src}
+        alt=""
+        className="aspect-square w-full object-cover"
+        fallbackClassName="aspect-square"
+        sizes="80px"
+        width={160}
+        height={160}
+      />
+    </button>
+  ));
+
   return (
-    <div>
+    <div className="min-w-0">
       <div className="media-frame overflow-hidden rounded-lg border border-[var(--border)]">
         <ProductImage
           product={product}
           src={current}
+          sources={shots}
           alt={productImageAlt(product, shots.length > 1 ? `photo ${active + 1}` : undefined)}
-          className="aspect-[3/4] w-full max-h-[760px] object-contain object-center"
-          fallbackClassName="aspect-[3/4] max-h-[640px]"
+          className="pdp-stage"
+          fallbackClassName="aspect-square w-full sm:aspect-[4/5]"
           priority
+          sizes="(max-width: 1024px) 100vw, 560px"
+          width={1200}
+          height={1500}
+          quality={75}
         />
       </div>
       {shots.length > 1 ? (
-        <div className="mt-4 grid grid-cols-5 gap-2.5">
-          {shots.map((src, i) => (
-            <button
-              key={src}
-              type="button"
-              onClick={() => setActive(i)}
-              className={cn(
-                "media-frame relative aspect-square overflow-hidden rounded-md border transition-[border-color,opacity] duration-300",
-                i === active
-                  ? "border-[var(--accent)] opacity-100"
-                  : "border-transparent opacity-55 hover:opacity-100",
-              )}
-              aria-label={`View photo ${i + 1}`}
-              aria-current={i === active ? "true" : undefined}
-            >
-              <ProductImage
-                product={product}
-                src={src}
-                alt=""
-                fill
-                className="object-cover"
-                fallbackClassName="absolute inset-0"
-                sizes="160px"
-              />
-            </button>
-          ))}
-        </div>
+        <>
+          <ScrollArea className="mt-4 w-full sm:hidden">
+            <div className="flex gap-2.5 pb-1">{thumbs}</div>
+          </ScrollArea>
+          <div className="mt-4 hidden gap-2.5 sm:grid sm:grid-cols-5">{thumbs}</div>
+        </>
       ) : null}
     </div>
   );

@@ -19,6 +19,23 @@ export function StorefrontChrome({
   const pathname = usePathname();
   const t = useT();
   const isAdmin = pathname?.startsWith("/admin");
+  const isLogin = pathname === "/login";
+  const isHome = pathname === "/";
+  // Joma browse landings are tile grids only — no storefront footer chrome.
+  const hideFooter =
+    isLogin ||
+    isHome ||
+    Boolean(
+      pathname &&
+        (pathname.startsWith("/shop") ||
+          pathname.startsWith("/category") ||
+          pathname.startsWith("/promotions") ||
+          pathname === "/teamwear" ||
+          pathname.startsWith("/search")),
+    );
+
+  // NOTE: no global listing-index prefetch — CatalogBrowser loads a slim
+  // per-hub file only after the shopper uses filters or search.
 
   if (isAdmin) {
     return <>{children}</>;
@@ -32,10 +49,10 @@ export function StorefrontChrome({
       <Suspense fallback={null}>
         <SiteHeader taxonomy={taxonomy} categoryCounts={categoryCounts} />
       </Suspense>
-      <main id="main" key={pathname} className="page-enter flex-1">
+      <main id="main" key={pathname} className={isHome ? "flex-1" : "page-enter flex-1"}>
         {children}
       </main>
-      <SiteFooter categoryCounts={categoryCounts} />
+      {hideFooter ? null : <SiteFooter categoryCounts={categoryCounts} />}
     </>
   );
 }

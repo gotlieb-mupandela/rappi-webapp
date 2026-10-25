@@ -1,107 +1,373 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { BrandLogo } from "@/components/brand-logo";
+import { GoogleSignInButton } from "@/components/google-sign-in";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/catalog";
+import { isGoogleIdentityConfigured } from "@/lib/auth/google-identity";
+import { authCallbackUrl, safeNextPath, userFromProfile } from "@/lib/auth/session";
+import { isNativeApp } from "@/lib/native";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/stores/auth";
-import { useT } from "@/components/locale-provider";
+import { useLocale } from "@/components/locale-provider";
 
-export default function LoginPage() {
+const LOGIN_VISUAL = "/brand/hero-athlete.png";
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = safeNextPath(searchParams.get("next"), "/account");
   const login = useAuth((s) => s.login);
-  const t = useT();
-  const [email, setEmail] = useState(DEMO_EMAIL);
-  const [password, setPassword] = useState(DEMO_PASSWORD);
+  const setUser = useAuth((s) => s.setUser);
+  const user = useAuth((s) => s.user);
+  const { t, market } = useLocale();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [gisDown, setGisDown] = useState(false);
+  const nativeApp = useSyncExternalStore(
+    () => () => {},
+    isNativeApp,
+    () => false,
+  );
+  const configured = isSupabaseConfigured();
+  const useGoogleIdentity = configured && isGoogleIdentityConfigured() && !nativeApp && !gisDown;
+
+  useEffect(() => {
+    if (searchParams.get("error") === "auth") {
+      toast.error(t("login.authError"));
+    }
+  }, [searchParams, t]);
+
+  useEffect(() => {
+    if (user) router.replace(next);
+  }, [user, next, router]);
+
+  async function applySessionUser() {
+    const supabase = createClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    if (!authUser) return false;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email, full_name, role")
+      .eq("id", authUser.id)
+      .maybeSingle();
+    setUser(userFromProfile(authUser, profile));
+    return true;
+  }
+
+  async function onGoogleCredential(idToken: string, nonce: string) {
+    if (!configured) {
+      toast.error(t("login.supabaseRequired"));
+      return;
+    }
+    setGoogleLoading(true);
+    const { error } = await createClient().auth.signInWithIdToken({
+      provider: "google",
+      token: idToken,
+      nonce,
+    });
+    if (error) {
+      setGoogleLoading(false);
+      toast.error(error.message || t("login.authError"));
+      return;
+    }
+    await applySessionUser();
+    toast.success(t("login.welcome"));
+    setGoogleLoading(false);
+    router.push(next);
+  }
+
+  async function onGoogle() {
+    if (!configured) {
+      toast.error(t("login.supabaseRequired"));
+      return;
+    }
+    setGoogleLoading(true);
+    const supabase = createClient();
+    const native = isNativeApp();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: authCallbackUrl(next),
+        skipBrowserRedirect: native,
+        queryParams: { prompt: "select_account" },
+      },
+    });
+    if (error) {
+      setGoogleLoading(false);
+      toast.error(error.message);
+      return;
+    }
+    if (native && data.url) {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.open({ url: data.url });
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : t("login.authError"));
+      } finally {
+        setGoogleLoading(false);
+      }
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
 
-    if (isSupabaseConfigured()) {
+    if (configured) {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: { full_name: name.trim() || email.split("@")[0] },
+            emailRedirectTo: authCallbackUrl(next),
+          },
+        });
+        if (error) {
+          setLoading(false);
+          toast.error(error.message);
+          return;
+        }
+        const signedIn = await applySessionUser();
+        setLoading(false);
+        if (signedIn) {
+          toast.success(t("login.welcome"));
+          router.push(next);
+        } else {
+          toast.success(t("login.checkEmail"));
+          setMode("signin");
+        }
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
-      if (!error && data.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email, full_name")
-          .eq("id", data.user.id)
-          .maybeSingle();
-        login(email, password, {
-          email: profile?.email ?? data.user.email ?? email,
-          name: profile?.full_name || data.user.email?.split("@")[0] || "RAPPI Shop",
-        });
+      if (!error) {
+        await applySessionUser();
         toast.success(t("login.welcome"));
         setLoading(false);
-        router.push("/account");
+        router.push(next);
         return;
       }
-      // Fall through to demo login if Auth user missing
+      setLoading(false);
+      toast.error(error.message || t("login.invalid"));
+      return;
     }
 
     const result = login(email, password);
     setLoading(false);
     if (result.ok) {
       toast.success(t("login.welcome"));
-      router.push("/account");
+      router.push(next);
     } else {
       toast.error(t("login.invalid"));
     }
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-[1440px] items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-soft)] sm:p-8">
-        <BrandLogo className="mx-auto mb-5 h-28 w-auto" />
-        <p className="text-center text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]">{t("home.tagline")}</p>
-        <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-4xl uppercase">
-          {t("login.title")}
-        </h1>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          {t("login.hint")}
-        </p>
-        <form onSubmit={onSubmit} className="mt-8 space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="email">{t("login.email")}</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+    <div className="grid min-h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top))] lg:grid-cols-2">
+      <aside className="relative hidden overflow-hidden bg-[var(--accent-dim)] lg:block">
+        <div className="absolute inset-4 overflow-hidden rounded-2xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOGIN_VISUAL}
+            alt=""
+            className="h-full w-full max-w-none object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--accent-dim)]/90 via-[var(--accent-dim)]/35 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-8 text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
+              {t("home.tagline")}
+            </p>
+            <p className="mt-3 max-w-sm font-[family-name:var(--font-oswald)] text-3xl font-bold uppercase leading-tight">
+              {t("home.title")}
+            </p>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">{t("login.password")}</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+        </div>
+      </aside>
+
+      <div className="flex min-w-0 flex-col bg-white pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] [justify-content:safe_center] sm:pl-[max(2rem,env(safe-area-inset-left))] sm:pr-[max(2rem,env(safe-area-inset-right))] sm:pt-8 lg:pt-10 lg:pb-[max(2.5rem,env(safe-area-inset-bottom))] lg:pl-[max(3rem,env(safe-area-inset-left))] lg:pr-[max(3rem,env(safe-area-inset-right))] xl:pl-[max(4rem,env(safe-area-inset-left))] xl:pr-[max(4rem,env(safe-area-inset-right))]">
+        <div className="mx-auto w-full min-w-0 max-w-md">
+          <BrandLogo
+            className="mb-4 h-14 w-auto max-w-[min(100%,10.5rem)] sm:mb-5 sm:h-16"
+            priority
+          />
+          <p className="text-[10px] uppercase leading-relaxed tracking-[0.18em] text-[var(--muted)] sm:text-[11px] sm:tracking-[0.22em]">
+            {t("home.tagline")}
+          </p>
+          <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-[2rem] font-bold uppercase leading-none tracking-tight text-[var(--text-secondary)] sm:text-4xl">
+            {mode === "signup" ? t("login.createTitle") : t("login.title")}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+            {next === "/checkout" ? t("login.checkoutHint") : t("login.hint")}
+          </p>
+
+          {useGoogleIdentity ? (
+            <GoogleSignInButton
+              locale={market === "eu" ? "fr" : "en"}
+              disabled={googleLoading || loading}
+              onCredential={onGoogleCredential}
+              onUnavailable={() => setGisDown(true)}
             />
-          </div>
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? t("login.signingIn") : t("login.submit")}
+          ) : null}
+          {configured && !useGoogleIdentity ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-6 h-12 w-full border-black/15 bg-white normal-case tracking-normal shadow-[var(--shadow-soft)] hover:bg-[var(--bg-elevated)] hover:text-ink"
+              size="lg"
+              disabled={googleLoading || loading}
+              onClick={() => void onGoogle()}
+            >
+              <GoogleMark />
+              {googleLoading ? t("login.signingIn") : t("login.google")}
+            </Button>
+          ) : null}
+
+          {configured ? (
+            <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--muted-2)]">
+              <span className="h-px flex-1 bg-[var(--border)]" />
+              {t("login.orEmail")}
+              <span className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+          ) : (
+            <div className="mt-6" />
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-3.5">
+            {mode === "signup" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="name">{t("login.name")}</Label>
+                <Input
+                  id="name"
+                  className="h-12 text-base sm:h-11 sm:text-sm"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            ) : null}
+            <div className="space-y-1.5">
+              <Label htmlFor="email">{t("login.email")}</Label>
+              <Input
+                id="email"
+                className="h-12 text-base sm:h-11 sm:text-sm"
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="password">{t("login.password")}</Label>
+              <Input
+                id="password"
+                className="h-12 text-base sm:h-11 sm:text-sm"
+                type="password"
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+            <Button type="submit" className="mt-1 w-full" size="lg" disabled={loading || googleLoading}>
+              {loading
+                ? t("login.signingIn")
+                : mode === "signup"
+                  ? t("login.createAccount")
+                  : t("login.submit")}
+            </Button>
+          </form>
+
+          <p className="mt-4 text-center text-sm leading-relaxed text-[var(--muted)]">
+            {mode === "signup" ? (
+              <>
+                {t("login.haveAccount")}{" "}
+                <button
+                  type="button"
+                  className="font-semibold text-[var(--accent)]"
+                  onClick={() => setMode("signin")}
+                >
+                  {t("login.submit")}
+                </button>
+              </>
+            ) : (
+              <>
+                {t("login.noAccount")}{" "}
+                <button
+                  type="button"
+                  className="font-semibold text-[var(--accent)]"
+                  onClick={() => setMode("signup")}
+                >
+                  {t("login.createAccount")}
+                </button>
+              </>
+            )}
+          </p>
+
+          <Button
+            asChild
+            variant="ghost"
+            className="mt-3 h-11 w-full normal-case tracking-normal text-[var(--muted)] hover:text-ink"
+          >
+            <Link href="/">{t("login.continueShopping")}</Link>
           </Button>
-        </form>
-        <p className="mt-4 text-xs text-[var(--muted-2)]">
-          {t("login.demo", { email: DEMO_EMAIL, password: DEMO_PASSWORD })}
-        </p>
-        <Button asChild variant="outline" className="mt-6 w-full">
-          <Link href="/">{t("login.guest")}</Link>
-        </Button>
+        </div>
       </div>
     </div>
+  );
+}
+
+function GoogleMark() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none">
+      <path
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+        fill="#34A853"
+      />
+      <path
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top))] items-center justify-center px-[max(1rem,env(safe-area-inset-left))] pt-16 pb-[max(4rem,env(safe-area-inset-bottom))] text-sm text-[var(--muted)]">
+          …
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

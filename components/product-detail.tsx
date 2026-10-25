@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { shareContent } from "@/lib/native";
 import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
-import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { getAssortment } from "@/lib/assortment";
+import { AssortmentBadge, AssortmentCurves, AssortmentHint } from "@/components/assortment-label";
+import { getAssortment, isFootwearSku, packTitleSuffix, surtidoPackLines, surtidoSizeLabel } from "@/lib/assortment";
 import { productDescription } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -15,12 +18,15 @@ import { hubName, subName } from "@/lib/i18n/labels";
 import {
   buyableSizes,
   hasVisibleSizePicker,
+  isLowStock,
   isSoldOut,
   pickerSizes,
   sizeDisplayLabel,
+  sizeStock,
   stockLabel,
-} from "@/lib/sizes";
-import { isLowStock } from "@/lib/products";
+} from "@/lib/product-stock";
+import { feedGroupId } from "@/lib/meta/ids";
+import { trackMeta } from "@/lib/meta/pixel";
 import { useCart } from "@/lib/stores/cart";
 import { cn } from "@/lib/utils";
 
@@ -32,39 +38,97 @@ export function ProductDetail({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   const { t, format, market } = useLocale();
   const selected = product.sizes.find((s) => s.size === size);
-  const stock = selected?.stock ?? 0;
+  const stock = sizeStock(product, size);
   const soldOut = isSoldOut(product);
   const catName = hubName(product.category, t);
-  const title = product.displayName || product.item;
+  const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
   const assortment = getAssortment(product);
+  const curveLines = surtidoPackLines(product);
+  const curvePairs =
+    curveLines.length > 0 &&
+    curveLines.every((line) => line.pairs && line.pairs === curveLines[0].pairs)
+      ? curveLines[0].pairs
+      : null;
   const details = productDescription(product, { t, market });
   const showPicker = hasVisibleSizePicker(product);
+  const assortmentPicker =
+    visible.length > 0 && visible.every((row) => surtidoSizeLabel(product, row.size, t));
   const unitLabel = sizeDisplayLabel(size, t);
   const symbol = currencySymbol(market);
+
+  useEffect(() => {
+    trackMeta("ViewContent", {
+      content_ids: [feedGroupId(product.code)],
+      content_type: "product_group",
+      content_name: product.displayName || product.name,
+      content_category: product.category,
+      currency: "NAD",
+      value: product.unitPrice || product.price,
+    });
+  }, [product.category, product.code, product.displayName, product.name, product.price, product.unitPrice]);
 
   function addToBag() {
     if (soldOut || stock <= 0) {
       toast.error(t("product.soldOutPiece"));
       return;
     }
-    const result = add(product.code, size, qty);
+    const result = add(product, size, qty);
     if (result.ok) toast.success(t(result.messageKey, result.values));
     else toast.error(t(result.messageKey, result.values));
   }
 
+  const actions = (
+    <>
+      <QtyStepper
+        value={qty}
+        max={Math.max(stock, 1)}
+        onChange={setQty}
+        className="shrink-0"
+      />
+      <Button
+        size="lg"
+        onClick={addToBag}
+        disabled={soldOut || stock === 0}
+        className="min-w-0 w-full sm:w-auto sm:min-w-48 sm:flex-1"
+      >
+        {soldOut ? t("product.soldOut") : t("common.addToBag")}
+      </Button>
+    </>
+  );
+
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start lg:gap-16">
-      <ProductGallery product={product} />
-      <div className="lg:sticky lg:top-28 lg:pt-2">
-        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--accent)]">
+    <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start lg:gap-16">
+      <div className="min-w-0">
+        <ProductGallery product={product} />
+      </div>
+      <div className="pdp-type min-w-0 max-w-full lg:sticky lg:top-28 lg:pt-2">
+        <p className="text-[11px] font-medium uppercase tracking-normal text-[var(--accent)] sm:tracking-[0.14em]">
           {catName}
           <span className="text-ink/25"> / </span>
           {subName(product.subcategory, t)}
         </p>
-        <h1 className="mt-4 font-[family-name:var(--font-oswald)] text-3xl uppercase leading-[0.95] tracking-wide text-ink sm:text-4xl">
-          {title}
-        </h1>
-        <p className="mt-3 font-mono text-[11px] tracking-[0.18em] text-[var(--muted-2)]">
+        <div className="mt-4 flex items-start justify-between gap-3">
+          <h1 className="min-w-0 break-words font-[family-name:var(--font-oswald)] text-3xl uppercase leading-tight tracking-normal text-ink sm:text-4xl">
+            {title}
+          </h1>
+          <button
+            type="button"
+            className="mt-1 shrink-0 rounded-full p-2 text-[var(--muted)] hover:bg-[var(--hover)] hover:text-ink"
+            aria-label={t("product.share")}
+            onClick={() => {
+              void shareContent({
+                title,
+                text: title,
+                url: typeof window !== "undefined" ? window.location.href : "",
+              }).then((result) => {
+                if (result === "copied") toast.success(t("product.copied"));
+              });
+            }}
+          >
+            <Share2 className="h-5 w-5" />
+          </button>
+        </div>
+        <p className="mt-3 font-mono text-[11px] tracking-normal text-[var(--muted-2)]">
           {product.code}
         </p>
         <div className="mt-6">
@@ -78,17 +142,41 @@ export function ProductDetail({ product }: { product: Product }) {
           <p className="mt-2 text-sm text-[var(--muted)]">{stockLabel(product, t)}</p>
           {assortment?.isAssortment ? (
             <p className="mt-1 text-[12px] text-[var(--muted-2)]">
-              {assortment.preserveSizes
+              {assortment.packSize === 10 && assortment.preserveSizes
                 ? t("product.pack10", { symbol })
-                : t("product.packAssortment", { symbol })}
+                : assortment.kind === "assortment"
+                  ? curvePairs && curvePairs > 1
+                    ? t("product.packAssortmentNamed", {
+                        n: curvePairs,
+                        unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
+                        symbol,
+                      })
+                    : assortment.packSize && assortment.packSize > 1
+                      ? t("product.packAssortmentNamed", {
+                          n: assortment.packSize,
+                          unit: isFootwearSku(product) ? t("product.pairs") : t("product.pcs"),
+                          symbol,
+                        })
+                      : t("product.packAssortmentPack", { symbol })
+                  : assortment.kind === "multipack"
+                    ? t("product.packMultipack", { symbol })
+                    : assortment.kind === "pack"
+                      ? assortment.packSize && assortment.packSize > 1
+                        ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
+                        : t("product.packPdp", { symbol })
+                      : assortment.kind === "wholesale-pack"
+                        ? t("product.packWholesalePack", { symbol })
+                        : assortment.packSize && assortment.packSize > 1
+                          ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
+                          : t("product.packAssortment", { symbol })}
             </p>
           ) : null}
         </div>
 
         {showPicker ? (
           <div className="mt-8">
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
-              {t("product.size")}
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-normal text-[var(--muted)]">
+              {assortmentPicker ? t("product.assortment") : t("product.size")}
             </p>
             <div className="flex flex-wrap gap-2">
               {visible.map((row) => (
@@ -101,14 +189,14 @@ export function ProductDetail({ product }: { product: Product }) {
                     setQty(1);
                   }}
                   className={cn(
-                    "min-h-11 min-w-11 rounded-full border px-4 text-sm font-medium uppercase tracking-wide transition-[border-color,background-color,color] duration-200",
+                    "min-h-11 min-w-[2.75rem] rounded-full border px-3 text-[13px] font-medium tracking-normal transition-[border-color,background-color,color] duration-200 sm:min-w-11 sm:px-4 sm:text-sm sm:tracking-wide",
                     size === row.size
                       ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--on-accent)]"
                       : "border-[var(--border-strong)] text-ink hover:border-[var(--text)]",
                     row.stock === 0 && "cursor-not-allowed opacity-35",
                   )}
                 >
-                  {sizeDisplayLabel(row.size)}
+                  {surtidoSizeLabel(product, row.size, t) ?? sizeDisplayLabel(row.size, t)}
                 </button>
               ))}
             </div>
@@ -121,69 +209,76 @@ export function ProductDetail({ product }: { product: Product }) {
                     : stockLabel(product, t)}
               </p>
             ) : null}
+            <AssortmentCurves product={product} className="mt-4" />
           </div>
         ) : (
           <p className="mt-8 text-sm text-[var(--muted)]">
-            {assortment?.packSize === 10
+            {assortment?.packSize === 10 && assortment.preserveSizes
               ? t("product.orderPack10")
-              : assortment?.isAssortment
-                ? t("product.orderAssortment")
-                : t("product.orderSku")}
+              : assortment?.kind === "assortment"
+                ? curvePairs && curvePairs > 1
+                  ? t("product.orderAssortmentNamed", { n: curvePairs })
+                  : assortment.packSize && assortment.packSize > 1
+                    ? t("product.orderAssortmentNamed", { n: assortment.packSize })
+                    : t("product.orderAssortment")
+                : assortment?.kind === "multipack"
+                  ? t("product.orderMultipack")
+                  : assortment?.kind === "pack"
+                    ? assortment.packSize && assortment.packSize > 1
+                      ? t("product.orderPackNamed", { n: assortment.packSize })
+                      : t("product.orderPack")
+                    : assortment?.kind === "wholesale-pack"
+                      ? t("product.orderWholesalePack")
+                      : assortment?.packSize && assortment.packSize > 1
+                        ? t("product.orderPackNamed", { n: assortment.packSize })
+                        : assortment?.isAssortment
+                          ? t("product.orderAssortment")
+                          : /^ONE$/i.test(size)
+                            ? t("product.orderOneSize")
+                            : t("product.orderSku")}
           </p>
         )}
 
         <div className="mt-8 max-w-xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--muted)]">
+          <p className="text-[11px] font-medium uppercase tracking-normal text-[var(--muted)]">
             {t("product.details")}
           </p>
           <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{details}</p>
         </div>
 
-        <div className="mt-8 hidden items-center gap-3 md:flex">
-          <QtyStepper
-            value={qty}
-            max={Math.max(stock, 1)}
-            onChange={setQty}
-          />
-          <Button
-            size="lg"
-            onClick={addToBag}
-            disabled={soldOut || stock === 0}
-            className="min-w-48 flex-1"
-          >
-            {soldOut ? t("product.soldOut") : t("common.addToBag")}
-          </Button>
-        </div>
+        <div className="mt-8 hidden gap-3 md:flex md:flex-row md:items-center">{actions}</div>
         <p className="mt-8 hidden max-w-md text-sm leading-7 text-[var(--muted)] md:block">
           {market === "eu" ? t("product.pricedEur") : t("product.pricedNad")}
         </p>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--header-bg-scrolled)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-3">
-          <div className="min-w-0">
-            <p className="price text-sm font-semibold">{format(product.price)}</p>
-            <p className="truncate text-[11px] uppercase tracking-wider text-[var(--muted)]">
+      <MobileBuyBar>
+        <div className="pdp-type mx-auto flex max-w-[1440px] flex-col gap-2.5">
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+            <p className="price text-base font-semibold">{format(product.price)}</p>
+            <p className="text-[12px] font-medium text-[var(--muted)]">
               {soldOut ? t("product.soldOut") : unitLabel}
             </p>
           </div>
-          <QtyStepper
-            value={qty}
-            max={Math.max(stock, 1)}
-            onChange={setQty}
-            className="h-11 shrink-0 [&_button]:h-11 [&_button]:w-10"
-          />
-          <Button
-            size="lg"
-            onClick={addToBag}
-            disabled={soldOut || stock === 0}
-            className="min-w-0 flex-1"
-          >
-            {soldOut ? t("product.soldOut") : t("common.addToBag")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <QtyStepper
+              value={qty}
+              max={Math.max(stock, 1)}
+              onChange={setQty}
+              className="h-11 shrink-0 [&_button]:h-11 [&_button]:w-10"
+            />
+            <Button
+              size="lg"
+              onClick={addToBag}
+              disabled={soldOut || stock === 0}
+              className="h-11 min-w-0 flex-1 px-4 normal-case tracking-[normal]"
+            >
+              {soldOut ? t("product.soldOut") : t("common.addToBag")}
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className="h-20 md:hidden" />
+      </MobileBuyBar>
+      <div className="h-32 md:hidden" />
     </div>
   );
 }

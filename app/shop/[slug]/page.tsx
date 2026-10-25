@@ -1,21 +1,43 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { CatalogFilters } from "@/components/catalog-filters";
+import { AudienceLandingGrid } from "@/components/audience-landing";
+import { CatalogBrowser } from "@/components/catalog-browser";
+import { TabbedFolderProducts, tabbedCount } from "@/components/tabbed-folder-products";
+import { folderTabs } from "@/lib/folder-tabs";
+import { FolderGrid } from "@/components/folder-grid";
+import { NoStockBody } from "@/components/no-stock-body";
 import { PageHeader } from "@/components/page-header";
-import { ProductGrid } from "@/components/product-grid";
-import { Button } from "@/components/ui/button";
+import { TLink } from "@/components/t-link";
+import { Translated } from "@/components/translated";
 import {
   AUDIENCES,
   CATEGORIES,
   CATEGORY_ALIASES,
+  TYPE_FOLDERS,
   audienceBySlug,
   categoryBySlug,
   resolveCategorySlug,
 } from "@/lib/catalog";
-import { buildListing } from "@/lib/listing";
+import {
+  audienceHubGroups,
+  categoryHubFolders,
+  jomaChildFolderGroups,
+  typeFolderLeafGroups,
+  accessoriesLandingTiles,
+  audienceLandingTiles,
+  footwearLandingTiles,
+  kidsLandingTiles,
+  sportSeriesFolders,
+  subcategoryHubGroups,
+  jomaFolderAncestorKeys,
+  jomaFolderHasChildren,
+  type HubFolderTile,
+} from "@/lib/hubs";
+import { isSportHub } from "@/lib/hub-membership";
+import { isJomaBrowseFolder } from "@/lib/joma-tree";
+import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
-import { getT } from "@/lib/i18n/server";
-import { audienceBlurb, audienceName, hubBlurb, hubName } from "@/lib/i18n/labels";
+
+export const revalidate = 21600;
 
 export function generateStaticParams() {
   return [
@@ -25,81 +47,401 @@ export function generateStaticParams() {
   ];
 }
 
+function firstSearchParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+function groupHref(
+  key: string,
+  shopPath: string,
+  audienceFromPath: string | undefined,
+  activeAudience: string | undefined,
+  hubSlug: string,
+) {
+  if (audienceFromPath) {
+    return `${shopPath}?group=${encodeURIComponent(key)}`;
+  }
+  if (activeAudience) {
+    return `/shop/${hubSlug}?audience=${activeAudience}&group=${encodeURIComponent(key)}`;
+  }
+  return `/shop/${hubSlug}?group=${encodeURIComponent(key)}`;
+}
+
 export default async function ShopListingPage({
   params,
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{
-    q?: string;
-    sub?: string;
-    size?: string;
-    max?: string;
-    audience?: string;
-    page?: string;
-  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
   const sp = await searchParams;
   const hubSlug = resolveCategorySlug(slug);
-  const audience = audienceBySlug(slug);
+  const audienceFromPath = audienceBySlug(slug);
+  const audienceFromQuery = audienceBySlug(firstSearchParam(sp.audience) ?? "");
+  const activeAudience = audienceFromPath ?? audienceFromQuery;
   const cat = categoryBySlug(hubSlug);
-  if (!audience && !cat) notFound();
+  if (!audienceFromPath && !cat) notFound();
+
+  const query = parseListingQuery({
+    q: firstSearchParam(sp.q),
+    cat: firstSearchParam(sp.cat),
+    sub: firstSearchParam(sp.sub),
+    group: firstSearchParam(sp.group),
+    size: firstSearchParam(sp.size),
+    max: firstSearchParam(sp.max),
+    audience: activeAudience?.slug,
+    page: firstSearchParam(sp.page),
+  });
+  const viewAll = firstSearchParam(sp.view) === "all";
+  const groupKey = query.group && query.group !== "all" ? query.group : "";
+  const subKey = query.sub && query.sub !== "all" ? query.sub : "";
+
+  const hasTypeOrSearchFilter = listingQueryIsActive(query, {
+    categorySlug: audienceFromPath ? undefined : hubSlug,
+    audienceSlug: activeAudience?.slug,
+  });
+  const hasKidsAgeOrGender =
+    Boolean(firstSearchParam(sp.age)) || Boolean(firstSearchParam(sp.gender));
+
+  const hasProductFilters = listingQueryIsActive(
+    { ...query, group: undefined },
+    {
+      categorySlug: audienceFromPath ? undefined : hubSlug,
+      audienceSlug: activeAudience?.slug,
+    },
+  );
+
+  const wantsProducts =
+    viewAll ||
+    hasProductFilters ||
+    Boolean(subKey) ||
+    Boolean(groupKey && !jomaFolderHasChildren(groupKey) && !TYPE_FOLDERS[groupKey]);
 
   const catalog = await getCatalog();
-  const t = await getT();
-  const listing = audience
-    ? buildListing(catalog, { ...sp, audience: slug })
-    : buildListing(catalog, sp, { categorySlug: hubSlug });
 
-  const title = audience ? audienceName(audience.slug, t) : hubName(hubSlug, t);
-  const description = audience ? audienceBlurb(audience.slug, t) : hubBlurb(hubSlug, t);
-  const backHref = audience ? "/" : `/category/${hubSlug}`;
-  const backLabel = audience ? t("common.backToHome") : t("common.backToHub");
+  const jomaLandingAudience =
+    audienceFromPath?.slug === "men" || audienceFromPath?.slug === "women"
+      ? audienceFromPath.slug
+      : null;
+  const showJomaLanding =
+    Boolean(jomaLandingAudience) &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter;
+
+  if (showJomaLanding && jomaLandingAudience) {
+    const tiles = audienceLandingTiles(jomaLandingAudience, catalog);
+    const titleKey = jomaLandingAudience === "men" ? "nav.man" : "nav.woman";
+    return (
+      <div className="bg-white">
+        <PageHeader
+          compact
+          wide
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: titleKey },
+          ]}
+          titleKey={titleKey}
+        />
+        <div className="page-shell page-shell--browse pb-8 pt-1 sm:pb-10">
+          <AudienceLandingGrid tiles={tiles} />
+        </div>
+      </div>
+    );
+  }
+
+  const showKidsLanding =
+    audienceFromPath?.slug === "kids" &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter &&
+    !hasKidsAgeOrGender;
+
+  if (showKidsLanding) {
+    const tiles = kidsLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          compact
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.children" },
+          ]}
+          titleKey="nav.children"
+        />
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
+          <AudienceLandingGrid tiles={tiles} variant="kids" />
+        </div>
+      </div>
+    );
+  }
+
+  const showFootwearLanding =
+    !audienceFromPath &&
+    hubSlug === "shoes" &&
+    !activeAudience &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter;
+
+  if (showFootwearLanding) {
+    const tiles = footwearLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          compact
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.footwear" },
+          ]}
+          titleKey="nav.footwear"
+        />
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
+          <AudienceLandingGrid tiles={tiles} variant="footwear" />
+        </div>
+      </div>
+    );
+  }
+
+  const showAccessoriesLanding =
+    !audienceFromPath &&
+    hubSlug === "balls-bags" &&
+    firstSearchParam(sp.view) !== "all" &&
+    !hasTypeOrSearchFilter;
+
+  if (showAccessoriesLanding) {
+    const tiles = accessoriesLandingTiles(catalog);
+    return (
+      <div className="bg-white">
+        <PageHeader
+          compact
+          crumbs={[
+            { href: "/", key: "common.home" },
+            { key: "nav.accessories" },
+          ]}
+          titleKey="nav.accessories"
+        />
+        <div className="page-shell pb-8 pt-1 sm:pb-10">
+          <AudienceLandingGrid tiles={tiles} />
+        </div>
+      </div>
+    );
+  }
+
+  const wantTypeFolders =
+    firstSearchParam(sp.view) !== "all" && !hasTypeOrSearchFilter;
+
+  let folders: HubFolderTile[] = [];
+  if (wantTypeFolders) {
+    const typeGroups = activeAudience
+      ? audienceHubGroups(
+          activeAudience.slug,
+          catalog,
+          audienceFromPath ? undefined : { categorySlug: hubSlug },
+        )
+      : hubSlug
+      ? subcategoryHubGroups(hubSlug, catalog)
+      : [];
+    folders = typeGroups;
+  } else if (!wantsProducts) {
+    if (groupKey && jomaFolderHasChildren(groupKey)) {
+      folders = jomaChildFolderGroups(groupKey, catalog, {
+        categorySlug: audienceFromPath ? undefined : hubSlug,
+        audience: activeAudience?.slug,
+      });
+    } else if (groupKey && TYPE_FOLDERS[groupKey]) {
+      folders = typeFolderLeafGroups(groupKey, catalog, {
+        categorySlug: audienceFromPath ? undefined : hubSlug,
+        audience: activeAudience?.slug,
+      });
+    } else if (!groupKey) {
+      folders = activeAudience
+        ? audienceHubGroups(
+            activeAudience.slug,
+            catalog,
+            audienceFromPath ? undefined : { categorySlug: hubSlug },
+          )
+        : categoryHubFolders(hubSlug, catalog);
+    }
+  }
+
+  const seriesFolders =
+    !audienceFromPath && !groupKey && !subKey && isSportHub(hubSlug) && !viewAll && wantTypeFolders
+      ? sportSeriesFolders(hubSlug, catalog).filter(
+          (tile) => !folders.some((folder) => folder.key === tile.key),
+        )
+      : [];
+
+  const showFolders = folders.length > 0 || seriesFolders.length > 0;
+  const jomaLeafEmpty = Boolean(groupKey && isJomaBrowseFolder(groupKey));
+  const listing = audienceFromPath
+    ? buildListing(catalog, { ...query, audience: audienceFromPath.slug })
+    : buildListing(catalog, query, { categorySlug: hubSlug });
+
+  const shopPath = `/shop/${audienceFromPath ? audienceFromPath.slug : hubSlug}`;
+  const ancestors = groupKey ? jomaFolderAncestorKeys(groupKey) : [];
+  const shoesAudienceFromQuery =
+    !audienceFromPath && hubSlug === "shoes" && Boolean(activeAudience);
+
+  const crumbs = [
+    { href: "/", key: "common.home" as const },
+    audienceFromPath
+      ? {
+          href: groupKey || subKey || !showFolders ? shopPath : undefined,
+          audience: audienceFromPath.slug,
+        }
+      : shoesAudienceFromQuery
+        ? {
+            href: "/shop/shoes",
+            key: "nav.footwear" as const,
+          }
+        : { href: `/shop/${hubSlug}`, hub: hubSlug },
+    ...(shoesAudienceFromQuery && activeAudience
+      ? [
+          {
+            href:
+              groupKey || subKey
+                ? `/shop/shoes?audience=${activeAudience.slug}`
+                : undefined,
+            audience: activeAudience.slug,
+          },
+        ]
+      : []),
+    ...ancestors.map((key) => ({
+      href: groupHref(
+        key,
+        shopPath,
+        audienceFromPath?.slug,
+        activeAudience?.slug,
+        hubSlug,
+      ),
+      sub: key,
+    })),
+    ...(groupKey
+      ? [
+          {
+            href:
+              showFolders || subKey
+                ? undefined
+                : groupHref(
+                    groupKey,
+                    shopPath,
+                    audienceFromPath?.slug,
+                    activeAudience?.slug,
+                    hubSlug,
+                  ),
+            sub: groupKey,
+          },
+        ]
+      : []),
+    ...(subKey ? [{ sub: subKey }] : []),
+  ];
+
+  // Joma portal folders with in-page tabs: full portal list, tab strip + sections.
+  const tabs = groupKey && wantsProducts && !subKey && !showFolders ? folderTabs(groupKey) : [];
+  const activeTab = firstSearchParam(sp.tab) ?? "";
+  const tabbedListing = tabs.length
+    ? audienceFromPath
+      ? buildListing(catalog, { ...query, page: undefined, audience: audienceFromPath.slug }, { pageSize: 5000 })
+      : buildListing(catalog, { ...query, page: undefined }, { categorySlug: hubSlug, pageSize: 5000 })
+    : null;
+  const tabHref = (slug: string) => {
+    const params = new URLSearchParams();
+    if (activeAudience && !audienceFromPath) params.set("audience", activeAudience.slug);
+    params.set("group", groupKey);
+    if (slug) params.set("tab", slug);
+    return `${shopPath}?${params.toString()}`;
+  };
+
+  const titleCount = showFolders
+    ? undefined
+    : tabbedListing
+      ? tabbedCount(tabbedListing.products, tabs, activeTab)
+      : groupKey || subKey
+        ? listing.total
+        : undefined;
+
+  const titleAudienceSlug =
+    !groupKey && !subKey
+      ? audienceFromPath?.slug ?? (shoesAudienceFromQuery ? activeAudience?.slug : undefined)
+      : undefined;
 
   return (
     <div>
       <PageHeader
-        crumbs={[
-          { href: "/", label: t("common.home") },
-          audience
-            ? { label: audienceName(audience.slug, t) }
-            : { href: `/category/${hubSlug}`, label: hubName(hubSlug, t) },
-          { label: t("common.products") },
-        ]}
-        eyebrow={t.plural("count.pieces", listing.total)}
-        title={title}
-        description={description}
-        actions={
-          <Button asChild variant="outline" className="w-full sm:w-auto">
-            <Link href={backHref}>{backLabel}</Link>
-          </Button>
+        compact
+        wide={showFolders}
+        crumbs={crumbs}
+        titleAudience={titleAudienceSlug}
+        titleHub={
+          !groupKey && !subKey && !titleAudienceSlug ? hubSlug : undefined
         }
+        titleSub={subKey || groupKey || undefined}
+        titleCount={titleCount}
       />
-      <div className="page-shell py-8 sm:py-10">
-        <CatalogFilters
-          listing={listing}
-          query={sp}
-          categorySlug={audience ? undefined : hubSlug}
-          basePath={`/shop/${hubSlug}`}
-          grouped
-          showCategoryFilter={Boolean(audience)}
-          showAudienceFilter={!audience}
-          emptyTitle={
-            audience
-              ? t("shop.emptyAudience", { name: audienceName(audience.slug, t).toLowerCase() })
-              : t("shop.emptyHub", { name: hubName(hubSlug, t).toLowerCase() })
-          }
-          emptyBody={t("shop.emptyBody")}
-        >
-          <ProductGrid
-            products={listing.products}
-            grouped
-            groupCounts={Object.fromEntries(
-              listing.facets.subs.map((s) => [s.slug, s.count]),
-            )}
+      <div
+        className={
+          showFolders
+            ? "page-shell page-shell--browse pb-10 pt-1"
+            : "page-shell pb-10 pt-1"
+        }
+      >
+        {showFolders ? (
+          <div className="space-y-8">
+            {folders.length ? (
+              <FolderGrid
+                folders={folders}
+                slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
+              />
+            ) : null}
+            {seriesFolders.length ? (
+              <div className={folders.length ? "border-t border-[var(--border)] pt-8" : undefined}>
+                <FolderGrid
+                  folders={seriesFolders}
+                  slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
+                />
+              </div>
+            ) : null}
+          </div>
+        ) : isSportHub(hubSlug) && !groupKey && !subKey && listing.total === 0 ? (
+          <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
+            <p className="font-[family-name:var(--font-oswald)] text-2xl uppercase text-ink">
+              <Translated k="shop.noStockTitle" />
+            </p>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+              <NoStockBody hubSlug={hubSlug} />
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <TLink href="/category/sportswear" k="home.shopSportswear" />
+              <TLink href="/search" k="common.browseCatalog" variant="outline" />
+            </div>
+          </section>
+        ) : tabbedListing ? (
+          <div className="pt-2">
+            <TabbedFolderProducts
+              products={tabbedListing.products}
+              tabs={tabs}
+              activeTab={activeTab}
+              hrefFor={tabHref}
+            />
+          </div>
+        ) : (
+          <CatalogBrowser
+            initialListing={listing}
+            categorySlug={audienceFromPath ? undefined : hubSlug}
+            audienceSlug={audienceFromPath?.slug ?? activeAudience?.slug}
+            basePath={shopPath}
+            grouped={!(groupKey && isJomaBrowseFolder(groupKey))}
+            hideFilters
+            showCategoryFilter={false}
+            showAudienceFilter={false}
+            showLayoutToggle
+            emptyQuiet={jomaLeafEmpty}
+            emptyTitleKey={audienceFromPath ? "shop.emptyAudience" : "shop.emptyHub"}
+            emptyKind={audienceFromPath ? "audience" : "hub"}
+            emptySlug={audienceFromPath ? audienceFromPath.slug : hubSlug}
+            emptyBodyKey="shop.emptyBody"
           />
-        </CatalogFilters>
+        )}
       </div>
     </div>
   );

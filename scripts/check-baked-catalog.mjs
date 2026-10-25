@@ -35,31 +35,31 @@ function checkAiSmoke(code, { primary, extras, price, stock }) {
   }
 }
 
+for (const p of catalog) {
+  for (const u of [p.imageUrl, ...(p.images || [])]) {
+    if (u && /\/ai-[^/]*$/i.test(u)) fail(`${p.code} has AI image ${u}`);
+  }
+}
+
 checkAiSmoke("100807.040", {
   primary:
     "https://v1.joma-sport.net/files/0001/h1bk2b91212b127y123ydhe783737371/web.system/products/20250730091158.100807.040.jpg",
-  extras: [
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-040/ai-02-back.webp",
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-040/ai-03-threequarter.webp",
-  ],
-  price: 2555,
-  stock: 463,
+  extras: [],
+  price: 2218,
+  stock: 466,
 });
 checkAiSmoke("100807.200", {
   primary:
     "https://v1.joma-sport.net/files/0001/h1bk2b91212b127y123ydhe783737371/web.system/products/20250730120016.100807.200.jpg",
-  extras: [
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-200/ai-02-back.webp",
-    "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/100807-200/ai-03-threequarter.webp",
-  ],
-  price: 2555,
-  stock: 431,
+  extras: [],
+  price: 2218,
+  stock: 367,
 });
 
 const bib = catalog.find((p) => p.code === "101686.010");
 if (!bib) fail("missing 101686.010");
 else {
-  if (bib.price !== 900 || bib.unitPrice !== 900) fail(`bib price ${bib.price}/${bib.unitPrice}`);
+  if (bib.price !== 783 || bib.unitPrice !== 783) fail(`bib price ${bib.price}/${bib.unitPrice}`);
   if (/_large\.(jpe?g|png|webp)/i.test(bib.imageUrl || "")) fail(`bib image still _large ${bib.imageUrl}`);
   if ((bib.images || []).some((u) => /_large\.(jpe?g|png|webp)/i.test(u))) fail("bib images[] still _large");
   if (!bib.description || String(bib.description).length <= 20) {
@@ -97,7 +97,7 @@ const large = catalog.filter(
 );
 const emptyDesc = catalog.filter((p) => !String(p.description || "").trim());
 const bibs = catalog.filter((p) => String(p.code).startsWith("101686."));
-const badBibs = bibs.filter((p) => p.price !== 900 || p.unitPrice !== 900);
+const badBibs = bibs.filter((p) => p.price !== 783 || p.unitPrice !== 783);
 const multi = catalog.filter((p) => (p.images || []).length >= 2);
 const dwMulti = catalog.filter(
   (p) => (p.images || []).filter((u) => /joma-sport\.com\/on\/demandware/i.test(u)).length >= 2,
@@ -109,7 +109,7 @@ const imageUrlMismatch = catalog.filter(
 if (cents.length) fail(`catalog cents left: ${cents.length}`);
 if (large.length) fail(`catalog _large left: ${large.length}`);
 if (emptyDesc.length) fail(`catalog empty descriptions: ${emptyDesc.length}`);
-if (badBibs.length) fail(`101686 family not 900: ${badBibs.map((p) => p.code).join(",")}`);
+if (badBibs.length) fail(`101686 family not 783: ${badBibs.map((p) => p.code).join(",")}`);
 if (imageUrlMismatch.length) fail(`imageUrl not first gallery image: ${imageUrlMismatch.length}`);
 if (multi.length < catalog.length * 0.5) {
   fail(`too few multi-image SKUs: ${multi.length}/${catalog.length}`);
@@ -171,7 +171,10 @@ if (!/productImageAlt/.test(productImage) || /alt=\{\s*alt \?\? product\.code\s*
 if (!/from "next\/image"/.test(productImage)) {
   fail("product photos are not going through next/image");
 }
-if (!/productImageCandidates/.test(productImage)) {
+if (!/RETRIES_PER_URL/.test(productImage)) {
+  fail("product photos missing a retry before the next URL");
+}
+if (!/sources/.test(productImage) || !/onError/.test(productImage)) {
   fail("product photos missing gallery URL fallbacks");
 }
 
@@ -189,8 +192,8 @@ else {
   if (/Kids's/i.test(jrBoot.description) || /Kids’s/.test(jrBoot.description)) {
     fail(`TOJS2604TF has Kids's: ${jrBoot.description}`);
   }
-  if (!/Kids’ boots/i.test(jrBoot.description) && !/Kids' boots/i.test(jrBoot.description)) {
-    fail(`TOJS2604TF expected Kids’ boots: ${jrBoot.description}`);
+  if (!/Kids[’'] (boots|turf)/i.test(jrBoot.description)) {
+    fail(`TOJS2604TF expected Kids’ boots/turf: ${jrBoot.description}`);
   }
 }
 
@@ -228,6 +231,64 @@ const shoeSample = catalog.find((p) => p.code === "BF1448W2503");
 if (!shoeSample || shoeSample.category !== "shoes") fail("BF1448W2503 is not in shoes");
 if (/\b(vest|shirt|tee)\b/i.test(`${shoeSample.displayName} ${shoeSample.name}`)) {
   fail("shoes sample SKU looks like apparel");
+}
+
+const jomaRugbyLeaf = require("../data/joma-hub-leaves.json").rugby;
+if (!Array.isArray(jomaRugbyLeaf) || jomaRugbyLeaf.length !== 67) {
+  fail(`joma rugby leaf should be 67 SKUs, got ${jomaRugbyLeaf?.length}`);
+}
+const rugbyOffHub = jomaRugbyLeaf.filter((code) => {
+  const row = catalog.find((p) => p.code === code);
+  return !row || row.category !== "rugby";
+});
+if (rugbyOffHub.length) fail(`Joma rugby leaf SKUs not in rugby: ${rugbyOffHub.join(",")}`);
+
+const rugbyKeep = ["102219.081", "103839.100", "102220.100", "101339.100", "903311.100", "401735.208"];
+for (const code of rugbyKeep) {
+  const row = catalog.find((p) => p.code === code);
+  if (!row || row.category !== "rugby") fail(`${code} dropped off rugby hub`);
+}
+
+const rugbyCount = catalog.filter((p) => p.category === "rugby").length;
+if (rugbyCount < 67) fail(`rugby hub too small: ${rugbyCount}`);
+// Tactical Stimulus / other Phoenix III lines are not the rugby leaf.
+if (catalog.find((p) => p.code === "104245.100")?.category === "rugby") {
+  fail("104245.100 Tactical Stimulus should stay off rugby");
+}
+if (catalog.find((p) => p.code === "105113.102")?.category === "rugby") {
+  fail("105113.102 Phoenix III tracksuit should stay off rugby");
+}
+
+const rugbyBall = catalog.find((p) => p.code === "400680.209");
+if (!rugbyBall || rugbyBall.category !== "rugby") fail("400680.209 not in rugby");
+if (!Array.isArray(rugbyBall.hubs) || !rugbyBall.hubs.includes("balls-bags")) {
+  fail("400680.209 should also list on balls-bags");
+}
+
+function inHub(row, slug) {
+  return row && (row.category === slug || (row.hubs || []).includes(slug));
+}
+const soccerBall = catalog.find((p) => p.code === "400356.308");
+if (!inHub(soccerBall, "football") || !inHub(soccerBall, "balls-bags")) {
+  fail("400356.308 soccer ball should be on football AND balls-bags");
+}
+const footballBoot = catalog.find((p) => p.code === "TOJS2604TF");
+if (!inHub(footballBoot, "football") || !inHub(footballBoot, "shoes")) {
+  fail("TOJS2604TF football boot should be on football AND shoes");
+}
+const nationTee = catalog.find((p) => p.code === "104384.200");
+if (!inHub(nationTee, "rugby") || !inHub(nationTee, "sportswear")) {
+  fail("104384.200 NATION tee should be on rugby AND sportswear");
+}
+
+const jomaCopy = require("../data/joma-descriptions.json");
+const nationCopy = jomaCopy["104384.200"]?.en || "";
+if (!/developed for rugby/i.test(nationCopy)) {
+  fail("missing official Joma description for 104384.200");
+}
+const nationRow = catalog.find((p) => p.code === "104384.200");
+if (!nationRow || !/developed for rugby/i.test(nationRow.description || "")) {
+  fail("104384.200 baked description is not Joma PDP text");
 }
 
 console.log("ok", {

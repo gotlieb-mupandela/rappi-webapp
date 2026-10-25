@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ProductGrid } from "@/components/product-grid";
 import { ListingPagination } from "@/components/listing-pagination";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { listingHref, parseListingQuery } from "@/lib/listing-core";
 import type { ListingQuery, ListingResult } from "@/lib/listing-types";
 import { LayoutGrid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ function asAll(value?: string) {
 export function CatalogFilters({
   listing,
   query,
+  audienceSlug,
   categorySlug,
   basePath,
   grouped = true,
@@ -28,10 +30,17 @@ export function CatalogFilters({
   showAudienceFilter = true,
   emptyTitle,
   emptyBody,
+  emptyQuiet = false,
   children,
+  onNavigate,
+  showLayoutToggle,
+  /** Joma Soft Shell listing: full-width grid, no left filter rail. */
+  hideFilters = false,
 }: {
   listing: ListingResult;
   query?: ListingQuery;
+  /** Audience the listing is scoped to (path or ?audience=). */
+  audienceSlug?: string;
   categorySlug?: string;
   basePath: string;
   grouped?: boolean;
@@ -39,57 +48,83 @@ export function CatalogFilters({
   showAudienceFilter?: boolean;
   emptyTitle?: string;
   emptyBody?: string;
+  /** Joma empty leaf: keep the listing chrome, no filter-error box. */
+  emptyQuiet?: boolean;
   children?: ReactNode;
+  onNavigate?: (href: string) => void;
+  showLayoutToggle?: boolean;
+  hideFilters?: boolean;
 }) {
   const router = useRouter();
   const { t, market } = useLocale();
-  const sub = asAll(query?.sub);
-  const size = asAll(query?.size);
-  const maxPrice = query?.max ?? "";
-  const q = query?.q ?? "";
-  const cat = asAll(query?.cat) !== "all" ? asAll(query?.cat) : categorySlug ?? "all";
-  const audience = asAll(query?.audience);
+  const parsed = parseListingQuery(query ?? {});
+  const sub = asAll(parsed.sub);
+  const group = asAll(parsed.group);
+  const size = asAll(parsed.size);
+  const maxPrice = parsed.max ?? "";
+  const q = parsed.q ?? "";
+  const cat = asAll(parsed.cat) !== "all" ? asAll(parsed.cat) : categorySlug ?? "all";
+  const audience = asAll(parsed.audience);
   const [draftQ, setDraftQ] = useState(q);
   const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const layoutToggle = showLayoutToggle ?? !children;
 
-  function currentParams() {
-    const next = new URLSearchParams();
-    if (q) next.set("q", q);
-    if (cat && cat !== "all" && cat !== categorySlug) next.set("cat", cat);
-    if (sub !== "all") next.set("sub", sub);
-    if (size !== "all") next.set("size", size);
-    if (maxPrice) next.set("max", maxPrice);
-    if (audience !== "all") next.set("audience", audience);
-    if (query?.page && Number(query.page) > 1) next.set("page", String(query.page));
-    return next;
+  useEffect(() => {
+    setDraftQ(q);
+  }, [q]);
+
+  function currentQuery(overrides: Partial<ListingQuery> = {}): ListingQuery {
+    return {
+      q,
+      cat: cat !== "all" && cat !== categorySlug ? cat : undefined,
+      sub: sub !== "all" ? sub : undefined,
+      group: group !== "all" ? group : undefined,
+      size: size !== "all" ? size : undefined,
+      max: maxPrice || undefined,
+      audience: audience !== "all" ? audience : undefined,
+      page: parsed.page,
+      ...overrides,
+    };
   }
 
-  function hrefWith(next: URLSearchParams) {
-    const qs = next.toString();
-    return qs ? `${basePath}?${qs}` : basePath;
+  function hrefWith(next: ListingQuery) {
+    return listingHref(basePath, next, categorySlug);
   }
 
-  function setParam(key: string, value: string, resetPage = true) {
-    const next = currentParams();
-    if (!value || value === "all") next.delete(key);
-    else next.set(key, value);
-    if (resetPage && key !== "page") next.delete("page");
+  function go(href: string) {
+    if (onNavigate) {
+      onNavigate(href);
+      return;
+    }
     startTransition(() => {
-      router.push(hrefWith(next));
+      router.push(href);
     });
   }
 
+  function setParam(key: string, value: string, resetPage = true) {
+    const next = currentQuery({
+      [key]: !value || value === "all" ? undefined : value,
+      ...(resetPage && key !== "page" ? { page: undefined } : {}),
+    });
+    go(hrefWith(next));
+  }
+
   function pageHref(page: number) {
-    const next = currentParams();
-    if (page <= 1) next.delete("page");
-    else next.set("page", String(page));
-    return hrefWith(next);
+    return hrefWith(currentQuery({ page: page <= 1 ? undefined : page }));
   }
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(13.5rem,15rem)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
+    <div
+      className={cn(
+        hideFilters
+          ? "min-w-0"
+          : "grid items-start gap-6 lg:grid-cols-[minmax(13.5rem,15rem)_minmax(0,1fr)] lg:gap-8 xl:gap-10",
+      )}
+    >
+      {!hideFilters ? (
+        <>
       <div className="lg:hidden">
         <Button
           type="button"
@@ -103,6 +138,7 @@ export function CatalogFilters({
       <aside
         className={cn(
           "space-y-7 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6",
+          "lg:sticky lg:top-[calc(var(--header-h)+env(safe-area-inset-top)+0.75rem)] lg:max-h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top)-1.5rem)] lg:overflow-y-auto lg:overscroll-contain",
           filtersOpen ? "block" : "hidden lg:block",
         )}
       >
@@ -164,7 +200,7 @@ export function CatalogFilters({
                 type="button"
                 onClick={() => setParam("size", "all")}
                 className={cn(
-                  "inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-3 text-[11px] font-medium uppercase tracking-wide transition-colors",
+                  "inline-flex h-11 min-w-11 items-center justify-center rounded-full border px-3 text-xs font-medium uppercase tracking-wide transition-colors",
                   size === "all"
                     ? "border-[var(--accent)] text-[var(--accent)]"
                     : "border-[var(--border-strong)] text-[var(--muted)] hover:border-[var(--text)] hover:text-ink",
@@ -178,7 +214,7 @@ export function CatalogFilters({
                   type="button"
                   onClick={() => setParam("size", s)}
                   className={cn(
-                    "inline-flex h-9 min-w-9 items-center justify-center rounded-full border px-3 text-[11px] font-medium uppercase tracking-wide transition-colors",
+                    "inline-flex h-11 min-w-11 items-center justify-center rounded-full border px-3 text-xs font-medium uppercase tracking-wide transition-colors",
                     size === s
                       ? "border-[var(--accent)] text-[var(--accent)]"
                       : "border-[var(--border-strong)] text-[var(--muted)] hover:border-[var(--text)] hover:text-ink",
@@ -235,29 +271,35 @@ export function CatalogFilters({
           variant="outline"
           size="sm"
           className="w-full"
-          onClick={() => startTransition(() => router.push(basePath))}
+          onClick={() => go(basePath)}
         >
           {t("filters.clear")}
         </Button>
       </aside>
+        </>
+      ) : null}
 
       <div className={cn("min-w-0 transition-opacity duration-300", pending && "opacity-50")}>
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
-            {t.plural("count.pieces", listing.total)}
-            {listing.pageCount > 1
-              ? t("filters.pageOf", { page: listing.page, pageCount: listing.pageCount })
-              : ""}
-          </p>
-          {children ? null : (
-            <div className="flex items-center gap-1">
+        {layoutToggle ? (
+          <div className={cn("mb-4 flex items-center gap-3", hideFilters ? "justify-end" : "justify-between")}>
+            {!hideFilters ? (
+              <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
+                <span className="font-semibold text-[var(--accent)]">
+                  {t.plural("count.pieces", listing.total)}
+                </span>
+                {listing.pageCount > 1
+                  ? t("filters.pageOf", { page: listing.page, pageCount: listing.pageCount })
+                  : null}
+              </p>
+            ) : null}
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 aria-label={t("common.gridView")}
                 onClick={() => setLayout("grid")}
                 className={cn(
-                  "rounded-full p-2 transition-colors",
-                  layout === "grid" ? "bg-[var(--hover-strong)] text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
+                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  layout === "grid" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -267,29 +309,38 @@ export function CatalogFilters({
                 aria-label={t("common.listView")}
                 onClick={() => setLayout("list")}
                 className={cn(
-                  "rounded-full p-2 transition-colors",
-                  layout === "list" ? "bg-[var(--hover-strong)] text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
+                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  layout === "list" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
                 <List className="h-4 w-4" />
               </button>
             </div>
-          )}
-        </div>
-        {listing.total === 0 ? (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
-            <p className="text-lg font-semibold text-ink">
-              {emptyTitle ?? t("search.noProducts")}
-            </p>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {emptyBody ?? t("search.noProductsBody")}
-            </p>
           </div>
+        ) : null}
+        {listing.total === 0 ? (
+          emptyQuiet ? (
+            <div className="min-h-[42vh]" />
+          ) : (
+            <div className="border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-20 text-center">
+              <p className="font-[family-name:var(--font-display)] text-2xl font-bold uppercase tracking-wide text-ink">
+                {emptyTitle ?? t("search.noProducts")}
+              </p>
+              <p className="mx-auto mt-3 max-w-sm text-sm text-[var(--muted)]">
+                {emptyBody ?? t("search.noProductsBody")}
+              </p>
+            </div>
+          )
         ) : (
           <>
             {children ?? (
               <ProductGrid
                 products={listing.products}
+                audience={
+                  audienceSlug ||
+                  query?.audience ||
+                  /^\/shop\/(kids|women|men)(\/|$)/.exec(basePath)?.[1]
+                }
                 grouped={grouped}
                 layout={layout}
                 groupCounts={Object.fromEntries(
@@ -301,6 +352,7 @@ export function CatalogFilters({
               page={listing.page}
               pageCount={listing.pageCount}
               hrefFor={pageHref}
+              onNavigate={onNavigate}
             />
           </>
         )}
@@ -312,7 +364,7 @@ export function CatalogFilters({
 function FilterBlock({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
         {title}
       </p>
       <div className="space-y-1.5">{children}</div>
@@ -334,7 +386,7 @@ function FilterLink({
       type="button"
       onClick={onClick}
       className={cn(
-        "block w-full rounded-md py-1.5 pl-2 text-left text-[12px] uppercase tracking-[0.12em] transition-colors",
+        "block min-h-11 w-full rounded-md py-2.5 pl-2 text-left text-xs uppercase tracking-[0.12em] transition-colors",
         active
           ? "border-l-2 border-[var(--accent)] pl-[6px] font-semibold text-[var(--accent)]"
           : "text-[var(--text-secondary)] hover:text-ink",

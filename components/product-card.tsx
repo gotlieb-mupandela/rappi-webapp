@@ -1,134 +1,226 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent } from "react";
+import {
+  type MouseEvent as ReactMouseEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/types";
-import { AssortmentBadge, AssortmentHint } from "@/components/assortment-label";
-import { Badge } from "@/components/ui/badge";
 import { ProductImage } from "@/components/product-image";
+import { AssortmentBadge } from "@/components/assortment-label";
+import { packTitleSuffix } from "@/lib/assortment";
+import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
-import { totalStock } from "@/lib/products";
-import { buyableSizes, isSoldOut, stockLabel } from "@/lib/sizes";
+import { productImageAlt } from "@/lib/copy";
+import { buyableSizes, isSoldOut } from "@/lib/product-stock";
+import { listingCardCandidates } from "@/lib/media";
 import { useCart } from "@/lib/stores/cart";
 import { productPath } from "@/lib/utils";
 
+const CURSOR_GAP = 14;
+
+/** Joma B2B listing — stock table portals to body and follows the cursor. */
 export function ProductCard({
   product,
   layout = "grid",
+  audience,
 }: {
   product: Product;
   layout?: "grid" | "list";
+  /** Listing audience (kids / women): avoids adult or men's person leads. */
+  audience?: string;
 }) {
   const add = useCart((s) => s.add);
   const { t, format } = useLocale();
-  const stock = totalStock(product);
   const first = buyableSizes(product)[0];
   const soldOut = isSoldOut(product);
-  const title = product.displayName || product.item;
+  const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
+  const cardSources = listingCardCandidates(product, audience);
+  const cardSrc = cardSources[0] ?? "";
 
-  function quickAdd(e: MouseEvent) {
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
+  const popRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  function placePopover() {
+    const el = popRef.current;
+    if (!el) return;
+    const { x, y } = cursorRef.current;
+    const w = el.offsetWidth || 280;
+    const h = el.offsetHeight || 96;
+    const maxL = window.innerWidth - w - 8;
+    const maxT = window.innerHeight - h - 8;
+    let left = x + CURSOR_GAP;
+    let top = y + CURSOR_GAP;
+    if (left > maxL) left = x - w - CURSOR_GAP;
+    if (top > maxT) top = y - h - CURSOR_GAP;
+    left = Math.max(8, Math.min(left, maxL));
+    top = Math.max(8, Math.min(top, maxT));
+    el.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+  }
+
+  function schedulePlace() {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      placePopover();
+    });
+  }
+
+  function onCardEnter(e: ReactMouseEvent) {
+    if (soldOut) return;
+    cursorRef.current = { x: e.clientX, y: e.clientY };
+    setOpen(true);
+    // Place after paint so width/height are known.
+    requestAnimationFrame(() => {
+      placePopover();
+      requestAnimationFrame(placePopover);
+    });
+  }
+
+  function onCardMove(e: ReactMouseEvent) {
+    if (soldOut || !open) return;
+    cursorRef.current = { x: e.clientX, y: e.clientY };
+    schedulePlace();
+  }
+
+  function onCardLeave() {
+    setOpen(false);
+  }
+
+  function quickAdd(e: ReactMouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (!first || soldOut) {
       toast.error(t("product.soldOutPiece"));
       return;
     }
-    const result = add(product.code, first.size, 1);
+    const result = add(product, first.size, 1);
     if (result.ok) toast.success(t(result.messageKey, result.values));
     else toast.error(t(result.messageKey, result.values));
   }
 
   if (layout === "list") {
     return (
-      <article className="grid grid-cols-[80px_minmax(0,1fr)] items-center gap-4 border-b border-[var(--border)] py-4 sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:gap-5">
-        <Link href={productPath(product.code)} className="media-frame relative block aspect-square w-20 overflow-hidden rounded-lg sm:w-24">
+      <article className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--border)] py-3">
+        <Link
+          href={productPath(product.code)}
+          className="block overflow-hidden bg-[#f3f4f6]"
+        >
           <ProductImage
             product={product}
-            src={product.imageUrl}
-            fill
-            sizes="96px"
-            className="object-cover"
-            fallbackClassName="absolute inset-0"
+            src={cardSrc}
+            sources={cardSources}
+            alt={productImageAlt(product)}
+            className="aspect-square w-full object-contain p-1.5"
+            fallbackClassName="aspect-square"
           />
         </Link>
         <Link href={productPath(product.code)} className="min-w-0">
-          <p className="truncate text-sm font-medium tracking-wide text-ink">{title}</p>
-          <p className="mt-0.5 truncate font-mono text-[10px] tracking-[0.16em] text-[var(--muted-2)]">
-            {product.code}
+          <p className="truncate font-mono text-[11px] text-[var(--muted)]">{product.code}</p>
+          <p className="mt-0.5 truncate text-[12px] font-semibold uppercase tracking-[0.02em] text-[var(--text)]">
+            {title}
           </p>
-          <p className="price mt-1 text-sm font-semibold sm:hidden">
-            {format(product.unitPrice)}
+          <AssortmentBadge product={product} />
+          <p className="price mt-1 text-[12px] font-semibold text-[var(--accent)]">
+            {t("product.tariff", { amount: format(product.unitPrice) })}
           </p>
-          <AssortmentHint product={product} className="sm:hidden" />
-          <p className="text-[11px] text-[var(--muted)] sm:hidden">{stockLabel(product, t)}</p>
         </Link>
-        <div className="col-span-2 flex items-center justify-between sm:col-span-1 sm:justify-end sm:gap-4">
-          <div className="hidden sm:block">
-            <p className="price text-sm font-semibold">{format(product.unitPrice)}</p>
-            <AssortmentHint product={product} />
-            <p className="text-[11px] text-[var(--muted)]">{stockLabel(product, t)}</p>
-          </div>
-          <button
-            type="button"
-            onClick={quickAdd}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--accent)] transition-colors hover:bg-[var(--hover)]"
-            aria-label={t("common.addToBagAria", { title })}
-          >
-            <ShoppingBag className="h-4 w-4" />
-          </button>
-        </div>
+        {soldOut ? (
+          <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--accent)]">
+            {t("common.soldOut")}
+          </span>
+        ) : (
+        <button
+          type="button"
+          onClick={quickAdd}
+          className="flex h-9 w-9 items-center justify-center text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+          aria-label={t("common.addToBagAria", { title })}
+        >
+          <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
+        </button>
+        )}
       </article>
     );
   }
 
   return (
-    <article className="group relative w-full max-w-sm">
+    <article
+      className="relative w-full"
+      onMouseEnter={onCardEnter}
+      onMouseMove={onCardMove}
+      onMouseLeave={onCardLeave}
+    >
       <Link href={productPath(product.code)} className="block">
-        <div className="media-frame relative overflow-hidden rounded-lg border border-[var(--border)] transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-[var(--border-strong)] group-hover:shadow-[var(--shadow-lift)]">
-          <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1">
-            {product.badge ? (
-              <Badge variant={product.badge === "offer" ? "offer" : "new"}>
-                {product.badge === "offer" ? t("common.offer") : t("common.new")}
-              </Badge>
-            ) : null}
-            <AssortmentBadge product={product} />
+        <div className="relative aspect-square overflow-hidden bg-[#f3f4f6]">
+          <ProductImage
+            product={product}
+            src={cardSrc}
+            sources={cardSources}
+            alt={productImageAlt(product)}
+            className="h-full w-full object-contain object-center p-3 sm:p-4"
+            fallbackClassName="h-full w-full"
+          />
+          <div className="absolute left-2 top-2 z-10">
+            <AssortmentBadge
+              product={product}
+              className="bg-[var(--text)] text-[var(--bg)]"
+            />
           </div>
-          {stock === 0 ? (
-            <span className="absolute bottom-3 left-3 z-10 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/80">
+          {soldOut ? (
+            <span className="absolute bottom-2 left-2 z-10 bg-[var(--accent)] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--on-accent)]">
               {t("common.soldOut")}
             </span>
           ) : null}
-          <ProductImage
-            product={product}
-            src={product.imageUrl}
-            className="aspect-[3/4] w-full bg-[var(--bg-elevated)] object-cover object-center transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         </div>
-        <div className="mt-3.5 space-y-1 text-left">
-          <p className="text-[13px] font-medium leading-snug tracking-wide text-ink">
+        <div className="mt-2.5 space-y-0.5 text-left">
+          <p className="font-mono text-[11px] leading-none text-[var(--muted)]">{product.code}</p>
+          <p className="line-clamp-2 min-h-[2.25rem] text-[11px] font-semibold uppercase leading-snug tracking-[0.02em] text-[var(--text)] sm:text-[12px]">
             {title}
           </p>
-          <p className="font-mono text-[10px] tracking-[0.16em] text-[var(--muted-2)]">
-            {product.code}
+          <p className="price pt-0.5 text-[12px] font-semibold text-[var(--accent)]">
+            {t("product.tariff", { amount: format(product.unitPrice) })}
           </p>
-          <p className="price pt-1 text-sm font-semibold text-ink">
-            {format(product.unitPrice)}
-          </p>
-          <AssortmentHint product={product} />
-          <p className="text-[11px] text-[var(--muted)]">{stockLabel(product, t)}</p>
         </div>
       </Link>
+
+      {soldOut ? null : (
       <button
         type="button"
         aria-label={t("common.addToBagAria", { title })}
         onClick={quickAdd}
-        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/90 opacity-100 backdrop-blur-md transition-[opacity,border-color,color,transform] duration-300 hover:border-[var(--accent)] hover:text-[var(--accent)] sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+        className="absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[var(--text)] shadow-sm transition-colors hover:text-[var(--accent)]"
       >
-        <ShoppingBag className="h-4 w-4" />
+        <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
       </button>
+      )}
+
+      {mounted && open && !soldOut
+        ? createPortal(
+            <div
+              ref={popRef}
+              role="presentation"
+              className="stock-matrix-follow pointer-events-none fixed left-0 top-0 z-[90] hidden will-change-transform sm:block"
+            >
+              <StockMatrix product={product} />
+            </div>,
+            document.body,
+          )
+        : null}
     </article>
   );
 }

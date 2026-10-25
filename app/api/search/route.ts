@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
-import { getAssortment } from "@/lib/assortment";
-import { buildListing, LISTING_PAGE_SIZE } from "@/lib/listing";
-import { isSoldOut } from "@/lib/sizes";
-import { getCatalog } from "@/lib/supabase/catalog";
+import { buildListing, LISTING_PAGE_SIZE, toClientProduct } from "@/lib/listing-core";
+import { getCatalogLive } from "@/lib/supabase/catalog";
+
+export const revalidate = 3600;
+
+const SEARCH_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") ?? "").trim();
-  const catalog = await getCatalog();
+  const catalog = await getCatalogLive();
   const listing = buildListing(
     catalog,
     {
       q,
       cat: url.searchParams.get("cat") ?? undefined,
       sub: url.searchParams.get("sub") ?? undefined,
+      group: url.searchParams.get("group") ?? undefined,
       size: url.searchParams.get("size") ?? undefined,
       max: url.searchParams.get("max") ?? undefined,
       audience: url.searchParams.get("audience") ?? undefined,
@@ -22,23 +25,20 @@ export async function GET(request: Request) {
     { requireQuery: true },
   );
 
-  return NextResponse.json({
-    q,
-    total: listing.total,
-    page: listing.page,
-    pageSize: listing.pageSize ?? LISTING_PAGE_SIZE,
-    pageCount: listing.pageCount,
-    facets: listing.facets,
-    items: listing.products.map((p) => ({
-      code: p.code,
-      displayName: p.displayName,
-      name: p.name,
-      category: p.category,
-      subcategory: p.subcategory,
-      price: p.price,
-      imageUrl: p.imageUrl,
-      available: !isSoldOut(p),
-      assortment: getAssortment(p)?.label ?? null,
-    })),
-  });
+  return NextResponse.json(
+    {
+      q,
+      listing: {
+        ...listing,
+        products: listing.products.map(toClientProduct),
+        pageSize: listing.pageSize ?? LISTING_PAGE_SIZE,
+      },
+    },
+    {
+      headers: {
+        "Cache-Control": SEARCH_CACHE,
+        "CDN-Cache-Control": SEARCH_CACHE,
+      },
+    },
+  );
 }
