@@ -1,10 +1,13 @@
--- NOT APPLIED. This file is not run by this change. Nothing here is applied
--- to production until it is reviewed and approved.
+-- HELD. Do not apply this file until Gotlieb OKs.
+-- It lives in supabase/held-migrations, not supabase/migrations, so
+-- supabase db push and the Supabase GitHub integration will not run it.
+-- See supabase/held-migrations/README.md.
 --
--- Rollback (also not applied): supabase/rollbacks/20261025221801_product_image_limits_and_avatars.sql
--- That file is not in supabase/migrations, so a migrate will not run it.
--- It only drops product_images_admin_select and recreates
--- product_images_public_read. It does not touch avatars policies.
+-- Rollback (also held, also not applied):
+-- supabase/held-migrations/20261025221801_product_image_limits_and_avatars.rollback.sql
+-- That file restores product_images_public_read, drops product_images_admin_select,
+-- and sets product-images file_size_limit and allowed_mime_types back to null.
+-- It does not touch avatars policies.
 --
 -- Live product-images is public, with no size limit and no MIME limit.
 -- Live policies: product_images_admin_delete, product_images_admin_insert,
@@ -45,10 +48,11 @@ set
   allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp']
 where id = 'avatars';
 
--- Down SQL, commented so this migration does not run it. Same statements as
--- supabase/rollbacks/20261025221801_product_image_limits_and_avatars.sql.
+-- Down SQL, commented so this file does not run it. Same statements as
+-- supabase/held-migrations/20261025221801_product_image_limits_and_avatars.rollback.sql.
 -- Recreates only product_images_public_read. avatars_public_read never existed
--- live, so it is not created here. Size and MIME limits are left in place.
+-- live, so it is not created here. product-images limits go back to null.
+-- The avatars update above matches live, so the rollback does not change avatars.
 --
 -- drop policy if exists product_images_admin_select on storage.objects;
 --
@@ -56,3 +60,10 @@ where id = 'avatars';
 -- create policy product_images_public_read
 --   on storage.objects for select
 --   using (bucket_id = 'product-images');
+--
+-- update storage.buckets
+-- set
+--   public = true,
+--   file_size_limit = null,
+--   allowed_mime_types = null
+-- where id = 'product-images';
