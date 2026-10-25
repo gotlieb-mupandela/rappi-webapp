@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { paymentStatusUserId } from "@/lib/dpo-ownership";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRequestClient } from "@/lib/supabase/request";
 
@@ -14,7 +15,8 @@ export async function GET(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
+  const userId = paymentStatusUserId(user);
+  if (!userId) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
@@ -23,7 +25,7 @@ export async function GET(request: Request) {
     .from("payments")
     .select("status, order_id")
     .eq("company_ref", companyRef)
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .maybeSingle();
   if (error) {
     console.error("payment status", error.message);

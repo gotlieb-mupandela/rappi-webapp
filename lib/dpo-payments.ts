@@ -1,9 +1,11 @@
 import { verifyToken } from "@/lib/dpo";
-import { customerOwnsPayment } from "@/lib/dpo-ownership";
+import { ownsPayment } from "@/lib/dpo-ownership";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+export { ownsPayment };
 import type { Database } from "@/lib/database.types";
 
 type Payment = Database["public"]["Tables"]["payments"]["Row"];
@@ -108,7 +110,7 @@ export async function fulfillDpoPayment(input: {
     return PAYMENT_NOT_FOUND;
   }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || (!input.trusted && !customerOwnsPayment(payment.user_id, input.userId))) {
+  if (!payment || (!input.trusted && !ownsPayment(payment.user_id, input.userId))) {
     return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {
@@ -228,7 +230,7 @@ export async function cancelDpoPayment(input: {
     return PAYMENT_NOT_FOUND;
   }
   const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || !customerOwnsPayment(payment.user_id, input.userId)) {
+  if (!payment || !ownsPayment(payment.user_id, input.userId)) {
     return PAYMENT_NOT_FOUND;
   }
   if (payment.status === "paid") {
