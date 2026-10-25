@@ -45,19 +45,17 @@ function unique(sources: Array<string | undefined>) {
 }
 
 /**
- * Report-only policy. Product photos are requested from wsrv.nl (the loader)
- * and, on raw img tags, from the supplier hosts and Supabase storage.
- * Checkout assigns window.location to DPO_PAY_URL. Google sign-in can leave
- * for the Supabase auth host and accounts.google.com. WhatsApp and mailto
- * links are real navigations too.
+ * Report-only policy. img-src is only 'self', data:, and the product image
+ * hosts (wsrv.nl, the Supabase product-images host, and the two supplier
+ * hosts). blob: is allowed by the checker but unused. Checkout assigns
+ * window.location to DPO_PAY_URL. Google sign-in can leave for the Supabase
+ * auth host and accounts.google.com. WhatsApp and mailto links are real
+ * navigations too.
  */
 export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = {}) {
   const supabaseHost = httpsHost(env.supabaseUrl, SUPABASE_HOST_FALLBACK);
   const dpoPayHost = httpsHost(env.dpoPayUrl, DPO_PAY_HOST_FALLBACK);
-  const imageHosts = unique([
-    ...PRODUCT_IMAGE_REMOTE_HOSTS.map((host) => httpsOrigin(host)),
-    httpsOrigin(supabaseHost),
-  ]);
+  const imageHosts = unique(PRODUCT_IMAGE_REMOTE_HOSTS.map((host) => httpsOrigin(host)));
   const socialNav = unique([
     httpsOrigin(httpsHost(env.instagramUrl, "")),
     httpsOrigin(httpsHost(env.facebookUrl, "")),
@@ -70,7 +68,7 @@ export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = 
     "frame-ancestors 'none'",
     "script-src 'self' 'unsafe-inline' https://accounts.google.com https://connect.facebook.net https://vercel.live https://*.vercel-scripts.com",
     "style-src 'self' 'unsafe-inline' https://accounts.google.com https://vercel.live",
-    `img-src 'self' data: ${imageHosts.join(" ")} https://www.facebook.com https://accounts.google.com https://assets.vercel.com`,
+    `img-src 'self' data: ${imageHosts.join(" ")}`,
     "font-src 'self' https://assets.vercel.com",
     `connect-src 'self' ${httpsOrigin(supabaseHost)} wss://${supabaseHost} https://accounts.google.com https://www.facebook.com https://connect.facebook.net ${httpsOrigin(dpoPayHost)} https://vercel.live`,
     `frame-src 'self' https://accounts.google.com ${httpsOrigin(dpoPayHost)} https://vercel.live`,

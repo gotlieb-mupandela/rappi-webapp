@@ -1,46 +1,20 @@
 import type { NextConfig } from "next";
-import {
-  CSP_REPORT_ONLY_HEADER,
-  contentSecurityPolicyReportOnly,
-} from "./lib/content-security-policy";
+import { securityHeaders } from "./lib/security-headers";
 
-// Report-only on purpose. Next inlines bootstrap scripts and style attributes,
-// Google Identity Services loads accounts.google.com (script plus button frame),
-// the Meta Pixel loads connect.facebook.net and www.facebook.com, and product
-// photos load from wsrv.nl plus the supplier and Supabase hosts in
-// images.remotePatterns. The browser talks to NEXT_PUBLIC_SUPABASE_URL for
-// auth, data, and storage. Checkout assigns window.location to DPO_PAY_URL
-// (default https://secure.3gdirectpay.com/payv3.php). DPO_API_URL is called
-// only from the server. navigate-to lists that pay host, the Supabase host,
+// Report-only on purpose. The header list is securityHeaders() in
+// lib/security-headers.ts, shared with the CSP test. Next inlines bootstrap
+// scripts and style attributes. Google Identity Services loads
+// accounts.google.com (script plus button frame). The Meta Pixel loads
+// connect.facebook.net. Product photos load from wsrv.nl plus the supplier
+// and Supabase hosts in images.remotePatterns. The browser talks to
+// NEXT_PUBLIC_SUPABASE_URL for auth, data, and storage. Checkout assigns
+// window.location to DPO_PAY_URL (default
+// https://secure.3gdirectpay.com/payv3.php). DPO_API_URL is called only from
+// the server. navigate-to lists that pay host, the Supabase host,
 // accounts.google.com, WhatsApp, and mailto. It is report-only, so a missing
 // host is logged and not blocked. DPO sends the shopper back with a top-level
 // redirect to /checkout/return or /checkout/cancel. Nothing in the app frames
 // this site, so X-Frame-Options DENY is not on that return path.
-const contentSecurityPolicy = contentSecurityPolicyReportOnly({
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  dpoPayUrl: process.env.DPO_PAY_URL,
-  instagramUrl: process.env.NEXT_PUBLIC_INSTAGRAM_URL,
-  facebookUrl: process.env.NEXT_PUBLIC_FACEBOOK_URL,
-});
-
-const securityHeaders = [
-  {
-    key: CSP_REPORT_ONLY_HEADER,
-    value: contentSecurityPolicy,
-  },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // The app does not use the camera, microphone, or geolocation.
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=31536000; includeSubDomains",
-  },
-];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -88,7 +62,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        headers: securityHeaders,
+        headers: securityHeaders(),
       },
       {
         source: "/.well-known/apple-app-site-association",
