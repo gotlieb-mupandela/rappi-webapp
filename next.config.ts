@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
       { source: "/dpo-test", destination: "/product/DPO-TEST", permanent: false },
       { source: "/dpo-test/return", destination: "/checkout/return", permanent: false },
       { source: "/dpo-test/cancel", destination: "/checkout/cancel", permanent: false },
+      { source: "/signup", destination: "/login?mode=signup", permanent: false },
+      { source: "/register", destination: "/login?mode=signup", permanent: false },
     ];
   },
   async headers() {

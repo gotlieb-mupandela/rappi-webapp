@@ -26,7 +26,9 @@ function LoginForm() {
   const setUser = useAuth((s) => s.setUser);
   const user = useAuth((s) => s.user);
   const { t, market } = useLocale();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">(
+    searchParams.get("mode") === "signup" ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
