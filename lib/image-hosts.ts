@@ -4,24 +4,32 @@ export type AllowedImageHost = {
   host: string;
   /** Path prefix on that host. "/" allows every path. */
   pathnamePrefix: string;
+  /**
+   * When false, cardImage may use the host and next/image remotePatterns must not.
+   * The site host is resolved from relative paths. The proxy host would let
+   * /_next/image fetch arbitrary URLs.
+   */
+  nextImage: boolean;
 };
 
 /**
  * Hosts a product photo may already live on.
- * cardImage and next.config images.remotePatterns read this list.
- * Delete the remote rows later to leave only this site.
+ * cardImage reads this list. next.config.ts writes its own remotePatterns
+ * and does not import this module. Rows with nextImage false stay out of
+ * that optimizer list. Delete the remote rows later to leave only this site.
  * Nothing in that path copies or uploads a photo.
  * This module does not set a Content-Security-Policy header.
  */
 export const ALLOWED_IMAGE_HOSTS: readonly AllowedImageHost[] = [
-  { host: "www.rappisportshub.com", pathnamePrefix: "/" },
-  { host: "wsrv.nl", pathnamePrefix: "/" },
+  { host: "www.rappisportshub.com", pathnamePrefix: "/", nextImage: false },
+  { host: "wsrv.nl", pathnamePrefix: "/", nextImage: false },
   {
     host: "wzmzwerzbyudcvoiiege.supabase.co",
     pathnamePrefix: "/storage/v1/object/public/product-images/",
+    nextImage: true,
   },
-  { host: "www.joma-sport.com", pathnamePrefix: "/on/demandware.static/" },
-  { host: "v1.joma-sport.net", pathnamePrefix: "/files/" },
+  { host: "www.joma-sport.com", pathnamePrefix: "/on/demandware.static/", nextImage: true },
+  { host: "v1.joma-sport.net", pathnamePrefix: "/files/", nextImage: true },
 ];
 
 /** The editable list, plus the canonical site host when an env override names another one. */
@@ -35,20 +43,25 @@ export function allowedImageHosts(): readonly AllowedImageHost[] {
   if (!hostname || ALLOWED_IMAGE_HOSTS.some((rule) => rule.host === hostname)) {
     return ALLOWED_IMAGE_HOSTS;
   }
-  return [{ host: hostname, pathnamePrefix: "/" }, ...ALLOWED_IMAGE_HOSTS];
+  return [{ host: hostname, pathnamePrefix: "/", nextImage: false }, ...ALLOWED_IMAGE_HOSTS];
 }
 
 export function imageHostAllows(hostname: string, pathname: string, rule: AllowedImageHost) {
   return hostname === rule.host && pathname.startsWith(rule.pathnamePrefix);
 }
 
-/** next.config `images.remotePatterns`. https only, same path prefixes as the list. */
+/**
+ * Optimizer hosts only. Excludes nextImage: false (the site host and wsrv.nl).
+ * next.config.ts does not call this. It lists the same three hosts itself.
+ */
 export function imageRemotePatterns() {
-  return allowedImageHosts().map((rule) => ({
-    protocol: "https" as const,
-    hostname: rule.host,
-    pathname: rule.pathnamePrefix === "/" ? "/**" : `${rule.pathnamePrefix.replace(/\/$/, "")}/**`,
-  }));
+  return allowedImageHosts()
+    .filter((rule) => rule.nextImage)
+    .map((rule) => ({
+      protocol: "https" as const,
+      hostname: rule.host,
+      pathname: rule.pathnamePrefix === "/" ? "/**" : `${rule.pathnamePrefix.replace(/\/$/, "")}/**`,
+    }));
 }
 
 /** https origins for the hosts above. A later policy can read this. No header is set here. */

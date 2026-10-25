@@ -100,7 +100,16 @@ assert.equal(secretsMatch("", "same-secret-value"), false);
 assert.equal(secretsMatch("same-secret-value", ""), false);
 
 const revalidateRoute = read("app/api/catalog/revalidate/route.ts");
-assert.equal(revalidateRoute.includes("timingSafeEqual"), false);
+const secretCompare = `function secretsMatch(provided: string, expected: string) {
+  // An unset secret must never match, including an empty Authorization header.
+  // Hashing first keeps the compare the same length, so a short guess does not
+  // return before timingSafeEqual.
+  if (!expected) return false;
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
+}`;
+assert.equal(revalidateRoute.includes(secretCompare), true);
 assert.equal(revalidateRoute.includes("secretsMatch"), true);
 assert.equal(revalidateRoute.includes('headers.get("authorization")'), true);
 assert.equal(revalidateRoute.includes("x-catalog-revalidate-secret"), true);
@@ -115,10 +124,21 @@ assert.equal(secretsMatch("abc", "€€€"), false);
 assert.equal(revalidateRoute.includes("consumeRateLimit(REVALIDATE_LIMIT_KEY"), true);
 assert.equal(revalidateRoute.includes("export function GET()"), true);
 assert.equal(revalidateRoute.includes("revalidatePath"), false);
+const missingSecret = revalidateRoute.indexOf("Catalog revalidate is not configured.");
+const authCheck = revalidateRoute.indexOf("if (!authorized(request))");
+const limitCheck = revalidateRoute.indexOf("consumeRateLimit(REVALIDATE_LIMIT_KEY");
+const purge = revalidateRoute.lastIndexOf("revalidateCatalog()");
+assert.equal(missingSecret > -1 && missingSecret < authCheck && authCheck < limitCheck && limitCheck < purge, true);
+const bearerOk = revalidateRoute.indexOf("const bearerOk = secretsMatch(bearer, expected);");
+const customOk = revalidateRoute.indexOf("const customOk = secretsMatch(custom, expected);");
+const authReturn = revalidateRoute.indexOf("return bearerOk || customOk;");
+assert.equal(bearerOk > -1 && bearerOk < customOk && customOk < authReturn, true);
 
 const authLib = read("lib/catalog-revalidate-auth.ts");
+assert.equal(authLib.includes(secretCompare.replace("function secretsMatch", "export function secretsMatch")), true);
 assert.equal(authLib.includes("timingSafeEqual"), true);
-assert.equal(authLib.includes("provided.length === expected.length"), true);
+assert.equal(authLib.includes('createHash("sha256")'), true);
+assert.equal(authLib.includes("if (!expected) return false;"), true);
 
 const revalidateLib = read("lib/admin/revalidate-catalog.ts");
 assert.equal(revalidateLib.includes('import "server-only"'), true);

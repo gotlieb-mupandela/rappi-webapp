@@ -417,19 +417,63 @@ function assertAbsoluteCardImages(products: Product[]) {
 
   const origins = allowedImageOrigins();
   const patterns = imageRemotePatterns();
+  const optimizerHosts = [
+    "wzmzwerzbyudcvoiiege.supabase.co",
+    "www.joma-sport.com",
+    "v1.joma-sport.net",
+  ];
   for (const rule of ALLOWED_IMAGE_HOSTS) {
     if (!origins.includes(`https://${rule.host}`)) fail(`allowedImageOrigins is missing https://${rule.host}`);
-    if (!patterns.some((pattern) => pattern.hostname === rule.host && pattern.protocol === "https")) {
-      fail(`remotePatterns is missing ${rule.host}`);
+  }
+  if (patterns.some((pattern) => pattern.hostname === "wsrv.nl")) {
+    fail("remotePatterns contains wsrv.nl");
+  }
+  if (patterns.some((pattern) => pattern.hostname === "www.rappisportshub.com")) {
+    fail("remotePatterns contains the site host");
+  }
+  if (patterns.length !== optimizerHosts.length) fail(`remotePatterns has ${patterns.length} rows`);
+  for (const host of optimizerHosts) {
+    if (!patterns.some((pattern) => pattern.hostname === host && pattern.protocol === "https")) {
+      fail(`remotePatterns is missing ${host}`);
     }
+  }
+  const wsrv = ALLOWED_IMAGE_HOSTS.find((rule) => rule.host === "wsrv.nl");
+  const site = ALLOWED_IMAGE_HOSTS.find((rule) => rule.host === "www.rappisportshub.com");
+  if (!wsrv || wsrv.nextImage) fail("wsrv.nl must stay on the card list and out of next/image");
+  if (!site || site.nextImage || site.pathnamePrefix !== "/") {
+    fail("the site host must stay on the card list with pathname / and out of next/image");
   }
   const root = dirname(fileURLToPath(import.meta.url));
   const configSource = readFileSync(join(root, "../next.config.ts"), "utf8");
   const hostsSource = readFileSync(join(root, "../lib/image-hosts.ts"), "utf8");
-  if (!configSource.includes("imageRemotePatterns()")) {
-    fail("next.config.ts does not use the shared image host list");
+  const remoteBlock = configSource.slice(configSource.indexOf("remotePatterns:"));
+  if (remoteBlock.includes("wsrv.nl")) fail("next.config.ts remotePatterns contains wsrv.nl");
+  if (remoteBlock.includes("www.rappisportshub.com")) fail("next.config.ts remotePatterns contains the site host");
+  if (configSource.includes("imageRemotePatterns()")) {
+    fail("next.config.ts derives remotePatterns from the card host list");
   }
-  if (/hostname:\s*"/.test(configSource)) fail("next.config.ts still lists an image hostname of its own");
+  const expectedPatterns = `    // wsrv.nl is the productImageLoader <img> src, not a next/image src.
+    // Do not add it here: /_next/image would then fetch arbitrary URLs through that proxy.
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "wzmzwerzbyudcvoiiege.supabase.co",
+        pathname: "/storage/v1/object/public/product-images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.joma-sport.com",
+        pathname: "/on/demandware.static/**",
+      },
+      {
+        protocol: "https",
+        hostname: "v1.joma-sport.net",
+        pathname: "/files/**",
+      },
+    ],`;
+  if (!configSource.includes(expectedPatterns)) {
+    fail("next.config.ts remotePatterns does not match the narrowed optimizer list");
+  }
   if (/Content-Security-Policy|imageContentSecurityPolicy/.test(configSource)) {
     fail("next.config.ts still sets a Content-Security-Policy");
   }
