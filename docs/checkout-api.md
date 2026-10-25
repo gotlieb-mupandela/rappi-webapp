@@ -35,7 +35,7 @@ Read-only. No sign-in. Prices and stock are public.
 
 Any `price`, `unitPrice`, or `lineTotal` on a line is ignored. Unknown product codes are rejected. Pickup with an empty or unknown country uses Namibia, the same fallback as payment create. Any other method with an unknown country is rejected.
 
-Lines with the same `code` and `size` are merged by summing `qty` before the stock check. Quote, bag prices, and payment create share that step, then `checkoutPaymentQuote` merges again and returns one item per code and size. The merged quantity must stay from 1 to 99. A merged quantity above 99 is rejected. Stock is checked against that summed quantity, so duplicate lines cannot each pass a separate stock check.
+`resolveCheckoutLines` merges lines with the same `code` and `size` by summing `qty` before the stock check. Quote, bag prices, and payment create all call that function. `qty` must be a JSON number: `Number.isInteger` is applied to the raw value, so `"5"` and `true` are rejected. The merged quantity must stay from 1 to 99. A merged quantity above 99 is rejected. Stock is checked against that summed quantity. `checkoutPaymentQuote` returns one item per code and size.
 
 ### Response `200`
 
@@ -96,3 +96,21 @@ Added fields, same names and meaning as `POST /api/checkout/quote`:
 | `429` | Rate limit. |
 
 Payment create still returns its existing errors, including `401` when signed out. A quote total of zero is returned by the read routes. Payment create rejects a total that is not finite or not greater than zero. A catalog price that is missing, not a finite number, zero, or negative is rejected before that total is built.
+
+## Local QA server
+
+`npm run dev:checkout-quote` serves only `POST /api/checkout/quote` and `POST /api/cart/prices` on `http://127.0.0.1:43124`. No environment variables are required, and none should be added for this server. Do not set it in a checked-in env file or on Vercel. It refuses to start when `VERCEL_ENV` is `production` or `preview`, or when `NODE_ENV` is `production`.
+
+The process swaps in an in-memory rate-limit store for those two routes. It does not call Supabase `consume_rate_limit` and does not need a service role key. The limit is still 60 requests per minute per IP (`x-forwarded-for`, then `x-real-ip`, otherwise one shared `unknown` bucket). The 61st request in that minute returns `429`. A store error fails closed with `429`.
+
+With Supabase env vars unset, prices come from the baked catalog in `data/products.json`.
+
+```bash
+npm run dev:checkout-quote
+```
+
+```bash
+curl -sS -X POST http://127.0.0.1:43124/api/checkout/quote \
+  -H 'content-type: application/json' \
+  -d '{"shippingMethod":"standard","country":"Namibia","lines":[{"code":"100009.100","size":"8-10","qty":1}]}'
+```

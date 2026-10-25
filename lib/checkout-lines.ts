@@ -18,10 +18,12 @@ export type CheckoutLineRequest = {
   qty: number;
 };
 
-/** JSON numbers only. Strings, booleans, null, floats, and NaN are rejected. */
+/** JSON numbers only. Number.isInteger runs on the raw value, so "5" and true are rejected. */
 export function parseQty(value: unknown) {
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 99) return null;
-  return value;
+  if (!Number.isInteger(value)) return null;
+  const qty = value as number;
+  if (qty < 1 || qty > 99) return null;
+  return qty;
 }
 
 function lineKey(code: string, size: string) {

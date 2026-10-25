@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { bagPrices, checkoutPaymentQuote, resolveCheckoutCountry } from "../lib/checkout-quote";
+import {
+  consumeRateLimit,
+  memoryRateLimitAllowed,
+  memoryRateLimitFailNext,
+  resetMemoryRateLimit,
+} from "./checkout-memory-rate-limit";
 import {
   CartResolveError,
   parseCheckoutLineInput,
@@ -301,6 +308,17 @@ const createRoute = source("app/api/payments/dpo/create/route.ts");
 if (!createRoute.includes("quote = checkoutPaymentQuote(lines, shippingMethod, country);")) {
   fail("create route does not call checkoutPaymentQuote");
 }
+const resolver = source("lib/dpo-cart.ts");
+const resolverBody = resolver.slice(resolver.indexOf("export async function resolveCheckoutLines"));
+const mergeAt = resolverBody.indexOf("mergeCheckoutLineRequests(");
+const priceAt = resolverBody.indexOf("priceCheckoutLines(");
+if (mergeAt < 0 || priceAt < 0 || mergeAt > priceAt) {
+  fail("resolveCheckoutLines must merge lines before the stock check");
+}
+const qtyFn = source("lib/checkout-lines.ts");
+const qtyBody = qtyFn.slice(qtyFn.indexOf("export function parseQty"), qtyFn.indexOf("function lineKey"));
+if (!qtyBody.includes("Number.isInteger(value)")) fail("qty must use Number.isInteger on the raw value");
+if (qtyBody.includes("Number(value)")) fail("qty must not coerce strings with Number()");
 if (!createRoute.includes("const amount = quote.total;")) {
   fail("create route does not charge quote.total");
 }
@@ -343,8 +361,97 @@ if (!quoteRoute.includes("checkoutPaymentQuote(lines, shippingMethod, vatCountry
 const pricesRoute = source("app/api/cart/prices/route.ts");
 if (!pricesRoute.includes("bagPrices(lines)")) fail("bag route does not use bagPrices");
 
+const env = process.env as Record<string, string | undefined>;
+const previousVercel = env.VERCEL_ENV;
+const previousNodeEnv = env.NODE_ENV;
+try {
+  delete env.VERCEL_ENV;
+  delete env.NODE_ENV;
+  if (!memoryRateLimitAllowed()) fail("memory limiter should be allowed in local dev");
+  env.VERCEL_ENV = "production";
+  if (memoryRateLimitAllowed()) fail("memory limiter must be ignored when VERCEL_ENV=production");
+  env.VERCEL_ENV = "preview";
+  if (memoryRateLimitAllowed()) fail("memory limiter must be ignored when VERCEL_ENV=preview");
+  delete env.VERCEL_ENV;
+  env.NODE_ENV = "production";
+  if (memoryRateLimitAllowed()) fail("memory limiter must be ignored when NODE_ENV=production");
+  const hook = createRequire(import.meta.url)("./checkout-local-hook.cjs") as {
+    installCheckoutLocalHooks: () => boolean;
+  };
+  if (hook.installCheckoutLocalHooks()) {
+    fail("local hook must not install when NODE_ENV=production");
+  }
+  delete env.NODE_ENV;
+  env.VERCEL_ENV = "preview";
+  if (hook.installCheckoutLocalHooks()) {
+    fail("local hook must not install when VERCEL_ENV=preview");
+  }
+  env.VERCEL_ENV = "production";
+  if (hook.installCheckoutLocalHooks()) {
+    fail("local hook must not install when VERCEL_ENV=production");
+  }
+} finally {
+  if (previousVercel === undefined) delete env.VERCEL_ENV;
+  else env.VERCEL_ENV = previousVercel;
+  if (previousNodeEnv === undefined) delete env.NODE_ENV;
+  else env.NODE_ENV = previousNodeEnv;
+}
+
+async function checkMemoryRateLimit() {
+  resetMemoryRateLimit();
+  const limitKey = `checkout-quote:qa-${Date.now()}`;
+  let allowed = 0;
+  for (let i = 0; i < 60; i += 1) {
+    if (await consumeRateLimit(limitKey, 60, 60)) allowed += 1;
+  }
+  if (allowed !== 60) fail(`expected 60 allowed requests, got ${allowed}`);
+  if (await consumeRateLimit(limitKey, 60, 60)) fail("61st request in the minute must be rejected");
+  if (!(await consumeRateLimit(`cart-prices:other-${Date.now()}`, 60, 60))) {
+    fail("a different IP bucket should still be allowed");
+  }
+  memoryRateLimitFailNext();
+  if (await consumeRateLimit(limitKey, 60, 60)) fail("rate limit store errors must fail closed");
+  if (await consumeRateLimit("", 60, 60)) fail("empty rate limit key must fail closed");
+}
+
+void checkMemoryRateLimit()
+  .catch((err: unknown) => {
+    fail(err instanceof Error ? err.message : "memory rate limit test failed");
+  })
+  .then(() => {
+for (const path of [
+  "lib/rate-limit.ts",
+  "lib/checkout-http.ts",
+  "app/api/checkout/quote/route.ts",
+  "app/api/cart/prices/route.ts",
+  "app/api/payments/dpo/create/route.ts",
+]) {
+  const text = source(path);
+  if (text.includes("checkout-memory-rate-limit") || text.includes("memoryRateLimitAllowed")) {
+    fail(`${path} must not ship the in-memory rate limiter`);
+  }
+  if (text.includes("NEXT_PUBLIC_CHECKOUT") || text.includes("CHECKOUT_MEMORY_RATE_LIMIT")) {
+    fail(`${path} must not read a public flag for the memory limiter`);
+  }
+}
+
+for (const path of [
+  "scripts/checkout-quote-local.ts",
+  "scripts/checkout-local-hook.cjs",
+  "scripts/checkout-memory-rate-limit.ts",
+]) {
+  const text = source(path);
+  if (text.includes("NEXT_PUBLIC_")) fail(`${path} must not read a NEXT_PUBLIC_ variable`);
+  if (text.includes("CHECKOUT_MEMORY_RATE_LIMIT")) fail(`${path} must not define a memory limiter flag`);
+}
+const envExample = source(".env.example");
+if (envExample.includes("CHECKOUT_MEMORY_RATE_LIMIT") || envExample.includes("checkout-memory-rate-limit")) {
+  fail(".env.example must not set the in-memory rate limiter");
+}
+
 if (process.exitCode) {
   console.error("checkout quote tests failed");
 } else {
   console.log("checkout quote tests passed");
 }
+  });

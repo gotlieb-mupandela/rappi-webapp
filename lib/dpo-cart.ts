@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   CartResolveError,
+  mergeCheckoutLineRequests,
   parseCheckoutLineInput,
   parseQty,
   parseShippingMethod,
@@ -16,8 +17,9 @@ export { CartResolveError, parseQty, parseShippingMethod };
 
 export async function resolveCheckoutLines(input: unknown): Promise<DpoCartLine[]> {
   const parsed = parseCheckoutLineInput(input);
-  const products = await getFreshCheckoutProducts(parsed.map((line) => line.code));
-  return priceCheckoutLines(parsed, products);
+  const merged = mergeCheckoutLineRequests(parsed);
+  const products = await getFreshCheckoutProducts(merged.map((line) => line.code));
+  return priceCheckoutLines(merged, products);
 }
 
 export function cartSubtotal(lines: DpoCartLine[]) {
