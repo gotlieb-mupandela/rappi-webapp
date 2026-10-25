@@ -1,5 +1,44 @@
 import type { NextConfig } from "next";
 
+/**
+ * Old public slugs. Kept in its own list so other redirect edits
+ * (signup and register) can merge without touching this block.
+ * Destination query values override the matched param. Other query
+ * params are copied through by Next (prepareDestination merge order).
+ */
+const publicSlugRedirects: NonNullable<
+  Awaited<ReturnType<NonNullable<NextConfig["redirects"]>>>
+> = [
+  {
+    source: "/shop/joma-flow",
+    destination: "/shop/shoes?group=flow",
+    permanent: true,
+  },
+  {
+    source: "/category/joma-flow",
+    destination: "/shop/shoes?group=flow",
+    permanent: true,
+  },
+  {
+    source: "/:path*",
+    has: [{ type: "query", key: "tab", value: "joma-kids" }],
+    destination: "/:path*?tab=kids",
+    permanent: true,
+  },
+  {
+    source: "/:path*",
+    has: [{ type: "query", key: "group", value: "joma-flow" }],
+    destination: "/:path*?group=flow",
+    permanent: true,
+  },
+  {
+    source: "/:path*",
+    has: [{ type: "query", key: "sub", value: "joma-flow" }],
+    destination: "/:path*?sub=flow",
+    permanent: true,
+  },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Dev binds to 0.0.0.0; browsers hit 127.0.0.1 / localhost — allow HMR + assets.
@@ -39,6 +78,7 @@ const nextConfig: NextConfig = {
       { source: "/dpo-test", destination: "/product/DPO-TEST", permanent: false },
       { source: "/dpo-test/return", destination: "/checkout/return", permanent: false },
       { source: "/dpo-test/cancel", destination: "/checkout/cancel", permanent: false },
+      ...publicSlugRedirects,
     ];
   },
   async headers() {
