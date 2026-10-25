@@ -1,6 +1,7 @@
 import extraGalleryByCode from "@/data/ai-gallery-urls.json";
 import preTileImages from "@/data/pre-person-tile-images.json";
-import { metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
+import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
+import { metaAbsoluteUrl } from "@/lib/meta/site";
 import type { Product } from "@/lib/types";
 
 const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -106,31 +107,8 @@ export function productCardImageCandidates(product: {
 }
 
 /**
- * Prefer the medium gallery shot for cards, then the supplier CDN primary.
- */
-const ALLOWED_REMOTE_IMAGES = [
-  { host: "wsrv.nl", pathnamePrefix: "/" },
-  {
-    host: "wzmzwerzbyudcvoiiege.supabase.co",
-    pathnamePrefix: "/storage/v1/object/public/product-images/",
-  },
-  { host: "www.joma-sport.com", pathnamePrefix: "/on/demandware.static/" },
-  { host: "v1.joma-sport.net", pathnamePrefix: "/files/" },
-] as const;
-
-/** Public origin from `NEXT_PUBLIC_SITE_URL`, never the request Host header. */
-function canonicalSiteHost() {
-  try {
-    return new URL(metaSiteUrl()).hostname;
-  } catch {
-    return "";
-  }
-}
-
-/**
- * Same hosts as `images.remotePatterns` in next.config.ts, plus a same-origin
- * path. An absolute URL on the canonical site origin is allowed because that
- * is the public file those relative paths already pointed at.
+ * Hosts from ALLOWED_IMAGE_HOSTS. A same-origin path is allowed before it is
+ * resolved. An absolute URL must be https on one of those hosts.
  */
 export function isAllowedProductImageUrl(url: string) {
   if (!url || url.startsWith("//")) return false;
@@ -142,16 +120,13 @@ export function isAllowedProductImageUrl(url: string) {
     return false;
   }
   if (parsed.protocol !== "https:") return false;
-  if (parsed.hostname === canonicalSiteHost()) return true;
-  return ALLOWED_REMOTE_IMAGES.some(
-    (rule) => parsed.hostname === rule.host && parsed.pathname.startsWith(rule.pathnamePrefix),
-  );
+  return allowedImageHosts().some((rule) => imageHostAllows(parsed.hostname, parsed.pathname, rule));
 }
 
 /**
- * Absolute https form of one image URL. Relative paths are resolved with
- * `metaAbsoluteUrl` (the canonical site origin). http and hosts outside
- * the allow list are dropped.
+ * Absolute https form of one existing URL. Relative paths are resolved with
+ * `metaAbsoluteUrl`. The file is not copied. http and hosts outside
+ * ALLOWED_IMAGE_HOSTS are dropped.
  */
 function absoluteAllowedImageUrl(url: string): string | null {
   const trimmed = url.trim();

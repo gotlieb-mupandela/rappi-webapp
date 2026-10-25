@@ -6,6 +6,7 @@
  * GET /api/mobile/storefront returns tiles and covers, not products, so it
  * has no assortment field to compare.
  */
+import { readFileSync } from "node:fs";
 import Module from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,6 +31,11 @@ import {
 } from "../lib/assortment";
 import { toClientProduct, buildListing, filterListing } from "../lib/listing-core";
 import { productDescription } from "../lib/copy";
+import {
+  ALLOWED_IMAGE_HOSTS,
+  imageContentSecurityPolicy,
+  imageRemotePatterns,
+} from "../lib/image-hosts";
 import { cardImageUrl, isAllowedProductImageUrl, listingCardCandidates, productCardImageCandidates } from "../lib/media";
 import { metaAbsoluteUrl, metaSiteUrl } from "../lib/meta/site";
 import { versionProductImages } from "../lib/image-cache";
@@ -373,6 +379,23 @@ function assertAbsoluteCardImages(products: Product[]) {
   if (cardImageUrl({ imageUrl: "//wsrv.nl/photo.jpg", images: [] }) !== null) {
     fail("cardImage returned a protocol-relative URL");
   }
+
+  const csp = imageContentSecurityPolicy();
+  const patterns = imageRemotePatterns();
+  if (!csp.startsWith("img-src ")) fail("CSP does not set img-src");
+  if (/script-src|default-src/.test(csp)) fail("image CSP sets more than img-src");
+  for (const rule of ALLOWED_IMAGE_HOSTS) {
+    if (!csp.includes(`https://${rule.host}`)) fail(`CSP img-src is missing ${rule.host}`);
+    if (!patterns.some((pattern) => pattern.hostname === rule.host && pattern.protocol === "https")) {
+      fail(`remotePatterns is missing ${rule.host}`);
+    }
+  }
+  const configPath = join(dirname(fileURLToPath(import.meta.url)), "../next.config.ts");
+  const configSource = readFileSync(configPath, "utf8");
+  if (!configSource.includes("imageRemotePatterns()") || !configSource.includes("imageContentSecurityPolicy()")) {
+    fail("next.config.ts does not use the shared image host list");
+  }
+  if (/hostname:\s*"/.test(configSource)) fail("next.config.ts still lists an image hostname of its own");
 }
 
 function take(products: Product[], count: number, pred: (product: Product) => boolean) {

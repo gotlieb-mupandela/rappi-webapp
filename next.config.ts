@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { imageContentSecurityPolicy, imageRemotePatterns } from "./lib/image-hosts";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -9,28 +10,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24,
     qualities: [70, 75, 80],
     localPatterns: [{ pathname: "/brand/**" }, { pathname: "/**" }],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "wsrv.nl",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "wzmzwerzbyudcvoiiege.supabase.co",
-        pathname: "/storage/v1/object/public/product-images/**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.joma-sport.com",
-        pathname: "/on/demandware.static/**",
-      },
-      {
-        protocol: "https",
-        hostname: "v1.joma-sport.net",
-        pathname: "/files/**",
-      },
-    ],
+    remotePatterns: imageRemotePatterns(),
   },
   async redirects() {
     return [
@@ -62,6 +42,10 @@ const nextConfig: NextConfig = {
             value: "public, max-age=3600, stale-while-revalidate=86400",
           },
         ],
+      },
+      {
+        source: "/:path*",
+        headers: [{ key: "Content-Security-Policy", value: imageContentSecurityPolicy() }],
       },
     ];
   },
