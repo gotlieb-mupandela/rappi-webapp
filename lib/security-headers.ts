@@ -32,6 +32,8 @@ export function securityHeaders(env: ContentSecurityPolicyEnv = securityHeaderEn
       key: "Permissions-Policy",
       value: "camera=(), microphone=(), geolocation=()",
     },
+    // includeSubDomains only after every rappisportshub.com subdomain is
+    // confirmed https-only. preload is deliberately left out.
     {
       key: "Strict-Transport-Security",
       value: "max-age=31536000",
