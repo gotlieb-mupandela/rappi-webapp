@@ -7,8 +7,12 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { typeFolderForSubcategory } from "../lib/catalog";
 import { catalogVersion } from "../lib/catalog-version";
+import { clientAssortment } from "../lib/assortment";
 import { formatPrice } from "../lib/format";
+import { productInHub } from "../lib/hub-membership";
+import { listingCardCandidates } from "../lib/media";
 import { allowedImageHosts } from "../lib/image-hosts";
 import { filterListing, type ListingItem } from "../lib/listing-core";
 import { metaAbsoluteUrl } from "../lib/meta/site";
@@ -21,7 +25,7 @@ import {
 } from "../lib/mobile-feed";
 import { LEGACY_FOLDER_SLUGS, publicFolderKey } from "../lib/mobile-feed-slugs";
 import { FLOW_TILE, PROMO_TILES, feedTargetSet, folderHref } from "../lib/mobile-feed-targets";
-import { feedVersionParamStatus } from "../lib/mobile-feed-version";
+import { feedVersionParamStatus, mobileFeedVersion } from "../lib/mobile-feed-version";
 import type { Product } from "../lib/types";
 import { loadFixtureProducts } from "./feed-fixture";
 
@@ -70,7 +74,8 @@ const products = loadFixtureProducts();
 assert.equal(products.length, 20);
 const version = catalogVersion(products);
 const feed = buildMobileFeed(products, version);
-assert.equal(feed.version, version);
+assert.equal(feed.version, mobileFeedVersion(version));
+assert.equal(feed.version.endsWith(".2"), true);
 assert.equal(feedBodyHas(feed, probe), false);
 
 const promoHrefs = new Set(PROMO_TILES.map((tile) => tile.href));
@@ -89,6 +94,10 @@ for (const value of copyValues(feed)) {
 }
 
 for (const card of feed.products) {
+  const source = products.find((product) => product.code === card.code);
+  assert.ok(source);
+  const siteFirst = listingCardCandidates(source)[0] ?? null;
+  assert.equal(card.cardImage, feedImageUrl(siteFirst), card.code);
   if (card.cardImage === null) {
     assert.equal(card.code, "HTTP-DROP");
   } else {
@@ -96,9 +105,20 @@ for (const card of feed.products) {
     assert.equal(card.cardImage.startsWith("/"), false, card.code);
     assert.equal(feedImageUrl(card.cardImage), card.cardImage, card.code);
   }
+  const expectedLabel = clientAssortment(source).label;
+  assert.equal(card.packLabel, card.label);
+  if (expectedLabel) {
+    assert.equal(typeof card.label, "string", card.code);
+    assert.equal(card.label!.toLowerCase().includes("joma"), false, card.code);
+    assert.equal(card.label!.includes("<"), false, card.code);
+  } else {
+    assert.equal(card.label, null, card.code);
+  }
+  assert.equal("line" in card, false, card.code);
   assert.equal("imageUrl" in card, false);
   assert.equal(typeof card.price, "number");
 }
+assertFeedLinks(feed);
 for (const image of everyImage(feed)) {
   if (image === null) continue;
   assert.equal(image.startsWith("https://"), true, image);
@@ -115,7 +135,10 @@ assert.equal(JSON.stringify(feed).includes("joma-kids"), false);
 const shoes = feed.menus.find((menu) => menu.id === "shoes");
 assert.ok(shoes);
 assert.equal(shoes.tiles.some((tile) => tile.id === "flow"), false);
-assert.equal(feed.folders.some((folder) => folder.key === "flow" || folder.key === "wf-flow"), false);
+assert.ok(feed.flow);
+assert.equal(feed.flow.count, 0);
+assert.equal(feed.flow.targetId, "flow");
+assert.equal(feed.folders.some((folder) => folder.key === "flow"), true);
 
 const kids = feed.menus.find((menu) => menu.id === "kids");
 assert.ok(kids);
@@ -211,8 +234,8 @@ assert.equal(feed.products.length, 18);
 for (const key of ["kids-1-4", "w-cycling", "outlet-promotions", "joma-flow", "teamwear"]) {
   const expected = filterListing(products as ListingItem[], { group: key }).length;
   const folder = feed.folders.find((row) => row.key === publicFolderKey(key));
-  if (expected === 0) assert.equal(folder, undefined, key);
-  else assert.equal(folder?.count, expected, key);
+  assert.ok(folder, key);
+  assert.equal(folder.count, expected, key);
 }
 
 const withFlow = [
@@ -351,7 +374,150 @@ for (const extra of [
   assert.match(`${result.stderr}`, /refuses to start/);
 }
 
+assert.deepEqual(
+  feed.audiences.map((tile) => tile.id),
+  ["audience:men", "audience:women", "audience:kids"],
+);
+assert.deepEqual(feed.categoryOrder, feed.categories.map((category) => category.slug));
+for (const slug of ["sportswear", "balls-bags", "running-fitness", "hiking", "padel", "resort", "football"]) {
+  assert.equal(feed.categoryOrder.includes(slug), true, slug);
+}
+const menMenu = feed.menus.find((menu) => menu.id === "men");
+assert.ok(menMenu);
+for (const key of ["hiking-outdoor", "underwear-brama", "racket-sports", "resort", "beachwear"]) {
+  assert.equal(menMenu.tiles.some((tile) => tile.href.includes(`group=${key}`)), true, key);
+}
+const accessories = feed.menus.find((menu) => menu.id === "accessories");
+assert.ok(accessories);
+for (const key of ["acc-balls", "acc-palas-padel", "acc-backpacks"]) {
+  assert.equal(accessories.tiles.some((tile) => tile.id === key), true, key);
+}
+const folderKeys = new Set(feed.folders.map((folder) => folder.key));
+for (const folder of feed.folders) {
+  if (folder.parent) assert.equal(folderKeys.has(folder.parent), true, folder.key);
+}
+
+const folderMap = JSON.parse(read("data/product-folders.json")) as Record<string, string[]>;
+const bakedWithFolders = baked.map((product) => ({
+  ...product,
+  folders: folderMap[product.code] ?? [],
+}));
+const bakedFeed = buildMobileFeed(bakedWithFolders, catalogVersion(bakedWithFolders));
+assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
+assertFeedLinks(bakedFeed);
+const bakedFolderKeys = new Set(bakedFeed.folders.map((folder) => folder.key));
+for (const key of [
+  "hiking-outdoor",
+  "underwear-brama",
+  "racket-sports",
+  "resort",
+  "beachwear",
+  "acc-balls",
+  "acc-palas-padel",
+  "padel-shoes",
+  "flow",
+]) {
+  assert.equal(bakedFolderKeys.has(key), true, key);
+}
+for (const folder of bakedFeed.folders) {
+  if (folder.parent) assert.equal(bakedFolderKeys.has(folder.parent), true, folder.key);
+  if (folder.count > 0) assert.equal(bakedFolderKeys.has(folder.key), true);
+}
+const groups: Array<{
+  name: string;
+  entry: string;
+  match: (product: Product) => boolean;
+}> = [
+  { name: "sportswear", entry: "category:sportswear", match: (product) => productInHub(product, "sportswear") },
+  { name: "balls-bags", entry: "category:balls-bags", match: (product) => productInHub(product, "balls-bags") },
+  {
+    name: "running-fitness",
+    entry: "category:running-fitness",
+    match: (product) => productInHub(product, "running-fitness"),
+  },
+  {
+    name: "hiking jackets",
+    entry: "category:hiking:sub:jackets",
+    match: (product) => productInHub(product, "hiking") && product.subcategory === "jackets",
+  },
+  { name: "padel", entry: "category:padel", match: (product) => productInHub(product, "padel") },
+  { name: "resort", entry: "category:resort", match: (product) => productInHub(product, "resort") },
+  {
+    name: "shin guard",
+    entry: "category:football:sub:shin-guards",
+    match: (product) => product.subcategory === "shin-guards",
+  },
+];
+for (const group of groups) {
+  const rows = bakedWithFolders.filter(
+    (product) => product.available !== false && product.code !== "DPO-TEST" && group.match(product),
+  );
+  let covered = 0;
+  const folders = new Map<string, number>();
+  for (const product of rows) {
+    const hits = reachIds(product, bakedFeed);
+    assert.equal(hits.includes(group.entry), true, `${product.code} ${group.name}`);
+    if (hits.includes(group.entry)) covered += 1;
+    for (const hit of hits) {
+      if (!hit.startsWith("folder:")) continue;
+      folders.set(hit, (folders.get(hit) ?? 0) + 1);
+    }
+  }
+  assert.equal(covered, rows.length, group.name);
+  const folderSummary = [...folders.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([id, count]) => `${id} ${count}`)
+    .join(", ");
+  console.log(
+    `${group.name}: ${rows.length} products, entry ${group.entry}${folderSummary ? `, folders ${folderSummary}` : ""}`,
+  );
+}
+
 console.log(`feed check ok (fixture products ${feed.products.length}, version ${feed.version})`);
+
+function assertFeedLinks(feedValue: MobileFeed) {
+  const byId = new Map(feedValue.targets.map((target) => [target.id, target.href]));
+  const nodes: Array<{ targetId: string; href: string; label: string }> = [
+    ...feedValue.home.sections.flatMap((section) => section.tiles),
+    ...feedValue.audiences,
+    ...feedValue.menus.flatMap((menu) => [menu, ...menu.tiles]),
+    ...feedValue.kids.tiles,
+    ...(feedValue.flow ? [feedValue.flow] : []),
+    ...feedValue.promos,
+    ...feedValue.folders,
+    ...feedValue.categories.flatMap((category) => [category, ...category.children]),
+  ];
+  for (const node of nodes) {
+    assert.equal(byId.get(node.targetId), node.href, node.targetId);
+    assert.equal(node.href.startsWith("/"), true, node.href);
+    assert.equal(/^https?:/i.test(node.href), false, node.href);
+    assert.equal(node.label.includes("<"), false, node.label);
+  }
+  const parsed = JSON.parse(JSON.stringify(feedValue)) as MobileFeed;
+  assert.equal(parsed.version, feedValue.version);
+  assert.equal(Array.isArray(parsed.targets), true);
+  assert.equal(Array.isArray(parsed.folders), true);
+  assert.equal(Array.isArray(parsed.categoryOrder), true);
+}
+
+function reachIds(product: Product & { folders?: string[] }, feedValue: MobileFeed): string[] {
+  const hits: string[] = [];
+  for (const key of product.folders ?? []) {
+    const pub = publicFolderKey(key);
+    if (feedValue.folders.some((folder) => folder.key === pub)) hits.push(`folder:${pub}`);
+  }
+  const group = typeFolderForSubcategory(product.subcategory);
+  for (const category of feedValue.categories) {
+    if (!productInHub(product, category.slug)) continue;
+    hits.push(category.targetId);
+    for (const child of category.children) {
+      if (child.kind === "sub" && child.slug === product.subcategory) hits.push(child.targetId);
+      if (child.kind === "group" && child.slug === group) hits.push(child.targetId);
+    }
+  }
+  return hits;
+}
 
 function feedBodyHas(feedValue: MobileFeed, needle: string) {
   return JSON.stringify(feedValue).includes(needle);
@@ -372,9 +538,16 @@ function assertNoHostList(value: unknown, path = "feed"): void {
 function everyImage(feedValue: MobileFeed): Array<string | null> {
   return [
     ...feedValue.home.sections.flatMap((section) => section.tiles.map((tile) => tile.image)),
+    ...feedValue.audiences.map((tile) => tile.image),
     ...feedValue.menus.flatMap((menu) => [menu.image, ...menu.tiles.map((tile) => tile.image)]),
     ...feedValue.kids.tiles.map((tile) => tile.image),
+    feedValue.flow?.image ?? null,
     ...feedValue.promos.map((tile) => tile.image),
+    ...feedValue.folders.map((folder) => folder.image),
+    ...feedValue.categories.flatMap((category) => [
+      category.image,
+      ...category.children.map((child) => child.image),
+    ]),
     ...feedValue.products.map((product) => product.cardImage),
   ];
 }
@@ -387,11 +560,18 @@ function cardByCode(feedValue: MobileFeed, code: string): FeedProduct {
 
 function everyHref(feedValue: MobileFeed): string[] {
   const hrefs = [
+    ...feedValue.targets.map((target) => target.href),
     ...feedValue.home.sections.flatMap((section) => section.tiles.map((tile) => tile.href)),
+    ...feedValue.audiences.map((tile) => tile.href),
     ...feedValue.menus.flatMap((menu) => [menu.href, ...menu.tiles.map((tile) => tile.href)]),
     ...feedValue.kids.tiles.map((tile) => tile.href),
+    ...(feedValue.flow ? [feedValue.flow.href] : []),
     ...feedValue.promos.map((tile) => tile.href),
     ...feedValue.folders.map((folder) => folder.href),
+    ...feedValue.categories.flatMap((category) => [
+      category.href,
+      ...category.children.map((child) => child.href),
+    ]),
   ];
   return hrefs;
 }
@@ -399,10 +579,16 @@ function everyHref(feedValue: MobileFeed): string[] {
 function copyValues(feedValue: MobileFeed): string[] {
   return [
     ...feedValue.home.sections.flatMap((section) => [section.label, ...section.tiles.map((tile) => tile.label)]),
+    ...feedValue.audiences.map((tile) => tile.label),
     ...feedValue.menus.flatMap((menu) => [menu.label, ...menu.tiles.map((tile) => tile.label)]),
     ...feedValue.kids.tiles.map((tile) => tile.label),
+    ...(feedValue.flow ? [feedValue.flow.label] : []),
     ...feedValue.promos.map((tile) => tile.label),
     ...feedValue.folders.map((folder) => folder.label),
-    ...feedValue.products.flatMap((product) => [product.name, product.packLabel ?? ""]),
+    ...feedValue.categories.flatMap((category) => [
+      category.label,
+      ...category.children.map((child) => child.label),
+    ]),
+    ...feedValue.products.flatMap((product) => [product.name, product.label ?? "", product.packLabel ?? ""]),
   ];
 }

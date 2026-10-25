@@ -1,4 +1,11 @@
-import { destinations } from "@/lib/joma-nav-links";
+import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS, TYPE_FOLDER_ORDER } from "@/lib/catalog";
+import {
+  jomaAccessoriesLinks,
+  jomaAudienceLinks,
+  jomaOfficialKitsLinks,
+  jomaOutletLinks,
+  type JomaAudienceLink,
+} from "@/lib/joma-nav-links";
 import {
   ACCESSORIES_FOLDERS,
   APPAREL_FOLDERS,
@@ -27,8 +34,28 @@ const SPORT_COVER = "/brand/hub-sportswear.png";
 const SHOE_COVER = "/brand/hub-shoes.png";
 const TEAM_COVER = "/brand/hub-teampro-2026.webp";
 
-const men = destinations("men");
-const women = destinations("women");
+function tilesFromLinks(
+  links: readonly JomaAudienceLink[],
+  image: string,
+  prefix: string,
+): FeedTargetTile[] {
+  const tiles: FeedTargetTile[] = [];
+  const seen = new Set<string>();
+  links.forEach((link, index) => {
+    const group = new URL(link.href, "https://rappi.local").searchParams.get("group");
+    const id = `${prefix}${group ?? `link-${index}`}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    tiles.push({
+      id,
+      label: link.label,
+      href: link.href,
+      image,
+      ...(group ? { folderKey: group } : {}),
+    });
+  });
+  return tiles;
+}
 
 export const HOME_TILES: readonly FeedTargetTile[] = [
   { id: "teamwear", label: "Teamwear", href: "/teamwear", image: TEAM_COVER },
@@ -39,39 +66,9 @@ export const HOME_TILES: readonly FeedTargetTile[] = [
   { id: "kids", label: "Kids", href: "/shop/kids", image: SPORT_COVER },
 ];
 
-export const MEN_TILES: readonly FeedTargetTile[] = [
-  { id: "men-teamwear", label: "Teamwear", href: men.teamwear, image: MEN_COVER, folderKey: "teamwear" },
-  { id: "men-teamwear-pro", label: "Teamwear Pro 2026", href: men.teamwearPro, image: MEN_COVER, folderKey: "teamwear-pro-2026" },
-  { id: "men-running", label: "Running / Trail", href: men.running, image: MEN_COVER, folderKey: "running-trail" },
-  { id: "men-cycling", label: "Cycling", href: men.cycling, image: MEN_COVER, folderKey: "cycling" },
-  { id: "men-racket", label: "Racket sports", href: men.racket, image: MEN_COVER, folderKey: "racket-sports" },
-  { id: "men-hiking", label: "Hiking / Outdoor", href: men.hiking, image: MEN_COVER, folderKey: "hiking-outdoor" },
-  { id: "men-fitness", label: "Fitness / Gym", href: men.fitness, image: MEN_COVER, folderKey: "fitness-gym" },
-  { id: "men-lifestyle", label: "Lifestyle", href: men.lifestyle, image: MEN_COVER, folderKey: "lifestyle-apparel" },
-  { id: "men-resort", label: "Resort", href: men.resort, image: MEN_COVER, folderKey: "resort" },
-  { id: "men-aguila", label: "Águila Line", href: men.aguila, image: MEN_COVER, folderKey: "aguila-line" },
-  { id: "men-beachwear", label: "Beachwear", href: men.beachwear, image: MEN_COVER, folderKey: "beachwear" },
-  { id: "men-brama", label: "Underwear / Brama", href: men.brama, image: MEN_COVER, folderKey: "underwear-brama" },
-  { id: "men-combat", label: "Athletes / Combat", href: men.combat, image: MEN_COVER, folderKey: "athletes-combat" },
-  { id: "men-elite", label: "Elite club", href: men.elite, image: MEN_COVER, folderKey: "elite-club" },
-];
-
-export const WOMEN_TILES: readonly FeedTargetTile[] = [
-  { id: "women-teamwear", label: "Teamwear", href: women.teamwear, image: WOMEN_COVER, folderKey: "teamwear-woman" },
-  { id: "women-teamwear-pro", label: "Teamwear Pro 2026", href: women.teamwearPro, image: WOMEN_COVER, folderKey: "w-teamwear-pro-2026" },
-  { id: "women-running", label: "Running / Trail", href: women.running, image: WOMEN_COVER, folderKey: "running-trail-woman" },
-  { id: "women-cycling", label: "Cycling", href: women.cycling, image: WOMEN_COVER, folderKey: "w-cycling" },
-  { id: "women-racket", label: "Racket sports", href: women.racket, image: WOMEN_COVER, folderKey: "racket-sports-woman" },
-  { id: "women-hiking", label: "Hiking / Outdoor", href: women.hiking, image: WOMEN_COVER, folderKey: "w-hiking-outdoor" },
-  { id: "women-fitness", label: "Fitness / Gym", href: women.fitness, image: WOMEN_COVER, folderKey: "fitness-gym-woman" },
-  { id: "women-lifestyle", label: "Lifestyle", href: women.lifestyle, image: WOMEN_COVER, folderKey: "lifestyle-apparel-woman" },
-  { id: "women-resort", label: "Resort", href: women.resort, image: WOMEN_COVER, folderKey: "w-resort" },
-  { id: "women-aguila", label: "Águila Line", href: women.aguila, image: WOMEN_COVER, folderKey: "w-aguila-line" },
-  { id: "women-beachwear", label: "Beachwear", href: women.beachwear, image: WOMEN_COVER, folderKey: "w-beachwear" },
-  { id: "women-brama", label: "Underwear / Brama", href: women.brama, image: WOMEN_COVER, folderKey: "underwear-brama-woman" },
-  { id: "women-combat", label: "Athletes / Combat", href: women.combat, image: WOMEN_COVER, folderKey: "w-athletes-combat" },
-  { id: "women-elite", label: "Elite club", href: women.elite, image: WOMEN_COVER, folderKey: "w-elite-club" },
-];
+/** Men and women tiles are jomaAudienceLinks(), in that function's order. */
+export const MEN_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAudienceLinks("men"), MEN_COVER, "men-");
+export const WOMEN_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAudienceLinks("women"), WOMEN_COVER, "women-");
 
 export const KIDS_TILES: readonly FeedTargetTile[] = [
   { id: "kids-1-4", label: "1-4 years", href: "/shop/kids?age=1-4", image: SPORT_COVER, folderKey: "kids-1-4" },
@@ -108,50 +105,10 @@ export const FLOW_TILE: FeedTargetTile = {
   folderKey: "joma-flow",
 };
 
-export const ACCESSORY_TILES: readonly FeedTargetTile[] = [
-  { id: "acc-balls", label: "Balls", href: "/shop/balls-bags?group=acc-balls", image: SPORT_COVER, folderKey: "acc-balls" },
-  { id: "acc-backpacks", label: "Backpacks", href: "/shop/balls-bags?group=acc-backpacks", image: SPORT_COVER, folderKey: "acc-backpacks" },
-  { id: "acc-socks", label: "Socks", href: "/shop/sportswear?group=acc-socks", image: SPORT_COVER, folderKey: "acc-socks" },
-];
-
-export const KIT_TILES: readonly FeedTargetTile[] = [
-  {
-    id: "kits-federations",
-    label: "Federations",
-    href: "/teamwear?view=kits&group=kits-federations",
-    image: TEAM_COVER,
-    folderKey: "kits-federations",
-  },
-  {
-    id: "kits-special",
-    label: "Special editions",
-    href: "/teamwear?view=kits&group=kits-special",
-    image: TEAM_COVER,
-    folderKey: "kits-special",
-  },
-];
-
-/** Outlet and price-band tiles. Href strings are fixed literals, not catalogue text. */
-export const PROMO_TILES: readonly FeedTargetTile[] = [
-  { id: "outlet-promotions", label: "Promotions", href: "/promotions?group=outlet-promotions", image: SPORT_COVER, folderKey: "outlet-promotions" },
-  { id: "outlet-footwear", label: "Footwear", href: "/shop/shoes?group=outlet-footwear", image: SHOE_COVER, folderKey: "outlet-footwear" },
-  { id: "outlet-apparel-byear", label: "Apparel by year", href: "/promotions?group=outlet-apparel-byear", image: SPORT_COVER, folderKey: "outlet-apparel-byear" },
-  { id: "outlet-sweatshirt-jacket", label: "Sweatshirt / Jacket", href: "/promotions?group=outlet-sweatshirt-jacket", image: SPORT_COVER, folderKey: "outlet-sweatshirt-jacket" },
-  { id: "outlet-tshirt-top", label: "T-shirt / Top", href: "/promotions?group=outlet-tshirt-top", image: SPORT_COVER, folderKey: "outlet-tshirt-top" },
-  { id: "outlet-pants-shorts", label: "Pants / Shorts", href: "/promotions?group=outlet-pants-shorts", image: SPORT_COVER, folderKey: "outlet-pants-shorts" },
-  { id: "outlet-anorak", label: "Anorak", href: "/promotions?group=outlet-anorak", image: SPORT_COVER, folderKey: "outlet-anorak" },
-  { id: "outlet-tracksuit", label: "Tracksuit", href: "/promotions?group=outlet-tracksuit", image: SPORT_COVER, folderKey: "outlet-tracksuit" },
-  { id: "outlet-junior", label: "Junior", href: "/promotions?group=outlet-junior", image: SPORT_COVER, folderKey: "outlet-junior" },
-  { id: "outlet-price-199-299", label: "1.99 - 2.99", href: "/promotions?group=outlet-price-199-299", image: SPORT_COVER, folderKey: "outlet-price-199-299" },
-  { id: "outlet-price-299-399", label: "2.99 - 3.99", href: "/promotions?group=outlet-price-299-399", image: SPORT_COVER, folderKey: "outlet-price-299-399" },
-  { id: "outlet-price-399-499", label: "3.99 - 4.99", href: "/promotions?group=outlet-price-399-499", image: SPORT_COVER, folderKey: "outlet-price-399-499" },
-  { id: "outlet-price-499-599", label: "4.99 - 5.99", href: "/promotions?group=outlet-price-499-599", image: SPORT_COVER, folderKey: "outlet-price-499-599" },
-  { id: "outlet-price-599-699", label: "5.99 - 6.99", href: "/promotions?group=outlet-price-599-699", image: SPORT_COVER, folderKey: "outlet-price-599-699" },
-  { id: "outlet-price-699-799", label: "6.99 - 7.99", href: "/promotions?group=outlet-price-699-799", image: SPORT_COVER, folderKey: "outlet-price-699-799" },
-  { id: "outlet-price-799-1099", label: "7.99 - 10.99", href: "/promotions?group=outlet-price-799-1099", image: SPORT_COVER, folderKey: "outlet-price-799-1099" },
-  { id: "outlet-price-1099-1599", label: "10.99 - 15.99", href: "/promotions?group=outlet-price-1099-1599", image: SPORT_COVER, folderKey: "outlet-price-1099-1599" },
-  { id: "outlet-price-from-1599", label: "From 15.99", href: "/promotions?group=outlet-price-from-1599", image: SPORT_COVER, folderKey: "outlet-price-from-1599" },
-];
+/** Full accessories, kits, and outlet lists from lib/joma-nav-links. */
+export const ACCESSORY_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAccessoriesLinks(), SPORT_COVER, "");
+export const KIT_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaOfficialKitsLinks(), TEAM_COVER, "");
+export const PROMO_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaOutletLinks(), SPORT_COVER, "");
 
 export type FeedMenuDef = {
   id: string;
@@ -210,8 +167,76 @@ export function folderHrefEntries(): ReadonlyMap<string, string> {
   return folderHrefs;
 }
 
-function constantHrefs(): string[] {
-  const tiles = [
+export function categoryTargetId(slug: string) {
+  return `category:${slug}`;
+}
+
+export function categoryHref(slug: string) {
+  return `/category/${encodeURIComponent(slug)}`;
+}
+
+export function subcategoryTargetId(slug: string, sub: string) {
+  return `category:${slug}:sub:${sub}`;
+}
+
+export function subcategoryHref(slug: string, sub: string) {
+  return `/shop/${encodeURIComponent(slug)}?sub=${encodeURIComponent(sub)}`;
+}
+
+export function typeFolderTargetId(slug: string, group: string) {
+  return `category:${slug}:group:${group}`;
+}
+
+export function typeFolderHref(slug: string, group: string) {
+  return `/shop/${encodeURIComponent(slug)}?group=${encodeURIComponent(group)}`;
+}
+
+export function feedAudienceTargets() {
+  return AUDIENCES.map((audience, order) => ({
+    id: `audience:${audience.slug}`,
+    slug: audience.slug,
+    label: audience.name,
+    href: `/shop/${audience.slug}`,
+    order,
+  }));
+}
+
+export function feedCategoryTargets() {
+  return CATEGORIES.map((category, order) => ({
+    slug: category.slug,
+    label: category.name,
+    order,
+    targetId: categoryTargetId(category.slug),
+    href: categoryHref(category.slug),
+  }));
+}
+
+/** Subcategory href only when the slug and the sub are in the site's constant tables. */
+export function feedSubcategoryTarget(slug: string, sub: string) {
+  if (!CATEGORIES.some((category) => category.slug === slug)) return null;
+  const label = SUBCATEGORY_LABELS[sub];
+  if (!label) return null;
+  return {
+    slug: sub,
+    label,
+    targetId: subcategoryTargetId(slug, sub),
+    href: subcategoryHref(slug, sub),
+  };
+}
+
+export function feedTypeFolderTarget(slug: string, group: string) {
+  if (!CATEGORIES.some((category) => category.slug === slug)) return null;
+  if (!(TYPE_FOLDER_ORDER as readonly string[]).includes(group)) return null;
+  return {
+    slug: group,
+    label: SUBCATEGORY_LABELS[group] ?? group,
+    targetId: typeFolderTargetId(slug, group),
+    href: typeFolderHref(slug, group),
+  };
+}
+
+function constantTiles(): FeedTargetTile[] {
+  return [
     ...HOME_TILES,
     ...MEN_TILES,
     ...WOMEN_TILES,
@@ -222,16 +247,42 @@ function constantHrefs(): string[] {
     ...KIT_TILES,
     ...PROMO_TILES,
   ];
-  return [...FEED_MENUS.map((menu) => menu.href), ...tiles.map((tile) => tile.href)];
 }
 
-let targets: Set<string> | null = null;
+let targetTable: Map<string, string> | null = null;
+
+/**
+ * Id to href. Ids are the only link values nodes may carry.
+ * Hrefs come from joma-nav-links, the folder trees, and the category constants.
+ */
+export function feedTargetTable(): ReadonlyMap<string, string> {
+  if (targetTable) return targetTable;
+  const map = new Map<string, string>();
+  const add = (id: string, href: string) => {
+    const existing = map.get(id);
+    if (existing && existing !== href) {
+      throw new Error(`Feed target ${id} points at two hrefs`);
+    }
+    map.set(id, href);
+  };
+  for (const tile of constantTiles()) add(tile.id, tile.href);
+  for (const menu of FEED_MENUS) add(`menu:${menu.id}`, menu.href);
+  for (const audience of feedAudienceTargets()) add(audience.id, audience.href);
+  for (const category of CATEGORIES) {
+    add(categoryTargetId(category.slug), categoryHref(category.slug));
+    for (const sub of Object.keys(SUBCATEGORY_LABELS)) {
+      add(subcategoryTargetId(category.slug, sub), subcategoryHref(category.slug, sub));
+    }
+    for (const group of TYPE_FOLDER_ORDER) {
+      add(typeFolderTargetId(category.slug, group), typeFolderHref(category.slug, group));
+    }
+  }
+  for (const [key, href] of folderHrefEntries()) add(`folder:${publicFolderKey(key)}`, href);
+  targetTable = map;
+  return map;
+}
 
 /** Every href the feed is allowed to emit. Built from this module, not from a request. */
 export function feedTargetSet(): ReadonlySet<string> {
-  if (targets) return targets;
-  const set = new Set<string>(constantHrefs());
-  for (const href of folderHrefEntries().values()) set.add(href);
-  targets = set;
-  return set;
+  return new Set(feedTargetTable().values());
 }

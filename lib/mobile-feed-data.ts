@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-cache-tag";
 import { catalogVersion } from "@/lib/catalog-version";
 import { buildMobileFeed } from "@/lib/mobile-feed";
+import { FEED_TREE_REVISION, mobileFeedVersion } from "@/lib/mobile-feed-version";
 import { getCatalogLive } from "@/lib/supabase/catalog";
 
 /**
@@ -13,13 +14,13 @@ import { getCatalogLive } from "@/lib/supabase/catalog";
  * 2 MB cache entry limit. The version string is small and uses the same tag.
  */
 export const getMobileCatalogueVersion = unstable_cache(
-  async () => catalogVersion(await getCatalogLive()),
-  ["mobile-v1-version"],
+  async () => mobileFeedVersion(catalogVersion(await getCatalogLive())),
+  ["mobile-v1-version", String(FEED_TREE_REVISION)],
   { revalidate: 60, tags: [CATALOG_CACHE_TAG] },
 );
 
 export async function readMobileFeed() {
   const catalog = await getCatalogLive();
-  const version = catalogVersion(catalog);
+  const version = mobileFeedVersion(catalogVersion(catalog));
   return buildMobileFeed(catalog, version);
 }
