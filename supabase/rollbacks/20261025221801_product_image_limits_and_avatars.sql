@@ -8,7 +8,9 @@
 -- product_images_public_read matches 20260907100003_admin_panel.sql.
 -- avatars_public_read is that same policy for the avatars bucket (the SELECT
 -- this forward migration drops). Owner-folder write policies are left in place.
--- Mime types and the 5 MB limit are left in place.
+-- This rollback does not restore earlier file size or MIME limits.
+-- Those limits stay as the forward migration set them. There is no
+-- previous limit to put back.
 
 drop policy if exists product_images_admin_select on storage.objects;
 

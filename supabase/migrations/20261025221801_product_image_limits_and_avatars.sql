@@ -40,7 +40,10 @@ values (
   array['image/jpeg', 'image/png', 'image/webp', 'image/avif']
 )
 on conflict (id) do update
-set public = true;
+set
+  public = true,
+  file_size_limit = 5242880,
+  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
 drop policy if exists avatars_public_read on storage.objects;
 drop policy if exists avatars_owner_select on storage.objects;
@@ -88,7 +91,8 @@ create policy avatars_owner_delete
 -- product_images_public_read is the policy from 20260907100003_admin_panel.sql.
 -- avatars_public_read is that same anonymous SELECT for the avatars bucket,
 -- which this migration drops. Buckets stay public, so known object URLs
--- still download after the rollback.
+-- still download after the rollback. The rollback does not restore earlier
+-- size or MIME limits. Those limits stay.
 --
 -- drop policy if exists product_images_admin_select on storage.objects;
 --
