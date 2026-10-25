@@ -8,9 +8,10 @@ export type AllowedImageHost = {
 
 /**
  * Hosts a product photo may already live on.
- * cardImage, the page CSP img-src, and next.config images.remotePatterns
- * all read this list. Delete the remote rows later to leave only this site.
+ * cardImage and next.config images.remotePatterns read this list.
+ * Delete the remote rows later to leave only this site.
  * Nothing in that path copies or uploads a photo.
+ * This module does not set a Content-Security-Policy header.
  */
 export const ALLOWED_IMAGE_HOSTS: readonly AllowedImageHost[] = [
   { host: "www.rappisportshub.com", pathnamePrefix: "/" },
@@ -22,12 +23,6 @@ export const ALLOWED_IMAGE_HOSTS: readonly AllowedImageHost[] = [
   { host: "www.joma-sport.com", pathnamePrefix: "/on/demandware.static/" },
   { host: "v1.joma-sport.net", pathnamePrefix: "/files/" },
 ];
-
-/**
- * The noscript tracking pixel is not a product photo, so it stays out of
- * ALLOWED_IMAGE_HOSTS. img-src still has to name it or that pixel is blocked.
- */
-const IMAGE_CSP_EXTRAS = ["https://www.facebook.com"] as const;
 
 /** The editable list, plus the canonical site host when an env override names another one. */
 export function allowedImageHosts(): readonly AllowedImageHost[] {
@@ -56,9 +51,7 @@ export function imageRemotePatterns() {
   }));
 }
 
-/** Page CSP that sets img-src only. Other directives stay unset. */
-export function imageContentSecurityPolicy() {
-  const hosts = allowedImageHosts().map((rule) => `https://${rule.host}`);
-  const sources = ["'self'", ...hosts, ...IMAGE_CSP_EXTRAS];
-  return `img-src ${[...new Set(sources)].join(" ")}`;
+/** https origins for the hosts above. A later policy can read this. No header is set here. */
+export function allowedImageOrigins(): string[] {
+  return [...new Set(allowedImageHosts().map((rule) => `https://${rule.host}`))];
 }

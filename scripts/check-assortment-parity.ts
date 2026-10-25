@@ -31,11 +31,7 @@ import {
 } from "../lib/assortment";
 import { toClientProduct, buildListing, filterListing } from "../lib/listing-core";
 import { productDescription } from "../lib/copy";
-import {
-  ALLOWED_IMAGE_HOSTS,
-  imageContentSecurityPolicy,
-  imageRemotePatterns,
-} from "../lib/image-hosts";
+import { ALLOWED_IMAGE_HOSTS, allowedImageOrigins, imageRemotePatterns } from "../lib/image-hosts";
 import { cardImageUrl, isAllowedProductImageUrl, listingCardCandidates, productCardImageCandidates } from "../lib/media";
 import { metaAbsoluteUrl, metaSiteUrl } from "../lib/meta/site";
 import { versionProductImages } from "../lib/image-cache";
@@ -290,6 +286,45 @@ function photos(product: Product) {
   return product.images?.length ?? 0;
 }
 
+function printFieldCounts(products: Product[]) {
+  let labels = 0;
+  let pairCounts = 0;
+  let packs = 0;
+  let absoluteCards = 0;
+  let relativeFirst = 0;
+  let relativeFirstResolved = 0;
+  const relativePaths = new Set<string>();
+  const resolvedPaths = new Set<string>();
+  for (const product of products) {
+    const view = clientAssortment(product);
+    if (view.label) labels += 1;
+    if (view.pairCount != null) pairCounts += 1;
+    if (view.isPack) packs += 1;
+    const card = cardImageUrl(product);
+    if (card && /^https:\/\//i.test(card)) absoluteCards += 1;
+    const first = productCardImageCandidates(product)[0] ?? "";
+    if (first.startsWith("/") && !first.startsWith("//")) {
+      relativeFirst += 1;
+      if (card && /^https:\/\//i.test(card)) relativeFirstResolved += 1;
+    }
+    const urls = [product.imageUrl, ...(product.images ?? [])].filter((url): url is string => Boolean(url));
+    for (const url of urls) {
+      if (!url.startsWith("/") || url.startsWith("//") || relativePaths.has(url)) continue;
+      relativePaths.add(url);
+      const absolute = cardImageUrl({ imageUrl: url, images: [url] });
+      if (absolute && /^https:\/\//i.test(absolute)) resolvedPaths.add(url);
+    }
+  }
+  console.log(`labels ${labels}`);
+  console.log(`pairCount ${pairCounts}`);
+  console.log(`isPack ${packs}`);
+  console.log(`absolute cardImage ${absoluteCards}`);
+  console.log(`relative first candidates ${relativeFirst}`);
+  console.log(`relative first candidates resolved to absolute https ${relativeFirstResolved}`);
+  console.log(`relative image paths ${relativePaths.size}`);
+  console.log(`relative image paths resolved to absolute https ${resolvedPaths.size}`);
+}
+
 /**
  * These six rows store no sellAs and no packSize. The product title still
  * appends "Pack of 25" through packTitleSuffix, which reads clientAssortment.
@@ -380,22 +415,27 @@ function assertAbsoluteCardImages(products: Product[]) {
     fail("cardImage returned a protocol-relative URL");
   }
 
-  const csp = imageContentSecurityPolicy();
+  const origins = allowedImageOrigins();
   const patterns = imageRemotePatterns();
-  if (!csp.startsWith("img-src ")) fail("CSP does not set img-src");
-  if (/script-src|default-src/.test(csp)) fail("image CSP sets more than img-src");
   for (const rule of ALLOWED_IMAGE_HOSTS) {
-    if (!csp.includes(`https://${rule.host}`)) fail(`CSP img-src is missing ${rule.host}`);
+    if (!origins.includes(`https://${rule.host}`)) fail(`allowedImageOrigins is missing https://${rule.host}`);
     if (!patterns.some((pattern) => pattern.hostname === rule.host && pattern.protocol === "https")) {
       fail(`remotePatterns is missing ${rule.host}`);
     }
   }
-  const configPath = join(dirname(fileURLToPath(import.meta.url)), "../next.config.ts");
-  const configSource = readFileSync(configPath, "utf8");
-  if (!configSource.includes("imageRemotePatterns()") || !configSource.includes("imageContentSecurityPolicy()")) {
+  const root = dirname(fileURLToPath(import.meta.url));
+  const configSource = readFileSync(join(root, "../next.config.ts"), "utf8");
+  const hostsSource = readFileSync(join(root, "../lib/image-hosts.ts"), "utf8");
+  if (!configSource.includes("imageRemotePatterns()")) {
     fail("next.config.ts does not use the shared image host list");
   }
   if (/hostname:\s*"/.test(configSource)) fail("next.config.ts still lists an image hostname of its own");
+  if (/Content-Security-Policy|imageContentSecurityPolicy/.test(configSource)) {
+    fail("next.config.ts still sets a Content-Security-Policy");
+  }
+  if (/imageContentSecurityPolicy|IMAGE_CSP_EXTRAS/.test(hostsSource)) {
+    fail("lib/image-hosts.ts still builds a Content-Security-Policy");
+  }
 }
 
 function take(products: Product[], count: number, pred: (product: Product) => boolean) {
@@ -454,6 +494,7 @@ async function main() {
   const { products, source } = await loadCatalog();
   console.log(`source ${source}`);
   console.log(`products ${products.length}`);
+  printFieldCounts(products);
 
   const packs = take(products, 10, (product) => clientAssortment(product).isPack);
   const headwear = take(

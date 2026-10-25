@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { imageContentSecurityPolicy, imageRemotePatterns } from "./lib/image-hosts";
+import { imageRemotePatterns } from "./lib/image-hosts";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -42,10 +42,6 @@ const nextConfig: NextConfig = {
             value: "public, max-age=3600, stale-while-revalidate=86400",
           },
         ],
-      },
-      {
-        source: "/:path*",
-        headers: [{ key: "Content-Security-Policy", value: imageContentSecurityPolicy() }],
       },
     ];
   },
