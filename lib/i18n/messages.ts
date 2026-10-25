@@ -190,10 +190,10 @@ export const en = {
     pickupEyebrow: "Pickup",
     pickupTitle: "Hub pickup",
     pickupBody:
-      "Choose hub pickup at checkout — free in Namibia. We confirm the collection point by email after you order.",
+      "Choose hub pickup at checkout (free in Namibia). We confirm the collection point by email after you order.",
     pickupCta: "Go to checkout",
     contactTitle: "Talk to RAPPI",
-    contactBody: "Quotes, team kits and stock questions — we reply by email.",
+    contactBody: "Quotes, team kits and stock questions: we reply by email.",
     emailSubject: "RAPPI Sports Hub enquiry",
     whatsapp: "WhatsApp us",
     whatsappPrefill: "Hi RAPPI, I want to ask about gear / teamwear.",
@@ -271,7 +271,7 @@ export const en = {
     crumb: "Search",
     descriptionEmpty: "Find a piece by code, name, or category.",
     descriptionQuery: "Results for “{q}”.",
-    hint: "Type a product name, SKU, or category. We only load matching pages — never the full catalog at once.",
+    hint: "Type a product name, SKU, or category. We only load matching pages. Never the full catalog at once.",
     emptyTitle: "No matches",
     emptyBody: "Nothing in the catalog matched that code, name, or category.",
     noProducts: "No products found",
@@ -314,7 +314,7 @@ export const en = {
     title: "Shipping & billing",
     crumb: "Shipping & billing",
     emptyHint:
-      "Your bag is empty. Delivery rates still apply once you add pieces — Standard {standard}, Express {express}, or free hub pickup.",
+      "Your bag is empty. Delivery rates still apply once you add pieces: Standard {standard}, Express {express}, or free hub pickup.",
     shippingOptions: "Shipping options",
     backToCart: "Back to cart",
     introNad:
@@ -395,7 +395,7 @@ export const en = {
     logoutHint: "End this browser session.",
     deleteAccount: "Delete my account",
     ordersIntro:
-      "Order history to view or track orders already placed. Checkout is a stub — status starts at Reserved.",
+      "Order history to view or track orders already placed. Checkout is a stub. Status starts at Reserved.",
     ordersSignIn: "Sign in to see orders tied to your account.",
     noOrders: "No orders yet",
     noOrdersHint: "Place a stub order from checkout to see it here.",
@@ -421,7 +421,7 @@ export const en = {
   login: {
     title: "Sign in",
     createTitle: "Create account",
-    hint: "Sign in to manage orders. Guests can browse — an account is required to place an order.",
+    hint: "Sign in to manage orders. Guests can browse. An account is required to place an order.",
     checkoutHint: "Sign in or create an account to finish checkout.",
     email: "Email",
     password: "Password",
@@ -449,7 +449,7 @@ export const en = {
     details: "Details",
     soldOut: "Sold out",
     soldOutSize: "Sold out in this size",
-    limited: "Limited — {stock} left",
+    limited: "Limited: {stock} left",
     pricedNad: "Priced in Namibian dollars. Sign in is required to place an order.",
     pricedEur: "Priced in euros (converted from NAD). Sign in is required to place an order.",
     orderPack10: "Order unit: pack of 10.",
@@ -462,11 +462,11 @@ export const en = {
     orderSku: "Order unit: SKU. A per-size run is attached when the supplier export lists one.",
     orderOneSize: "Order unit: one size.",
     pack10:
-      "Sold as a pack of 10. The {symbol} price is for the full pack. Choose a size — S01–S04 follow the size grid (3XS, XS, M, XL).",
+      "Sold as a pack of 10. The {symbol} price is for the full pack. Choose a size: S01–S04 follow the size grid (3XS, XS, M, XL).",
     packNamedPdp: "Sold as a pack of {n}. The {symbol} price is for the full pack.",
     packMultipack: "Sold as a multipack. The {symbol} price is for the full set, not a single piece.",
     packAssortment:
-      "Sold as a wholesale assortment pack, not a single pair. The {symbol} price is the pack price. Mixed sizes ship as packed by the supplier — we do not invent a single-pair size.",
+      "Sold as a wholesale assortment pack, not a single pair. The {symbol} price is the pack price. Mixed sizes ship as packed by the supplier. We do not invent a single-pair size.",
     packAssortmentApparel:
       "Sold as a wholesale assortment pack, not a single piece. The {symbol} price is for the full pack (shirts, shorts, and other apparel boxes). Mixed sizes ship as packed by the supplier.",
     packWholesalePack:
@@ -539,7 +539,7 @@ export const en = {
     crumb: "New collections",
     eyebrow: "Drop",
     description:
-      "Padel, Hiking, Resort, Lifestyle, and Teampro 2026 — plus new and offer pieces from the current drop.",
+      "Padel, Hiking, Resort, Lifestyle, and Teampro 2026, plus new and offer pieces from the current drop.",
     highlighted: "Highlighted stock [{count}]",
     none: "No promotions on this opening stock list.",
   },
@@ -669,11 +669,11 @@ export const en = {
   audience: {
     men: {
       name: "Men",
-      blurb: "Men’s kit from the current drop — tees, shorts, shoes, and match gear.",
+      blurb: "Men’s kit from the current drop: tees, shorts, shoes, and match gear.",
     },
     women: {
       name: "Women",
-      blurb: "Women’s kit from the current drop — training layers, shoes, and court wear.",
+      blurb: "Women’s kit from the current drop: training layers, shoes, and court wear.",
     },
     kids: {
       name: "Kids",
@@ -1387,10 +1387,10 @@ export const fr: Messages = {
     pickupEyebrow: "Retrait",
     pickupTitle: "Retrait au hub",
     pickupBody:
-      "Choisissez le retrait au hub au paiement — gratuit en Namibie. Nous confirmons le point de collecte par e-mail après commande.",
+      "Choisissez le retrait au hub au paiement (gratuit en Namibie). Nous confirmons le point de collecte par e-mail après commande.",
     pickupCta: "Aller au paiement",
     contactTitle: "Contacter RAPPI",
-    contactBody: "Devis, tenues d’équipe et stock — réponse par e-mail.",
+    contactBody: "Devis, tenues d’équipe et stock : réponse par e-mail.",
     emailSubject: "Demande RAPPI Sports Hub",
     whatsapp: "WhatsApp",
     whatsappPrefill: "Bonjour RAPPI, je souhaite des infos sur le matériel / teamwear.",
@@ -1468,7 +1468,7 @@ export const fr: Messages = {
     crumb: "Recherche",
     descriptionEmpty: "Trouvez un article par code, nom ou catégorie.",
     descriptionQuery: "Résultats pour « {q} ».",
-    hint: "Saisissez un nom, un SKU ou une catégorie. Nous ne chargeons que les pages correspondantes — jamais tout le catalogue d’un coup.",
+    hint: "Saisissez un nom, un SKU ou une catégorie. Nous ne chargeons que les pages correspondantes. Jamais tout le catalogue d’un coup.",
     emptyTitle: "Aucun résultat",
     emptyBody: "Rien dans le catalogue ne correspond à ce code, nom ou catégorie.",
     noProducts: "Aucun produit",
@@ -1511,7 +1511,7 @@ export const fr: Messages = {
     title: "Livraison et paiement",
     crumb: "Livraison et paiement",
     emptyHint:
-      "Votre panier est vide. Les tarifs de livraison s’appliquent dès que vous ajoutez des articles — Standard {standard}, Express {express}, ou retrait au hub offert.",
+      "Votre panier est vide. Les tarifs de livraison s’appliquent dès que vous ajoutez des articles : Standard {standard}, Express {express}, ou retrait au hub offert.",
     shippingOptions: "Options de livraison",
     backToCart: "Retour au panier",
     introNad:
@@ -1592,7 +1592,7 @@ export const fr: Messages = {
     logoutHint: "Terminer cette session navigateur.",
     deleteAccount: "Supprimer mon compte",
     ordersIntro:
-      "Historique des commandes déjà passées. La commande est simulée — le statut commence à Réservé.",
+      "Historique des commandes déjà passées. La commande est simulée. Le statut commence à Réservé.",
     ordersSignIn: "Connectez-vous pour voir les commandes liées à votre compte.",
     noOrders: "Aucune commande",
     noOrdersHint: "Passez une commande simulée depuis le checkout pour la voir ici.",
@@ -1618,7 +1618,7 @@ export const fr: Messages = {
   login: {
     title: "Connexion",
     createTitle: "Créer un compte",
-    hint: "Connectez-vous pour gérer vos commandes. Navigation libre — un compte est requis pour commander.",
+    hint: "Connectez-vous pour gérer vos commandes. Navigation libre. Un compte est requis pour commander.",
     checkoutHint: "Connectez-vous ou créez un compte pour finaliser la commande.",
     email: "E-mail",
     password: "Mot de passe",
@@ -1646,7 +1646,7 @@ export const fr: Messages = {
     details: "Détails",
     soldOut: "Épuisé",
     soldOutSize: "Épuisé dans cette taille",
-    limited: "Stock limité — {stock} restant(s)",
+    limited: "Stock limité : {stock} restant(s)",
     pricedNad: "Prix en dollars namibiens. Connexion requise pour passer commande.",
     pricedEur: "Prix en euros (convertis depuis le NAD). Connexion requise pour passer commande.",
     orderPack10: "Unité de commande : pack de 10.",
@@ -1659,11 +1659,11 @@ export const fr: Messages = {
     orderSku: "Unité de commande : SKU. Une grille de tailles est jointe lorsque l’export fournisseur en liste une.",
     orderOneSize: "Unité de commande : taille unique.",
     pack10:
-      "Vendu par pack de 10. Le prix {symbol} concerne le pack entier. Choisissez une taille — S01–S04 suivent la grille des tailles (3XS, XS, M, XL).",
+      "Vendu par pack de 10. Le prix {symbol} concerne le pack entier. Choisissez une taille : S01–S04 suivent la grille des tailles (3XS, XS, M, XL).",
     packNamedPdp: "Vendu par pack de {n}. Le prix {symbol} concerne le pack entier.",
     packMultipack: "Vendu en multipack. Le prix {symbol} concerne l’ensemble, pas une pièce seule.",
     packAssortment:
-      "Vendu en pack assortiment gros, pas à la paire. Le prix {symbol} est le prix du pack. Tailles mixtes selon le fournisseur — nous n’inventons pas de taille à la paire.",
+      "Vendu en pack assortiment gros, pas à la paire. Le prix {symbol} est le prix du pack. Tailles mixtes selon le fournisseur. Nous n’inventons pas de taille à la paire.",
     packAssortmentApparel:
       "Vendu en pack assortiment gros, pas à la pièce. Le prix {symbol} concerne le pack entier (tees, shorts et autres boxes textile). Tailles mixtes selon le fournisseur.",
     packWholesalePack:
@@ -1736,7 +1736,7 @@ export const fr: Messages = {
     crumb: "Nouvelles collections",
     eyebrow: "Drop",
     description:
-      "Padel, Randonnée, Resort, Lifestyle et Teampro 2026 — plus les pièces nouvelles et en promo du drop actuel.",
+      "Padel, Randonnée, Resort, Lifestyle et Teampro 2026, plus les pièces nouvelles et en promo du drop actuel.",
     highlighted: "Stock mis en avant [{count}]",
     none: "Aucune promotion sur cette liste d’ouverture.",
   },
@@ -1866,11 +1866,11 @@ export const fr: Messages = {
   audience: {
     men: {
       name: "Hommes",
-      blurb: "Tenues hommes du drop actuel — t-shirts, shorts, chaussures et équipement de match.",
+      blurb: "Tenues hommes du drop actuel : t-shirts, shorts, chaussures et équipement de match.",
     },
     women: {
       name: "Femmes",
-      blurb: "Tenues femmes du drop actuel — couches d’entraînement, chaussures et indoor.",
+      blurb: "Tenues femmes du drop actuel : couches d’entraînement, chaussures et indoor.",
     },
     kids: {
       name: "Enfants",
