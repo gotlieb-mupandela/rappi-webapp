@@ -151,6 +151,8 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   "hockey-shoes": "Hockey",
   "volleyball-shoes": "Volleyball",
   "comfort-shoes": "Confort",
+  "flow": "Flow",
+  // Stored rows and old links may still use this slug. Never show it raw.
   "joma-flow": "Flow",
   "summer-shoes": "Summer shoes",
   forloz: "Forloz",
@@ -215,6 +217,7 @@ export const TYPE_FOLDERS: Record<string, readonly string[]> = {
     "hockey-shoes",
     "volleyball-shoes",
     "comfort-shoes",
+    "flow",
     "joma-flow",
     "summer-shoes",
     "forloz",
@@ -297,7 +300,7 @@ export const SUBCATEGORY_CHIP_ORDER = [
   "sandals",
   "barefoot",
   "comfort-shoes",
-  "joma-flow",
+  "flow",
   "summer-shoes",
   "forloz",
   "kids-shoes",
@@ -324,7 +327,12 @@ const SUBCATEGORY_CHIP_RANK = new Map<string, number>(
 );
 
 export function subcategoryChipRank(slug: string) {
-  return SUBCATEGORY_CHIP_RANK.get(slug) ?? SUBCATEGORY_CHIP_ORDER.length;
+  return SUBCATEGORY_CHIP_RANK.get(publicSubcategorySlug(slug)) ?? SUBCATEGORY_CHIP_ORDER.length;
+}
+
+/** Public subcategory slug. Older stored rows still say joma-flow. */
+export function publicSubcategorySlug(slug: string) {
+  return slug === "joma-flow" ? "flow" : slug;
 }
 
 /** Shop-like order: clothes first, then shoes, then extras. */

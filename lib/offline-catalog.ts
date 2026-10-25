@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import { productAudience } from "@/lib/audience";
-import { CATEGORIES } from "@/lib/catalog";
+import { CATEGORIES, publicSubcategorySlug } from "@/lib/catalog";
 import { productHubs, productInHub } from "@/lib/hub-membership";
 import { indexCatalogFromBakedFolders, matchJomaFolderKeys } from "@/lib/joma-tree";
 import { listingHay, type ListingItem } from "@/lib/listing-core";
@@ -18,6 +18,7 @@ const FOLDERS_BY_ID = productFolders as Record<string, string[]>;
 export const offlineCatalog: Product[] = [
   ...(bundled as ListingItem[]).map((product) => ({
     ...product,
+    subcategory: publicSubcategorySlug(product.subcategory),
     folders: product.folders ?? FOLDERS_BY_ID[product.id] ?? matchJomaFolderKeys(product),
   })),
   ...(isDpoTestCheckoutEnabled()

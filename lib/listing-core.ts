@@ -10,6 +10,7 @@ import {
   HIDDEN_TYPE_FOLDERS,
   SUBCATEGORY_LABELS,
   matchesTypeFolder,
+  publicSubcategorySlug,
   subcategoryChipRank,
 } from "@/lib/catalog";
 import { sortByFolderOrder } from "@/lib/folder-order";
@@ -197,7 +198,7 @@ export function filterListing(
   }
 
   const filtered = list.filter((p) => {
-    if (sub && p.subcategory !== sub) return false;
+    if (sub && publicSubcategorySlug(p.subcategory) !== publicSubcategorySlug(sub)) return false;
     if (group) {
       if (jomaGroup) {
         if (!listingInFolder(p, jomaGroup)) return false;

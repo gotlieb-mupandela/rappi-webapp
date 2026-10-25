@@ -37,7 +37,7 @@ const TILE_PRODUCT_CODES: Record<string, string> = {
   "se-padel": "TSLAMS2601OM",
   pickleball: "PSTROLS2602C",
   "hockey-shoes": "HPULW2602",
-  "joma-flow": "CJFZENS2723",
+  flow: "CJFZENS2723",
   // No handball or basketball shoe in the bake — that sport's kit, not another sport's shoe.
   "handball-shoes": "104913.102",
   "basketball-shoes": "101660.100",

@@ -415,7 +415,7 @@ const SUB_RULES: Array<{ slug: string; test: (name: string, family: string) => b
       (/\b(comfort|confort)\b/.test(family) && !isApparelName(name)),
   },
   {
-    slug: "joma-flow",
+    slug: "flow",
     test: (name, family) => /\bjoma flow\b/.test(`${name} ${family}`),
   },
   {
@@ -615,7 +615,7 @@ export function classifyStorefrontSubcategory(
         "hockey-shoes",
         "volleyball-shoes",
         "comfort-shoes",
-        "joma-flow",
+        "flow",
         "summer-shoes",
         "forloz",
         "futsal",
@@ -870,6 +870,7 @@ export function isStorefrontFootwear(product: Product) {
     product.subcategory === "hockey-shoes" ||
     product.subcategory === "volleyball-shoes" ||
     product.subcategory === "comfort-shoes" ||
+    product.subcategory === "flow" ||
     product.subcategory === "joma-flow" ||
     product.subcategory === "summer-shoes" ||
     product.subcategory === "forloz"

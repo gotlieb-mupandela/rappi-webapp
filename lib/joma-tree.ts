@@ -389,9 +389,9 @@ export const FOOTWEAR_FOLDERS: readonly JomaFolderDef[] = [
     pattern: /\b(comfort|confort)\b/,
   },
   {
-    key: "joma-flow",
+    key: "flow",
     label: "Flow",
-    sub: "joma-flow",
+    sub: "flow",
     families: ["joma flow", "flow"],
     pattern: /\bjoma flow\b/,
   },
