@@ -382,6 +382,9 @@ export const en = {
     paymentAlreadyPaid: "This payment was already verified as paid.",
     paymentCancelled: "This payment has been cancelled.",
     paymentNotCancelled: "This payment was not cancelled.",
+    paymentCancelledTitle: "Payment cancelled",
+    paymentCancelledHeading: "Payment cancelled",
+    checkoutClosedBeforePayment: "Checkout was closed before payment. Your bag is still saved.",
   },
   shipping: {
     standard: "Standard (5–8 days)",
@@ -1585,6 +1588,9 @@ export const fr: Messages = {
     paymentAlreadyPaid: "Ce paiement a déjà été vérifié comme payé.",
     paymentCancelled: "Ce paiement a été annulé.",
     paymentNotCancelled: "Ce paiement n’a pas été annulé.",
+    paymentCancelledTitle: "Paiement annulé",
+    paymentCancelledHeading: "Paiement annulé",
+    checkoutClosedBeforePayment: "La commande a été fermée avant le paiement. Votre panier est toujours enregistré.",
   },
   shipping: {
     standard: "Standard (5–8 jours)",

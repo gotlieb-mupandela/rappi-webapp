@@ -417,7 +417,28 @@ test("fulfill and cancel use the explicit trust decision", () => {
   assert.match(cancel, /cancelVisitorMessageKey/);
   assert.equal(cancel.includes("This payment was already verified as paid."), false);
   assert.equal(cancel.includes("Payment ${"), false);
+  assert.equal(cancel.includes("Payment cancelled"), false);
+  assert.equal(cancel.includes("Checkout was closed before payment"), false);
   assert.equal(cancel.includes("DPO_CANCEL_CONFIRMING"), false);
+  assert.match(cancel, /generateMetadata/);
+  assert.match(cancel, /checkout\.paymentCancelledTitle/);
+  assert.match(cancel, /checkout\.paymentCancelledHeading/);
+  assert.match(cancel, /checkout\.checkoutClosedBeforePayment/);
+  assert.equal(makeT("na")("checkout.paymentCancelledTitle"), "Payment cancelled");
+  assert.equal(makeT("na")("checkout.paymentCancelledHeading"), "Payment cancelled");
+  assert.equal(
+    makeT("na")("checkout.checkoutClosedBeforePayment"),
+    "Checkout was closed before payment. Your bag is still saved.",
+  );
+  assert.notEqual(makeT("na")("checkout.paymentCancelledTitle"), makeT("eu")("checkout.paymentCancelledTitle"));
+  assert.notEqual(
+    makeT("na")("checkout.checkoutClosedBeforePayment"),
+    makeT("eu")("checkout.checkoutClosedBeforePayment"),
+  );
+  assert.equal(
+    makeT("na")("checkout.paymentConfirmFailed"),
+    "We could not confirm this payment right now. If you were charged, please contact us with your order reference.",
+  );
   assert.match(makeT("na")("checkout.paymentStatusConfirming"), /has not been cancelled/i);
   assert.equal(DPO_CANCEL_CONFIRMING === makeT("na")("checkout.paymentStatusConfirming"), false);
   for (const status of ["paid", "cancelled", "pending", "error"]) {

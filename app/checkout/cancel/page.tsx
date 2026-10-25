@@ -10,10 +10,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Payment cancelled",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t("checkout.paymentCancelledTitle"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function CheckoutCancelPage({
   searchParams,
@@ -34,7 +37,7 @@ export default async function CheckoutCancelPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let body = "Checkout was closed before payment. Your bag is still saved.";
+  let body = t("checkout.checkoutClosedBeforePayment");
   if (transToken || companyRef) {
     try {
       const result = await cancelDpoPayment({
@@ -64,7 +67,7 @@ export default async function CheckoutCancelPage({
       />
       <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Payment</p>
       <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-4xl">
-        Payment cancelled
+        {t("checkout.paymentCancelledHeading")}
       </h1>
       <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{body}</p>
       <Button asChild className="mt-8">
