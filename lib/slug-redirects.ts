@@ -71,6 +71,10 @@ export function fixedSlugRedirect(pathname: string, searchParams: URLSearchParam
   return SLUG_REDIRECTS[lookupKey(pathname, searchParams)];
 }
 
+export function slugRedirectEntries(): readonly (readonly [string, string])[] {
+  return Object.entries(SLUG_REDIRECTS);
+}
+
 export function slugRedirectTargets(): readonly string[] {
   return Object.values(SLUG_REDIRECTS);
 }
