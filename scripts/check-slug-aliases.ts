@@ -13,7 +13,7 @@ import { buildListing, filterListing, listingHref, parseListingQuery } from "../
 import { jomaFolderByKey } from "../lib/joma-tree";
 import type { ListingItem } from "../lib/listing-types";
 import { canonicalSlug, canonicalSlugLabel, SLUG_ALIASES } from "../lib/slug-aliases";
-import { fixedSlugRedirect, slugRedirectTargets } from "../lib/slug-redirects";
+import { fixedSlugRedirect, slugRedirectEntries, slugRedirectTargets } from "../lib/slug-redirects";
 
 function item(code: string, subcategory: string, folders: string[]): ListingItem {
   return {
@@ -133,15 +133,45 @@ for (const target of slugRedirectTargets()) {
   assert.equal(target.includes("joma-kids"), false);
 }
 
-async function main() {
-  const flowRedirect = await middleware(new NextRequest("https://evil.example/shop/joma-flow"));
-  assert.equal(flowRedirect.status, 308);
-  assert.equal(flowRedirect.headers.get("location"), "/shop/shoes?group=flow");
-  const evilNext = await middleware(
-    new NextRequest("https://evil.example/shop/joma-flow?next=https://evil.example"),
+function expectedParts(target: string) {
+  const splitAt = target.indexOf("?");
+  return {
+    pathname: splitAt === -1 ? target : target.slice(0, splitAt),
+    search: splitAt === -1 ? "" : target.slice(splitAt),
+  };
+}
+
+async function assertMiddlewareTarget(from: string, target: string, hostHeader: string) {
+  const requestUrl = new URL(from, "https://shop.example");
+  const response = await middleware(
+    new NextRequest(requestUrl, { headers: { host: hostHeader } }),
   );
-  assert.notEqual(evilNext.status, 308);
-  assert.equal(evilNext.headers.get("location"), null);
+  assert.equal(response.status, 308, from);
+  const location = response.headers.get("location");
+  assert.ok(location, from);
+  const resolved = new URL(location, requestUrl);
+  const expected = expectedParts(target);
+  assert.equal(resolved.pathname, expected.pathname, from);
+  assert.equal(resolved.search, expected.search, from);
+  assert.equal(resolved.host, requestUrl.host, from);
+  assert.equal(resolved.pathname.includes("evil.example"), false, from);
+  assert.equal(resolved.search.includes("evil.example"), false, from);
+  assert.equal(location.includes("redirect.invalid"), false, from);
+}
+
+async function main() {
+  for (const [from, target] of slugRedirectEntries()) {
+    await assertMiddlewareTarget(from, target, "evil.example");
+    await assertMiddlewareTarget(from, target, "shop.example");
+    const poisoned = from.includes("?") ? `${from}&next=https://evil.example` : `${from}?next=https://evil.example`;
+    const poisonedResponse = await middleware(
+      new NextRequest(new URL(poisoned, "https://evil.example"), {
+        headers: { host: "evil.example" },
+      }),
+    );
+    assert.notEqual(poisonedResponse.status, 308, poisoned);
+    assert.equal(poisonedResponse.headers.get("location"), null, poisoned);
+  }
 
   const loadRedirects = nextConfig.redirects;
   if (!loadRedirects) throw new Error("next redirects are missing");
@@ -153,6 +183,7 @@ async function main() {
     assert.equal(rule.destination.includes("joma-"), false);
   }
 
+  console.log(`slug redirect rows ok: ${slugRedirectEntries().length} targets, host header ignored`);
   console.log("slug aliases ok: old and new slugs return FLOW-NEW, FLOW-OLD");
 }
 
