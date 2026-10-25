@@ -1,7 +1,10 @@
 /**
  * Public slug renames. The mobile app still requests the old slugs and
  * caches catalog JSON for 7 days, so API routes accept both and answer
- * with the new slug. Browser pages keep the 308 redirects.
+ * with the new slug.
+ *
+ * This is a fixed lookup. Unknown strings are left unchanged for normal
+ * catalog handling. Do not copy an unknown slug into a redirect target.
  */
 export const SLUG_ALIASES: Readonly<Record<string, string>> = {
   "joma-flow": "flow",

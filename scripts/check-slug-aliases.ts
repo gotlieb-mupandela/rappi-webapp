@@ -10,7 +10,8 @@ import nextConfig from "../next.config";
 import { buildListing, filterListing, listingHref, parseListingQuery } from "../lib/listing-core";
 import { jomaFolderByKey } from "../lib/joma-tree";
 import type { ListingItem } from "../lib/listing-types";
-import { canonicalSlug, canonicalSlugLabel } from "../lib/slug-aliases";
+import { canonicalSlug, canonicalSlugLabel, SLUG_ALIASES } from "../lib/slug-aliases";
+import { fixedSlugRedirect, slugRedirectTargets } from "../lib/slug-redirects";
 
 function item(code: string, subcategory: string, folders: string[]): ListingItem {
   return {
@@ -90,29 +91,58 @@ assert.equal(flow?.key, "flow");
 assert.equal(flow?.label, "Flow");
 assert.equal(jomaFolderByKey("flow"), flow);
 
-async function main() {
-const loadRedirects = nextConfig.redirects;
-if (!loadRedirects) throw new Error("next redirects are missing");
-const redirects = await loadRedirects();
-const queryRedirects = redirects.filter((rule) =>
-  rule.has?.some(
-    (match) =>
-      match.type === "query" &&
-      (match.key === "tab" || match.key === "group" || match.key === "sub"),
-  ),
-);
-assert.equal(queryRedirects.length, 3);
-for (const rule of queryRedirects) {
-  assert.equal(rule.permanent, true);
-  assert.match(rule.source, /\(\?!api/);
-}
-assert.ok(
-  redirects.some(
-    (rule) => rule.source === "/shop/joma-flow" && rule.destination === "/shop/shoes?group=flow" && rule.permanent,
-  ),
-);
+assert.deepEqual(Object.keys(SLUG_ALIASES).sort(), ["joma-flow", "joma-kids"]);
+assert.deepEqual(Object.values(SLUG_ALIASES).sort(), ["flow", "kids"]);
 
-console.log("slug aliases ok: old and new slugs return FLOW-NEW, FLOW-OLD");
+assert.equal(
+  fixedSlugRedirect("/shop/shoes", new URLSearchParams("group=joma-flow")),
+  "/shop/shoes?group=flow",
+);
+assert.equal(
+  fixedSlugRedirect("/shop/shoes", new URLSearchParams("sub=joma-flow")),
+  "/shop/shoes?sub=flow",
+);
+assert.equal(
+  fixedSlugRedirect("/shop/kids", new URLSearchParams("tab=joma-kids&group=k14-sweatshirts-jackets")),
+  "/shop/kids?group=k14-sweatshirts-jackets&tab=kids",
+);
+assert.equal(fixedSlugRedirect("/shop/joma-flow", new URLSearchParams()), "/shop/shoes?group=flow");
+assert.equal(fixedSlugRedirect("/category/joma-flow", new URLSearchParams()), "/shop/shoes?group=flow");
+
+assert.equal(
+  fixedSlugRedirect("/shop/shoes", new URLSearchParams("group=joma-flow&next=https://evil.example")),
+  undefined,
+);
+assert.equal(
+  fixedSlugRedirect("/shop/kids", new URLSearchParams("group=k14-sweatshirts-jackets&tab=joma-kids&page=2")),
+  undefined,
+);
+assert.equal(fixedSlugRedirect("/shop/shoes", new URLSearchParams("group=running-shoes")), undefined);
+assert.equal(fixedSlugRedirect("/api/catalog", new URLSearchParams("sub=joma-flow")), undefined);
+assert.equal(fixedSlugRedirect("/shop/not-a-page", new URLSearchParams("tab=joma-kids")), undefined);
+
+for (const target of slugRedirectTargets()) {
+  assert.match(target, /^\//);
+  assert.equal(target.startsWith("//"), false);
+  assert.equal(target.includes("://"), false);
+  assert.equal(target.includes(":"), false);
+  assert.equal(target.includes(".."), false);
+  assert.equal(target.includes("joma-flow"), false);
+  assert.equal(target.includes("joma-kids"), false);
+}
+
+async function main() {
+  const loadRedirects = nextConfig.redirects;
+  if (!loadRedirects) throw new Error("next redirects are missing");
+  const redirects = await loadRedirects();
+  for (const rule of redirects) {
+    assert.equal(rule.source.includes(":path"), false);
+    assert.equal(rule.destination.includes(":path"), false);
+    assert.equal(rule.destination.startsWith("/"), true);
+    assert.equal(rule.destination.includes("joma-"), false);
+  }
+
+  console.log("slug aliases ok: old and new slugs return FLOW-NEW, FLOW-OLD");
 }
 
 main();
