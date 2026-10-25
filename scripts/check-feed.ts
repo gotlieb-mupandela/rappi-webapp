@@ -9,11 +9,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { catalogVersion } from "../lib/catalog-version";
 import { formatPrice } from "../lib/format";
+import { allowedImageHosts } from "../lib/image-hosts";
 import { filterListing, type ListingItem } from "../lib/listing-core";
 import { metaAbsoluteUrl } from "../lib/meta/site";
 import {
-  FEED_CARD_PLACEHOLDER,
   buildMobileFeed,
+  feedImageUrl,
   feedProductCard,
   type FeedProduct,
   type MobileFeed,
@@ -43,6 +44,8 @@ function walkFiles(dir: string, out: string[] = []): string[] {
   }
   return out;
 }
+
+const HOST_LIST_KEYS = new Set(["allowedHosts", "allowedImageHosts", "imageHosts", "hosts"]);
 
 const probe = "zz-cache-key-probe";
 assert.equal(feedVersionParamStatus([]), "ok");
@@ -86,14 +89,26 @@ for (const value of copyValues(feed)) {
 }
 
 for (const card of feed.products) {
-  assert.equal(card.cardImage.startsWith("https://"), true, card.code);
-  assert.equal(card.cardImage.startsWith("/"), false, card.code);
+  if (card.cardImage === null) {
+    assert.equal(card.code, "HTTP-DROP");
+  } else {
+    assert.equal(card.cardImage.startsWith("https://"), true, card.code);
+    assert.equal(card.cardImage.startsWith("/"), false, card.code);
+    assert.equal(feedImageUrl(card.cardImage), card.cardImage, card.code);
+  }
   assert.equal("imageUrl" in card, false);
   assert.equal(typeof card.price, "number");
 }
-assert.equal(JSON.stringify(feed).includes("allowedHosts"), false);
+for (const image of everyImage(feed)) {
+  if (image === null) continue;
+  assert.equal(image.startsWith("https://"), true, image);
+  assert.equal(feedImageUrl(image), image, image);
+}
+assert.equal(feed.home.sections[0]?.tiles.every((tile) => tile.image?.startsWith("https://")), true);
+assertNoHostList(feed);
 assert.equal(JSON.stringify(feed).toLowerCase().includes("access-control"), false);
 assert.equal(JSON.stringify(feed).includes("example.com"), false);
+assert.equal(JSON.stringify(feed).includes("http://"), false);
 assert.equal(JSON.stringify(feed).includes("joma-flow"), false);
 assert.equal(JSON.stringify(feed).includes("joma-kids"), false);
 
@@ -116,11 +131,16 @@ assert.equal(women.tiles.some((tile) => tile.href.includes("w-")), true);
 assert.equal(feed.folders.some((folder) => folder.key.startsWith("w-")), true);
 
 const medium = cardByCode(feed, "CARD-MEDIUM");
+assert.ok(medium.cardImage);
 assert.equal(medium.cardImage.includes("/images/medium/"), true);
 assert.equal(medium.cardImage.includes("card-primary"), false);
+assert.equal(feedImageUrl(medium.cardImage), medium.cardImage);
 
 const relative = cardByCode(feed, "REL-PATH");
-assert.equal(relative.cardImage, metaAbsoluteUrl("/catalog-photos/rel-path.jpg"));
+const relativeAbsolute = metaAbsoluteUrl("/catalog-photos/rel-path.jpg");
+assert.equal(relative.cardImage, relativeAbsolute);
+assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), relativeAbsolute);
+assert.equal(feedImageUrl(relativeAbsolute), relativeAbsolute);
 
 const pack = cardByCode(feed, "PACK-25");
 assert.equal(pack.name.includes("Pack of 25"), true);
@@ -151,7 +171,37 @@ const longName = cardByCode(feed, "LONG-NAME");
 assert.equal(longName.name.length > 120, true);
 
 const httpCard = cardByCode(feed, "HTTP-DROP");
-assert.equal(httpCard.cardImage, FEED_CARD_PLACEHOLDER);
+assert.equal(httpCard.cardImage, null);
+
+const offHostUrl = "https://not-on-the-list.example/photo.jpg";
+assert.equal(feedImageUrl(offHostUrl), null);
+assert.equal(feedImageUrl("http://example.com/hidden.jpg"), null);
+assert.equal(feedImageUrl("//example.com/hidden.jpg"), null);
+const listed = allowedImageHosts().find((rule) => rule.pathnamePrefix !== "/");
+assert.ok(listed);
+const keptUrl = `https://${listed.host}${listed.pathnamePrefix}kept.jpg`;
+const httpListed = `http://${listed.host}${listed.pathnamePrefix}kept.jpg`;
+const wrongPath = `https://${listed.host}/outside-prefix/kept.jpg`;
+assert.equal(feedImageUrl(keptUrl), keptUrl);
+assert.equal(feedImageUrl(httpListed), null);
+assert.equal(feedImageUrl(wrongPath), null);
+const offHost = {
+  ...products.find((product) => product.code === "PLAIN-01")!,
+  id: "OFF-HOST",
+  code: "OFF-HOST",
+  name: "Off host photo",
+  displayName: "Off host photo",
+  item: "Off host photo",
+  title: "Off host photo",
+  imageUrl: offHostUrl,
+  images: [offHostUrl],
+  folders: [] as string[],
+};
+const offFeed = buildMobileFeed([offHost], catalogVersion([offHost]));
+assert.equal(cardByCode(offFeed, "OFF-HOST").cardImage, null);
+assert.equal(JSON.stringify(offFeed).includes(offHostUrl), false);
+assert.equal(JSON.stringify(offFeed).includes("not-on-the-list.example"), false);
+assertNoHostList(offFeed);
 
 const codes = new Set(feed.products.map((product) => product.code));
 assert.equal(codes.has("HIDDEN-UNAVAIL"), false);
@@ -209,7 +259,10 @@ for (const product of baked) {
   }
   const card = feedProductCard(product);
   if (!card) fail(`${product.code} was dropped instead of receiving an absolute card photo`);
-  if (!card.cardImage.startsWith("https://")) fail(`${product.code} cardImage is not absolute https`);
+  if (!card.cardImage || !card.cardImage.startsWith("https://")) {
+    fail(`${product.code} cardImage is not absolute https`);
+  }
+  if (feedImageUrl(card.cardImage) !== card.cardImage) fail(`${product.code} cardImage failed the host check`);
   relativeCodes.push(product.code);
 }
 relativeCodes.sort();
@@ -232,6 +285,9 @@ assert.equal(storefrontRoute.includes("Invalid version."), true);
 assert.equal(storefrontRoute.includes("${"), false);
 assert.equal(storefrontRoute.includes("Access-Control"), false);
 assert.equal(storefrontRoute.includes("allowedHosts"), false);
+assert.equal(storefrontRoute.includes("Content-Security-Policy"), false);
+assert.equal(versionRoute.includes("Content-Security-Policy"), false);
+assert.equal(httpLib.includes("Content-Security-Policy"), false);
 assert.equal(storefrontRoute.includes("CATALOG_REVALIDATE_SECRET"), false);
 assert.equal(storefrontRoute.includes("SUPABASE_SERVICE"), false);
 assert.equal(storefrontRoute.includes("searchParams.getAll(\"v\")"), true);
@@ -246,6 +302,32 @@ assert.equal(fixtureRunner.includes("127.0.0.1"), true);
 assert.equal(fixtureRunner.includes("0.0.0.0"), false);
 assert.equal(fixtureRunner.includes("NEXT_PUBLIC_"), false);
 assert.equal(fixtureRunner.includes("process.exit(1)"), true);
+
+const feedSources = [
+  "lib/mobile-feed.ts",
+  "lib/mobile-feed-data.ts",
+  "lib/mobile-feed-http.ts",
+  "lib/mobile-feed-slugs.ts",
+  "lib/mobile-feed-targets.ts",
+  "lib/mobile-feed-version.ts",
+  "app/api/mobile/v1/version/route.ts",
+  "app/api/mobile/v1/storefront/route.ts",
+  "scripts/check-feed.ts",
+  "scripts/dev-fixture.ts",
+  "scripts/feed-fixture.ts",
+];
+const feedBuilder = read("lib/mobile-feed.ts");
+assert.equal(feedBuilder.includes("allowedImageHosts()"), true);
+assert.equal(feedBuilder.includes("imageHostAllows("), true);
+assert.equal(feedBuilder.includes("isAllowedProductImageUrl("), true);
+assert.equal(feedBuilder.includes("ALLOWED_IMAGE_HOSTS"), false);
+assert.equal(feedBuilder.includes("Content-Security-Policy"), false);
+for (const relative of feedSources) {
+  const source = read(relative);
+  for (const rule of allowedImageHosts()) {
+    if (source.includes(rule.host)) fail(`${relative} copies host ${rule.host}`);
+  }
+}
 
 for (const path of [...walkFiles(join(root, "app")), ...walkFiles(join(root, "lib"))]) {
   const source = readFileSync(path, "utf8");
@@ -273,6 +355,28 @@ console.log(`feed check ok (fixture products ${feed.products.length}, version ${
 
 function feedBodyHas(feedValue: MobileFeed, needle: string) {
   return JSON.stringify(feedValue).includes(needle);
+}
+
+function assertNoHostList(value: unknown, path = "feed"): void {
+  if (!value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertNoHostList(item, `${path}[${index}]`));
+    return;
+  }
+  for (const [key, child] of Object.entries(value)) {
+    if (HOST_LIST_KEYS.has(key)) fail(`${path}.${key} is a host list`);
+    assertNoHostList(child, `${path}.${key}`);
+  }
+}
+
+function everyImage(feedValue: MobileFeed): Array<string | null> {
+  return [
+    ...feedValue.home.sections.flatMap((section) => section.tiles.map((tile) => tile.image)),
+    ...feedValue.menus.flatMap((menu) => [menu.image, ...menu.tiles.map((tile) => tile.image)]),
+    ...feedValue.kids.tiles.map((tile) => tile.image),
+    ...feedValue.promos.map((tile) => tile.image),
+    ...feedValue.products.map((product) => product.cardImage),
+  ];
 }
 
 function cardByCode(feedValue: MobileFeed, code: string): FeedProduct {

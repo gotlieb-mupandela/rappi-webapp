@@ -3,8 +3,10 @@ import { DPO_TEST_CODE } from "@/lib/dpo-test-product";
 import { formatPrice } from "@/lib/format";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 import { jomaFolderMetaSnapshot } from "@/lib/joma-tree";
+import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
 import { filterListing, type ListingItem } from "@/lib/listing-core";
-import { cardImageUrl, hasUsableProductImage } from "@/lib/media";
+import { cardImageUrl, hasUsableProductImage, isAllowedProductImageUrl } from "@/lib/media";
+import { metaAbsoluteUrl } from "@/lib/meta/site";
 import {
   FEED_MENUS,
   FLOW_TILE,
@@ -20,19 +22,11 @@ import { publicCopy, publicFolderKey } from "@/lib/mobile-feed-slugs";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/taxonomy";
 import type { Product } from "@/lib/types";
 
-/**
- * Absolute stand-in when a row has no allowed card photo.
- * Relative catalogue paths are not left relative: cardImageUrl turns them into
- * https on the site origin. This placeholder is only for a photo that cannot
- * be used (missing, http, or a host the card helper drops).
- */
-export const FEED_CARD_PLACEHOLDER = "https://www.rappisportshub.com/brand/hub-sportswear.png";
-
 export type FeedTile = {
   id: string;
   label: string;
   href: string;
-  image: string;
+  image: string | null;
   count: number;
 };
 
@@ -53,7 +47,7 @@ export type FeedProduct = {
   isPack: boolean;
   price: number;
   priceLabel: string;
-  cardImage: string;
+  cardImage: string | null;
 };
 
 export type MobileFeed = {
@@ -64,7 +58,7 @@ export type MobileFeed = {
     slug: string;
     label: string;
     href: string;
-    image: string;
+    image: string | null;
     tiles: FeedTile[];
   }>;
   folders: FeedFolder[];
@@ -78,10 +72,41 @@ export type FeedSource = Product & { folders?: string[] };
 
 const EMPTY_WHEN_HIDDEN = new Set(["joma-flow", "wf-joma-flow"]);
 
-function tileImage(path: string): string {
-  const absolute = cardImageUrl({ imageUrl: path, images: [] });
-  if (absolute && /^https:\/\//i.test(absolute)) return absolute;
-  return FEED_CARD_PLACEHOLDER;
+/**
+ * Absolute https image, or null when the URL is dropped.
+ * Relative paths are resolved with metaAbsoluteUrl first.
+ * A host is kept only when allowedImageHosts() plus imageHostAllows() match.
+ * The canonical site origin is not a row in that list. It is kept only when
+ * isAllowedProductImageUrl allows it, which is the same same-origin check the
+ * catalogue card field uses. No host strings are copied here.
+ */
+export function feedImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed.startsWith("//") || /^http:\/\//i.test(trimmed)) return null;
+  const absolute = /^https:\/\//i.test(trimmed)
+    ? trimmed
+    : trimmed.startsWith("/")
+      ? metaAbsoluteUrl(trimmed)
+      : null;
+  if (!absolute || !/^https:\/\//i.test(absolute)) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(absolute);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:") return null;
+  const listed = allowedImageHosts().some((rule) =>
+    imageHostAllows(parsed.hostname, parsed.pathname, rule),
+  );
+  if (listed) return absolute;
+  if (isAllowedProductImageUrl(absolute)) return absolute;
+  return null;
+}
+
+function tileImage(path: string): string | null {
+  return feedImageUrl(cardImageUrl({ imageUrl: path, images: [] }) ?? path);
 }
 
 function labelOrNull(value: string): string | null {
@@ -98,9 +123,6 @@ export function feedProductCard(product: Product): FeedProduct | null {
   const suffixText = suffix.replace(/^ · /, "");
   const combined = suffixText && !base.includes(suffixText) ? `${base}${suffix}` : base;
   const name = publicCopy(combined) || product.code;
-  const card = cardImageUrl(product);
-  const cardImage = card && /^https:\/\//i.test(card) ? card : FEED_CARD_PLACEHOLDER;
-  if (!/^https:\/\//i.test(cardImage) || cardImage.startsWith("/")) return null;
   return {
     code: product.code,
     name,
@@ -109,7 +131,7 @@ export function feedProductCard(product: Product): FeedProduct | null {
     isPack: view.isPack,
     price: product.price,
     priceLabel: formatPrice(product.price),
-    cardImage,
+    cardImage: feedImageUrl(cardImageUrl(product)),
   };
 }
 
