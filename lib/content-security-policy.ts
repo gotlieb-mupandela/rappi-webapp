@@ -18,10 +18,6 @@ export type ContentSecurityPolicyEnv = {
   supabaseUrl?: string;
   /** DPO_PAY_URL. Browser checkout redirect. DPO_API_URL stays server-side. */
   dpoPayUrl?: string;
-  /** NEXT_PUBLIC_INSTAGRAM_URL. Included on navigate-to only when set. */
-  instagramUrl?: string;
-  /** NEXT_PUBLIC_FACEBOOK_URL. Included on navigate-to only when set. */
-  facebookUrl?: string;
 };
 
 function httpsHost(value: string | undefined, fallback: string) {
@@ -48,18 +44,13 @@ function unique(sources: Array<string | undefined>) {
  * Report-only policy. img-src is only 'self', data:, and the product image
  * hosts (wsrv.nl, the Supabase product-images host, and the two supplier
  * hosts). blob: is allowed by the checker but unused. Checkout assigns
- * window.location to DPO_PAY_URL. Google sign-in can leave for the Supabase
- * auth host and accounts.google.com. WhatsApp and mailto links are real
- * navigations too.
+ * window.location to DPO_PAY_URL. Browsers do not support navigate-to, so
+ * this policy does not send it and does not set a report collector.
  */
 export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = {}) {
   const supabaseHost = httpsHost(env.supabaseUrl, SUPABASE_HOST_FALLBACK);
   const dpoPayHost = httpsHost(env.dpoPayUrl, DPO_PAY_HOST_FALLBACK);
   const imageHosts = unique(PRODUCT_IMAGE_REMOTE_HOSTS.map((host) => httpsOrigin(host)));
-  const socialNav = unique([
-    httpsOrigin(httpsHost(env.instagramUrl, "")),
-    httpsOrigin(httpsHost(env.facebookUrl, "")),
-  ]);
 
   const directives = [
     "default-src 'self'",
@@ -73,7 +64,6 @@ export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = 
     `connect-src 'self' ${httpsOrigin(supabaseHost)} wss://${supabaseHost} https://accounts.google.com https://www.facebook.com https://connect.facebook.net ${httpsOrigin(dpoPayHost)} https://vercel.live`,
     `frame-src 'self' https://accounts.google.com ${httpsOrigin(dpoPayHost)} https://vercel.live`,
     `form-action 'self' ${httpsOrigin(dpoPayHost)}`,
-    `navigate-to 'self' ${httpsOrigin(dpoPayHost)} ${httpsOrigin(supabaseHost)} https://accounts.google.com https://wa.me mailto: ${socialNav.join(" ")}`.trim(),
     "worker-src 'self'",
     "manifest-src 'self'",
   ];

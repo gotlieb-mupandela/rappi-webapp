@@ -11,8 +11,6 @@ export function securityHeaderEnv(env: NodeJS.ProcessEnv = process.env): Content
   return {
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
     dpoPayUrl: env.DPO_PAY_URL,
-    instagramUrl: env.NEXT_PUBLIC_INSTAGRAM_URL,
-    facebookUrl: env.NEXT_PUBLIC_FACEBOOK_URL,
   };
 }
 

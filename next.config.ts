@@ -10,9 +10,9 @@ import { securityHeaders } from "./lib/security-headers";
 // NEXT_PUBLIC_SUPABASE_URL for auth, data, and storage. Checkout assigns
 // window.location to DPO_PAY_URL (default
 // https://secure.3gdirectpay.com/payv3.php). DPO_API_URL is called only from
-// the server. navigate-to lists that pay host, the Supabase host,
-// accounts.google.com, WhatsApp, and mailto. It is report-only, so a missing
-// host is logged and not blocked. DPO sends the shopper back with a top-level
+// the server. The policy does not send navigate-to, which browsers do not
+// support, and it does not set a report collector. DPO sends the shopper back
+// with a top-level
 // redirect to /checkout/return or /checkout/cancel. Nothing in the app frames
 // this site, so X-Frame-Options DENY is not on that return path.
 
