@@ -1,5 +1,10 @@
--- NOT APPLIED. This file is not run by this change. Review and approve it
--- before anyone applies it to a database.
+-- NOT APPLIED. This file is not run by this change. Nothing here is applied
+-- to production until it is reviewed and approved.
+--
+-- Rollback (also not applied): supabase/rollbacks/20261025221801_product_image_limits_and_avatars.sql
+-- That file is not in supabase/migrations, so a migrate will not run it.
+-- It restores the anonymous SELECT policies below and leaves both buckets
+-- public, so a known object URL still downloads.
 --
 -- product-images stays a public bucket, so a known object URL still downloads.
 -- The broad SELECT policy is what lets an anonymous client list SKU paths.
@@ -77,3 +82,22 @@ create policy avatars_owner_delete
     bucket_id = 'avatars'
     and (storage.foldername(name))[1] = (select auth.uid()::text)
   );
+
+-- Down SQL, commented so this migration does not run it. Same statements as
+-- supabase/rollbacks/20261025221801_product_image_limits_and_avatars.sql.
+-- product_images_public_read is the policy from 20260907100003_admin_panel.sql.
+-- avatars_public_read is that same anonymous SELECT for the avatars bucket,
+-- which this migration drops. Buckets stay public, so known object URLs
+-- still download after the rollback.
+--
+-- drop policy if exists product_images_admin_select on storage.objects;
+--
+-- drop policy if exists product_images_public_read on storage.objects;
+-- create policy product_images_public_read
+--   on storage.objects for select
+--   using (bucket_id = 'product-images');
+--
+-- drop policy if exists avatars_public_read on storage.objects;
+-- create policy avatars_public_read
+--   on storage.objects for select
+--   using (bucket_id = 'avatars');
