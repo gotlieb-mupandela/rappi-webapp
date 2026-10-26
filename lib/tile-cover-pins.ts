@@ -35,6 +35,10 @@ export const TILE_PRODUCT_CODES: Record<string, string> = {
   "acc-outdoor": "401970.477",
   "acc-teamwear": "400024.100",
   "acc-racket": "401845.100",
+  "acc-backpacks": "400001.450",
+
+  resort: "104657.100",
+  "w-resort": "902748.649",
 };
 
 /** Used only when the folder itself has no photographed product. */

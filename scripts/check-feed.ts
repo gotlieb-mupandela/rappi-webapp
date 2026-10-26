@@ -356,7 +356,9 @@ const markedCard = marked.products.find((card) => card.code === "MARKUP");
 assert.ok(markedCard);
 assert.equal(markedCard.name, "Court btrainer/b");
 assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.name), false);
-assert.ok(markedCard.line === null || !/[<>]/.test(markedCard.line));
+// MARKUP: the line is the exact sanitized label, with no angle brackets left.
+assert.equal(markedCard.line, "Court BTrainer/B");
+assert.equal(/[<>]/.test(markedCard.line ?? ""), false);
 assert.equal(JSON.stringify(markedCard).includes("script"), false);
 assert.equal(JSON.stringify(markedCard).includes("Supplier heading"), false);
 assert.equal("title" in markedCard, false);
@@ -373,8 +375,18 @@ const itemOnly = feedProductCard({
 assert.ok(itemOnly);
 assert.equal(itemOnly.name, "ITEM-ONLY");
 assert.ok(itemOnly.line === null || typeof itemOnly.line === "string");
+// ITEM-ONLY: the supplier heading never reaches the serialized product.
 assert.equal(JSON.stringify(itemOnly).includes("Supplier heading"), false);
 assert.deepEqual(Object.keys(itemOnly), [...FEED_PRODUCT_KEYS]);
+// Price-bracket heading: the line is hidden (null) so clients show their own "More".
+const priceBracket = feedProductCard({
+  ...products.find((product) => product.code === "PLAIN-01")!,
+  id: "PRICE-BRACKET",
+  code: "PRICE-BRACKET",
+  item: "12.5 Kids Tee [60]",
+});
+assert.ok(priceBracket);
+assert.equal(priceBracket.line, null);
 assert.equal(JSON.stringify(markedCard).includes("<"), false);
 assert.equal(JSON.stringify(markedCard).includes("<script"), false);
 
@@ -827,7 +839,73 @@ for (const card of bakedFeed.products) {
 }
 assert.ok(labelFrTranslated > 0);
 console.log(`labelFr differs from label on ${labelFrTranslated} cards`);
-assert.ok(lineNull < bakedFeed.products.length, "line must be set once #101/#102 are stacked");
+// line is null exactly on the 59 hidden-heading codes (price-bracket or empty headings).
+const HIDDEN_HEADING_CODES = [
+  "101291.452",
+  "101291.601",
+  "101291.602",
+  "101291.609",
+  "101291.701",
+  "101291.702",
+  "101291.715",
+  "101291.901",
+  "101465.102",
+  "101465.109",
+  "101465.452",
+  "101465.602",
+  "101465.702",
+  "102219.336",
+  "102263.336",
+  "102521.102",
+  "102521.451",
+  "102521.452",
+  "102521.601",
+  "102521.602",
+  "102521.701",
+  "102521.702",
+  "102521.901",
+  "103235.109",
+  "103734.102",
+  "103734.203",
+  "103734.332",
+  "103734.381",
+  "103734.451",
+  "103734.601",
+  "103734.703",
+  "103734.881",
+  "103734.901",
+  "103908.991",
+  "103971.102",
+  "103971.201",
+  "103971.452",
+  "103971.602",
+  "103971.901",
+  "104361.031",
+  "104361.110",
+  "104361.201",
+  "104361.601",
+  "104361.702",
+  "104361.881",
+  "104361.901",
+  "104488.102",
+  "104488.201",
+  "104488.474",
+  "104488.599",
+  "104488.602",
+  "104488.702",
+  "401521.649",
+  "600115.426",
+  "900935.027",
+  "901267.601",
+  "901825.476",
+  "901923.104",
+  "902340.100"
+];
+assert.deepEqual(
+  bakedFeed.products.filter((card) => card.line === null).map((card) => card.code).sort(),
+  HIDDEN_HEADING_CODES,
+);
+assert.equal(lineNull, HIDDEN_HEADING_CODES.length);
 console.log(`product line null ${lineNull} of ${bakedFeed.products.length}`);
 assert.equal(imageDiffer, 0);
 console.log(
