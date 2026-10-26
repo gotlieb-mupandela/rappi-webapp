@@ -17,7 +17,7 @@ For every product on the public store (7,403 codes in data/store-image-indexes.j
 - B: photos not on the store are dropped, not kept last.
 
 ## Logo-only
-RMETAW2631, RMETLW2620, 104937.273 now use their store photos. GOLCW2602FGD and GOLS2601AG are 404 on the store, so the logo is removed and the gallery is empty Effect Gotlieb will see: both now show the no-photo plate and drop out of browse grids (lib/listing-core.ts productHasImage, because hasUsableProductImage is false). Their product pages still work.
+RMETAW2631, RMETLW2620, 104937.273 now use their store photos. GOLCW2602FGD and GOLS2601AG are 404 on the store, so the logo is removed and the gallery is empty. Effect Gotlieb will see: both now show the no-photo plate and drop out of browse grids (lib/listing-core.ts productHasImage, because hasUsableProductImage is false). Their product pages still work.
 
 ## Files
 - dry-run.csv: code, old images, new images, reason.
@@ -44,3 +44,9 @@ It re-adds exactly the listed URLs after the store photos (not in their old posi
 - Store order is index order (_1, _2, ...). The order on store pages was not read.
 - Dropped v1 B2B photos are assumed to be a different shoot of the same product; not compared.
 - The 3 prefixed URLs were checked for HTTP 200 and image type only, not for showing the right product.
+
+## RVICTW2612 and TKTULW2625 (QA tagged them fewer)
+Not missing a photo. Store indexes _1 to _5 return 200 and _6 to _10 return 404 (GET, 2026-10-26). The baked gallery on main already had _1 to _5 plus one v1 photo; this PR leaves _1 to _5. Supabase holds only 1 photo (the v1 one) for each, which matches the 1 photo QA counted. No data fix needed in products.json.
+
+## Supabase
+See held-supabase/README.md: read-only backup and sizing, and the held one-transaction script. Nothing was written.
