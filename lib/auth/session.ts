@@ -82,14 +82,46 @@ export function userFromProfile(
   };
 }
 
+/** Longer than a real in-site path. Huge values are rejected instead of pushed. */
+const MAX_NEXT_PATH_LENGTH = 2048;
+
+/**
+ * Percent-encoded controls (%00-%1F and %7F) plus encoded slash (%2F)
+ * and encoded backslash (%5C). Checked on the raw string, any case.
+ */
+const ENCODED_CONTROL_OR_SLASH = /%(?:[01][0-9a-f]|7f|2f|5c)/i;
+
+function hasControlOrWhitespace(value: string) {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code <= 0x20 || code === 0x7f) return true;
+  }
+  return /\s/.test(value);
+}
+
+/**
+ * In-site path for post-login navigation. Query strings and hashes stay.
+ * Control characters and whitespace are rejected because URL parsers strip
+ * them. A tab between slashes is enough for the origin to change.
+ */
 export function safeNextPath(raw: string | null | undefined, fallback = "/") {
   if (
     !raw ||
+    raw.length > MAX_NEXT_PATH_LENGTH ||
+    hasControlOrWhitespace(raw) ||
+    ENCODED_CONTROL_OR_SLASH.test(raw) ||
     !raw.startsWith("/") ||
     raw.startsWith("//") ||
     raw.includes("\\") ||
     raw.includes("//")
   ) {
+    return fallback;
+  }
+  try {
+    if (new URL(raw, "https://x.invalid").origin !== "https://x.invalid") {
+      return fallback;
+    }
+  } catch {
     return fallback;
   }
   return raw;

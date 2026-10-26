@@ -1,3 +1,5 @@
+import { safeNextPath } from "@/lib/auth/session";
+
 export const NATIVE_APP_ID = "com.rappisportshub.app";
 export const NATIVE_SCHEME = "com.rappisportshub.app";
 export const NATIVE_AUTH_REDIRECT = `${NATIVE_SCHEME}://login-callback`;
@@ -24,7 +26,7 @@ export function nativePlatform(): "ios" | "android" | null {
 }
 
 export function nativeAuthRedirect(next = "/account") {
-  const dest = next.startsWith("/") ? next : "/account";
+  const dest = safeNextPath(next, "/account");
   return `${NATIVE_AUTH_REDIRECT}?next=${encodeURIComponent(dest)}`;
 }
 
