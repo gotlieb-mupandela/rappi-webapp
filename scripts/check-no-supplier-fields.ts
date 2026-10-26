@@ -1,6 +1,8 @@
 /**
- * Public payloads must not carry supplier line fields, and a public `line`
- * must not end in &, /, or -.
+ * Public payloads must not carry supplier line fields. A public `line`
+ * must not end in &, /, or -, and a non-empty line must not open with a
+ * price bracket (digits, a dot, then a digit). "" is allowed: the shop
+ * shows "More" for it.
  * Scans public/listing-index.json, a local sample of client product JSON,
  * and built client chunks under .next/static.
  * Prerendered pages under .next/server/app are scanned only when that
@@ -22,6 +24,7 @@ const staticDir = join(root, ".next", "static");
 const BANNED = ["Joma Flow [", "JOMA KIDS SET"];
 const SUPPLIER_TOKEN = /joma/i;
 const TRAILING_SEPARATOR = /(?:&|\/|-)$/;
+const PRICE_BRACKET = /^\d+\.\d/;
 const STRING_KEY = /"(item|sheetCategory)"\s*:\s*"/g;
 const LINE_VALUE = /"line"\s*:\s*"([^"\\]*)"/gi;
 
@@ -30,7 +33,15 @@ const LINE_CASES: Array<[string, string]> = [
   ["Pants / Shorts [200]", "Pants / Shorts"],
   ["T-shirt / Top [183]", "T-Shirt / Top"],
   ["Tennis - Padel woman [48]", "Tennis - Padel"],
-  ["3.99 - 4.99 [164]", "3.99 - 4.99"],
+  ["3.99 - 4.99 [164]", ""],
+  ["5.99 - 6.99 [118]", ""],
+  ["6.99 - 7.99 [118]", ""],
+  ["7.99 - 10.99 [116]", ""],
+  ["10.99 - 15.99 [134]", ""],
+  ["1.99 - 2.99 [5]", ""],
+  ["4.99 - 5.99 [60]", ""],
+  ["1-4 years [6]", "1-4 Years"],
+  ["5-8 years girl [15]", "5-8 Years"],
   ["Atheletes / Combat [23]", "Atheletes / Combat"],
   ["Sweatshirt / Jacket [124]", "Sweatshirt"],
   ["T-shirts & Polo Shirts [62]", "T-Shirts & Polo"],
@@ -69,6 +80,7 @@ function assertNoSupplierKeys(rows: Array<Record<string, unknown>>, label: strin
     if (Object.prototype.hasOwnProperty.call(row, "sheetCategory")) {
       fail(`${label} ${code} still has sheetCategory`);
     }
+    // "" is a real line (the shop shows "More"). Only a missing key fails.
     if (typeof row.line !== "string") {
       fail(`${label} ${code} is missing line`);
       continue;
@@ -83,6 +95,9 @@ function assertPublicLine(line: string, label: string) {
   }
   if (TRAILING_SEPARATOR.test(line.trim())) {
     fail(`${label} line ends in a separator: ${JSON.stringify(line)}`);
+  }
+  if (line.trim() !== "" && PRICE_BRACKET.test(line.trim())) {
+    fail(`${label} line starts with a price bracket: ${JSON.stringify(line)}`);
   }
 }
 

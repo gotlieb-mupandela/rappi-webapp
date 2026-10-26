@@ -13,6 +13,12 @@ const SUPPLIER_TOKEN = /^joma$/i;
 /** Joiner kept between two words. A public line must not end on one of these. */
 const LINE_SEPARATOR = /^(?:&|\/|-)$/;
 
+/**
+ * Price bracket such as "3.99 - 4.99". A heading that starts this way is hidden
+ * so the shop and the app fall back to "More". "1-4 Years" does not match.
+ */
+const PRICE_BRACKET = /^\d+\.\d/;
+
 /** Normalized supplier `item` family (drops a trailing [n] pack marker). Server use only. */
 export function itemFamilyOf(product: Pick<Product, "item">) {
   return normalizeFamily(product.item || "");
@@ -40,7 +46,9 @@ function titleCase(value: string) {
  * a separator (&, /, -), also keep the word after it. The stop-word rule
  * applies to that third word only: if it is a stop word, or there is no third
  * word, drop the separator and keep the first word. Title-case the result.
- * An empty source returns "" so clients can fall back to their own "More".
+ * A result that opens with a price bracket (digits, a dot, then a digit)
+ * returns "" so clients fall back to their own "More". An empty source
+ * returns "" for the same reason.
  */
 export function productLineLabel(item: string | null | undefined): string {
   const fam = normalizeFamily(item || "");
@@ -59,7 +67,9 @@ export function productLineLabel(item: string | null | undefined): string {
   }
   while (kept.length > 0 && LINE_SEPARATOR.test(kept[kept.length - 1])) kept.pop();
   if (!kept.length) return "";
-  return titleCase(kept.join(" "));
+  const label = titleCase(kept.join(" "));
+  if (PRICE_BRACKET.test(label)) return "";
+  return label;
 }
 
 export function productLineOf(product: Pick<Product, "item" | "line">) {
