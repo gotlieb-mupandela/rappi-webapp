@@ -1,6 +1,12 @@
 "use client";
 
-import { assortmentCopy, getAssortment, isFootwearSku, surtidoPackLines } from "@/lib/assortment";
+import {
+  assortmentCopy,
+  clientAssortment,
+  getAssortment,
+  renderAssortmentLabel,
+  surtidoCurveSizes,
+} from "@/lib/assortment";
 import { useLocale } from "@/components/locale-provider";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -13,8 +19,10 @@ export function AssortmentBadge({
   className?: string;
 }) {
   const { t, format } = useLocale();
+  const view = clientAssortment(product);
   const info = assortmentCopy(product, t, format) ?? getAssortment(product);
-  if (!info) return null;
+  const label = renderAssortmentLabel(view.labelKey, view.labelParams, t, view.label) ?? info?.label ?? null;
+  if (!label) return null;
   return (
     <span
       className={cn(
@@ -22,12 +30,12 @@ export function AssortmentBadge({
         className,
       )}
     >
-      {info.label}
+      {label}
     </span>
   );
 }
 
-/** Each Joma pack code, with its pair count and the confirmed EU split. */
+/** Each pack code, with its pair count and the confirmed EU split. */
 export function AssortmentCurves({
   product,
   className,
@@ -36,17 +44,20 @@ export function AssortmentCurves({
   className?: string;
 }) {
   const { t } = useLocale();
-  const lines = surtidoPackLines(product);
+  const curves = surtidoCurveSizes(product);
+  if (!curves?.length) return null;
+  const bySize = new Map(clientAssortment(product).sizes.map((row) => [row.size.toUpperCase(), row]));
+  const lines = curves.flatMap((size) => {
+    const row = bySize.get(size.toUpperCase());
+    return row ? [row] : [];
+  });
   if (!lines.length) return null;
-  const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
   return (
     <ul className={cn("space-y-3", className)}>
       {lines.map((line) => (
-        <li key={line.code}>
+        <li key={line.size}>
           <p className="text-sm font-medium text-ink">
-            {line.pairs && line.pairs > 1
-              ? t("product.assortmentCode", { code: line.code, n: line.pairs, unit })
-              : `${line.code} · ${t("product.assortment")}`}
+            {renderAssortmentLabel(line.labelKey, line.labelParams, t, line.label)}
           </p>
           {line.split ? <p className="mt-0.5 text-sm text-[var(--muted)]">{line.split}</p> : null}
         </li>

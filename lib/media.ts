@@ -1,5 +1,7 @@
 import extraGalleryByCode from "@/data/ai-gallery-urls.json";
 import preTileImages from "@/data/pre-person-tile-images.json";
+import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
+import { metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
 import type { Product } from "@/lib/types";
 
 const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -104,14 +106,66 @@ export function productCardImageCandidates(product: {
   ];
 }
 
+/** https URL whose origin is metaSiteUrl(). Not an allow-list row, and not a remotePattern. */
+function isCanonicalSiteImage(parsed: URL) {
+  try {
+    const site = new URL(metaSiteUrl());
+    return parsed.protocol === "https:" && parsed.origin === site.origin;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Prefer Demandware `medium` gallery shots for cards, then Joma.net primary.
+ * Hosts from ALLOWED_IMAGE_HOSTS, or the canonical site origin.
+ * A same-origin path is allowed before it is resolved. An absolute URL must
+ * be https on an allow-list host, or on that canonical origin.
  */
+export function isAllowedProductImageUrl(url: string) {
+  if (!url || url.startsWith("//")) return false;
+  if (url.startsWith("/")) return true;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:") return false;
+  if (isCanonicalSiteImage(parsed)) return true;
+  return allowedImageHosts().some((rule) => imageHostAllows(parsed.hostname, parsed.pathname, rule));
+}
+
+/**
+ * Absolute https form of one existing URL. Relative paths are resolved with
+ * `metaAbsoluteUrl`. The file is not copied. http and hosts outside
+ * ALLOWED_IMAGE_HOSTS are dropped.
+ */
+function absoluteAllowedImageUrl(url: string): string | null {
+  const trimmed = url.trim();
+  if (!trimmed || trimmed.startsWith("//") || /^http:\/\//i.test(trimmed)) return null;
+  const absolute = /^https:\/\//i.test(trimmed)
+    ? trimmed
+    : trimmed.startsWith("/")
+      ? metaAbsoluteUrl(trimmed)
+      : null;
+  if (!absolute || !/^https:\/\//i.test(absolute)) return null;
+  return isAllowedProductImageUrl(absolute) ? absolute : null;
+}
+
+/** First card candidate as an absolute https URL, or null when it is not allowed. */
+export function cardImageUrl(product: {
+  imageUrl?: string | null;
+  images?: string[] | null;
+}): string | null {
+  const first = productCardImageCandidates(product)[0] ?? "";
+  return first ? absoluteAllowedImageUrl(first) : null;
+}
+
 export function productCardImageUrl(product: {
   imageUrl?: string | null;
   images?: string[] | null;
 }) {
-  return productCardImageCandidates(product)[0] ?? "";
+  return cardImageUrl(product) ?? "";
 }
 
 /**
@@ -228,5 +282,10 @@ export function listingCardCandidates(
   const code = product.code ?? "";
   if (audience === "kids" && !/^[56]\d{5}\./.test(code)) return tileImageCandidates(product);
   if (audience === "women" && !/^9\d{5}\./.test(code)) return tileImageCandidates(product);
-  return productCardImageCandidates(product);
+  const urls = productCardImageCandidates(product);
+  const primary = cardImageUrl(product);
+  // A relative catalogue photo resolves to the same file. Keep the site path
+  // on the card; the API field is the absolute form from cardImageUrl.
+  if (!primary || absoluteAllowedImageUrl(urls[0] ?? "") === primary) return urls;
+  return [primary, ...urls.filter((url) => absoluteAllowedImageUrl(url) !== primary)];
 }

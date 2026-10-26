@@ -1,8 +1,8 @@
-import { isZeroStockVisible } from "@/lib/visibility";
 import portalListKeys from "@/data/joma-portal-list-keys.json";
+import { DPO_TEST_CODE } from "@/lib/dpo-test-product";
 
 const PORTAL_LIST_KEYS = new Set(portalListKeys as string[]);
-import { surtidoCurveSizes } from "@/lib/assortment";
+import { clientAssortment, surtidoCurveSizes, type ClientAssortment } from "@/lib/assortment";
 import { matchesAudienceInFolder, productAudience } from "@/lib/audience";
 import {
   AUDIENCES,
@@ -14,7 +14,7 @@ import {
 } from "@/lib/catalog";
 import { sortByFolderOrder } from "@/lib/folder-order";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
-import { hasUsableProductImage } from "@/lib/media";
+import { cardImageUrl, hasUsableProductImage } from "@/lib/media";
 import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
@@ -24,7 +24,15 @@ import {
   type ListingResult,
 } from "@/lib/listing-types";
 import { versionProductImages } from "@/lib/image-cache";
+import { productLineLabel } from "@/lib/joma-item";
 import type { Product } from "@/lib/types";
+
+export {
+  listingHref,
+  listingQueryFromSearchParams,
+  listingQueryIsActive,
+  parseListingQuery,
+} from "@/lib/listing-query";
 
 export { LISTING_PAGE_SIZE } from "@/lib/listing-types";
 export type {
@@ -55,67 +63,9 @@ export function listingInHub(product: Pick<ListingItem, "category" | "hubs">, sl
 export function listingHay(product: ListingItem): string {
   if (product.hay) return product.hay;
   const sub = (SUBCATEGORY_LABELS[product.subcategory] ?? product.subcategory).toLowerCase();
-  return `${product.code} ${product.item} ${product.name} ${product.title} ${product.description ?? ""} ${CATEGORY_NAME_BY_SLUG[product.category] ?? ""} ${sub} ${product.category}`.toLowerCase();
-}
-
-export function parseListingQuery(sp: ListingQuery): ListingQuery {
-  return {
-    q: (sp.q ?? "").trim(),
-    cat: sp.cat || undefined,
-    sub: sp.sub || undefined,
-    group: sp.group || undefined,
-    size: sp.size || undefined,
-    max: sp.max || undefined,
-    audience: sp.audience || undefined,
-    page: sp.page,
-  };
-}
-
-export function listingQueryFromSearchParams(sp: URLSearchParams): ListingQuery {
-  return parseListingQuery({
-    q: sp.get("q") ?? undefined,
-    cat: sp.get("cat") ?? undefined,
-    sub: sp.get("sub") ?? undefined,
-    group: sp.get("group") ?? undefined,
-    size: sp.get("size") ?? undefined,
-    max: sp.get("max") ?? undefined,
-    audience: sp.get("audience") ?? undefined,
-    page: sp.get("page") ?? undefined,
-  });
-}
-
-export function listingHref(basePath: string, query: ListingQuery, categorySlug?: string) {
-  const next = new URLSearchParams();
-  const q = (query.q ?? "").trim();
-  if (q) next.set("q", q);
-  if (query.cat && query.cat !== "all" && query.cat !== categorySlug) next.set("cat", query.cat);
-  if (query.sub && query.sub !== "all") next.set("sub", query.sub);
-  if (query.group && query.group !== "all") next.set("group", query.group);
-  if (query.size && query.size !== "all") next.set("size", query.size);
-  if (query.max) next.set("max", query.max);
-  if (query.audience && query.audience !== "all") next.set("audience", query.audience);
-  const page = Number(query.page ?? 1);
-  if (Number.isFinite(page) && page > 1) next.set("page", String(page));
-  const qs = next.toString();
-  return qs ? `${basePath}?${qs}` : basePath;
-}
-
-export function listingQueryIsActive(
-  query: ListingQuery,
-  opts?: { categorySlug?: string; audienceSlug?: string },
-) {
-  const q = (query.q ?? "").trim();
-  if (q) return true;
-  if (query.cat && query.cat !== "all" && query.cat !== opts?.categorySlug) return true;
-  if (query.sub && query.sub !== "all") return true;
-  if (query.group && query.group !== "all") return true;
-  if (query.size && query.size !== "all") return true;
-  if (query.max) return true;
-  if (query.audience && query.audience !== "all" && query.audience !== opts?.audienceSlug) {
-    return true;
-  }
-  const page = Number(query.page ?? 1);
-  return Number.isFinite(page) && page > 1;
+  // Supplier line text stays in the server haystack only. `hay` is stripped
+  // before a row is sent to the browser.
+  return `${product.code} ${product.item ?? ""} ${product.name} ${product.title} ${product.description ?? ""} ${CATEGORY_NAME_BY_SLUG[product.category] ?? ""} ${sub} ${product.category}`.toLowerCase();
 }
 
 export function searchListing(
@@ -182,13 +132,9 @@ export function filterListing(
       list = list.filter((p) => listingInHub(p, scopedCat));
     }
   }
-  // Pack-price guard: hidden SKUs never surface in listings (covers the
-  // Joma folder path too, which bypasses searchListing).
-  // Joma folder listings also show zero-stock items as "Sold out" (portal parity).
+  // Unavailable rows and the checkout test SKU stay out of totals, pages, and facets.
   list = list.filter(
-    (p) =>
-      (p as { available?: boolean }).available !== false ||
-      (Boolean(jomaGroup) && !q && isZeroStockVisible(p as Parameters<typeof isZeroStockVisible>[0])),
+    (p) => p.code !== DPO_TEST_CODE && (p as { available?: boolean }).available !== false,
   );
 
   if (opts?.badges?.length) {
@@ -306,10 +252,63 @@ export function paginateListing(
   };
 }
 
-/** Drop server-only search/folder helpers before sending a row to the browser. */
-export function toClientProduct(product: Product): Product {
-  const { hay: _hay, folders: _folders, ...rest } = product as ListingItem;
-  return versionProductImages(rest);
+/**
+ * Category and subcategory as the catalog listing sends them.
+ * The mobile feed reads this helper and does not rewrite the slugs.
+ */
+export function catalogProductFields(product: { category: string; subcategory: string }): {
+  category: string;
+  subcategory: string;
+} {
+  return {
+    category: product.category,
+    subcategory: product.subcategory,
+  };
+}
+
+/**
+ * Drop server-only search, folder, and supplier fields before sending a row to the browser.
+ * Keeps the #98 cardImage and assortment fields, the #101 public `line`, and the stored
+ * category and subcategory (catalogProductFields).
+ */
+export function toClientProduct<T extends Product & { cardImage?: string | null }>(
+  product: T,
+): Omit<T, "item" | "sheetCategory" | "cardImage"> & {
+  line: string;
+  assortment: ClientAssortment;
+  cardImage: string | null;
+} {
+  const {
+    hay: _hay,
+    folders: _folders,
+    item,
+    sheetCategory: _sheetCategory,
+    line,
+    cardImage: existing,
+    ...rest
+  } = product as T & ListingItem & { line?: string; cardImage?: string | null };
+  const fields = catalogProductFields(product);
+  return {
+    ...versionProductImages({
+      ...rest,
+      line: typeof line === "string" ? line : productLineLabel(item),
+    }),
+    category: fields.category,
+    subcategory: fields.subcategory,
+    cardImage: "cardImage" in product ? (existing ?? null) : cardImageUrl(product),
+    assortment: clientAssortment(product),
+  } as Omit<T, "item" | "sheetCategory" | "cardImage"> & {
+    line: string;
+    assortment: ClientAssortment;
+    cardImage: string | null;
+  };
+}
+
+/** Folder tiles carry a sample product. Strip supplier fields before the tile reaches the browser. */
+export function toClientSamples<T extends { sample?: Product | null }>(tiles: T[]): T[] {
+  return tiles.map((tile) =>
+    tile.sample ? { ...tile, sample: toClientProduct(tile.sample) } : tile,
+  );
 }
 
 export function buildListing(

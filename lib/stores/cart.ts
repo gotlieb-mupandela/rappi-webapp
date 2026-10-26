@@ -7,6 +7,7 @@ import { trackMeta } from "@/lib/meta/pixel";
 import type { CartLine, CartLineSnapshot, Product } from "@/lib/types";
 import { getAssortment } from "@/lib/assortment";
 import { surtidoSizeText } from "@/lib/assortment";
+import { productHeading } from "@/lib/copy";
 import { sizeDisplayLabel, sizeStock, skuStock } from "@/lib/product-stock";
 
 type CartMessage = {
@@ -25,14 +26,14 @@ type CartState = {
 
 function snapshotFromProduct(product: Product, size: string): CartLineSnapshot {
   const pack = getAssortment(product);
+  const visible = productHeading(product);
   return {
     id: product.id,
     // Pack lines keep their baked pack wording ("· Pack of 12", "· Pack", …)
     // so cart, checkout and order records never read as single units.
-    name: pack?.isAssortment ? product.displayName : product.name,
-    displayName: product.displayName,
-    title: product.title,
-    item: product.item,
+    name: pack?.isAssortment ? product.displayName?.trim() || visible : product.name?.trim() || visible,
+    displayName: product.displayName?.trim() || visible,
+    title: product.title?.trim() || visible,
     price: product.price,
     unitPrice: product.unitPrice,
     imageUrl: product.imageUrl,
@@ -160,11 +161,14 @@ export const useCart = create<CartState>()(
     }),
     {
       name: "rappi-cart",
-      version: 2,
+      version: 3,
       skipHydration: true,
       migrate: (persisted) => {
-        const state = persisted as { lines?: Partial<CartLine>[] } | undefined;
-        const lines = (state?.lines ?? []).filter(isCompleteLine);
+        const state = persisted as { lines?: Array<Partial<CartLine> & { item?: string }> } | undefined;
+        const lines = (state?.lines ?? []).flatMap((raw) => {
+          const { item: _dropped, ...line } = raw;
+          return isCompleteLine(line) ? [line] : [];
+        });
         return { lines };
       },
     },
@@ -180,7 +184,6 @@ export function cartLineAsProduct(line: CartLine): Product {
   return {
     id: line.id,
     code: line.code,
-    item: line.item || line.name,
     title: line.title || line.name,
     name: line.name,
     displayName: line.displayName || line.name,
@@ -190,7 +193,6 @@ export function cartLineAsProduct(line: CartLine): Product {
     price: line.price,
     unitPrice: line.unitPrice,
     currency: "NAD",
-    sheetCategory: null,
     totalQty: line.stockQty,
     stockQty: line.stockQty,
     badge: line.badge,
