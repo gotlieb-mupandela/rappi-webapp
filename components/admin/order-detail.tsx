@@ -124,7 +124,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
         {order.invoice_sent_at
           ? `Invoice emailed ${formatDate(order.invoice_sent_at)}`
           : "Invoice not emailed yet"}
-        {order.invoice_last_error ? ` — ${order.invoice_last_error}` : ""}
+        {order.invoice_last_error ? `: ${order.invoice_last_error}` : ""}
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">

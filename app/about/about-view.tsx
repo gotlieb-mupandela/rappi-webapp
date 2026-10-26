@@ -80,7 +80,7 @@ export function AboutView() {
                 {team.map((person) => (
                   <li key={person.name}>
                     <span className="font-semibold text-[var(--text-secondary)]">{person.name}</span>
-                    {person.role ? <span> — {person.role}</span> : null}
+                    {person.role ? <span>, {person.role}</span> : null}
                   </li>
                 ))}
               </ul>

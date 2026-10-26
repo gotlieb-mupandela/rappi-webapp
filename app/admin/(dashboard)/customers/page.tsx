@@ -44,7 +44,7 @@ export default async function AdminCustomersPage() {
               key={p.id}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
             >
-              <p className="font-semibold">{p.full_name || "—"}</p>
+              <p className="font-semibold">{p.full_name || "-"}</p>
               <p className="break-all text-xs text-[var(--muted)]">{p.email}</p>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <Badge variant={p.role === "admin" ? "new" : "muted"}>{p.role}</Badge>
@@ -79,7 +79,7 @@ export default async function AdminCustomersPage() {
               (profiles ?? []).map((p) => (
                 <tr key={p.id} className="border-t border-[var(--border)]">
                   <td className="px-4 py-3">
-                    <p className="font-semibold">{p.full_name || "—"}</p>
+                    <p className="font-semibold">{p.full_name || "-"}</p>
                     <p className="text-xs text-[var(--muted)]">{p.email}</p>
                   </td>
                   <td className="px-4 py-3">

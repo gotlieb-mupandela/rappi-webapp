@@ -126,7 +126,7 @@ export async function sendOrderInvoice(
     const seller = invoiceSeller();
     await sendResendEmail({
       to,
-      subject: `Invoice ${data.order.id} — ${seller.legalName}`,
+      subject: `Invoice ${data.order.id} - ${seller.legalName}`,
       html: [
         `<div style="font-family:Arial,sans-serif;color:#111">`,
         `<div style="background:#ffffff;border-bottom:3px solid #5eff38;padding:16px 20px">`,

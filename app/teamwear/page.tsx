@@ -23,7 +23,7 @@ export const revalidate = 21600;
 export const metadata: Metadata = {
   title: "Teams",
   description:
-    "Teamwear by material and sport — polyester, cotton, soccer, basketball, rugby, and more.",
+    "Teamwear by material and sport: polyester, cotton, soccer, basketball, rugby, and more.",
 };
 
 function firstSearchParam(value: string | string[] | undefined) {

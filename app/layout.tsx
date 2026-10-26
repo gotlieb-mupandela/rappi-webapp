@@ -34,7 +34,7 @@ export const viewport = {
 };
 
 const description =
-  "RAPPI SPORTS HUB — consumer sports catalog. Gear up. Show up. Level up.";
+  "RAPPI SPORTS HUB: consumer sports catalog. Gear up. Show up. Level up.";
 
 export const metadata: Metadata = {
   title: {

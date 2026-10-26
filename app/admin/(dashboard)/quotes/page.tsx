@@ -34,11 +34,11 @@ export default async function AdminQuotesPage() {
               <p className="text-xs text-[var(--muted)]">{formatDate(q.created_at)}</p>
               <p className="mt-2 font-semibold">{q.name}</p>
               <p className="break-all text-xs text-[var(--muted)]">{q.email}</p>
-              <p className="mt-2 text-sm">{q.organisation || "—"}</p>
+              <p className="mt-2 text-sm">{q.organisation || "-"}</p>
               <p className="text-xs text-[var(--muted)]">
-                {[q.sport, q.players ? `${q.players} players` : ""].filter(Boolean).join(" · ") || "—"}
+                {[q.sport, q.players ? `${q.players} players` : ""].filter(Boolean).join(" · ") || "-"}
               </p>
-              <p className="mt-2 break-words text-sm">{q.notes || q.sizes || "—"}</p>
+              <p className="mt-2 break-words text-sm">{q.notes || q.sizes || "-"}</p>
             </article>
           ))
         )}
@@ -70,16 +70,16 @@ export default async function AdminQuotesPage() {
                     <p className="text-xs text-[var(--muted)]">{q.email}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p>{q.organisation || "—"}</p>
+                    <p>{q.organisation || "-"}</p>
                     <p className="text-xs text-[var(--muted)]">
                       {[q.sport, q.players ? `${q.players} players` : ""]
                         .filter(Boolean)
-                        .join(" · ") || "—"}
+                        .join(" · ") || "-"}
                     </p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-xs text-[var(--muted)]">{q.sizes || "—"}</p>
-                    <p className="mt-1 max-w-md">{q.notes || "—"}</p>
+                    <p className="text-xs text-[var(--muted)]">{q.sizes || "-"}</p>
+                    <p className="mt-1 max-w-md">{q.notes || "-"}</p>
                   </td>
                 </tr>
               ))
