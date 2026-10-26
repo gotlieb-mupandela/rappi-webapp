@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { ProductGrid } from "@/components/product-grid";
 import { TeamwearIntro } from "@/components/teamwear-intro";
 import { TeamwearQuoteForm } from "@/components/teamwear-quote-form";
+import { TLink } from "@/components/t-link";
 import { officialKitsLandingTiles, teamsLandingTiles } from "@/lib/hubs";
 import {
   isJomaBrowseFolder,
@@ -154,6 +155,14 @@ export default async function TeamwearPage({
           { key: "nav.teams" },
         ]}
         titleKey="nav.teams"
+        actions={
+          <TLink
+            href="/teamwear?view=quote"
+            k="quote.request"
+            size="lg"
+            className="w-full sm:w-auto"
+          />
+        }
       />
       <div className="page-shell pb-10 pt-2 sm:pb-12 sm:pt-3">
         <AudienceLandingGrid tiles={tiles} />

@@ -231,6 +231,7 @@ export const en = {
     includeSizes: "How many players and which sizes",
     includeKit: "Jerseys, shorts, socks, or a full kit",
     replyHint: "We reply by email. Checkout stays on the RAPPI website.",
+    request: "Request a quote",
   },
   common: {
     continueShopping: "Continue shopping",
@@ -1437,6 +1438,7 @@ export const fr: Messages = {
     includeSizes: "Nombre de joueurs et tailles",
     includeKit: "Maillots, shorts, chaussettes ou kit complet",
     replyHint: "Réponse par e-mail. Le paiement reste sur le site RAPPI.",
+    request: "Demander un devis",
   },
   common: {
     continueShopping: "Continuer les achats",
