@@ -1,127 +1,114 @@
-import { matchesAudience } from "@/lib/audience";
-import { clientAssortment } from "@/lib/assortment";
-import { SUBCATEGORY_LABELS, TYPE_FOLDER_ORDER, typeFolderForSubcategory } from "@/lib/catalog";
+import { matchesAudience, productAudience } from "@/lib/audience";
+import { clientAssortment, renderAssortmentLabel } from "@/lib/assortment";
 import { DPO_TEST_CODE } from "@/lib/dpo-test-product";
 import { formatPrice } from "@/lib/format";
-import { productHubs, productInHub } from "@/lib/hub-membership";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
+import { eurPerNad } from "@/lib/i18n/config";
+import {
+  audienceBlurb,
+  audienceName,
+  groupName,
+  hubBlurb,
+  hubName,
+  shippingName,
+  subName,
+} from "@/lib/i18n/labels";
+import { makeT, type TFunction } from "@/lib/i18n/translate";
+import { isLiveFolder } from "@/lib/joma-live";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 import { jomaFolderTileImage } from "@/lib/joma-tile-images";
-import { jomaFolderMetaSnapshot } from "@/lib/joma-tree";
+import { isOutletFolderKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { filterListing, type ListingItem } from "@/lib/listing-core";
-import { cardImageUrl, hasUsableProductImage, isAllowedProductImageUrl, listingCardCandidates } from "@/lib/media";
+import {
+  hasUsableProductImage,
+  isAllowedProductImageUrl,
+  listingCardCandidates,
+} from "@/lib/media";
 import { metaAbsoluteUrl } from "@/lib/meta/site";
+import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import {
   FEED_MENUS,
   FLOW_TILE,
   HOME_TILES,
-  KIDS_TILES,
-  PROMO_TILES,
+  KIDS_FOOTWEAR_TILE,
+  TEAM_TILES,
   feedAudienceTargets,
   feedCategoryTargets,
-  feedSubcategoryTarget,
+  feedMenuKey,
   feedTargetTable,
-  feedTypeFolderTarget,
+  footwearTypeKeys,
+  headerMenuKeys,
+  sportswearTypeKeys,
   type FeedMenuDef,
   type FeedTargetTile,
 } from "@/lib/mobile-feed-targets";
 import { mobileFeedVersion } from "@/lib/mobile-feed-version";
 import { publicCopy, publicFolderKey } from "@/lib/mobile-feed-slugs";
+import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/taxonomy";
 import type { Product } from "@/lib/types";
 
-export type FeedTile = {
-  id: string;
-  label: string;
-  order: number;
-  targetId: string;
-  href: string;
-  image: string | null;
-  count: number;
-};
+const tEn = makeT("na");
+const tFr = makeT("eu");
 
-export type FeedFolder = {
+export type FeedNode = {
   key: string;
+  kind: "menu" | "folder" | "category" | "audience" | "tile";
   label: string;
+  labelFr: string;
+  description: string | null;
+  descriptionFr: string | null;
   order: number;
   parent: string | null;
   image: string | null;
-  targetId: string;
-  href: string;
+  hidden: boolean;
   count: number;
-  hasChildren: boolean;
-};
-
-export type FeedCategoryChild = {
-  slug: string;
-  label: string;
-  order: number;
-  parent: string;
-  image: string | null;
-  targetId: string;
-  href: string;
-  count: number;
-  kind: "group" | "sub";
-};
-
-export type FeedCategory = {
-  slug: string;
-  label: string;
-  order: number;
-  parent: null;
-  image: string | null;
-  targetId: string;
-  href: string;
-  count: number;
-  children: FeedCategoryChild[];
-};
-
-export type FeedTarget = {
-  id: string;
-  href: string;
+  /** Site base group (`folder.sub`, type folder, or subcategory) when one exists. */
+  group: string | null;
+  /** Ordered child keys for a menu, category shop-by-type list, or folder. */
+  tiles: string[];
 };
 
 export type FeedProduct = {
   code: string;
   name: string;
   label: string | null;
+  labelFr: string | null;
   packLabel: string | null;
   pairCount: number | null;
   isPack: boolean;
   price: number;
   priceLabel: string;
   cardImage: string | null;
-  line?: string | null;
+  images: string[];
+  category: string | null;
+  subcategory: string | null;
+  audience: string | null;
+};
+
+export type FeedCheckout = {
+  /** Euro per 1 N$. Read from eurPerNad(). */
+  eurPerNad: number;
+  shipping: Array<{
+    key: string;
+    title: { en: string; fr: string };
+    amountNad: number;
+  }>;
+  countries: FeedCheckoutCountry[];
 };
 
 export type MobileFeed = {
   version: string;
-  targets: FeedTarget[];
-  home: { sections: Array<{ id: string; label: string; tiles: FeedTile[] }> };
-  audiences: FeedTile[];
-  menus: Array<{
-    id: string;
-    slug: string;
-    label: string;
-    order: number;
-    targetId: string;
-    href: string;
-    image: string | null;
-    tiles: FeedTile[];
-  }>;
-  folders: FeedFolder[];
-  kids: { tiles: FeedTile[] };
-  flow: FeedTile | null;
-  promos: FeedTile[];
-  categories: FeedCategory[];
+  nodes: FeedNode[];
+  /** Header menu keys in site order. Accessories and outlet are folder keys. */
+  menus: string[];
   categoryOrder: string[];
-  counts: { categories: Record<string, number>; products: number };
   products: FeedProduct[];
+  checkout: FeedCheckout;
+  counts: { categories: Record<string, number>; products: number };
 };
 
 export type FeedSource = Product & { folders?: string[] };
-
-const EMPTY_WHEN_HIDDEN = new Set(["joma-flow", "wf-joma-flow"]);
 
 /**
  * Absolute https image, or null when the URL is dropped.
@@ -156,8 +143,9 @@ export function feedImageUrl(url: string | null | undefined): string | null {
   return null;
 }
 
-function tileImage(path: string): string | null {
-  return feedImageUrl(cardImageUrl({ imageUrl: path, images: [] }) ?? path);
+function tileImage(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return feedImageUrl(path);
 }
 
 /** Names and labels are plain text. Markup and control characters are removed. */
@@ -168,21 +156,63 @@ function plainText(value: string): string {
     .trim();
 }
 
-function labelOrNull(value: string): string | null {
+function slugText(value: string | null | undefined): string | null {
+  if (!value) return null;
   const next = plainText(value);
-  return next || null;
+  if (!next || !/^[A-Za-z0-9-]+$/.test(next)) return null;
+  return next;
 }
 
-function linked(targetId: string, table: ReadonlyMap<string, string>) {
-  const href = table.get(targetId);
-  if (!href) return null;
-  return { targetId, href };
+function copyPair(english: string, french: string): { label: string; labelFr: string } {
+  const label = plainText(english);
+  const labelFr = plainText(french) || label;
+  return { label, labelFr: labelFr || label };
+}
+
+function messagePair(key: string, fallback: string) {
+  const english = tEn(key);
+  const french = tFr(key);
+  return copyPair(english === key ? fallback : english, french === key ? fallback : french);
+}
+
+const GROUP_KINDS = ["apparel", "footwear", "kids", "rugby", "brama"] as const;
+
+function groupLabel(key: string, t: TFunction): string | null {
+  for (const kind of GROUP_KINDS) {
+    const named = groupName(kind, key, t);
+    if (named !== key) return named;
+  }
+  const bare = key.replace(/^(wf-|w-)/, "");
+  if (bare !== key) {
+    for (const kind of GROUP_KINDS) {
+      const named = groupName(kind, bare, t);
+      if (named !== bare) return named;
+    }
+  }
+  const sub = subName(key, t);
+  if (sub !== key && !sub.startsWith("sub.") && !sub.startsWith("group.")) return sub;
+  return null;
+}
+
+function namesFor(key: string, english: string, labelKey?: string) {
+  if (labelKey) return messagePair(labelKey, english);
+  const en = groupLabel(key, tEn) ?? english;
+  const fr = groupLabel(key, tFr) ?? groupLabel(key, tEn) ?? english;
+  return copyPair(en, fr);
+}
+
+function blurbs(kind: "hub" | "audience", slug: string) {
+  const read = kind === "hub" ? hubBlurb : audienceBlurb;
+  const description = plainText(read(slug, tEn)) || null;
+  const descriptionFr = plainText(read(slug, tFr)) || description;
+  return { description, descriptionFr };
 }
 
 const CATEGORY_IMAGE: Record<string, string> = {
   sportswear: "/brand/hub-sportswear.png",
   shoes: "/brand/hub-shoes.png",
   "running-fitness": "/brand/hub-shoes.png",
+  lifestyle: "/brand/hub-sportswear.png",
   "balls-bags": "/brand/hub-sportswear.png",
   "teampro-2026": "/brand/hub-teampro-2026.webp",
 };
@@ -203,30 +233,39 @@ export function feedProductCard(product: Product): FeedProduct | null {
   const combined = suffixText && !base.includes(suffixText) ? `${base}${suffix}` : base;
   const name = plainText(combined) || product.code;
   const label = view.label ? plainText(view.label) : null;
-  const line = productLine(product);
+  const french = view.labelKey
+    ? renderAssortmentLabel(view.labelKey, view.labelParams, tFr, view.label)
+    : view.label;
+  const labelFr = french ? plainText(french) : null;
+  const images = productImages(product);
   return {
     code: product.code,
     name,
     label,
+    labelFr: label ? labelFr || label : null,
     packLabel: label,
     pairCount: view.pairCount,
     isPack: view.isPack,
     price: product.price,
     priceLabel: formatPrice(product.price),
-    cardImage: feedImageUrl(listingCardCandidates(product)[0] ?? null),
-    ...(line !== undefined ? { line } : {}),
+    cardImage: images[0] ?? null,
+    images,
+    category: slugText(product.category),
+    subcategory: slugText(product.subcategory),
+    audience: productAudience(product),
   };
 }
 
-/**
- * `line` is included only when the catalogue row already has that field.
- * The current base does not. A later label commit can add it without a second copy here.
- */
-function productLine(product: Product): string | null | undefined {
-  if (!Object.prototype.hasOwnProperty.call(product, "line")) return undefined;
-  const value = (product as Product & { line?: unknown }).line;
-  if (typeof value !== "string") return null;
-  return plainText(value) || null;
+function productImages(product: Product): string[] {
+  const seen = new Set<string>();
+  const images: string[] = [];
+  for (const candidate of listingCardCandidates(product)) {
+    const absolute = feedImageUrl(candidate);
+    if (!absolute || seen.has(absolute)) continue;
+    seen.add(absolute);
+    images.push(absolute);
+  }
+  return images;
 }
 
 /**
@@ -247,128 +286,50 @@ export function folderProductCounts(catalog: FeedSource[]): Map<string, number> 
   return counts;
 }
 
-function countFor(counts: Map<string, number>, folderKey: string | undefined): number {
-  if (!folderKey) return 0;
-  return counts.get(folderKey) ?? 0;
-}
-
-function toTile(
-  tile: FeedTargetTile,
-  counts: Map<string, number>,
-  table: ReadonlyMap<string, string>,
-  order: number,
-): FeedTile | null {
-  const link = linked(tile.id, table);
-  if (!link || link.href !== tile.href) return null;
-  const label = labelOrNull(tile.label);
-  if (!label) return null;
-  if (tile.folderKey && EMPTY_WHEN_HIDDEN.has(tile.folderKey) && countFor(counts, tile.folderKey) === 0) {
-    return null;
-  }
+function emptyNode(partial: Omit<FeedNode, "tiles" | "description" | "descriptionFr" | "group"> & {
+  tiles?: string[];
+  description?: string | null;
+  descriptionFr?: string | null;
+  group?: string | null;
+}): FeedNode {
   return {
-    id: tile.id,
-    label,
-    order,
-    targetId: link.targetId,
-    href: link.href,
-    image: tileImage(tile.image),
-    count: countFor(counts, tile.folderKey),
+    description: null,
+    descriptionFr: null,
+    group: null,
+    tiles: [],
+    ...partial,
   };
 }
 
-function menuTiles(menu: FeedMenuDef, counts: Map<string, number>, table: ReadonlyMap<string, string>): FeedTile[] {
-  const source = menu.id === "shoes" ? [...menu.tiles, FLOW_TILE] : [...menu.tiles];
-  const tiles: FeedTile[] = [];
-  for (const tile of source) {
-    if (menu.id === "outlet" && countFor(counts, tile.folderKey) === 0) continue;
-    const next = toTile(tile, counts, table, tiles.length);
-    if (next) tiles.push(next);
+function feedCheckout(): FeedCheckout {
+  const rate = eurPerNad();
+  if (!Number.isFinite(rate) || rate <= 0) {
+    throw new Error("eurPerNad must be a finite number greater than 0");
   }
-  return tiles;
+  return {
+    eurPerNad: rate,
+    shipping: shippingMethodsSnapshot().map((method) => ({
+      key: method.id,
+      title: {
+        en: plainText(method.name),
+        fr: plainText(shippingName(method.id, method.name, tFr)),
+      },
+      amountNad: method.cost,
+    })),
+    countries: checkoutCountries(),
+  };
 }
 
-function hubIndexes(products: readonly Product[]) {
-  const subs = new Map<string, number>();
-  const groups = new Map<string, number>();
-  for (const product of products) {
-    const group = typeFolderForSubcategory(product.subcategory);
-    for (const hub of productHubs(product)) {
-      const subKey = `${hub}\0${product.subcategory}`;
-      subs.set(subKey, (subs.get(subKey) ?? 0) + 1);
-      const groupKey = `${hub}\0${group}`;
-      groups.set(groupKey, (groups.get(groupKey) ?? 0) + 1);
-    }
-  }
-  return { subs, groups };
-}
-
-function categoryTree(
-  navVisible: readonly Product[],
-  categoryCounts: Record<string, number>,
-  table: ReadonlyMap<string, string>,
-): FeedCategory[] {
-  const index = hubIndexes(navVisible);
-  const categories: FeedCategory[] = [];
-  for (const category of feedCategoryTargets()) {
-    const link = linked(category.targetId, table);
-    if (!link || link.href !== category.href) continue;
-    const label = labelOrNull(category.label) ?? category.slug;
-    const children: FeedCategoryChild[] = [];
-    for (const group of TYPE_FOLDER_ORDER) {
-      const target = feedTypeFolderTarget(category.slug, group);
-      if (!target) continue;
-      const childLink = linked(target.targetId, table);
-      if (!childLink || childLink.href !== target.href) continue;
-      const count = index.groups.get(`${category.slug}\0${group}`) ?? 0;
-      if (count <= 0) continue;
-      const childLabel = labelOrNull(SUBCATEGORY_LABELS[group] ?? target.label);
-      if (!childLabel) continue;
-      children.push({
-        slug: group,
-        label: childLabel,
-        order: children.length,
-        parent: link.targetId,
-        image: null,
-        targetId: childLink.targetId,
-        href: childLink.href,
-        count,
-        kind: "group",
-      });
-    }
-    for (const sub of Object.keys(SUBCATEGORY_LABELS)) {
-      const target = feedSubcategoryTarget(category.slug, sub);
-      if (!target) continue;
-      const childLink = linked(target.targetId, table);
-      if (!childLink || childLink.href !== target.href) continue;
-      const count = index.subs.get(`${category.slug}\0${sub}`) ?? 0;
-      if (count <= 0) continue;
-      const childLabel = labelOrNull(target.label);
-      if (!childLabel) continue;
-      children.push({
-        slug: sub,
-        label: childLabel,
-        order: children.length,
-        parent: link.targetId,
-        image: null,
-        targetId: childLink.targetId,
-        href: childLink.href,
-        count,
-        kind: "sub",
-      });
-    }
-    categories.push({
-      slug: category.slug,
-      label,
-      order: category.order,
-      parent: null,
-      image: feedImageUrl(CATEGORY_IMAGE[category.slug] ?? null),
-      targetId: link.targetId,
-      href: link.href,
-      count: categoryCounts[category.slug] ?? navVisible.filter((product) => productInHub(product, category.slug)).length,
-      children,
-    });
-  }
-  return categories;
+function homeKeys(): string[] {
+  return HOME_TILES.map((tile) => {
+    if (tile.href === "/teamwear") return feedMenuKey("teams");
+    if (tile.href === "/shop/kids") return feedMenuKey("kids");
+    if (tile.href === "/category/sportswear") return "sportswear";
+    if (tile.href === "/category/running-fitness") return "running-fitness";
+    if (tile.href === "/category/lifestyle") return "lifestyle";
+    if (tile.href === "/category/shoes") return "shoes";
+    throw new Error(`Home tile ${tile.id} has no feed key`);
+  });
 }
 
 export function buildMobileFeed(catalog: FeedSource[], version: string): MobileFeed {
@@ -382,134 +343,257 @@ export function buildMobileFeed(catalog: FeedSource[], version: string): MobileF
     .map((product) => feedProductCard(product))
     .filter((product): product is FeedProduct => Boolean(product))
     .sort((a, b) => a.code.localeCompare(b.code));
+  const categoryCounts = categoryCountsFromTaxonomy(buildTaxonomy(navVisible));
+  const nodes = new Map<string, FeedNode>();
 
+  const put = (node: FeedNode) => {
+    if (nodes.has(node.key)) return;
+    if (!table.has(node.key)) return;
+    nodes.set(node.key, node);
+  };
+
+  const snapshot = jomaFolderMetaSnapshot();
   const siblingIndex = new Map<string, number>();
   const siblingSeen = new Map<string, number>();
-  for (const row of jomaFolderMetaSnapshot()) {
+  const childrenOf = new Map<string, string[]>();
+  for (const row of snapshot) {
     const parent = row.parent ?? "";
     const next = siblingSeen.get(parent) ?? 0;
     siblingIndex.set(row.key, next);
     siblingSeen.set(parent, next + 1);
+    if (row.parent) {
+      const parentKey = publicFolderKey(row.parent);
+      const list = childrenOf.get(parentKey) ?? [];
+      list.push(publicFolderKey(row.key));
+      childrenOf.set(parentKey, list);
+    }
   }
 
-  const folders: FeedFolder[] = [];
-  for (const row of jomaFolderMetaSnapshot()) {
+  for (const row of snapshot) {
     const key = publicFolderKey(row.key);
-    const targetId = `folder:${key}`;
-    const link = linked(targetId, table);
-    if (!link) continue;
-    const label = labelOrNull(row.label) || key;
-    folders.push({
-      key,
-      label,
-      order: siblingIndex.get(row.key) ?? 0,
-      parent: row.parent ? publicFolderKey(row.parent) : null,
-      image: feedImageUrl(jomaFolderTileImage(row.key) || null),
-      targetId: link.targetId,
-      href: link.href,
-      count: counts.get(row.key) ?? 0,
-      hasChildren: false,
-    });
+    const count = counts.get(row.key) ?? 0;
+    const hidden =
+      (isOutletFolderKey(row.key) && count === 0) || (!isLiveFolder(row.key) && count === 0);
+    const names = namesFor(key, row.label);
+    put(
+      emptyNode({
+        key,
+        kind: "folder",
+        ...names,
+        order: siblingIndex.get(row.key) ?? 0,
+        parent: row.parent ? publicFolderKey(row.parent) : null,
+        image: tileImage(jomaFolderTileImage(row.key) || null),
+        hidden,
+        count,
+        group: row.sub ? slugText(row.sub) : null,
+      }),
+    );
   }
-  folders.sort((a, b) => a.order - b.order || a.key.localeCompare(b.key));
-  const parents = new Set(folders.map((folder) => folder.parent).filter((key): key is string => Boolean(key)));
-  for (const folder of folders) folder.hasChildren = parents.has(folder.key);
+  for (const [key, childKeys] of childrenOf) {
+    const node = nodes.get(key);
+    if (!node || node.kind !== "folder") continue;
+    node.tiles = childKeys.filter((child) => nodes.has(child));
+  }
 
-  const homeTiles = HOME_TILES.map((tile, index) => toTile(tile, counts, table, index)).filter(
-    (tile): tile is FeedTile => Boolean(tile),
-  );
-  const kidsTiles = KIDS_TILES.map((tile, index) => toTile(tile, counts, table, index)).filter(
-    (tile): tile is FeedTile => Boolean(tile),
-  );
-  const promos = PROMO_TILES.map((tile, index) => toTile(tile, counts, table, index))
-    .filter((tile): tile is FeedTile => Boolean(tile))
-    .filter((tile) => tile.count > 0);
-  const flowLink = linked(FLOW_TILE.id, table);
-  const flow: FeedTile | null =
-    flowLink && flowLink.href === FLOW_TILE.href
-      ? {
-          id: FLOW_TILE.id,
-          label: labelOrNull(FLOW_TILE.label) ?? "Flow",
-          order: 0,
-          targetId: flowLink.targetId,
-          href: flowLink.href,
-          image: tileImage(FLOW_TILE.image),
-          count: countFor(counts, FLOW_TILE.folderKey),
-        }
-      : null;
-  const audiences = feedAudienceTargets().flatMap((row) => {
-    const link = linked(row.id, table);
-    if (!link || link.href !== row.href) return [];
-    const label = labelOrNull(row.label);
-    if (!label) return [];
-    return [
-      {
-        id: row.id,
-        label,
-        order: row.order,
-        targetId: link.targetId,
-        href: link.href,
-        image: feedImageUrl(AUDIENCE_IMAGE[row.slug] ?? null),
-        count: navVisible.filter((product) => matchesAudience(product, row.slug)).length,
-      },
-    ];
-  });
-  const categoryCounts = categoryCountsFromTaxonomy(buildTaxonomy(navVisible));
-  const categories = categoryTree(navVisible, categoryCounts, table);
-  const menus = FEED_MENUS.flatMap((menu, order) => {
-    const link = linked(`menu:${menu.id}`, table);
-    if (!link || link.href !== menu.href) return [];
-    const label = labelOrNull(menu.label) ?? menu.id;
-    return [
-      {
-        id: menu.id,
-        slug: menu.slug,
-        label,
+  const categoryOrder: string[] = [];
+  for (const category of feedCategoryTargets()) {
+    const count = categoryCounts[category.slug] ?? 0;
+    const names = copyPair(hubName(category.slug, tEn), hubName(category.slug, tFr));
+    const text = blurbs("hub", category.slug);
+    const shopKeys =
+      category.slug === "sportswear"
+        ? sportswearTypeKeys()
+        : category.slug === "shoes"
+          ? footwearTypeKeys()
+          : [];
+    const tiles = shopKeys.filter((key) => nodes.has(key));
+    const existing = nodes.get(category.slug);
+    if (existing) {
+      existing.description = existing.description ?? text.description;
+      existing.descriptionFr = existing.descriptionFr ?? text.descriptionFr;
+      if (shopKeys.length) existing.tiles = tiles;
+    } else {
+      put(
+        emptyNode({
+          key: category.slug,
+          kind: "category",
+          ...names,
+          ...text,
+          order: category.order,
+          parent: null,
+          image: tileImage(CATEGORY_IMAGE[category.slug] ?? null),
+          hidden: category.slug === "netball" || count === 0,
+          count,
+          tiles,
+        }),
+      );
+    }
+    categoryOrder.push(category.slug);
+  }
+
+  for (const audience of feedAudienceTargets()) {
+    if (nodes.has(audience.id)) continue;
+    const names = copyPair(audienceName(audience.slug, tEn), audienceName(audience.slug, tFr));
+    const text = blurbs("audience", audience.slug);
+    put(
+      emptyNode({
+        key: audience.id,
+        kind: "audience",
+        ...names,
+        ...text,
+        order: audience.order,
+        parent: null,
+        image: tileImage(AUDIENCE_IMAGE[audience.slug] ?? null),
+        hidden: false,
+        count: navVisible.filter((product) => matchesAudience(product, audience.slug)).length,
+      }),
+    );
+  }
+
+  const menuTileIds = (menu: FeedMenuDef) => {
+    const ids = menu.tiles.map((tile) => tile.id);
+    if (menu.id === "kids") ids.push(KIDS_FOOTWEAR_TILE.id);
+    if (menu.id === "shoes") {
+      const flow = nodes.get(FLOW_TILE.id);
+      if (flow && flow.count > 0) ids.push(FLOW_TILE.id);
+    }
+    return ids;
+  };
+
+  const ensureTile = (tile: FeedTargetTile, parent: string, order: number, hidden = false) => {
+    if (nodes.has(tile.id)) return;
+    const names = namesFor(tile.folderKey ?? tile.id, tile.label, tile.labelKey);
+    const count = tile.folderKey ? (counts.get(tile.folderKey) ?? 0) : 0;
+    put(
+      emptyNode({
+        key: tile.id,
+        kind: "tile",
+        ...names,
         order,
-        targetId: link.targetId,
-        href: link.href,
-        image: tileImage(menu.image),
-        tiles: menuTiles(menu, counts, table),
-      },
-    ];
+        parent,
+        image: tileImage(tile.image),
+        hidden,
+        count,
+        group: tile.folderKey ? slugText(tile.folderKey) : null,
+      }),
+    );
+  };
+
+  for (const menu of FEED_MENUS) {
+    const parent = feedMenuKey(menu.id);
+    const ids = menuTileIds(menu);
+    ids.forEach((id, order) => {
+      const tile = tileById(menu, id);
+      if (!tile) return;
+      const outlet = menu.id === "outlet";
+      const count = tile.folderKey ? (counts.get(tile.folderKey) ?? 0) : 0;
+      ensureTile(tile, parent, order, outlet && count === 0);
+    });
+  }
+  ensureTile(
+    KIDS_FOOTWEAR_TILE,
+    feedMenuKey("kids"),
+    FEED_MENUS.find((menu) => menu.id === "kids")?.tiles.length ?? 0,
+    false,
+  );
+
+  const menuNodes: FeedNode[] = [];
+  FEED_MENUS.forEach((menu, order) => {
+    const key = feedMenuKey(menu.id);
+    const ids = menuTileIds(menu).filter((id) => nodes.has(id));
+    const existing = nodes.get(key);
+    if (existing && (menu.id === "accessories" || menu.id === "outlet")) {
+      existing.tiles = ids;
+      menuNodes.push(existing);
+      return;
+    }
+    const names = messagePair(menu.labelKey, menu.label);
+    const node = emptyNode({
+      key,
+      kind: "menu",
+      ...names,
+      order: order + 1,
+      parent: null,
+      image: tileImage(menu.image),
+      hidden: false,
+      count:
+        menu.id === "men" || menu.id === "women" || menu.id === "kids"
+          ? navVisible.filter((product) => matchesAudience(product, menu.id)).length
+          : 0,
+      tiles: ids,
+    });
+    put(node);
+    menuNodes.push(nodes.get(key) ?? node);
   });
 
-  const used = new Set<string>();
-  const take = (id: string) => used.add(id);
-  for (const tile of [...homeTiles, ...audiences, ...kidsTiles, ...promos]) take(tile.targetId);
-  if (flow) take(flow.targetId);
-  for (const menu of menus) {
-    take(menu.targetId);
-    for (const tile of menu.tiles) take(tile.targetId);
+  const home = messagePair("home.shopTitle", "Shop");
+  const homeNode = emptyNode({
+    key: feedMenuKey("home"),
+    kind: "menu",
+    ...home,
+    order: 0,
+    parent: null,
+    image: null,
+    hidden: false,
+    count: products.length,
+    tiles: homeKeys().filter((key) => nodes.has(key)),
+  });
+  put(homeNode);
+
+  const kidsShoes = navVisible.filter(
+    (product) => product.category === "shoes" && productAudience(product) === "kids",
+  ).length;
+  const footwear = nodes.get(KIDS_FOOTWEAR_TILE.id);
+  if (footwear) footwear.count = kidsShoes;
+
+  for (const node of nodes.values()) {
+    if (node.parent && !nodes.has(node.parent)) node.parent = null;
+    const seen = new Set<string>();
+    const tiles: string[] = [];
+    for (const key of node.tiles) {
+      if (!nodes.has(key) || seen.has(key)) continue;
+      seen.add(key);
+      tiles.push(key);
+    }
+    node.tiles = tiles;
   }
-  for (const folder of folders) take(folder.targetId);
-  for (const category of categories) {
-    take(category.targetId);
-    for (const child of category.children) take(child.targetId);
+
+  const emitted = new Set<string>();
+  const ordered: FeedNode[] = [];
+  const take = (key: string) => {
+    if (emitted.has(key)) return;
+    const node = nodes.get(key);
+    if (!node) return;
+    emitted.add(key);
+    ordered.push(node);
+  };
+  take(feedMenuKey("home"));
+  for (const menu of menuNodes) take(menu.key);
+  for (const audience of feedAudienceTargets()) take(audience.id);
+  for (const key of categoryOrder) {
+    take(key);
+    const category = nodes.get(key);
+    for (const child of category?.tiles ?? []) take(child);
   }
-  const targets = [...used]
-    .sort()
-    .flatMap((id) => {
-      const href = table.get(id);
-      return href ? [{ id, href }] : [];
-    });
+  for (const row of snapshot) take(publicFolderKey(row.key));
+  for (const node of nodes.values()) take(node.key);
 
   return {
     version: mobileFeedVersion(version),
-    targets,
-    home: { sections: [{ id: "hero", label: "Shop", tiles: homeTiles }] },
-    audiences,
-    menus,
-    folders,
-    kids: { tiles: kidsTiles },
-    flow,
-    promos,
-    categories,
-    categoryOrder: categories.map((category) => category.slug),
+    nodes: ordered,
+    menus: headerMenuKeys(),
+    categoryOrder,
+    products,
+    checkout: feedCheckout(),
     counts: {
       categories: categoryCounts,
       products: products.length,
     },
-    products,
   };
+}
+
+function tileById(menu: FeedMenuDef, id: string): FeedTargetTile | null {
+  if (id === KIDS_FOOTWEAR_TILE.id) return KIDS_FOOTWEAR_TILE;
+  if (id === FLOW_TILE.id) return FLOW_TILE;
+  return menu.tiles.find((tile) => tile.id === id) ?? TEAM_TILES.find((tile) => tile.id === id) ?? null;
 }

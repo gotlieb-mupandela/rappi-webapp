@@ -1,8 +1,8 @@
-import { AUDIENCES, CATEGORIES, SUBCATEGORY_LABELS, TYPE_FOLDER_ORDER } from "@/lib/catalog";
+import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
+import { jomaAccessoriesLandingTiles, jomaTeamsLandingTiles } from "@/lib/joma-nav";
 import {
   jomaAccessoriesLinks,
   jomaAudienceLinks,
-  jomaOfficialKitsLinks,
   jomaOutletLinks,
   type JomaAudienceLink,
 } from "@/lib/joma-nav-links";
@@ -26,6 +26,8 @@ export type FeedTargetTile = {
   href: string;
   image: string;
   folderKey?: string;
+  /** messages.ts key. The feed reads it. The string is not copied here. */
+  labelKey?: string;
 };
 
 const MEN_COVER = "/brand/audience-men.png?v=3";
@@ -38,6 +40,7 @@ function tilesFromLinks(
   links: readonly JomaAudienceLink[],
   image: string,
   prefix: string,
+  labelKeys?: ReadonlyMap<string, string | undefined>,
 ): FeedTargetTile[] {
   const tiles: FeedTargetTile[] = [];
   const seen = new Set<string>();
@@ -46,15 +49,54 @@ function tilesFromLinks(
     const id = `${prefix}${group ?? `link-${index}`}`;
     if (seen.has(id)) return;
     seen.add(id);
+    const labelKey = labelKeys?.get(link.href);
     tiles.push({
       id,
       label: link.label,
       href: link.href,
       image,
       ...(group ? { folderKey: group } : {}),
+      ...(labelKey ? { labelKey } : {}),
     });
   });
   return tiles;
+}
+
+const ACCESSORY_LABEL_KEYS = new Map(
+  jomaAccessoriesLandingTiles().map((tile) => [tile.href, tile.labelKey] as const),
+);
+
+/**
+ * Teams landing hrefs use a search word or a shop path.
+ * The key is the screen name the released storefront already used.
+ */
+const TEAM_QUERY_KEYS: Record<string, string> = {
+  polyester: "polyester",
+  cotton: "cotton",
+  volley: "volleyball",
+  handball: "handball",
+  staff: "coach",
+  referee: "referee",
+  goalkeeper: "goalie",
+};
+
+const TEAM_PATH_KEYS: Record<string, string> = {
+  "/shop/football": "football",
+  "/shop/basketball": "basketball",
+  "/shop/rugby": "rugby",
+  "/shop/cricket": "cricket",
+  "/shop/swimming": "swimming",
+};
+
+export function teamTileId(href: string): string {
+  const url = new URL(href, "https://rappi.local");
+  const group = url.searchParams.get("group");
+  if (group) return group;
+  const query = url.searchParams.get("q");
+  if (query && TEAM_QUERY_KEYS[query]) return TEAM_QUERY_KEYS[query];
+  const path = TEAM_PATH_KEYS[url.pathname];
+  if (path) return path;
+  throw new Error("Teams tile has no target key");
 }
 
 export const HOME_TILES: readonly FeedTargetTile[] = [
@@ -67,33 +109,39 @@ export const HOME_TILES: readonly FeedTargetTile[] = [
 ];
 
 /** Men and women tiles are jomaAudienceLinks(), in that function's order. */
-export const MEN_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAudienceLinks("men"), MEN_COVER, "men-");
-export const WOMEN_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAudienceLinks("women"), WOMEN_COVER, "women-");
+export const MEN_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAudienceLinks("men"), MEN_COVER, "");
+export const WOMEN_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAudienceLinks("women"), WOMEN_COVER, "");
 
-export const KIDS_TILES: readonly FeedTargetTile[] = [
-  { id: "kids-1-4", label: "1-4 years", href: "/shop/kids?age=1-4", image: SPORT_COVER, folderKey: "kids-1-4" },
-  { id: "kids-6-10", label: "6-10 years", href: "/shop/kids?age=6-10", image: SPORT_COVER, folderKey: "kids-6-10" },
-  {
-    id: "kids-12-14-boy",
-    label: "12-14 year old boy",
-    href: "/shop/kids?age=12-14&gender=boy",
-    image: SPORT_COVER,
-    folderKey: "kids-12-14-boy",
-  },
-  {
-    id: "kids-12-14-girl",
-    label: "12-14 year old girl",
-    href: "/shop/kids?age=12-14&gender=girl",
-    image: SPORT_COVER,
-    folderKey: "kids-12-14-girl",
-  },
-];
+/** Header children links. Same four age folders as KIDS_APPAREL_FOLDERS, group query. */
+export const KIDS_TILES: readonly FeedTargetTile[] = KIDS_APPAREL_FOLDERS.map((folder) => ({
+  id: publicFolderKey(folder.key),
+  label: folder.label,
+  href: `/shop/kids?group=${encodeURIComponent(publicFolderKey(folder.key))}`,
+  image: SPORT_COVER,
+  folderKey: folder.key,
+}));
+
+/** Fifth kids hub tile from kidsHubGroups. Not an age folder. */
+export const KIDS_FOOTWEAR_TILE: FeedTargetTile = {
+  id: "kids-footwear",
+  label: "Footwear",
+  href: "/shop/shoes?audience=kids",
+  image: SHOE_COVER,
+  labelKey: "group.kids.kids-footwear",
+};
 
 export const SHOE_TILES: readonly FeedTargetTile[] = [
-  { id: "shoes-men", label: "Men", href: "/shop/shoes?audience=men", image: SHOE_COVER },
-  { id: "shoes-women", label: "Women", href: "/shop/shoes?audience=women", image: SHOE_COVER },
-  { id: "shoes-kids", label: "Kids", href: "/shop/shoes?audience=kids", image: SHOE_COVER },
-  { id: "shoes-outlet", label: "Outlet", href: "/shop/shoes?group=footwear-outlet", image: SHOE_COVER, folderKey: "footwear-outlet" },
+  { id: "shoes-men", label: "Men", href: "/shop/shoes?audience=men", image: SHOE_COVER, labelKey: "tiles.men" },
+  { id: "shoes-women", label: "Women", href: "/shop/shoes?audience=women", image: SHOE_COVER, labelKey: "tiles.women" },
+  { id: "shoes-kids", label: "Kids", href: "/shop/shoes?audience=kids", image: SHOE_COVER, labelKey: "tiles.kids" },
+  {
+    id: "footwear-outlet",
+    label: "Outlet",
+    href: "/shop/shoes?group=footwear-outlet",
+    image: SHOE_COVER,
+    folderKey: "footwear-outlet",
+    labelKey: "tiles.outlet",
+  },
 ];
 
 /** Shown on the footwear menu only while the folder has products. */
@@ -105,30 +153,132 @@ export const FLOW_TILE: FeedTargetTile = {
   folderKey: "joma-flow",
 };
 
-/** Full accessories, kits, and outlet lists from lib/joma-nav-links. */
-export const ACCESSORY_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaAccessoriesLinks(), SPORT_COVER, "");
-export const KIT_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaOfficialKitsLinks(), TEAM_COVER, "");
+/** Header accessories list. Fourteen links, including socks, which the folder tree dropped. */
+export const ACCESSORY_TILES: readonly FeedTargetTile[] = tilesFromLinks(
+  jomaAccessoriesLinks(),
+  SPORT_COVER,
+  "",
+  ACCESSORY_LABEL_KEYS,
+);
+
 export const PROMO_TILES: readonly FeedTargetTile[] = tilesFromLinks(jomaOutletLinks(), SPORT_COVER, "");
+
+/** Teams grid from jomaTeamsLandingTiles, in that function's order. Not the kit tiles. */
+export const TEAM_TILES: readonly FeedTargetTile[] = jomaTeamsLandingTiles().map((tile) => ({
+  id: teamTileId(tile.href),
+  label: tile.label,
+  href: tile.href,
+  image: tile.cover || SPORT_COVER,
+  ...(tile.labelKey ? { labelKey: tile.labelKey } : {}),
+}));
+
+/**
+ * Sponsor replicas are the official-kits child that is not federations or special editions.
+ * The portal replaced the kits-replicas key. This reads the live tree.
+ */
+export function sponsorReplicaFolder() {
+  const root = OFFICIAL_KITS_FOLDERS[0];
+  return (
+    root?.children?.find((child) => child.key !== "kits-federations" && child.key !== "kits-special") ??
+    null
+  );
+}
+
+export function sponsorReplicaTiles(): FeedTargetTile[] {
+  const node = sponsorReplicaFolder();
+  return (node?.children ?? []).map((child) => ({
+    id: publicFolderKey(child.key),
+    label: child.label,
+    href: `/teamwear?group=${encodeURIComponent(publicFolderKey(child.key))}`,
+    image: TEAM_COVER,
+    folderKey: child.key,
+  }));
+}
+
+/** Shop-by-type folders, site array order. Footwear omits outlet, which is a landing tile. */
+export function sportswearTypeKeys(): string[] {
+  return APPAREL_FOLDERS.map((folder) => publicFolderKey(folder.key));
+}
+
+export function footwearTypeKeys(): string[] {
+  return FOOTWEAR_FOLDERS.filter((folder) => folder.key !== "footwear-outlet").map((folder) =>
+    publicFolderKey(folder.key),
+  );
+}
+
+export function kidsAgeChildren(): Array<{ key: string; parent: string }> {
+  const rows: Array<{ key: string; parent: string }> = [];
+  for (const band of KIDS_APPAREL_FOLDERS) {
+    const parent = publicFolderKey(band.key);
+    for (const child of band.children ?? []) {
+      rows.push({ key: publicFolderKey(child.key), parent });
+    }
+  }
+  return rows;
+}
 
 export type FeedMenuDef = {
   id: string;
   slug: string;
   label: string;
+  labelKey: string;
   href: string;
   image: string;
   tiles: readonly FeedTargetTile[];
 };
 
 export const FEED_MENUS: readonly FeedMenuDef[] = [
-  { id: "men", slug: "men", label: "Men", href: "/shop/men", image: MEN_COVER, tiles: MEN_TILES },
-  { id: "women", slug: "women", label: "Women", href: "/shop/women", image: WOMEN_COVER, tiles: WOMEN_TILES },
-  { id: "kids", slug: "kids", label: "Kids", href: "/shop/kids", image: SPORT_COVER, tiles: KIDS_TILES },
-  { id: "shoes", slug: "shoes", label: "Footwear", href: "/shop/shoes", image: SHOE_COVER, tiles: SHOE_TILES },
-  { id: "kits", slug: "kits", label: "Kits", href: "/teamwear", image: TEAM_COVER, tiles: KIT_TILES },
-  { id: "accessories", slug: "accessories", label: "Accessories", href: "/shop/balls-bags", image: SPORT_COVER, tiles: ACCESSORY_TILES },
-  { id: "outlet", slug: "outlet", label: "Outlet", href: "/promotions", image: SPORT_COVER, tiles: PROMO_TILES },
-  { id: "teamwear", slug: "teamwear", label: "Teamwear", href: "/teamwear", image: TEAM_COVER, tiles: KIT_TILES },
+  { id: "men", slug: "men", label: "Man", labelKey: "nav.man", href: "/shop/men", image: MEN_COVER, tiles: MEN_TILES },
+  { id: "women", slug: "women", label: "Woman", labelKey: "nav.woman", href: "/shop/women", image: WOMEN_COVER, tiles: WOMEN_TILES },
+  { id: "kids", slug: "kids", label: "Children", labelKey: "nav.children", href: "/shop/kids", image: SPORT_COVER, tiles: KIDS_TILES },
+  { id: "shoes", slug: "shoes", label: "Footwear", labelKey: "nav.footwear", href: "/shop/shoes", image: SHOE_COVER, tiles: SHOE_TILES },
+  { id: "teams", slug: "teams", label: "Teams", labelKey: "nav.teams", href: "/teamwear", image: TEAM_COVER, tiles: TEAM_TILES },
+  {
+    id: "kits",
+    slug: "kits",
+    label: "Sponsor replicas",
+    labelKey: "tiles.kitSponsorReplicas",
+    href: "/teamwear?view=kits",
+    image: TEAM_COVER,
+    tiles: sponsorReplicaTiles(),
+  },
+  {
+    id: "accessories",
+    slug: "accessories",
+    label: "Accessories",
+    labelKey: "nav.accessories",
+    href: "/shop/balls-bags",
+    image: SPORT_COVER,
+    tiles: ACCESSORY_TILES,
+  },
+  { id: "outlet", slug: "outlet", label: "Outlet", labelKey: "nav.outlet", href: "/promotions", image: SPORT_COVER, tiles: PROMO_TILES },
 ];
+
+/**
+ * Screen keys that do not collide with a folder or a category slug.
+ * Accessories and outlet are the folder nodes with those keys.
+ */
+export const MENU_KEY = {
+  home: "home",
+  men: "man",
+  women: "woman",
+  kids: "children",
+  shoes: "footwear",
+  teams: "teams",
+  kits: "kits",
+} as const;
+
+export function feedMenuKey(id: string): string {
+  if (id === "accessories" || id === "outlet") return id;
+  if (id === "home") return MENU_KEY.home;
+  const key = MENU_KEY[id as keyof typeof MENU_KEY];
+  if (!key) throw new Error(`Menu ${id} has no feed key`);
+  return key;
+}
+
+export function headerMenuKeys(): string[] {
+  return FEED_MENUS.map((menu) => feedMenuKey(menu.id));
+}
 
 function groupHref(base: string, key: string): string {
   const slug = publicFolderKey(key);
@@ -167,33 +317,13 @@ export function folderHrefEntries(): ReadonlyMap<string, string> {
   return folderHrefs;
 }
 
-export function categoryTargetId(slug: string) {
-  return `category:${slug}`;
-}
-
 export function categoryHref(slug: string) {
   return `/category/${encodeURIComponent(slug)}`;
 }
 
-export function subcategoryTargetId(slug: string, sub: string) {
-  return `category:${slug}:sub:${sub}`;
-}
-
-export function subcategoryHref(slug: string, sub: string) {
-  return `/shop/${encodeURIComponent(slug)}?sub=${encodeURIComponent(sub)}`;
-}
-
-export function typeFolderTargetId(slug: string, group: string) {
-  return `category:${slug}:group:${group}`;
-}
-
-export function typeFolderHref(slug: string, group: string) {
-  return `/shop/${encodeURIComponent(slug)}?group=${encodeURIComponent(group)}`;
-}
-
 export function feedAudienceTargets() {
   return AUDIENCES.map((audience, order) => ({
-    id: `audience:${audience.slug}`,
+    id: audience.slug,
     slug: audience.slug,
     label: audience.name,
     href: `/shop/${audience.slug}`,
@@ -206,80 +336,55 @@ export function feedCategoryTargets() {
     slug: category.slug,
     label: category.name,
     order,
-    targetId: categoryTargetId(category.slug),
+    targetId: category.slug,
     href: categoryHref(category.slug),
   }));
 }
 
-/** Subcategory href only when the slug and the sub are in the site's constant tables. */
-export function feedSubcategoryTarget(slug: string, sub: string) {
-  if (!CATEGORIES.some((category) => category.slug === slug)) return null;
-  const label = SUBCATEGORY_LABELS[sub];
-  if (!label) return null;
-  return {
-    slug: sub,
-    label,
-    targetId: subcategoryTargetId(slug, sub),
-    href: subcategoryHref(slug, sub),
-  };
-}
-
-export function feedTypeFolderTarget(slug: string, group: string) {
-  if (!CATEGORIES.some((category) => category.slug === slug)) return null;
-  if (!(TYPE_FOLDER_ORDER as readonly string[]).includes(group)) return null;
-  return {
-    slug: group,
-    label: SUBCATEGORY_LABELS[group] ?? group,
-    targetId: typeFolderTargetId(slug, group),
-    href: typeFolderHref(slug, group),
-  };
-}
-
 function constantTiles(): FeedTargetTile[] {
   return [
-    ...HOME_TILES,
     ...MEN_TILES,
     ...WOMEN_TILES,
     ...KIDS_TILES,
+    KIDS_FOOTWEAR_TILE,
     ...SHOE_TILES,
     FLOW_TILE,
     ...ACCESSORY_TILES,
-    ...KIT_TILES,
+    ...TEAM_TILES,
     ...PROMO_TILES,
+    ...sponsorReplicaTiles(),
   ];
 }
 
 let targetTable: Map<string, string> | null = null;
 
+const TARGET_KEY = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
+
 /**
- * Id to href. Ids are the only link values nodes may carry.
- * Hrefs come from joma-nav-links, the folder trees, and the category constants.
+ * Fixed id to href. The feed emits ids only.
+ * The first id wins when a folder and a link share a key.
+ * Ids are literal keys. No menu, group, sub, search, or category prefix.
  */
 export function feedTargetTable(): ReadonlyMap<string, string> {
   if (targetTable) return targetTable;
   const map = new Map<string, string>();
   const add = (id: string, href: string) => {
-    const existing = map.get(id);
-    if (existing && existing !== href) {
-      throw new Error(`Feed target ${id} points at two hrefs`);
-    }
+    if (!TARGET_KEY.test(id)) throw new Error(`Feed target key is not a fixed id: ${id}`);
+    if (map.has(id)) return;
     map.set(id, href);
   };
   for (const tile of constantTiles()) add(tile.id, tile.href);
-  for (const menu of FEED_MENUS) add(`menu:${menu.id}`, menu.href);
+  add(MENU_KEY.home, "/");
+  for (const menu of FEED_MENUS) add(feedMenuKey(menu.id), menu.href);
   for (const audience of feedAudienceTargets()) add(audience.id, audience.href);
-  for (const category of CATEGORIES) {
-    add(categoryTargetId(category.slug), categoryHref(category.slug));
-    for (const sub of Object.keys(SUBCATEGORY_LABELS)) {
-      add(subcategoryTargetId(category.slug, sub), subcategoryHref(category.slug, sub));
-    }
-    for (const group of TYPE_FOLDER_ORDER) {
-      add(typeFolderTargetId(category.slug, group), typeFolderHref(category.slug, group));
-    }
-  }
-  for (const [key, href] of folderHrefEntries()) add(`folder:${publicFolderKey(key)}`, href);
+  for (const category of CATEGORIES) add(category.slug, categoryHref(category.slug));
+  for (const [key, href] of folderHrefEntries()) add(publicFolderKey(key), href);
   targetTable = map;
   return map;
+}
+
+export function feedTargetKeys(): ReadonlySet<string> {
+  return new Set(feedTargetTable().keys());
 }
 
 /** Every href the feed is allowed to emit. Built from this module, not from a request. */
