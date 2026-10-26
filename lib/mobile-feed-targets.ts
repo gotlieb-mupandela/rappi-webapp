@@ -361,8 +361,9 @@ let targetTable: Map<string, string> | null = null;
 const TARGET_KEY = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
 
 /**
- * Fixed id to site path. The feed copies this path onto the node.
+ * Fixed id to site path. The feed copies this path onto the node as `target`.
  * The path is never read from the request or from a product row.
+ * A key that is not in this table is not emitted.
  * The first id wins when a folder and a link share a key.
  * Ids are literal keys. No menu, group, sub, search, or category prefix.
  */

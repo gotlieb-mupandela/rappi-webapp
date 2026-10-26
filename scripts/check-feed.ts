@@ -81,7 +81,7 @@ function walkFiles(dir: string, out: string[] = []): string[] {
 }
 
 const HOST_LIST_KEYS = new Set(["allowedHosts", "allowedImageHosts", "imageHosts", "hosts"]);
-const BANNED_KEYS = new Set(["vatRates", "vatCountries", "line", "targetId"]);
+const BANNED_KEYS = new Set(["href", "vatRates", "vatCountries", "line", "targetId"]);
 const PREFIX = /^(menu|group|sub|search|category|team|audience):/;
 
 function throws(run: () => unknown, pattern: RegExp) {
@@ -160,7 +160,7 @@ assert.equal(products.length, 20);
 const version = catalogVersion(products);
 const feed = buildMobileStorefront(products, version);
 assert.equal(feed.version, mobileFeedVersion(version));
-assert.equal(feed.version.endsWith(".4"), true);
+assert.equal(feed.version.endsWith(".5"), true);
 assert.equal(feedBodyHas(feed, probe), false);
 assert.deepEqual(feed.menus, headerMenuKeys());
 assert.deepEqual(feed.categoryOrder, CATEGORIES.map((category) => category.slug));
@@ -177,6 +177,8 @@ for (const method of SHIPPING_METHODS) {
   assert.equal(row.amountNad, method.cost);
   assert.equal(row.title.en, method.name);
   assert.equal(row.title.fr, shippingName(method.id, method.name, tFr));
+  assert.equal(/[<>\u0000-\u001f\u007f]/.test(row.title.en), false, method.id);
+  assert.equal(/[<>\u0000-\u001f\u007f]/.test(row.title.fr), false, method.id);
 }
 assert.equal("vatRates" in feed.checkout, false);
 assert.equal("vatCountries" in feed.checkout, false);
@@ -217,6 +219,9 @@ for (const card of feed.products) {
     assert.equal(card.labelFr, null, card.code);
   }
   assert.equal("line" in card, false, card.code);
+  assert.equal("title" in card, false, card.code);
+  assert.equal("description" in card, false, card.code);
+  assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.name), false, card.code);
   assert.equal("imageUrl" in card, false);
   assert.equal(typeof card.price, "number");
 }
@@ -254,6 +259,28 @@ const poisoned = buildMobileStorefront(
 assert.equal(JSON.stringify(poisoned).includes("/shop/evil-not-listed"), false);
 assert.equal(JSON.stringify(poisoned).includes("evil.example"), false);
 assertFeedShape(poisoned);
+
+const markedSource = {
+  ...products.find((product) => product.code === "PLAIN-01")!,
+  id: "MARKUP",
+  code: "MARKUP",
+  name: "Court <b>trainer</b>\u0007",
+  displayName: "Court <b>trainer</b>\u0007",
+  item: "Court <b>trainer</b>\u0007",
+  title: "Court <b>trainer</b>\u0007",
+  description: "Soft <i>upper</i>\nline",
+  line: "<script>nope</script>",
+};
+const marked = buildMobileStorefront([markedSource], version);
+const markedCard = marked.products.find((card) => card.code === "MARKUP");
+assert.ok(markedCard);
+assert.equal(markedCard.name, "Court btrainer/b");
+assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.name), false);
+assert.equal("line" in markedCard, false);
+assert.equal("title" in markedCard, false);
+assert.equal("description" in markedCard, false);
+assert.equal(JSON.stringify(markedCard).includes("<"), false);
+assert.equal(JSON.stringify(markedCard).includes("script"), false);
 
 const footwearMenu = byKey.get(feedMenuKey("shoes"));
 assert.ok(footwearMenu);
@@ -583,7 +610,7 @@ const bakedWithFolders = baked.map((product) => ({
 }));
 const bakedFeed = buildMobileStorefront(bakedWithFolders, catalogVersion(bakedWithFolders));
 assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
-assert.equal(bakedFeed.version.endsWith(".4"), true);
+assert.equal(bakedFeed.version.endsWith(".5"), true);
 assertFeedShape(bakedFeed);
 const bakedNodes = indexNodes(bakedFeed);
 for (const key of [
@@ -688,17 +715,23 @@ function assertFeedShape(feedValue: MobileStorefront) {
         fail(`${path} is not an allowed URL`);
       }
       if (value.startsWith("/")) {
-        if (key !== "href") fail(`${path} starts with a path`);
+        if (key !== "target") fail(`${path} starts with a path`);
         if (!paths.has(value)) fail(`${path} is not in the fixed target list`);
       }
     }
   });
-  assert.equal(new Set(feedValue.nodes.map((node) => node.href)).size, paths.size);
+  assert.equal(new Set(feedValue.nodes.map((node) => node.target)).size, paths.size);
   for (const node of feedValue.nodes) {
     assert.equal(keys.has(node.key), true, node.key);
-    assert.equal(node.href, table.get(node.key), node.key);
-    assert.equal(paths.has(node.href), true, node.href);
-    assert.equal(/^\/[^\s\\]*$/.test(node.href), true, node.key);
+    assert.equal("href" in node, false, node.key);
+    assert.equal("line" in node, false, node.key);
+    assert.equal(node.target, table.get(node.key), node.key);
+    assert.equal(paths.has(node.target), true, node.target);
+    assert.equal(/^\/[^\s\\]*$/.test(node.target), true, node.key);
+    for (const text of [node.label, node.labelFr, node.description, node.descriptionFr]) {
+      if (!text) continue;
+      assert.equal(/[<>\u0000-\u001f\u007f]/.test(text), false, node.key);
+    }
     assert.equal(PREFIX.test(node.key), false, node.key);
     if (node.parent) {
       assert.equal(keys.has(node.parent), true, node.parent);

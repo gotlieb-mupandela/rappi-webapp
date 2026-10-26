@@ -69,8 +69,9 @@ export type FeedNode = {
   tiles: string[];
   /**
    * Site path from feedTargetTable(). Never a request value or a product field.
+   * A key that is not in that table is an unknown target and is not emitted.
    */
-  href: string;
+  target: string;
 };
 
 export type FeedProduct = {
@@ -112,7 +113,7 @@ export type MobileStorefront = {
   counts: { categories: Record<string, number>; products: number };
 };
 
-type FeedNodeDraft = Omit<FeedNode, "href">;
+type FeedNodeDraft = Omit<FeedNode, "target">;
 
 export type FeedSource = Product & { folders?: string[] };
 
@@ -358,12 +359,12 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
 
   const put = (node: FeedNodeDraft) => {
     if (nodes.has(node.key)) return;
-    const href = table.get(node.key);
-    if (!href) return;
-    if (!/^\/[^\s\\]*$/.test(href)) {
+    const target = table.get(node.key);
+    if (!target) return;
+    if (!/^\/[^\s\\]*$/.test(target)) {
       throw new Error(`Feed target ${node.key} is not a site path`);
     }
-    nodes.set(node.key, { ...node, href });
+    nodes.set(node.key, { ...node, target });
   };
 
   const snapshot = jomaFolderMetaSnapshot();
