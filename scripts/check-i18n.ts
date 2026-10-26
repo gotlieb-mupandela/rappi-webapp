@@ -1,3 +1,4 @@
+import { formatChargeNad } from "../lib/format";
 import { DEFAULT_EUR_PER_NAD } from "../lib/i18n/config";
 import { nadToEur, eurToNad, formatMoney } from "../lib/i18n/currency";
 import { detectMarketFromSignals, prefersFrench } from "../lib/i18n/detect";
@@ -32,6 +33,12 @@ if (DEFAULT_EUR_PER_NAD !== 0.05) fail("default rate is not 0.05");
 if (nadToEur(100) !== 5) fail(`N$100 → ${nadToEur(100)} EUR, expected 5`);
 if (nadToEur(150) !== 7.5) fail(`N$150 → ${nadToEur(150)} EUR, expected 7.5`);
 if (eurToNad(5) !== 100) fail(`€5 → ${eurToNad(5)} NAD, expected 100`);
+if (formatChargeNad(600) !== "N$600.00") fail(`formatChargeNad(600) = ${formatChargeNad(600)}`);
+if (formatChargeNad(464.6) !== "N$464.60") fail(`formatChargeNad(464.6) = ${formatChargeNad(464.6)}`);
+if (formatChargeNad(1234.5) !== "N$1,234.50") {
+  fail(`formatChargeNad(1234.5) = ${formatChargeNad(1234.5)}`);
+}
+if (formatChargeNad(0) !== "N$0.00") fail(`formatChargeNad(0) = ${formatChargeNad(0)}`);
 if (!formatMoney(2555, "na").includes("N$")) fail("NAD format missing N$");
 if (!formatMoney(2555, "eu").includes("€") && !formatMoney(2555, "eu").includes("EUR")) {
   fail(`EUR format unexpected: ${formatMoney(2555, "eu")}`);

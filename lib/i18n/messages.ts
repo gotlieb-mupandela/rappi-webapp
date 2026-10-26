@@ -7,7 +7,7 @@ export const en = {
     heroBody:
       "Performance sportswear, team kits and equipment for athletes, clubs, schools and teams across Namibia.",
     heroBodyEur:
-      "Performance sportswear, team kits and equipment for athletes, clubs, schools and teams — prices shown in euros.",
+      "Performance sportswear, team kits and equipment for athletes, clubs, schools and teams. Prices shown in euros are approximate (converted from NAD). You are charged in N$ at checkout.",
     shopNow: "Shop now",
     exploreTeamwear: "Explore teamwear",
     shopSportswear: "Shop sportswear",
@@ -141,7 +141,8 @@ export const en = {
   },
   footer: {
     blurbNad: "Sportswear, equipment and teamwear for Namibia. Sold at retail in Namibian dollars.",
-    blurbEur: "Sportswear, equipment and teamwear for Namibia. Prices shown in euros (converted from NAD).",
+    blurbEur:
+      "Sportswear, equipment and teamwear for Namibia. Prices shown in euros are approximate (converted from NAD). You are charged in N$ at checkout.",
     shop: "Shop",
     visit: "Visit",
     findStore: "Find our store",
@@ -321,11 +322,11 @@ export const en = {
     introNad:
       "Select a delivery address and shipping method, then pay with DPO. Merchandise and shipping are in Namibian dollars (N$).",
     introEur:
-      "Select a delivery address and shipping method, then pay with DPO. Merchandise and shipping are shown in euros (converted from NAD).",
+      "Select a delivery address and shipping method, then pay with DPO. The amount due is in Namibian dollars (N$). Any euro figure is approximate.",
     introDpo:
       "This bag is the DPO sandbox product. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     introDpoEur:
-      "This bag is the DPO sandbox product. Totals are shown in euros (from NAD). Pay with a DPO test card (expiry 01/26). Do not use a live card.",
+      "This bag is the DPO sandbox product. The amount due is in Namibian dollars (N$). Any euro figure is approximate. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     address: "Shipping address",
     method: "Shipping method",
     fullName: "Full name",
@@ -342,10 +343,12 @@ export const en = {
     shipping: "Shipping",
     vat: "VAT ({rate}%)",
     total: "Total",
+    approxCharged: "Approx. EUR {eur} (you are charged {charged})",
     placeOrder: "Place order",
     placing: "Placing…",
     totalsNad: "Totals in N$. You will complete payment securely on DPO.",
-    totalsEur: "Totals in € (from NAD). You will complete payment securely on DPO.",
+    totalsEur:
+      "Charged in N$. The euro amount under the total is approximate. You will complete payment securely on DPO.",
     totalsDpo: "Sandbox payment via DPO. Test card expiry 01/26.",
     payDpo: "Pay with DPO",
     payingDpo: "Starting DPO…",
@@ -361,7 +364,7 @@ export const en = {
       "Sign in with Google or create an account to finish checkout. Your bag stays saved.",
     signInCta: "Sign in",
     createAccountCta: "Create account",
-    browseOk: "You can keep browsing without an account — login is only required to place the order.",
+    browseOk: "You can keep browsing without an account. Login is only required to place the order.",
     placed: "Order placed.",
     confirmation: "Confirmation",
     orderPlaced: "Order placed",
@@ -461,7 +464,8 @@ export const en = {
     soldOutSize: "Sold out in this size",
     limited: "Limited — {stock} left",
     pricedNad: "Priced in Namibian dollars. Sign in is required to place an order.",
-    pricedEur: "Priced in euros (converted from NAD). Sign in is required to place an order.",
+    pricedEur:
+      "Prices shown in euros are approximate (converted from NAD). You are charged in N$ at checkout. Sign in is required to place an order.",
     orderPack10: "Order unit: pack of 10.",
     orderPackNamed: "Order unit: pack of {n}.",
     orderMultipack: "Order unit: multipack.",
@@ -520,7 +524,8 @@ export const en = {
     descBibSizes: "Sizes S01–S04 follow the size grid (3XS, XS, M, XL).",
     descPack: "Sold as {label}. The {symbol} price is the pack price.",
     descPricedNad: "Priced in Namibian dollars.",
-    descPricedEur: "Priced in euros (converted from NAD).",
+    descPricedEur:
+      "Prices shown in euros are approximate (converted from NAD). You are charged in N$ at checkout.",
     descDpoNad:
       "DPO Pay sandbox product. N$10. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     descDpoEur:
@@ -1213,7 +1218,7 @@ export const fr: Messages = {
     heroBody:
       "Sportswear de performance, tenues d’équipe et équipement pour athlètes, clubs, écoles et équipes en Namibie.",
     heroBodyEur:
-      "Sportswear de performance, tenues d’équipe et équipement pour athlètes, clubs, écoles et équipes — prix affichés en euros.",
+      "Sportswear de performance, tenues d’équipe et équipement pour athlètes, clubs, écoles et équipes. Les prix affichés en euros sont approximatifs (convertis depuis le NAD). Vous êtes débité en N$ au paiement.",
     shopNow: "Acheter",
     exploreTeamwear: "Voir le teamwear",
     shopSportswear: "Voir le sportswear",
@@ -1348,7 +1353,7 @@ export const fr: Messages = {
   footer: {
     blurbNad: "Sportswear, équipement et teamwear pour la Namibie. Vendu au détail en dollars namibiens.",
     blurbEur:
-      "Sportswear, équipement et teamwear pour la Namibie. Prix affichés en euros (convertis depuis le NAD).",
+      "Sportswear, équipement et teamwear pour la Namibie. Les prix affichés en euros sont approximatifs (convertis depuis le NAD). Vous êtes débité en N$ au paiement.",
     shop: "Boutique",
     visit: "Visiter",
     findStore: "Trouver notre magasin",
@@ -1528,11 +1533,11 @@ export const fr: Messages = {
     introNad:
       "Choisissez une adresse et un mode de livraison, puis payez avec DPO. Marchandises et livraison en dollars namibiens (N$).",
     introEur:
-      "Choisissez une adresse et un mode de livraison, puis payez avec DPO. Marchandises et livraison affichées en euros (convertis depuis le NAD).",
+      "Choisissez une adresse et un mode de livraison, puis payez avec DPO. Le montant dû est en dollars namibiens (N$). Tout montant en euros est approximatif.",
     introDpo:
       "Ce panier contient uniquement le produit sandbox DPO. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     introDpoEur:
-      "Ce panier contient uniquement le produit sandbox DPO. Totaux affichés en euros (depuis le NAD). Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
+      "Ce panier contient uniquement le produit sandbox DPO. Le montant dû est en dollars namibiens (N$). Tout montant en euros est approximatif. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     address: "Adresse de livraison",
     method: "Mode de livraison",
     fullName: "Nom complet",
@@ -1549,10 +1554,12 @@ export const fr: Messages = {
     shipping: "Livraison",
     vat: "TVA ({rate} %)",
     total: "Total",
+    approxCharged: "Environ EUR {eur} (vous êtes débité de {charged})",
     placeOrder: "Passer la commande",
     placing: "Envoi…",
     totalsNad: "Totaux en N$. Le paiement se finalise de façon sécurisée sur DPO.",
-    totalsEur: "Totaux en € (depuis le NAD). Le paiement se finalise de façon sécurisée sur DPO.",
+    totalsEur:
+      "Débit en N$. Le montant en euros sous le total est approximatif. Le paiement se finalise de façon sécurisée sur DPO.",
     totalsDpo: "Paiement sandbox via DPO. Expiration de la carte de test : 01/26.",
     payDpo: "Payer avec DPO",
     payingDpo: "Ouverture de DPO…",
@@ -1568,7 +1575,7 @@ export const fr: Messages = {
       "Connectez-vous avec Google ou créez un compte pour finaliser. Votre panier est conservé.",
     signInCta: "Connexion",
     createAccountCta: "Créer un compte",
-    browseOk: "Vous pouvez continuer à parcourir sans compte — la connexion est requise uniquement pour commander.",
+    browseOk: "Vous pouvez continuer à parcourir sans compte. La connexion est requise uniquement pour commander.",
     placed: "Commande enregistrée.",
     confirmation: "Confirmation",
     orderPlaced: "Commande enregistrée",
@@ -1668,7 +1675,8 @@ export const fr: Messages = {
     soldOutSize: "Épuisé dans cette taille",
     limited: "Stock limité — {stock} restant(s)",
     pricedNad: "Prix en dollars namibiens. Connexion requise pour passer commande.",
-    pricedEur: "Prix en euros (convertis depuis le NAD). Connexion requise pour passer commande.",
+    pricedEur:
+      "Les prix affichés en euros sont approximatifs (convertis depuis le NAD). Vous êtes débité en N$ au paiement. Connexion requise pour passer commande.",
     orderPack10: "Unité de commande : pack de 10.",
     orderPackNamed: "Unité de commande : pack de {n}.",
     orderMultipack: "Unité de commande : multipack.",
@@ -1727,7 +1735,8 @@ export const fr: Messages = {
     descBibSizes: "Les tailles S01–S04 suivent la grille des tailles (3XS, XS, M, XL).",
     descPack: "Vendu en {label}. Le prix {symbol} est le prix du pack.",
     descPricedNad: "Prix en dollars namibiens.",
-    descPricedEur: "Prix en euros (convertis depuis le NAD).",
+    descPricedEur:
+      "Les prix affichés en euros sont approximatifs (convertis depuis le NAD). Vous êtes débité en N$ au paiement.",
     descDpoNad:
       "Produit sandbox DPO Pay. N$10. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     descDpoEur:

@@ -11,8 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectMenu } from "@/components/ui/select-menu";
 import { useLocale } from "@/components/locale-provider";
+import { formatChargeNad, formatPrice } from "@/lib/format";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
+import { nadToEur } from "@/lib/i18n/currency";
 import { shippingName } from "@/lib/i18n/labels";
+import type { Market } from "@/lib/i18n/config";
+import type { TFunction } from "@/lib/i18n/translate";
 import { surtidoSizeLabel } from "@/lib/assortment";
 import { sizeDisplayLabel } from "@/lib/product-stock";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -33,7 +37,7 @@ export default function CheckoutPage() {
   const lines = useCart((s) => s.lines);
   const removeLine = useCart((s) => s.remove);
   const user = useAuth((s) => s.user);
-  const { t, format, market } = useLocale();
+  const { t, market } = useLocale();
   const [shippingOptions, setShippingOptions] = useState<ShippingRow[]>(FALLBACK_SHIPPING);
   const [submitting, setSubmitting] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -120,6 +124,7 @@ export default function CheckoutPage() {
   const shipping = shippingOptions.find((s) => s.id === method) ?? shippingOptions[0];
   const vat = quoteVat(country, subtotal + (shipping?.cost ?? 0));
   const total = vat.total;
+  const approx = approxCharge(total, market, t);
   const pickup = method === "pickup";
   const addressRequired = !pickup;
 
@@ -222,8 +227,8 @@ export default function CheckoutPage() {
         </h1>
         <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
           {t("checkout.emptyHint", {
-            standard: format(100),
-            express: format(150),
+            standard: formatPrice(100),
+            express: formatPrice(150),
           })}
         </p>
         <section className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
@@ -235,7 +240,7 @@ export default function CheckoutPage() {
                 className="flex items-center justify-between rounded-xl border border-[var(--border)] px-3 py-3 text-sm"
               >
                 <span>{shippingName(s.id, s.name, t)}</span>
-                <span className="font-semibold">{s.cost ? format(s.cost) : t("common.free")}</span>
+                <span className="font-semibold">{s.cost ? formatPrice(s.cost) : t("common.free")}</span>
               </li>
             ))}
           </ul>
@@ -303,18 +308,15 @@ export default function CheckoutPage() {
                       </span>
                     ) : null}
                   </span>
-                  <span className="shrink-0">{format(r.price * r.qty)}</span>
+                  <span className="shrink-0">{formatPrice(r.price * r.qty)}</span>
                 </li>
               ))}
             </ul>
             <p className="mt-4 flex justify-between text-sm text-[var(--muted)]">
               <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
-              <span>{vat.amount ? format(vat.amount) : t("common.free")}</span>
+              <span>{vat.amount ? formatPrice(vat.amount) : t("common.free")}</span>
             </p>
-            <p className="flex justify-between text-lg font-semibold">
-              <span>{t("checkout.total")}</span>
-              <span>{format(total)}</span>
-            </p>
+            <ChargeTotal label={t("checkout.total")} total={total} approx={approx} />
           </aside>
         </div>
       </div>
@@ -414,7 +416,7 @@ export default function CheckoutPage() {
                     <span className="min-w-0 break-words">{shippingName(s.id, s.name, t)}</span>
                   </span>
                   <span className="shrink-0 text-sm font-semibold">
-                    {s.cost ? format(s.cost) : t("common.free")}
+                    {s.cost ? formatPrice(s.cost) : t("common.free")}
                   </span>
                 </label>
               ))}
@@ -451,27 +453,29 @@ export default function CheckoutPage() {
                       </span>
                     ) : null}
                   </span>
-                  <span className="shrink-0">{format(r.price * r.qty)}</span>
+                  <span className="shrink-0">{formatPrice(r.price * r.qty)}</span>
                 </li>
               ))}
             </ul>
             <div className="mt-4 space-y-1 text-sm">
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.merchandise")}</span>
-              <span>{format(subtotal)}</span>
+              <span>{formatPrice(subtotal)}</span>
             </p>
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.shipping")}</span>
-              <span>{shipping.cost ? format(shipping.cost) : t("common.free")}</span>
+              <span>{shipping.cost ? formatPrice(shipping.cost) : t("common.free")}</span>
             </p>
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
-              <span>{vat.amount ? format(vat.amount) : t("common.free")}</span>
+              <span>{vat.amount ? formatPrice(vat.amount) : t("common.free")}</span>
             </p>
-            <p className="flex justify-between pt-2 text-lg font-semibold">
-              <span>{t("checkout.total")}</span>
-              <span>{format(total)}</span>
-            </p>
+            <ChargeTotal
+              label={t("checkout.total")}
+              total={total}
+              approx={approx}
+              rowClassName="pt-2"
+            />
           </div>
           <Button
             type="submit"
@@ -490,7 +494,12 @@ export default function CheckoutPage() {
         <div className="mx-auto flex max-w-[1440px] items-center gap-3">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t("checkout.total")}</p>
-            <p className="price text-lg font-semibold">{format(total)}</p>
+            <p className="price text-lg font-semibold">{formatChargeNad(total)}</p>
+            {approx ? (
+              <p className="max-w-[11rem] text-[10px] font-normal leading-tight text-[var(--muted)]">
+                {approx}
+              </p>
+            ) : null}
           </div>
           <Button
             type="submit"
@@ -503,7 +512,43 @@ export default function CheckoutPage() {
           </Button>
         </div>
       </div>
-      <div className="h-24 md:hidden" />
+      <div className={approx ? "h-32 md:hidden" : "h-24 md:hidden"} />
+    </div>
+  );
+}
+
+/**
+ * Euro is display-only. The charge currency comes from server-only `dpoCurrency()`
+ * (`DPO_CURRENCY`, default NAD) and is not on the client, so the payable line stays N$.
+ */
+function approxCharge(total: number, market: Market, t: TFunction) {
+  if (market !== "eu") return null;
+  return t("checkout.approxCharged", {
+    eur: nadToEur(total).toFixed(2),
+    charged: formatChargeNad(total),
+  });
+}
+
+function ChargeTotal({
+  label,
+  total,
+  approx,
+  rowClassName = "",
+}: {
+  label: string;
+  total: number;
+  approx: string | null;
+  rowClassName?: string;
+}) {
+  return (
+    <div>
+      <p className={`flex justify-between text-lg font-semibold ${rowClassName}`.trim()}>
+        <span>{label}</span>
+        <span>{formatChargeNad(total)}</span>
+      </p>
+      {approx ? (
+        <p className="mt-1 text-right text-xs font-normal leading-snug text-[var(--muted)]">{approx}</p>
+      ) : null}
     </div>
   );
 }
