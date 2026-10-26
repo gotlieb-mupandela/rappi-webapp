@@ -21,7 +21,7 @@ import { isOutletFolderKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { filterListing, type ListingItem } from "@/lib/listing-core";
 import { hasUsableProductImage, listingCardCandidates } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
-import { checkoutVatCountryCodes, checkoutVatRate } from "@/lib/mobile-feed-countries";
+import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import {
   FEED_MENUS,
   FLOW_TILE,
@@ -98,8 +98,13 @@ export type FeedProduct = {
 };
 
 export type FeedCheckout = {
-  /** Fraction, not a percent. Namibia rate / 100 (0.15). Display only. */
-  vatRate: number;
+  /**
+   * One row per VAT_COUNTRIES entry, in that order.
+   * code is the fixed ISO alpha-2 (Kosovo is the user-assigned XK).
+   * name is the site country name. vatRate is that row's rate / 100.
+   * Display only.
+   */
+  countries: FeedCheckoutCountry[];
   /** Euro per 1 N$. Read from eurPerNad(). Display only. */
   eurPerNad: number;
   shipping: Array<{
@@ -108,8 +113,6 @@ export type FeedCheckout = {
     /** N$. Finite number. */
     amountNad: number;
   }>;
-  /** ISO 3166-1 alpha-2 codes, except Kosovo which is the user-assigned XK. */
-  vatCountries: string[];
 };
 
 export type MobileStorefront = {
@@ -160,9 +163,9 @@ function imagePathRejected(path: string): boolean {
  * That origin is the fixed site constant. It is not a request header,
  * an environment variable, or a value from the feed.
  * Protocol-relative URLs, dot segments, backslashes, control characters,
- * and ports are dropped. The absolute URL is kept only when
- * allowedImageHosts() and imageHostAllows() match.
- * A fixed-origin URL that is not on that list is dropped.
+ * userinfo, and ports are dropped. The absolute URL is kept when its
+ * origin is exactly CANONICAL_SITE_ORIGIN, or when allowedImageHosts()
+ * and imageHostAllows() match. Any other origin is dropped.
  * No host strings are copied here.
  */
 export function feedImageUrl(url: string | null | undefined): string | null {
@@ -192,11 +195,12 @@ export function feedImageUrl(url: string | null | undefined): string | null {
   if (parsed.username !== "" || parsed.password !== "") return null;
   if (imagePathRejected(parsed.pathname)) return null;
 
-  fixedSiteOrigin();
+  const site = fixedSiteOrigin();
+  const onCanonical = parsed.origin === site.origin;
   const listed = allowedImageHosts().some((rule) =>
     imageHostAllows(parsed.hostname, parsed.pathname, rule),
   );
-  if (!listed) return null;
+  if (!onCanonical && !listed) return null;
   return absolute;
 }
 
@@ -403,9 +407,8 @@ function feedCheckout(): FeedCheckout {
   if (!Number.isFinite(eur) || eur <= 0) {
     throw new Error("eurPerNad must be a finite number greater than 0");
   }
-  const vatRate = checkoutVatRate();
   return {
-    vatRate,
+    countries: checkoutCountries(),
     eurPerNad: eur,
     shipping: shippingMethodsSnapshot().map((method) => {
       const amountNad = assertFiniteNumber(method.cost, `amountNad ${method.id}`);
@@ -416,7 +419,6 @@ function feedCheckout(): FeedCheckout {
         amountNad,
       };
     }),
-    vatCountries: checkoutVatCountryCodes(),
   };
 }
 
