@@ -1,0 +1,40 @@
+# Image parity with the public store (fix/image-parity-1)
+
+Draft. Nothing merged or deployed. Only data/products.json image fields (imageUrl, images) change. Supabase is not touched.
+
+## What changed
+For every product on the public store (7,403 codes in data/store-image-indexes.json), images is now exactly the store photo list in ascending index order, and imageUrl is the first one. Store URL format is the same as demandwareUrl(code, n) in scripts/enrich-demandware-images.mjs.
+
+- Products changed: 7,092 of 11,104. Not changed: 4,012.
+- Reason tags (a product can have more than one): B2B_DROPPED 7,001 (all v1.joma-sport.net links dropped from on-store products, of which 37 were dead 404s), OTHER_EXTRA_DROPPED 1,403 (non-store or other-colour photos, includes the 9 MORE), ADDED_STORE_PHOTOS 480, RELATIVE_TO_STORE 70, RELATIVE_PREFIXED 3, LOGO_ONLY 3, LOGO_ONLY_CLEARED 2, REORDERED_ONLY 19.
+- QA classes, all covered: dead B2B 37 of 37, logo-only 5 of 5, fewer 482 of 482, more 9 of 9, relative 75 of 75.
+- Store photo order changed on 747 products. Only 19 changed nothing but order (reordered-only.csv).
+- Not on the store: 1,152 codes (not-on-store.csv) keep their photos. Only 3 of them changed: relative /catalog-photos/ URLs prefixed with https://www.rappisportshub.com (GET 200 image/jpeg each).
+- The 5 network-error codes from QA (902686.201, AGUW2621AG, 102223.901, WINTER11-111, 400194.100) were re-probed with GET and their store indexes added.
+
+## Open points (defaults chosen, David to confirm)
+- A: store order wins over "person photo first".
+- B: photos not on the store are dropped, not kept last.
+
+## Logo-only
+RMETAW2631, RMETLW2620, 104937.273 now use their store photos. GOLCW2602FGD and GOLS2601AG are 404 on the store, so the logo is removed and the gallery is empty (the empty plate shows on the product page; the product drops out of browse grids because hasUsableProductImage is false).
+
+## Files
+- dry-run.csv: code, old images, new images, reason.
+- backup-old-images.json: old imageUrl and images for every changed product.
+- reordered-only.csv: the 19 order-only changes.
+- not-on-store.csv: the 1,152 codes left alone.
+- check-output.txt: output of npm run check:store-images.
+- held-supabase/: why Supabase is not changed, and the steps if approved.
+
+## Re-run
+- Dry run (reports only): node scripts/sync-store-images.mjs
+- Apply: node scripts/sync-store-images.mjs --write
+- Revert the order-only part: restore data/products.json from main, then run with --write --keep-our-order (products whose only change is order are left as they were). Or restore any product from backup-old-images.json.
+- Check: npm run check:store-images (plain node).
+
+## Not verified
+- No pixel or hash comparison against the store photos. QA will run it.
+- Store order is index order (_1, _2, ...). The order on store pages was not read.
+- Dropped v1 B2B photos are assumed to be a different shoot of the same product; not compared.
+- The 3 prefixed URLs were checked for HTTP 200 and image type only, not for showing the right product.
