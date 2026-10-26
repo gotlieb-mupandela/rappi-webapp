@@ -16,9 +16,13 @@
     "descriptions:joma": "node scripts/fetch-joma-descriptions.mjs",
     "check:i18n": "npx tsx scripts/check-i18n.ts",
 <<<<<<< HEAD
+<<<<<<< HEAD
     \"check:csp\": \"npx tsx --test lib/content-security-policy.test.ts\",\n    \"check:hidden-packs\": \"npx tsx scripts/check-hidden-pack-codes.ts\",\n    "bake:catalog": "npx tsx scripts/bake-catalog.ts",
 =======
     "test:safe-next-path": "npx tsx --test scripts/safe-next-path.test.ts",
+=======
+    "check:stock-codes": "npx tsx scripts/check-stock-codes.ts",
+>>>>>>> origin/fix/api-stock-comma-codes
     "bake:catalog": "npx tsx scripts/bake-catalog.ts",
 >>>>>>> origin/security/safe-next-path-1
     "sync:joma": "node scripts/sync-joma-catalog.mjs",
