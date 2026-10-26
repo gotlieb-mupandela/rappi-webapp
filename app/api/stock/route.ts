@@ -16,10 +16,10 @@ export async function GET(request: Request) {
   const products: Map<string, Product> = lookup.length
     ? await getFreshCheckoutProducts(lookup)
     : new Map();
-  const overLength = new Set(parsed.overLength);
+  const rejected = new Set(parsed.rejected);
   const stock = Object.fromEntries(
     parsed.codes.map((code) => {
-      if (overLength.has(code)) return [code, { available: false, sizes: [] }];
+      if (rejected.has(code)) return [code, { available: false, sizes: [] }];
       const product = products.get(code);
       if (!product) return [code, { available: false, sizes: [] }];
       const count = totalStock(product);

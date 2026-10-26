@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  PRODUCT_CODE,
   STOCK_CODE_LIMIT,
   STOCK_CODE_MAX_LENGTH,
   lookupStockCodes,
@@ -113,6 +114,7 @@ check("66 character code inside the cap is not looked up", () => {
   const result = parsed(params);
   assert.deepEqual(result.codes, [long, "TEAM/14"]);
   assert.deepEqual(result.overLength, [long]);
+  assert.deepEqual(result.rejected, [long]);
   assert.deepEqual(lookupStockCodes(result), ["TEAM/14"]);
   assert.equal(result.codes[0], long);
 });
@@ -122,8 +124,10 @@ check("65 character code is accepted", () => {
   const params = new URLSearchParams();
   params.append("code", code);
   const result = parsed(params);
+  assert.equal(PRODUCT_CODE.test(code), true);
   assert.deepEqual(result.codes, [code]);
   assert.deepEqual(result.overLength, []);
+  assert.deepEqual(result.rejected, []);
   assert.deepEqual(lookupStockCodes(result), [code]);
 });
 
@@ -142,6 +146,88 @@ check("66 character code past the cap is ignored", () => {
 check("TEAM/14 is kept", () => {
   assert.deepEqual(codesOf("code=TEAM%2F14"), ["TEAM/14"]);
   assert.deepEqual(codesOf("codes=TEAM/14"), ["TEAM/14"]);
+});
+
+function withParam(name: "code" | "codes", value: string) {
+  const params = new URLSearchParams();
+  params.append(name, value);
+  return params;
+}
+
+function assertRejected(code: string, params: URLSearchParams) {
+  const result = parsed(params);
+  assert.equal(result.codes.includes(code), true);
+  assert.equal(result.rejected.includes(code), true);
+  assert.equal(lookupStockCodes(result).includes(code), false);
+}
+
+check("quote and backslash codes are rejected on both params", () => {
+  for (const code of ['a"b', "a\\b"]) {
+    assert.equal(PRODUCT_CODE.test(code), false);
+    assertRejected(code, withParam("code", code));
+    assertRejected(code, withParam("codes", code));
+  }
+});
+
+check("postgrest filter breakout is rejected", () => {
+  const code = 'a"),b';
+  assert.equal(PRODUCT_CODE.test(code), false);
+  assertRejected(code, withParam("code", code));
+  const legacy = parsed(withParam("codes", code));
+  assert.equal(lookupStockCodes(legacy).includes(code), false);
+  assert.equal(legacy.rejected.includes('a")'), true);
+  assert.equal(lookupStockCodes(legacy).includes('a")'), false);
+});
+
+check("traversal strings are rejected", () => {
+  for (const code of ["a/../b", "a//b", "a/./b"]) {
+    assert.equal(PRODUCT_CODE.test(code), false);
+    assertRejected(code, withParam("code", code));
+    assertRejected(code, withParam("codes", code));
+  }
+});
+
+check("five live codes are accepted on repeated code and legacy codes", () => {
+  const live = ["709/101", "711/101", "946,001", "946,003", "TEAM/14"];
+  const repeated = new URLSearchParams();
+  for (const code of live) {
+    assert.equal(PRODUCT_CODE.test(code), true);
+    repeated.append("code", code);
+  }
+  const viaRepeated = parsed(repeated);
+  assert.deepEqual(viaRepeated.rejected, []);
+  assert.deepEqual(lookupStockCodes(viaRepeated), live);
+
+  for (const code of live) {
+    const viaLegacy = parsed(withParam("codes", code));
+    if (code.includes(",")) {
+      const parts = code.split(",");
+      assert.deepEqual(viaLegacy.codes, parts);
+      assert.deepEqual(viaLegacy.rejected, []);
+      assert.deepEqual(lookupStockCodes(viaLegacy), parts);
+      const alone = parsed(withParam("code", code));
+      assert.deepEqual(alone.rejected, []);
+      assert.deepEqual(lookupStockCodes(alone), [code]);
+    } else {
+      assert.deepEqual(viaLegacy.codes, [code]);
+      assert.deepEqual(viaLegacy.rejected, []);
+      assert.deepEqual(lookupStockCodes(viaLegacy), [code]);
+    }
+  }
+});
+
+check("rejected codes never reach lookup", () => {
+  const bad = ['a"b', "a\\b", 'a"),b', "a/../b", "a//b", "a/./b", "D".repeat(66)];
+  const params = new URLSearchParams();
+  for (const code of bad) params.append("code", code);
+  params.append("code", "709/101");
+  const result = parsed(params);
+  const lookup = lookupStockCodes(result);
+  assert.deepEqual(lookup, ["709/101"]);
+  for (const code of bad) {
+    assert.equal(result.rejected.includes(code), true);
+    assert.equal(lookup.includes(code), false);
+  }
 });
 
 if (failed) {
