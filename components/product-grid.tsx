@@ -6,28 +6,14 @@ import { useT } from "@/components/locale-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
 import { SUBCATEGORY_LABELS, subcategoryChipRank } from "@/lib/catalog";
-import { itemFamilyOf } from "@/lib/joma-item";
 import { cn } from "@/lib/utils";
 
 /** Dense Joma-style catalog grid — up to ~5 columns on wide screens. */
 const GRID =
   "grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-4 md:grid-cols-4 lg:grid-cols-5 xl:gap-x-5 [&>*]:relative";
 
-const COLOR_STOP =
-  /^(dark|light|neon|navy|black|white|red|blue|green|grey|gray|orange|yellow|pink|purple|beige|brown|soft|shell|polar|fleece|jacket|anorak|man|woman|junior|ii|iii|iv|v|vi|vii|viii)$/i;
-
-function collectionLineOf(product: Product) {
-  const fam = itemFamilyOf(product);
-  if (!fam) return "general";
-  const tokens = fam.split(/\s+/).filter(Boolean);
-  if (!tokens.length) return "general";
-  const out: string[] = [tokens[0]];
-  if (tokens[1] && !COLOR_STOP.test(tokens[1])) out.push(tokens[1]);
-  return out.join(" ");
-}
-
-function collectionLabel(key: string) {
-  return key.replace(/\b\w/g, (c) => c.toUpperCase());
+function lineLabel(product: Product) {
+  return (product.line ?? "").trim();
 }
 
 type Section = { key: string; display: string; list: Product[]; count: number };
@@ -63,16 +49,18 @@ function sectionsFor(
 
   const byLine = new Map<string, Product[]>();
   for (const p of products) {
-    const key = collectionLineOf(p);
+    const key = lineLabel(p);
     const list = byLine.get(key) ?? [];
     list.push(p);
     byLine.set(key, list);
   }
-  const lineEntries = [...byLine.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  const lineEntries = [...byLine.entries()].sort((a, b) =>
+    a[0].toLowerCase().localeCompare(b[0].toLowerCase()),
+  );
   if (lineEntries.length > 1 && lineEntries.length <= 14) {
     return lineEntries.map(([key, list]) => ({
-      key: `line-${key.replace(/\s+/g, "-")}`,
-      display: collectionLabel(key),
+      key: `line-${(key || "more").replace(/\s+/g, "-")}`,
+      display: key || "More",
       list,
       count: list.length,
     }));

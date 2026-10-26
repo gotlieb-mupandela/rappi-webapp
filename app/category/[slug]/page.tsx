@@ -13,6 +13,7 @@ import { Translated } from "@/components/translated";
 import { CATEGORIES, CATEGORY_ALIASES, categoryBySlug, resolveCategorySlug } from "@/lib/catalog";
 import { sampleForCategory } from "@/lib/classify";
 import { audienceTiles, categoryHubFolders } from "@/lib/hubs";
+import { toClientProduct, toClientSamples } from "@/lib/listing-core";
 import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
 import { productPath } from "@/lib/utils";
@@ -88,7 +89,7 @@ export default async function CategoryHubPage({
               className="media-frame group relative block overflow-hidden rounded-lg border border-[var(--border)]"
             >
               <ProductImage
-                product={sample}
+                product={toClientProduct(sample)}
                 src={sample.imageUrl}
                 sources={tileImageCandidates(sample)}
                 alt={sample.displayName}
@@ -117,7 +118,7 @@ export default async function CategoryHubPage({
               href={shopAllHref}
               linkLabelKey="common.shopAll"
             />
-            <FolderGrid folders={typeGroups} slug={hubSlug} />
+            <FolderGrid folders={toClientSamples(typeGroups)} slug={hubSlug} />
           </section>
         ) : null}
 
@@ -136,7 +137,7 @@ export default async function CategoryHubPage({
                   nameAudience={g.key}
                   count={g.count}
                   href={g.href}
-                  product={g.sample}
+                  product={g.sample ? toClientProduct(g.sample) : undefined}
                   imageSrc={g.cover}
                   shape="square"
                   imageFit={g.cover ? "contain" : "cover"}

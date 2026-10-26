@@ -291,7 +291,7 @@ for (const card of feed.products) {
     assert.equal(card.label, null, card.code);
     assert.equal(card.labelFr, null, card.code);
   }
-  assert.equal(card.line, null, card.code);
+  assert.ok(card.line === null || typeof card.line === "string", card.code);
   assert.deepEqual(Object.keys(card), [...FEED_PRODUCT_KEYS]);
   for (const banned of ["item", "sheetCategory", "hay", "folders"]) {
     assert.equal(Object.hasOwn(card, banned), false, card.code);
@@ -356,7 +356,7 @@ const markedCard = marked.products.find((card) => card.code === "MARKUP");
 assert.ok(markedCard);
 assert.equal(markedCard.name, "Court btrainer/b");
 assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.name), false);
-assert.equal(markedCard.line, null);
+assert.ok(markedCard.line === null || !/[<>]/.test(markedCard.line));
 assert.equal(JSON.stringify(markedCard).includes("script"), false);
 assert.equal(JSON.stringify(markedCard).includes("Supplier heading"), false);
 assert.equal("title" in markedCard, false);
@@ -372,7 +372,7 @@ const itemOnly = feedProductCard({
 });
 assert.ok(itemOnly);
 assert.equal(itemOnly.name, "ITEM-ONLY");
-assert.equal(itemOnly.line, null);
+assert.ok(itemOnly.line === null || typeof itemOnly.line === "string");
 assert.equal(JSON.stringify(itemOnly).includes("Supplier heading"), false);
 assert.deepEqual(Object.keys(itemOnly), [...FEED_PRODUCT_KEYS]);
 assert.equal(JSON.stringify(markedCard).includes("<"), false);
@@ -827,7 +827,7 @@ for (const card of bakedFeed.products) {
 }
 assert.ok(labelFrTranslated > 0);
 console.log(`labelFr differs from label on ${labelFrTranslated} cards`);
-assert.equal(lineNull, bakedFeed.products.length);
+assert.ok(lineNull < bakedFeed.products.length, "line must be set once #101/#102 are stacked");
 console.log(`product line null ${lineNull} of ${bakedFeed.products.length}`);
 assert.equal(imageDiffer, 0);
 console.log(
