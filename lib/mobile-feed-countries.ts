@@ -216,3 +216,30 @@ export function checkoutCountries(
   }
   return countries;
 }
+
+/** ISO codes in VAT_COUNTRIES order. Names are not copied into the feed. */
+export function checkoutVatCountryCodes(
+  rows: readonly Pick<VatCountry, "name" | "rate">[] = VAT_COUNTRIES,
+  isoByName: ReadonlyMap<string, string> = VAT_ISO_BY_NAME,
+): string[] {
+  return checkoutCountries(rows, isoByName).map((row) => row.code);
+}
+
+/**
+ * Store VAT as a fraction. Namibia is the default market (15% is 0.15).
+ * Throws when that row is missing or the fraction is not finite in 0..1.
+ */
+export function checkoutVatRate(
+  rows: readonly Pick<VatCountry, "name" | "rate">[] = VAT_COUNTRIES,
+): number {
+  const row = rows.find((item) => item.name === "Namibia");
+  if (!row) throw new Error("Checkout VAT rate is missing");
+  if (typeof row.rate !== "number" || !Number.isFinite(row.rate)) {
+    throw new Error("Checkout VAT rate is not finite");
+  }
+  const vatRate = row.rate / 100;
+  if (!Number.isFinite(vatRate) || vatRate < 0 || vatRate > 1) {
+    throw new Error("Checkout VAT rate is out of range");
+  }
+  return vatRate;
+}

@@ -21,7 +21,7 @@ import { isOutletFolderKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { filterListing, type ListingItem } from "@/lib/listing-core";
 import { hasUsableProductImage, listingCardCandidates } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
-import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
+import { checkoutVatCountryCodes, checkoutVatRate } from "@/lib/mobile-feed-countries";
 import {
   FEED_MENUS,
   FLOW_TILE,
@@ -47,24 +47,29 @@ import type { Product } from "@/lib/types";
 const tEn = makeT("na");
 const tFr = makeT("eu");
 
+export type FeedText = { en: string; fr: string };
+
 export type FeedNode = {
   key: string;
   kind: "menu" | "folder" | "category" | "audience" | "tile";
-  label: string;
-  labelFr: string;
-  description: string | null;
-  descriptionFr: string | null;
+  /** Plain text. fr is always a non-empty string. */
+  title: FeedText;
+  /** Plain text. fr is always a non-empty string. */
+  description: FeedText;
+  /** Integer. Site sibling or menu order. */
   order: number;
   parent: string | null;
   image: string | null;
   hidden: boolean;
+  /** Integer product count. */
   count: number;
   /** Site base group (`folder.sub`, type folder, or subcategory) when one exists. */
   group: string | null;
   /** Ordered child keys for a menu, category shop-by-type list, or folder. */
   tiles: string[];
   /**
-   * Site path from feedTargetTable(). Never a request value or a product field.
+   * Site path from feedTargetTable(). The only link field.
+   * Never a request value or a product field.
    * A key that is not in that table is an unknown target and is not emitted.
    */
   target: string;
@@ -76,26 +81,34 @@ export type FeedProduct = {
   label: string | null;
   labelFr: string | null;
   packLabel: string | null;
+  /** Pairs or pieces, or null. Finite integer when present. */
   pairCount: number | null;
   isPack: boolean;
+  /** N$. Finite number. */
   price: number;
   priceLabel: string;
   cardImage: string | null;
   images: string[];
+  /** Plain text supplier line, or null when the product record has none. */
+  line: string | null;
   category: string | null;
   subcategory: string | null;
   audience: string | null;
 };
 
 export type FeedCheckout = {
+  /** Fraction, not a percent. Namibia rate / 100 (0.15). Display only. */
+  vatRate: number;
   /** Euro per 1 N$. Read from eurPerNad(). Display only. */
   eurPerNad: number;
   shipping: Array<{
     key: string;
-    title: { en: string; fr: string };
+    title: FeedText;
+    /** N$. Finite number. */
     amountNad: number;
   }>;
-  countries: FeedCheckoutCountry[];
+  /** ISO 3166-1 alpha-2 codes, except Kosovo which is the user-assigned XK. */
+  vatCountries: string[];
 };
 
 export type MobileStorefront = {
@@ -147,8 +160,9 @@ function imagePathRejected(path: string): boolean {
  * an environment variable, or a value from the feed.
  * Protocol-relative URLs, dot segments, backslashes, control characters,
  * and ports are dropped. The absolute URL is kept only when
- * allowedImageHosts() and imageHostAllows() match, or when its origin is
- * that fixed site origin. No host strings are copied here.
+ * allowedImageHosts() and imageHostAllows() match.
+ * A fixed-origin URL that is not on that list is dropped.
+ * No host strings are copied here.
  */
 export function feedImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -177,11 +191,11 @@ export function feedImageUrl(url: string | null | undefined): string | null {
   if (parsed.username !== "" || parsed.password !== "") return null;
   if (imagePathRejected(parsed.pathname)) return null;
 
-  const onFixedOrigin = parsed.origin === fixedSiteOrigin().origin;
+  fixedSiteOrigin();
   const listed = allowedImageHosts().some((rule) =>
     imageHostAllows(parsed.hostname, parsed.pathname, rule),
   );
-  if (!onFixedOrigin && !listed) return null;
+  if (!listed) return null;
   return absolute;
 }
 
@@ -205,16 +219,37 @@ function slugText(value: string | null | undefined): string | null {
   return next;
 }
 
-function copyPair(english: string, french: string): { label: string; labelFr: string } {
-  const label = plainText(english);
-  const labelFr = plainText(french) || label;
-  return { label, labelFr: labelFr || label };
+/** fr is the French plain text, or the English plain text when that is empty. */
+function textPair(english: string, french: string, backup = ""): FeedText {
+  const en = plainText(english) || plainText(backup);
+  const fr = plainText(french) || en;
+  if (!en || !fr) throw new Error("Feed French text is empty");
+  return { en, fr };
+}
+
+export function assertFiniteNumber(value: number, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`${label} is not a finite number`);
+  }
+  return value;
+}
+
+export function assertFiniteInteger(value: number, label: string): number {
+  const next = assertFiniteNumber(value, label);
+  if (!Number.isInteger(next)) throw new Error(`${label} is not an integer`);
+  return next;
 }
 
 function messagePair(key: string, fallback: string) {
   const english = tEn(key);
   const french = tFr(key);
-  return copyPair(english === key ? fallback : english, french === key ? fallback : french);
+  return {
+    title: textPair(
+      english === key ? fallback : english,
+      french === key ? fallback : french,
+      fallback,
+    ),
+  };
 }
 
 const GROUP_KINDS = ["apparel", "footwear", "kids", "rugby", "brama"] as const;
@@ -240,14 +275,19 @@ function namesFor(key: string, english: string, labelKey?: string) {
   if (labelKey) return messagePair(labelKey, english);
   const en = groupLabel(key, tEn) ?? english;
   const fr = groupLabel(key, tFr) ?? groupLabel(key, tEn) ?? english;
-  return copyPair(en, fr);
+  return { title: textPair(en, fr, english || key) };
 }
 
-function blurbs(kind: "hub" | "audience", slug: string) {
+function descriptionFor(
+  kind: "hub" | "audience",
+  slug: string,
+  title: FeedText,
+): FeedText {
   const read = kind === "hub" ? hubBlurb : audienceBlurb;
-  const description = plainText(read(slug, tEn)) || null;
-  const descriptionFr = plainText(read(slug, tFr)) || description;
-  return { description, descriptionFr };
+  const english = plainText(read(slug, tEn));
+  const french = plainText(read(slug, tFr));
+  if (!english && !french) return title;
+  return textPair(english || title.en, french || english || title.fr, title.en);
 }
 
 const CATEGORY_IMAGE: Record<string, string> = {
@@ -280,22 +320,32 @@ export function feedProductCard(product: Product): FeedProduct | null {
     : view.label;
   const labelFr = french ? plainText(french) : null;
   const images = productImages(product);
+  const pairCount = view.pairCount;
+  if (pairCount !== null) assertFiniteInteger(pairCount, `pairCount ${product.code}`);
   return {
     code: product.code,
     name,
     label,
     labelFr: label ? labelFr || label : null,
     packLabel: label,
-    pairCount: view.pairCount,
+    pairCount,
     isPack: view.isPack,
-    price: product.price,
+    price: assertFiniteNumber(product.price, `price ${product.code}`),
     priceLabel: formatPrice(product.price),
     cardImage: images[0] ?? null,
     images,
+    line: productLine(product),
     category: slugText(product.category),
     subcategory: slugText(product.subcategory),
     audience: productAudience(product),
   };
+}
+
+function productLine(product: Product): string | null {
+  const raw = (product as Product & { line?: unknown }).line;
+  if (typeof raw !== "string") return null;
+  const text = plainText(raw);
+  return text || null;
 }
 
 function productImages(product: Product): string[] {
@@ -328,18 +378,18 @@ export function folderProductCounts(catalog: FeedSource[]): Map<string, number> 
   return counts;
 }
 
-function emptyNode(partial: Omit<FeedNodeDraft, "tiles" | "description" | "descriptionFr" | "group"> & {
-  tiles?: string[];
-  description?: string | null;
-  descriptionFr?: string | null;
-  group?: string | null;
-}): FeedNodeDraft {
+function emptyNode(
+  partial: Omit<FeedNodeDraft, "tiles" | "description" | "group"> & {
+    tiles?: string[];
+    description?: FeedText;
+    group?: string | null;
+  },
+): FeedNodeDraft {
   return {
-    description: null,
-    descriptionFr: null,
     group: null,
     tiles: [],
     ...partial,
+    description: partial.description ?? partial.title,
   };
 }
 
@@ -348,21 +398,24 @@ function emptyNode(partial: Omit<FeedNodeDraft, "tiles" | "description" | "descr
  * No checkout or payment route reads this block.
  */
 function feedCheckout(): FeedCheckout {
-  const rate = eurPerNad();
-  if (!Number.isFinite(rate) || rate <= 0) {
+  const eur = eurPerNad();
+  if (!Number.isFinite(eur) || eur <= 0) {
     throw new Error("eurPerNad must be a finite number greater than 0");
   }
+  const vatRate = checkoutVatRate();
   return {
-    eurPerNad: rate,
-    shipping: shippingMethodsSnapshot().map((method) => ({
-      key: method.id,
-      title: {
-        en: plainText(method.name),
-        fr: plainText(shippingName(method.id, method.name, tFr)),
-      },
-      amountNad: method.cost,
-    })),
-    countries: checkoutCountries(),
+    vatRate,
+    eurPerNad: eur,
+    shipping: shippingMethodsSnapshot().map((method) => {
+      const amountNad = assertFiniteNumber(method.cost, `amountNad ${method.id}`);
+      if (amountNad < 0) throw new Error(`amountNad is negative: ${method.id}`);
+      return {
+        key: method.id,
+        title: textPair(method.name, shippingName(method.id, method.name, tFr), method.name),
+        amountNad,
+      };
+    }),
+    vatCountries: checkoutVatCountryCodes(),
   };
 }
 
@@ -394,6 +447,12 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
 
   const put = (node: FeedNodeDraft) => {
     if (nodes.has(node.key)) return;
+    if (!node.title.fr || !node.description.fr) {
+      throw new Error(`Feed French text is empty: ${node.key}`);
+    }
+    assertFiniteInteger(node.order, `order ${node.key}`);
+    const count = assertFiniteInteger(node.count, `count ${node.key}`);
+    if (count < 0) throw new Error(`Feed count is negative: ${node.key}`);
     const target = table.get(node.key);
     if (!target) return;
     if (!/^\/[^\s\\]*$/.test(target)) {
@@ -448,8 +507,8 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   const categoryOrder: string[] = [];
   for (const category of feedCategoryTargets()) {
     const count = categoryCounts[category.slug] ?? 0;
-    const names = copyPair(hubName(category.slug, tEn), hubName(category.slug, tFr));
-    const text = blurbs("hub", category.slug);
+    const names = { title: textPair(hubName(category.slug, tEn), hubName(category.slug, tFr), category.slug) };
+    const text = descriptionFor("hub", category.slug, names.title);
     const shopKeys =
       category.slug === "sportswear"
         ? sportswearTypeKeys()
@@ -459,8 +518,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     const tiles = shopKeys.filter((key) => nodes.has(key));
     const existing = nodes.get(category.slug);
     if (existing) {
-      existing.description = existing.description ?? text.description;
-      existing.descriptionFr = existing.descriptionFr ?? text.descriptionFr;
+      existing.description = text;
       if (shopKeys.length) existing.tiles = tiles;
     } else {
       put(
@@ -468,7 +526,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
           key: category.slug,
           kind: "category",
           ...names,
-          ...text,
+          description: text,
           order: category.order,
           parent: null,
           image: tileImage(CATEGORY_IMAGE[category.slug] ?? null),
@@ -483,14 +541,16 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
 
   for (const audience of feedAudienceTargets()) {
     if (nodes.has(audience.id)) continue;
-    const names = copyPair(audienceName(audience.slug, tEn), audienceName(audience.slug, tFr));
-    const text = blurbs("audience", audience.slug);
+    const names = {
+      title: textPair(audienceName(audience.slug, tEn), audienceName(audience.slug, tFr), audience.slug),
+    };
+    const text = descriptionFor("audience", audience.slug, names.title);
     put(
       emptyNode({
         key: audience.id,
         kind: "audience",
         ...names,
-        ...text,
+        description: text,
         order: audience.order,
         parent: null,
         image: tileImage(AUDIENCE_IMAGE[audience.slug] ?? null),
@@ -629,6 +689,11 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   for (const row of snapshot) take(publicFolderKey(row.key));
   for (const node of nodes.values()) take(node.key);
 
+  for (const [slug, count] of Object.entries(categoryCounts)) {
+    const next = assertFiniteInteger(count, `category count ${slug}`);
+    if (next < 0) throw new Error(`Category count is negative: ${slug}`);
+  }
+
   return {
     version: mobileFeedVersion(version),
     nodes: ordered,
@@ -638,7 +703,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     checkout: feedCheckout(),
     counts: {
       categories: categoryCounts,
-      products: products.length,
+      products: assertFiniteInteger(products.length, "counts.products"),
     },
   };
 }

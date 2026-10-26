@@ -23,10 +23,14 @@ import { listingCardCandidates } from "../lib/media";
 import { CANONICAL_SITE_ORIGIN } from "../lib/meta/site";
 import {
   checkoutCountries,
+  checkoutVatCountryCodes,
+  checkoutVatRate,
   COUNTRY_LIST_CAP,
   COUNTRY_NAME_MAX,
 } from "../lib/mobile-feed-countries";
 import {
+  assertFiniteInteger,
+  assertFiniteNumber,
   buildMobileStorefront,
   feedImageUrl,
   feedProductCard,
@@ -81,7 +85,7 @@ function walkFiles(dir: string, out: string[] = []): string[] {
 }
 
 const HOST_LIST_KEYS = new Set(["allowedHosts", "allowedImageHosts", "imageHosts", "hosts"]);
-const BANNED_KEYS = new Set(["href", "vatRates", "vatCountries", "line", "targetId"]);
+const BANNED_KEYS = new Set(["href", "vatRates", "countries", "targetId"]);
 const PREFIX = /^(menu|group|sub|search|category|team|audience):/;
 
 function throws(run: () => unknown, pattern: RegExp) {
@@ -117,6 +121,15 @@ throws(
 );
 assert.equal(checkoutCountries([{ name: "One", rate: 0 }], iso)[0]?.vatRate, 0);
 assert.equal(checkoutCountries([{ name: "One", rate: 100 }], iso)[0]?.vatRate, 1);
+assert.equal(checkoutVatRate(), 0.15);
+assert.deepEqual(checkoutVatCountryCodes(), checkoutCountries().map((row) => row.code));
+throws(() => checkoutVatRate([]), /missing/);
+throws(() => checkoutVatRate([{ name: "Namibia", rate: Number.NaN }]), /not finite/);
+throws(() => checkoutVatRate([{ name: "Namibia", rate: Number.POSITIVE_INFINITY }]), /not finite/);
+throws(() => checkoutVatRate([{ name: "Namibia", rate: 150 }]), /out of range/);
+throws(() => assertFiniteNumber(Number.NaN, "amountNad"), /not a finite number/);
+throws(() => assertFiniteNumber(Number.POSITIVE_INFINITY, "vatRate"), /not a finite number/);
+throws(() => assertFiniteInteger(1.5, "order"), /not an integer/);
 assert.equal(({} as { polluted?: boolean }).polluted, undefined);
 
 const countries = checkoutCountries();
@@ -160,12 +173,21 @@ assert.equal(products.length, 20);
 const version = catalogVersion(products);
 const feed = buildMobileStorefront(products, version);
 assert.equal(feed.version, mobileFeedVersion(version));
-assert.equal(feed.version.endsWith(".5"), true);
+assert.equal(feed.version.endsWith(".6"), true);
 assert.equal(feedBodyHas(feed, probe), false);
 assert.deepEqual(feed.menus, headerMenuKeys());
 assert.deepEqual(feed.categoryOrder, CATEGORIES.map((category) => category.slug));
-assert.deepEqual(feed.checkout.countries, countries);
+assert.equal("countries" in feed.checkout, false);
+assert.equal(feed.checkout.vatRate, checkoutVatRate());
+assert.equal(feed.checkout.vatRate, 0.15);
+assert.equal(typeof feed.checkout.vatRate, "number");
+assert.equal(Number.isFinite(feed.checkout.vatRate) && feed.checkout.vatRate >= 0 && feed.checkout.vatRate <= 1, true);
+assert.deepEqual(feed.checkout.vatCountries, checkoutVatCountryCodes());
+assert.equal(feed.checkout.vatCountries.includes("NA"), true);
+assert.equal(feed.checkout.vatCountries.includes("XK"), true);
+assert.equal(new Set(feed.checkout.vatCountries).size, feed.checkout.vatCountries.length);
 assert.equal(feed.checkout.eurPerNad, eurPerNad());
+assert.equal(typeof feed.checkout.eurPerNad, "number");
 assert.equal(Number.isFinite(feed.checkout.eurPerNad) && feed.checkout.eurPerNad > 0, true);
 assert.deepEqual(
   feed.checkout.shipping.map((method) => method.key),
@@ -174,15 +196,18 @@ assert.deepEqual(
 for (const method of SHIPPING_METHODS) {
   const row = feed.checkout.shipping.find((item) => item.key === method.id);
   assert.ok(row);
+  assert.equal(typeof row.amountNad, "number");
+  assert.equal(Number.isFinite(row.amountNad) && row.amountNad >= 0, true, method.id);
   assert.equal(row.amountNad, method.cost);
   assert.equal(row.title.en, method.name);
-  assert.equal(row.title.fr, shippingName(method.id, method.name, tFr));
+  const french = shippingName(method.id, method.name, tFr);
+  assert.equal(row.title.fr, french || method.name);
+  assert.equal(row.title.fr.length > 0, true, method.id);
   assert.equal(/[<>\u0000-\u001f\u007f]/.test(row.title.en), false, method.id);
   assert.equal(/[<>\u0000-\u001f\u007f]/.test(row.title.fr), false, method.id);
 }
 assert.equal("vatRates" in feed.checkout, false);
-assert.equal("vatCountries" in feed.checkout, false);
-assert.equal("vatRate" in feed.checkout, false);
+assert.equal("countries" in feed.checkout, false);
 
 const byKey = indexNodes(feed);
 assert.equal(byKey.size, feed.nodes.length);
@@ -200,7 +225,7 @@ for (const card of feed.products) {
   const siteFirst = feedImageUrl(listingCardCandidates(source)[0] ?? null);
   if (siteFirst) assert.equal(card.cardImage, siteFirst, card.code);
   if (card.cardImage === null) {
-    assert.equal(card.code, "HTTP-DROP");
+    assert.equal(card.code === "HTTP-DROP" || card.code === "REL-PATH", true, card.code);
     assert.equal(card.images.length, 0);
   } else {
     assert.equal(card.cardImage.startsWith("https://"), true, card.code);
@@ -218,7 +243,7 @@ for (const card of feed.products) {
     assert.equal(card.label, null, card.code);
     assert.equal(card.labelFr, null, card.code);
   }
-  assert.equal("line" in card, false, card.code);
+  assert.equal(card.line, null, card.code);
   assert.equal("title" in card, false, card.code);
   assert.equal("description" in card, false, card.code);
   assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.name), false, card.code);
@@ -232,7 +257,10 @@ for (const image of everyImage(feed)) {
 }
 const home = byKey.get(feedMenuKey("home"));
 assert.ok(home);
-assert.equal(home.tiles.every((key) => byKey.get(key)?.image?.startsWith("https://")), true);
+for (const key of home.tiles) {
+  const image = byKey.get(key)?.image ?? null;
+  if (image) assertAllowedFeedImage(image, key);
+}
 assertNoHostList(feed);
 assert.equal(JSON.stringify(feed).toLowerCase().includes("access-control"), false);
 assert.equal(JSON.stringify(feed).includes("example.com"), false);
@@ -276,11 +304,12 @@ const markedCard = marked.products.find((card) => card.code === "MARKUP");
 assert.ok(markedCard);
 assert.equal(markedCard.name, "Court btrainer/b");
 assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.name), false);
-assert.equal("line" in markedCard, false);
+assert.equal(markedCard.line, "scriptnope/script");
+assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.line), false);
 assert.equal("title" in markedCard, false);
 assert.equal("description" in markedCard, false);
 assert.equal(JSON.stringify(markedCard).includes("<"), false);
-assert.equal(JSON.stringify(markedCard).includes("script"), false);
+assert.equal(JSON.stringify(markedCard).includes("<script"), false);
 
 const footwearMenu = byKey.get(feedMenuKey("shoes"));
 assert.ok(footwearMenu);
@@ -290,7 +319,7 @@ const flow = byKey.get("flow");
 assert.ok(flow);
 assert.equal(flow.kind, "folder");
 assert.equal(flow.count, 0);
-assert.equal(flow.label, "Flow");
+assert.equal(flow.title.en, "Flow");
 assert.equal(flow.hidden, !isLiveFolder("joma-flow"));
 const shoesCategory = byKey.get("shoes");
 assert.ok(shoesCategory);
@@ -349,9 +378,13 @@ assert.deepEqual(
 );
 for (const node of feed.nodes) {
   if (node.parent) assert.equal(byKey.has(node.parent), true, node.key);
-  assert.equal(typeof node.labelFr, "string", node.key);
-  assert.equal(node.label.includes("<"), false, node.key);
-  assert.equal(node.labelFr.includes("<"), false, node.key);
+  assert.equal(node.title.fr.length > 0, true, node.key);
+  assert.equal(node.description.fr.length > 0, true, node.key);
+  assert.equal(Number.isInteger(node.order), true, node.key);
+  assert.equal(typeof node.hidden, "boolean", node.key);
+  assert.equal("href" in node, false, node.key);
+  assert.equal("label" in node, false, node.key);
+  assert.equal("labelFr" in node, false, node.key);
 }
 
 const medium = cardByCode(feed, "CARD-MEDIUM");
@@ -362,15 +395,14 @@ assert.equal(medium.cardImage.includes("card-primary"), false);
 assert.equal(feedImageUrl(medium.cardImage), medium.cardImage);
 
 const relative = cardByCode(feed, "REL-PATH");
-const relativeAbsolute = `${CANONICAL_SITE_ORIGIN}/catalog-photos/rel-path.jpg`;
-assert.equal(relative.cardImage, relativeAbsolute);
-assert.equal(relative.images[0], relativeAbsolute);
-assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), relativeAbsolute);
-assert.equal(feedImageUrl(relativeAbsolute), relativeAbsolute);
+assert.equal(relative.cardImage, null);
+assert.deepEqual(relative.images, []);
+assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), null);
+assert.equal(feedImageUrl(`${CANONICAL_SITE_ORIGIN}/catalog-photos/rel-path.jpg`), null);
 const savedSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 process.env.NEXT_PUBLIC_SITE_URL = "https://evil.example";
 try {
-  assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), relativeAbsolute);
+  assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), null);
   assert.equal(feedImageUrl("https://evil.example/x.jpg"), null);
 } finally {
   if (savedSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -487,7 +519,7 @@ const flowFeed = buildMobileStorefront(withFlow, catalogVersion(withFlow));
 const flowNodes = indexNodes(flowFeed);
 const flowFolder = flowNodes.get("flow");
 assert.ok(flowFolder);
-assert.equal(flowFolder.label, "Flow");
+assert.equal(flowFolder.title.en, "Flow");
 assert.equal(flowFolder.count, 1);
 assert.equal(flowFolder.hidden, false);
 assert.equal(JSON.stringify(flowFeed).includes("joma-flow"), false);
@@ -500,6 +532,8 @@ for (const value of copyValues(flowFeed)) {
 const baked = JSON.parse(read("data/products.json")) as Product[];
 const relativeCodes: string[] = [];
 const excludedCodes: string[] = [];
+let relativeEqual = 0;
+let relativeEmpty = 0;
 for (const product of baked) {
   const urls = [product.imageUrl, ...(product.images ?? [])].filter(
     (url): url is string => typeof url === "string" && url.startsWith("/") && !url.startsWith("//"),
@@ -515,12 +549,15 @@ for (const product of baked) {
   assert.equal(gallery!.startsWith("/"), true, product.code);
   assert.equal(gallery!.startsWith("//"), false, product.code);
   const card = feedProductCard(product);
-  if (!card) fail(`${product.code} was dropped instead of receiving an absolute card photo`);
-  assert.equal(card.images[0], `${CANONICAL_SITE_ORIGIN}${gallery}`, product.code);
-  assert.equal(card.cardImage, card.images[0], product.code);
+  if (!card) fail(`${product.code} was dropped`);
+  assert.equal(feedImageUrl(gallery!), null, product.code);
+  assert.equal(card.cardImage, card.images[0] ?? null, product.code);
+  assert.equal(JSON.stringify(card).includes(gallery!), false, product.code);
   for (const image of [card.cardImage, ...card.images]) {
     if (image) assertAllowedFeedImage(image, product.code);
   }
+  if (!card.cardImage && card.images.length === 0) relativeEmpty += 1;
+  else relativeEqual += 1;
   relativeCodes.push(product.code);
 }
 relativeCodes.sort();
@@ -529,7 +566,10 @@ assert.equal(relativeCodes.length, 75);
 for (const code of ["100807.400", "100947.401", "101114.200", "900682.100", "900683.100"]) {
   assert.equal(relativeCodes.includes(code), true, code);
 }
-console.log(`relative card images absolutized (${relativeCodes.length})`);
+assert.equal(relativeEqual + relativeEmpty, relativeCodes.length);
+console.log(
+  `relative card rows covered (${relativeCodes.length}); images[0] equals cardImage: ${relativeEqual}; no image: ${relativeEmpty}`,
+);
 console.log(relativeCodes.join("\n"));
 console.log(`unavailable relative rows excluded (${excludedCodes.length}): ${excludedCodes.join(", ")}`);
 
@@ -648,7 +688,7 @@ const bakedWithFolders = baked.map((product) => ({
 }));
 const bakedFeed = buildMobileStorefront(bakedWithFolders, catalogVersion(bakedWithFolders));
 assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
-assert.equal(bakedFeed.version.endsWith(".5"), true);
+assert.equal(bakedFeed.version.endsWith(".6"), true);
 assertFeedShape(bakedFeed);
 let imageEqual = 0;
 let imageDiffer = 0;
@@ -661,9 +701,21 @@ for (const card of bakedFeed.products) {
   else if (card.cardImage === card.images[0]) imageEqual += 1;
   else imageDiffer += 1;
 }
+let nodeImages = 0;
 for (const node of bakedFeed.nodes) {
-  if (node.image) assertAllowedFeedImage(node.image, node.key);
+  if (node.image) {
+    nodeImages += 1;
+    assertAllowedFeedImage(node.image, node.key);
+  }
 }
+console.log(`node images kept ${nodeImages}`);
+let lineNull = 0;
+for (const card of bakedFeed.products) {
+  if (card.line === null) lineNull += 1;
+  else assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.line), false, card.code);
+}
+assert.equal(lineNull, bakedFeed.products.length);
+console.log(`product line null ${lineNull} of ${bakedFeed.products.length}`);
 assert.equal(imageDiffer, 0);
 console.log(
   `cardImage equals images[0]: ${imageEqual}; differs: ${imageDiffer}; no image: ${imageEmpty}`,
@@ -738,7 +790,7 @@ const countLines = [
   `sportswear shop ${sportswearTypeKeys().length} feed ${bakedNodes.get("sportswear")?.tiles.length}`,
   `footwear shop structural ${footwearTypeKeys().length} live ${liveFootwear.length} feed ${bakedNodes.get("shoes")?.tiles.length}`,
   `kids age children ${ageChildren.length}`,
-  "supplier line field omitted",
+  "product line is plain text or null",
   "Kosovo code XK is user-assigned, not an official ISO 3166-1 alpha-2",
 ];
 console.log(countLines.join("\n"));
@@ -760,8 +812,8 @@ function assertAllowedFeedImage(url: string, label: string) {
   const listed = allowedImageHosts().some((rule) =>
     imageHostAllows(parsed.hostname, parsed.pathname, rule),
   );
-  const canonical = parsed.origin === new URL(CANONICAL_SITE_ORIGIN).origin;
-  assert.equal(listed || canonical, true, `${label} ${parsed.hostname}`);
+  assert.equal(parsed.origin === new URL(CANONICAL_SITE_ORIGIN).origin, false, label);
+  assert.equal(listed, true, `${label} ${parsed.hostname}`);
   assert.equal(feedImageUrl(url), url, label);
 }
 
@@ -778,10 +830,17 @@ function assertFeedShape(feedValue: MobileStorefront) {
   assert.equal(Array.isArray(parsed.nodes), true);
   assert.equal(Array.isArray(parsed.menus), true);
   assert.equal(Array.isArray(parsed.categoryOrder), true);
-  assert.equal(Array.isArray(parsed.checkout.countries), true);
+  assert.equal(Array.isArray(parsed.checkout.vatCountries), true);
+  assert.equal(typeof parsed.checkout.vatRate, "number");
+  assert.equal(Number.isFinite(parsed.checkout.vatRate), true);
+  assert.equal(typeof parsed.checkout.eurPerNad, "number");
+  assert.equal(Number.isFinite(parsed.checkout.eurPerNad), true);
   walk(feedValue, (key, value, path) => {
     if (BANNED_KEYS.has(key)) fail(`${path}.${key} is not a feed field`);
     if (HOST_LIST_KEYS.has(key)) fail(`${path}.${key} is a host list`);
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) fail(`${path} is not a finite number`);
+    }
     if (typeof value === "string") {
       if (value.startsWith("//") || /^http:\/\//i.test(value)) {
         fail(`${path} is not an allowed URL`);
@@ -797,11 +856,16 @@ function assertFeedShape(feedValue: MobileStorefront) {
     assert.equal(keys.has(node.key), true, node.key);
     assert.equal("href" in node, false, node.key);
     assert.equal("line" in node, false, node.key);
+    assert.equal("label" in node, false, node.key);
+    assert.equal("labelFr" in node, false, node.key);
     assert.equal(node.target, table.get(node.key), node.key);
     assert.equal(paths.has(node.target), true, node.target);
     assert.equal(/^\/[^\s\\]*$/.test(node.target), true, node.key);
-    for (const text of [node.label, node.labelFr, node.description, node.descriptionFr]) {
-      if (!text) continue;
+    assert.equal(Number.isInteger(node.order), true, node.key);
+    assert.equal(typeof node.hidden, "boolean", node.key);
+    assert.equal(node.title.fr.length > 0, true, node.key);
+    assert.equal(node.description.fr.length > 0, true, node.key);
+    for (const text of [node.title.en, node.title.fr, node.description.en, node.description.fr]) {
       assert.equal(/[<>\u0000-\u001f\u007f]/.test(text), false, node.key);
     }
     assert.equal(PREFIX.test(node.key), false, node.key);
@@ -883,18 +947,18 @@ function cardByCode(feedValue: MobileStorefront, code: string): FeedProduct {
 function copyValues(feedValue: MobileStorefront): string[] {
   return [
     ...feedValue.nodes.flatMap((node) => [
-      node.label,
-      node.labelFr,
-      node.description ?? "",
-      node.descriptionFr ?? "",
+      node.title.en,
+      node.title.fr,
+      node.description.en,
+      node.description.fr,
     ]),
     ...feedValue.products.flatMap((product) => [
       product.name,
       product.label ?? "",
       product.labelFr ?? "",
       product.packLabel ?? "",
+      product.line ?? "",
     ]),
-    ...feedValue.checkout.countries.map((country) => country.name),
     ...feedValue.checkout.shipping.flatMap((method) => [method.title.en, method.title.fr]),
   ];
 }
