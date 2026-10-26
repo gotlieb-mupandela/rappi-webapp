@@ -105,6 +105,9 @@ const ALIASES: Record<string, string> = {
   "previous season": "previous seasons",
 };
 const alias = (v: string) => ALIASES[v.trim().toLowerCase()] ?? v;
+/** Stored paths are display text. Matching still uses ALIASES, including the portal spelling. */
+const displayLabel = (value: string) =>
+  value.replaceAll("Atheletes", "Athletes").replaceAll("atheletes", "athletes");
 const norm = (v: string) =>
   alias(v)
     .normalize("NFD")
@@ -162,7 +165,7 @@ function want(key: string, hit: JomaTile | undefined, ours: string) {
   const ext = (hit.image_url.split("?")[0].match(/\.(jpe?g|png|webp|gif)$/i)?.[1] ?? "jpg").toLowerCase();
   const name = `${createHash("md5").update(hit.image_url).digest("hex").slice(0, 12)}.${ext}`;
   out[key] = `/joma-tiles/${name}`;
-  matched[key] = `${hit.path} <- ${hit.image_url}`;
+  matched[key] = `${displayLabel(hit.path)} <- ${hit.image_url}`;
 }
 
 const LANDING: [string, string[], { label: string }[]][] = [

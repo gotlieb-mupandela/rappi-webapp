@@ -18,6 +18,11 @@ ALIASES={"training polyester":"polyester","training cotton":"cotton","portero":"
 "pants largos":"long pants","portera":"goalie","football / futsal":"soccer / futsal","football/futsal":"soccer / futsal","football":"soccer",
 "colegial":"schoolboy","kansas set (reversible)":"kansas set","outwear":"outerwear","teamwer collections":"teamwear collections","skirts & pants":"skirts & trousers",
 "federations and committees":"committees and federations","césped artificial":"artificial grass","cesped artificial":"artificial grass","terreno blando":"soft ground","terreno semiseco y duro":"semi-dry and hard terrain","terreno semiseco and duro":"semi-dry and hard terrain","volley":"volleyball"}
+def display_label(text):
+    """Correct the portal's Athletes spelling in labels we show. Matching aliases stay as written."""
+    if not isinstance(text, str):
+        return text
+    return text.replace("Atheletes", "Athletes").replace("atheletes", "athletes")
 def norm(v):
     v=ALIASES.get(v.strip().lower(),v)
     v=unicodedata.normalize('NFD',v); v=''.join(c for c in v if unicodedata.category(c)!='Mn').lower()
@@ -70,7 +75,7 @@ def walk(nodes,ppath,our_path,pkey):
         if n['key'] in pairs:
             i=pairs[n['key']]; matched.append((i,n)); k=pn[i]
             pl=portal[i]
-            if pl.strip().lower()!=n['label'].strip().lower(): rep['name_diff'].append(f"{' > '.join(our_path+[n['label']])} -> portal '{pl}'"); label_fix[n['key']]=pl
+            if pl.strip().lower()!=n['label'].strip().lower(): rep['name_diff'].append(f"{' > '.join(our_path+[n['label']])} -> portal '{pl}'"); label_fix[n['key']]=display_label(pl)
             pimg=img.get(pk+(k,))
             if pimg:
                 struct_img[n['key']]=pimg
@@ -113,7 +118,7 @@ for page,(name,pp) in LP.items():
         else: rows.append((999,lab,None)); rep['landing_extra'].append(f"{page}: {lab}")
     seq=[r[0] for r in rows if r[0]<999]
     if seq!=sorted(seq): rep['landing_wrong_order'].append(page)
-    landing[page]={'order':[r[1] for r in sorted(rows,key=lambda r:r[0])],'labels':{r[1]:r[2] for r in rows if r[2] and r[2].lower()!=r[1].lower()}}
+    landing[page]={'order':[r[1] for r in sorted(rows,key=lambda r:r[0])],'labels':{r[1]:display_label(r[2]) for r in rows if r[2] and r[2].lower()!=r[1].lower()}}
 FIX['landing']=landing
 FIX['images']={k:v for k,v in sorted(FIX['images'].items())}
 json.dump(FIX,open(os.path.join(ROOT,'data/joma-portal-structure.json'),'w'),indent=1,ensure_ascii=False)
