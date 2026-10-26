@@ -5,7 +5,7 @@
  */
 import http from "node:http";
 import { catalogVersion } from "../lib/catalog-version";
-import { buildMobileFeed } from "../lib/mobile-feed";
+import { buildMobileStorefront } from "../lib/mobile-feed";
 import { feedVersionParamStatus } from "../lib/mobile-feed-version";
 import { loadFixtureProducts } from "./feed-fixture";
 
@@ -20,7 +20,7 @@ if (process.env.VERCEL || process.env.VERCEL_ENV || process.env.NODE_ENV === "pr
 }
 
 const products = loadFixtureProducts();
-const feed = buildMobileFeed(products, catalogVersion(products));
+const feed = buildMobileStorefront(products, catalogVersion(products));
 const feedBody = JSON.stringify(feed);
 const versionBody = JSON.stringify({ version: feed.version });
 

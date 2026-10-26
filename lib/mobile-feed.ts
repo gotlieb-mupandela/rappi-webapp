@@ -67,6 +67,10 @@ export type FeedNode = {
   group: string | null;
   /** Ordered child keys for a menu, category shop-by-type list, or folder. */
   tiles: string[];
+  /**
+   * Site path from feedTargetTable(). Never a request value or a product field.
+   */
+  href: string;
 };
 
 export type FeedProduct = {
@@ -87,7 +91,7 @@ export type FeedProduct = {
 };
 
 export type FeedCheckout = {
-  /** Euro per 1 N$. Read from eurPerNad(). */
+  /** Euro per 1 N$. Read from eurPerNad(). Display only. */
   eurPerNad: number;
   shipping: Array<{
     key: string;
@@ -97,7 +101,7 @@ export type FeedCheckout = {
   countries: FeedCheckoutCountry[];
 };
 
-export type MobileFeed = {
+export type MobileStorefront = {
   version: string;
   nodes: FeedNode[];
   /** Header menu keys in site order. Accessories and outlet are folder keys. */
@@ -107,6 +111,8 @@ export type MobileFeed = {
   checkout: FeedCheckout;
   counts: { categories: Record<string, number>; products: number };
 };
+
+type FeedNodeDraft = Omit<FeedNode, "href">;
 
 export type FeedSource = Product & { folders?: string[] };
 
@@ -286,12 +292,12 @@ export function folderProductCounts(catalog: FeedSource[]): Map<string, number> 
   return counts;
 }
 
-function emptyNode(partial: Omit<FeedNode, "tiles" | "description" | "descriptionFr" | "group"> & {
+function emptyNode(partial: Omit<FeedNodeDraft, "tiles" | "description" | "descriptionFr" | "group"> & {
   tiles?: string[];
   description?: string | null;
   descriptionFr?: string | null;
   group?: string | null;
-}): FeedNode {
+}): FeedNodeDraft {
   return {
     description: null,
     descriptionFr: null,
@@ -301,6 +307,10 @@ function emptyNode(partial: Omit<FeedNode, "tiles" | "description" | "descriptio
   };
 }
 
+/**
+ * Display only. The server stays the only source of real prices, shipping, and VAT at order time.
+ * No checkout or payment route reads this block.
+ */
 function feedCheckout(): FeedCheckout {
   const rate = eurPerNad();
   if (!Number.isFinite(rate) || rate <= 0) {
@@ -332,7 +342,7 @@ function homeKeys(): string[] {
   });
 }
 
-export function buildMobileFeed(catalog: FeedSource[], version: string): MobileFeed {
+export function buildMobileStorefront(catalog: FeedSource[], version: string): MobileStorefront {
   const table = feedTargetTable();
   const counts = folderProductCounts(catalog);
   const navVisible = catalog.filter(
@@ -346,10 +356,14 @@ export function buildMobileFeed(catalog: FeedSource[], version: string): MobileF
   const categoryCounts = categoryCountsFromTaxonomy(buildTaxonomy(navVisible));
   const nodes = new Map<string, FeedNode>();
 
-  const put = (node: FeedNode) => {
+  const put = (node: FeedNodeDraft) => {
     if (nodes.has(node.key)) return;
-    if (!table.has(node.key)) return;
-    nodes.set(node.key, node);
+    const href = table.get(node.key);
+    if (!href) return;
+    if (!/^\/[^\s\\]*$/.test(href)) {
+      throw new Error(`Feed target ${node.key} is not a site path`);
+    }
+    nodes.set(node.key, { ...node, href });
   };
 
   const snapshot = jomaFolderMetaSnapshot();
@@ -523,7 +537,8 @@ export function buildMobileFeed(catalog: FeedSource[], version: string): MobileF
       tiles: ids,
     });
     put(node);
-    menuNodes.push(nodes.get(key) ?? node);
+    const stored = nodes.get(key);
+    if (stored) menuNodes.push(stored);
   });
 
   const home = messagePair("home.shopTitle", "Shop");

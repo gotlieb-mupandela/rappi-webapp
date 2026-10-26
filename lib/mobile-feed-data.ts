@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-cache-tag";
 import { catalogVersion } from "@/lib/catalog-version";
-import { buildMobileFeed } from "@/lib/mobile-feed";
+import { buildMobileStorefront } from "@/lib/mobile-feed";
 import { FEED_TREE_REVISION, mobileFeedVersion } from "@/lib/mobile-feed-version";
 import { getCatalogLive } from "@/lib/supabase/catalog";
 
@@ -19,8 +19,8 @@ export const getMobileCatalogueVersion = unstable_cache(
   { revalidate: 60, tags: [CATALOG_CACHE_TAG] },
 );
 
-export async function readMobileFeed() {
+export async function readMobileStorefront() {
   const catalog = await getCatalogLive();
   const version = mobileFeedVersion(catalogVersion(catalog));
-  return buildMobileFeed(catalog, version);
+  return buildMobileStorefront(catalog, version);
 }

@@ -27,12 +27,12 @@ import {
   COUNTRY_NAME_MAX,
 } from "../lib/mobile-feed-countries";
 import {
-  buildMobileFeed,
+  buildMobileStorefront,
   feedImageUrl,
   feedProductCard,
   type FeedNode,
   type FeedProduct,
-  type MobileFeed,
+  type MobileStorefront,
 } from "../lib/mobile-feed";
 import { LEGACY_FOLDER_SLUGS, publicFolderKey } from "../lib/mobile-feed-slugs";
 import {
@@ -44,6 +44,8 @@ import {
   TEAM_TILES,
   feedMenuKey,
   feedTargetKeys,
+  feedTargetSet,
+  feedTargetTable,
   folderHref,
   footwearTypeKeys,
   headerMenuKeys,
@@ -79,7 +81,7 @@ function walkFiles(dir: string, out: string[] = []): string[] {
 }
 
 const HOST_LIST_KEYS = new Set(["allowedHosts", "allowedImageHosts", "imageHosts", "hosts"]);
-const BANNED_KEYS = new Set(["href", "vatRates", "vatCountries", "line", "targetId"]);
+const BANNED_KEYS = new Set(["vatRates", "vatCountries", "line", "targetId"]);
 const PREFIX = /^(menu|group|sub|search|category|team|audience):/;
 
 function throws(run: () => unknown, pattern: RegExp) {
@@ -156,9 +158,9 @@ assert.equal(folderHref("joma-flow"), "/shop/shoes?group=flow");
 const products = loadFixtureProducts();
 assert.equal(products.length, 20);
 const version = catalogVersion(products);
-const feed = buildMobileFeed(products, version);
+const feed = buildMobileStorefront(products, version);
 assert.equal(feed.version, mobileFeedVersion(version));
-assert.equal(feed.version.endsWith(".3"), true);
+assert.equal(feed.version.endsWith(".4"), true);
 assert.equal(feedBodyHas(feed, probe), false);
 assert.deepEqual(feed.menus, headerMenuKeys());
 assert.deepEqual(feed.categoryOrder, CATEGORIES.map((category) => category.slug));
@@ -233,6 +235,25 @@ assert.equal(JSON.stringify(feed).includes("http://"), false);
 assert.equal(JSON.stringify(feed).includes("joma-flow"), false);
 assert.equal(JSON.stringify(feed).includes("joma-kids"), false);
 assert.equal(JSON.stringify(feed).includes("vatRates"), false);
+
+const poisoned = buildMobileStorefront(
+  [
+    {
+      ...products.find((product) => product.code === "PLAIN-01")!,
+      id: "POISON",
+      code: "POISON",
+      name: "Plain name",
+      displayName: "Plain name",
+      item: "Plain name",
+      title: "Plain name",
+      folders: ["/shop/evil-not-listed", "https://evil.example/phish"],
+    },
+  ],
+  version,
+);
+assert.equal(JSON.stringify(poisoned).includes("/shop/evil-not-listed"), false);
+assert.equal(JSON.stringify(poisoned).includes("evil.example"), false);
+assertFeedShape(poisoned);
 
 const footwearMenu = byKey.get(feedMenuKey("shoes"));
 assert.ok(footwearMenu);
@@ -376,7 +397,7 @@ const offHost = {
   images: [offHostUrl],
   folders: [] as string[],
 };
-const offFeed = buildMobileFeed([offHost], catalogVersion([offHost]));
+const offFeed = buildMobileStorefront([offHost], catalogVersion([offHost]));
 assert.equal(cardByCode(offFeed, "OFF-HOST").cardImage, null);
 assert.deepEqual(cardByCode(offFeed, "OFF-HOST").images, []);
 assert.equal(JSON.stringify(offFeed).includes(offHostUrl), false);
@@ -409,7 +430,7 @@ const withFlow = [
     folders: ["joma-flow"],
   },
 ];
-const flowFeed = buildMobileFeed(withFlow, catalogVersion(withFlow));
+const flowFeed = buildMobileStorefront(withFlow, catalogVersion(withFlow));
 const flowNodes = indexNodes(flowFeed);
 const flowFolder = flowNodes.get("flow");
 assert.ok(flowFolder);
@@ -508,6 +529,20 @@ assert.equal(feedBuilder.includes("imageHostAllows("), true);
 assert.equal(feedBuilder.includes("isAllowedProductImageUrl("), true);
 assert.equal(feedBuilder.includes("ALLOWED_IMAGE_HOSTS"), false);
 assert.equal(feedBuilder.includes("Content-Security-Policy"), false);
+assert.match(
+  feedBuilder,
+  /The server stays the only source of real prices, shipping, and VAT at order time/,
+);
+assert.match(feedBuilder, /No checkout or payment route reads this block/);
+assert.equal(/\bMobileFeed\b/.test(feedBuilder), false);
+assert.equal(/\bMobileFeed\b/.test(read("lib/mobile-feed-data.ts")), false);
+assert.equal(/\bbuildMobileFeed\b/.test(feedBuilder), false);
+assert.equal(/\breadMobileFeed\b/.test(read("app/api/mobile/v1/storefront/route.ts")), false);
+assert.equal(read("lib/mobile-storefront.ts").includes("MobileStorefront"), false);
+assert.equal(read("app/checkout/page.tsx").includes("mobile-feed"), false);
+assert.equal(read("app/checkout/page.tsx").includes("readMobileStorefront"), false);
+assert.equal(paymentRoute.includes("readMobileStorefront"), false);
+assert.equal(storefrontRoute.includes("readMobileStorefront()"), true);
 assert.equal(feedBuilder.includes("category:${"), false);
 assert.equal(feedBuilder.includes("menu:${"), false);
 assert.equal(feedTargets.includes("category:${"), false);
@@ -546,9 +581,9 @@ const bakedWithFolders = baked.map((product) => ({
   ...product,
   folders: folderMap[product.code] ?? [],
 }));
-const bakedFeed = buildMobileFeed(bakedWithFolders, catalogVersion(bakedWithFolders));
+const bakedFeed = buildMobileStorefront(bakedWithFolders, catalogVersion(bakedWithFolders));
 assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
-assert.equal(bakedFeed.version.endsWith(".3"), true);
+assert.equal(bakedFeed.version.endsWith(".4"), true);
 assertFeedShape(bakedFeed);
 const bakedNodes = indexNodes(bakedFeed);
 for (const key of [
@@ -631,13 +666,15 @@ console.log(`tree lines ${tree.split("\n").length} chars ${tree.length}`);
 
 console.log(`feed check ok (fixture products ${feed.products.length}, version ${feed.version})`);
 
-function indexNodes(feedValue: MobileFeed) {
+function indexNodes(feedValue: MobileStorefront) {
   return new Map(feedValue.nodes.map((node) => [node.key, node]));
 }
 
-function assertFeedShape(feedValue: MobileFeed) {
+function assertFeedShape(feedValue: MobileStorefront) {
   const keys = feedTargetKeys();
-  const parsed = JSON.parse(JSON.stringify(feedValue)) as MobileFeed;
+  const paths = feedTargetSet();
+  const table = feedTargetTable();
+  const parsed = JSON.parse(JSON.stringify(feedValue)) as MobileStorefront;
   assert.equal(parsed.version, feedValue.version);
   assert.equal(Array.isArray(parsed.nodes), true);
   assert.equal(Array.isArray(parsed.menus), true);
@@ -647,13 +684,21 @@ function assertFeedShape(feedValue: MobileFeed) {
     if (BANNED_KEYS.has(key)) fail(`${path}.${key} is not a feed field`);
     if (HOST_LIST_KEYS.has(key)) fail(`${path}.${key} is a host list`);
     if (typeof value === "string") {
-      if (value.startsWith("/") || value.startsWith("//") || /^http:\/\//i.test(value)) {
-        fail(`${path} starts with a path or http URL`);
+      if (value.startsWith("//") || /^http:\/\//i.test(value)) {
+        fail(`${path} is not an allowed URL`);
+      }
+      if (value.startsWith("/")) {
+        if (key !== "href") fail(`${path} starts with a path`);
+        if (!paths.has(value)) fail(`${path} is not in the fixed target list`);
       }
     }
   });
+  assert.equal(new Set(feedValue.nodes.map((node) => node.href)).size, paths.size);
   for (const node of feedValue.nodes) {
     assert.equal(keys.has(node.key), true, node.key);
+    assert.equal(node.href, table.get(node.key), node.key);
+    assert.equal(paths.has(node.href), true, node.href);
+    assert.equal(/^\/[^\s\\]*$/.test(node.href), true, node.key);
     assert.equal(PREFIX.test(node.key), false, node.key);
     if (node.parent) {
       assert.equal(keys.has(node.parent), true, node.parent);
@@ -682,7 +727,7 @@ function reachIds(product: Product & { folders?: string[] }, nodes: Map<string, 
   return hits;
 }
 
-function feedBodyHas(feedValue: MobileFeed, needle: string) {
+function feedBodyHas(feedValue: MobileStorefront, needle: string) {
   return JSON.stringify(feedValue).includes(needle);
 }
 
@@ -717,20 +762,20 @@ function walk(
   }
 }
 
-function everyImage(feedValue: MobileFeed): Array<string | null> {
+function everyImage(feedValue: MobileStorefront): Array<string | null> {
   return [
     ...feedValue.nodes.flatMap((node) => [node.image]),
     ...feedValue.products.flatMap((product) => [product.cardImage, ...product.images]),
   ];
 }
 
-function cardByCode(feedValue: MobileFeed, code: string): FeedProduct {
+function cardByCode(feedValue: MobileStorefront, code: string): FeedProduct {
   const card = feedValue.products.find((product) => product.code === code);
   if (!card) fail(`missing card ${code}`);
   return card;
 }
 
-function copyValues(feedValue: MobileFeed): string[] {
+function copyValues(feedValue: MobileStorefront): string[] {
   return [
     ...feedValue.nodes.flatMap((node) => [
       node.label,
@@ -749,7 +794,7 @@ function copyValues(feedValue: MobileFeed): string[] {
   ];
 }
 
-function treeLines(feedValue: MobileFeed): string {
+function treeLines(feedValue: MobileStorefront): string {
   const nodes = indexNodes(feedValue);
   const seen = new Set<string>();
   const lines: string[] = [];

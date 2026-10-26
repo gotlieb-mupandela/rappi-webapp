@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readMobileFeed } from "@/lib/mobile-feed-data";
+import { readMobileStorefront } from "@/lib/mobile-feed-data";
 import { cacheHeaders, enforceMobileRateLimit, methodNotAllowed } from "@/lib/mobile-feed-http";
 import { feedVersionParamStatus } from "@/lib/mobile-feed-version";
 
@@ -42,6 +42,6 @@ export async function GET(request: Request) {
       { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
-  const feed = await readMobileFeed();
+  const feed = await readMobileStorefront();
   return NextResponse.json(feed, { headers: cacheHeaders(CACHE) });
 }
