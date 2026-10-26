@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { productAudience } from "@/lib/audience";
 import { mapStorefrontRow, type StorefrontCatalogRow } from "@/lib/catalog-map";
 import { hasUsableProductImage } from "@/lib/classify";
+import { withBakedGallery } from "@/lib/gallery-source";
 import { listingHay, type ListingItem } from "@/lib/listing-core";
 import { withProductImages } from "@/lib/media";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/taxonomy";
@@ -37,6 +38,7 @@ function finalizeLiveProduct(product: Product): Product {
   const item = next as ListingItem;
   item.hay = listingHay(item);
   item.audience = productAudience(next);
+  // Row gallery only. buildLiveCatalog recomputes hasImage from the gallery it keeps.
   item.hasImage = hasUsableProductImage(next);
   return next;
 }
@@ -147,7 +149,8 @@ function buildLiveCatalog(snapshot: LiveSnapshot): Product[] {
     }
     const full = fullByCode.get(base.code);
     if (full) {
-      catalog.push(full);
+      // Baked imageUrl and images win so the API matches the product page.
+      catalog.push(withBakedGallery(full, base));
       fullByCode.delete(base.code);
       continue;
     }
@@ -158,7 +161,9 @@ function buildLiveCatalog(snapshot: LiveSnapshot): Product[] {
     // the overlay still wins.
     catalog.push(row ? applyOverlay(base, row) : base);
   }
-  catalog.push(...fullByCode.values());
+  for (const product of fullByCode.values()) {
+    catalog.push(withBakedGallery(product));
+  }
 
   indexCatalogFromBakedFolders(catalog as ListingItem[]);
   return catalog;
