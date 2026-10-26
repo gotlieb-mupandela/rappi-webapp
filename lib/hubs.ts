@@ -568,6 +568,11 @@ const SPORT_SERIES_FOLDER: Partial<Record<string, string>> = {
   boxing: "athletes-combat",
 };
 
+/** Series root folder for a sport hub, or null when that hub has no series section. */
+export function sportSeriesRoot(hubSlug: string): string | null {
+  return SPORT_SERIES_FOLDER[hubSlug] ?? null;
+}
+
 /** Series tiles under a sport hub (Phoenix III, R-City, football T-shirt, …). */
 export function sportSeriesFolders(hubSlug: string, catalog: Product[] = bundled): HubFolderTile[] {
   const key = SPORT_SERIES_FOLDER[hubSlug];

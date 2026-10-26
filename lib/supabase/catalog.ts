@@ -16,6 +16,7 @@ import {
   productsByCategory,
   productsByCode,
 } from "@/lib/offline-catalog";
+import { CATALOG_CACHE_TAG } from "@/lib/catalog-cache-tag";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import type { Database } from "@/lib/database.types";
@@ -78,7 +79,7 @@ async function fetchLiveSnapshot(): Promise<LiveSnapshot | null> {
 const getCachedLiveSnapshot = unstable_cache(
   async () => fetchLiveSnapshot(),
   ["storefront-overlay-v1"],
-  { revalidate: 3600, tags: ["catalog"] },
+  { revalidate: 3600, tags: [CATALOG_CACHE_TAG] },
 );
 
 function parseOverlaySizes(packed: string, order: string[]): Product["sizes"] {

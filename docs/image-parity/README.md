@@ -5,7 +5,7 @@ Draft. Nothing merged or deployed. Only data/products.json image fields (imageUr
 ## What changed
 For every product on the public store (7,405 codes in data/store-image-indexes.json), images is now exactly the store photo list in ascending index order, and imageUrl is the first one. Store URL format is the same as demandwareUrl(code, n) in scripts/enrich-demandware-images.mjs.
 
-- Products changed: 7,092 of 11,104. Not changed: 4,012.
+- Products changed: 7,094 of 11,104. Not changed: 4,010.
 - Reason tags (a product can have more than one): B2B_DROPPED 7,001 (all v1.joma-sport.net links dropped from on-store products, of which 37 were dead 404s), OTHER_EXTRA_DROPPED 1,403 (non-store or other-colour photos, includes the 9 MORE), ADDED_STORE_PHOTOS 480, RELATIVE_TO_STORE 70, RELATIVE_PREFIXED 3, LOGO_ONLY 3, LOGO_ONLY_CLEARED 2, REORDERED_ONLY 19.
 - QA classes, all covered: dead B2B 37 of 37, logo-only 5 of 5, fewer 482 of 482, more 9 of 9, relative 75 of 75.
 - Store photo order changed on 747 products. Only 19 changed nothing but order (reordered-only.csv).

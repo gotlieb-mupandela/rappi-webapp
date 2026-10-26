@@ -114,6 +114,16 @@ export function productDescription(
   return bits.join(" ");
 }
 
+/** Visible product title. displayName, then name, then title, then code. Never empty. */
+export function productHeading(
+  product: Pick<Product, "displayName" | "name" | "title" | "code">,
+) {
+  const base = [product.displayName, product.name, product.title, product.code]
+    .map((value) => value?.trim())
+    .find(Boolean);
+  return base || "Product";
+}
+
 export function productImageAlt(
   product: Pick<Product, "displayName" | "name" | "title" | "code">,
   suffix?: string,
