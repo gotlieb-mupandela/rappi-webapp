@@ -17,7 +17,7 @@ For every product on the public store (7,403 codes in data/store-image-indexes.j
 - B: photos not on the store are dropped, not kept last.
 
 ## Logo-only
-RMETAW2631, RMETLW2620, 104937.273 now use their store photos. GOLCW2602FGD and GOLS2601AG are 404 on the store, so the logo is removed and the gallery is empty (the empty plate shows on the product page; the product drops out of browse grids because hasUsableProductImage is false).
+RMETAW2631, RMETLW2620, 104937.273 now use their store photos. GOLCW2602FGD and GOLS2601AG are 404 on the store, so the logo is removed and the gallery is empty Effect Gotlieb will see: both now show the no-photo plate and drop out of browse grids (lib/listing-core.ts productHasImage, because hasUsableProductImage is false). Their product pages still work.
 
 ## Files
 - dry-run.csv: code, old images, new images, reason.
@@ -26,6 +26,12 @@ RMETAW2631, RMETLW2620, 104937.273 now use their store photos. GOLCW2602FGD and 
 - not-on-store.csv: the 1,152 codes left alone.
 - check-output.txt: output of npm run check:store-images.
 - held-supabase/: why Supabase is not changed, and the steps if approved.
+
+## Undo the v1 drop on its own
+The drop of v1.joma-sport.net photos from the 7,001 on-store products is inside the first commit of this PR. The follow-up commit adds docs/image-parity/v1-drop-revert.csv (code, dropped_url, kept_url; kept_url is the product's first store photo, which now leads the gallery) and a restore mode:
+- Dry run: node scripts/sync-store-images.mjs --restore-v1
+- Apply: node scripts/sync-store-images.mjs --restore-v1 --write
+It re-adds exactly the listed URLs after the store photos (not in their old position) and skips any already present. Tested: 7,001 products restored, then reverted.
 
 ## Re-run
 - Dry run (reports only): node scripts/sync-store-images.mjs

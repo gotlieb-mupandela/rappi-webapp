@@ -4,6 +4,8 @@
 //   node scripts/sync-store-images.mjs                 dry run
 //   node scripts/sync-store-images.mjs --write         patch data/products.json
 //   --keep-our-order   leave products whose only change is order as they are (reverts that part)
+//   --restore-v1       re-add the v1 photos listed in docs/image-parity/v1-drop-revert.csv
+//                      (appended after the store photos), then exit. Use with --write to apply.
 //   --indexes <file>   code to store index data (default data/store-image-indexes.json)
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -32,6 +34,25 @@ const logoClear = new Set(data.logoOnlyNotOnStore ?? []);
 const raw = readFileSync(PRODUCTS, "utf8");
 const products = JSON.parse(raw);
 if (JSON.stringify(products) + "\n" !== raw) throw new Error("products.json format is not JSON.stringify + newline; refusing");
+
+if (args.includes("--restore-v1")) {
+  const lines = readFileSync(join(ROOT, "docs/image-parity/v1-drop-revert.csv"), "utf8").trim().split("\n").slice(1);
+  const byCode = new Map();
+  for (const line of lines) {
+    const [code, dropped] = line.split(",");
+    byCode.set(code, [...(byCode.get(code) ?? []), dropped]);
+  }
+  let restored = 0;
+  for (const p of products) {
+    const add = (byCode.get(p.code) ?? []).filter((u) => !(p.images ?? []).includes(u));
+    if (!add.length) continue;
+    restored++;
+    if (WRITE) p.images = [...(p.images ?? []), ...add];
+  }
+  console.log(JSON.stringify({ mode: WRITE ? "restore-v1 write" : "restore-v1 dry-run", products: restored }));
+  if (WRITE) writeFileSync(PRODUCTS, JSON.stringify(products) + "\n");
+  process.exit(0);
+}
 
 const isLogo = (u) => /\/brand\/rappi-logo/i.test(u);
 const isB2B = (u) => /v1\.joma-sport\.net/i.test(u);
