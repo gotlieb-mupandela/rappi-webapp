@@ -302,6 +302,20 @@ export function paginateListing(
   };
 }
 
+/**
+ * Category and subcategory as the catalog listing sends them.
+ * The mobile feed reads this helper and does not rewrite the slugs.
+ */
+export function catalogProductFields(product: { category: string; subcategory: string }): {
+  category: string;
+  subcategory: string;
+} {
+  return {
+    category: product.category,
+    subcategory: product.subcategory,
+  };
+}
+
 /** Drop server-only search/folder helpers before sending a row to the browser. */
 export function toClientProduct(
   product: Product & { cardImage?: string | null },
@@ -309,8 +323,11 @@ export function toClientProduct(
   const { hay: _hay, folders: _folders, cardImage: existing, ...rest } = product as ListingItem & {
     cardImage?: string | null;
   };
+  const fields = catalogProductFields(product);
   return {
     ...versionProductImages(rest),
+    category: fields.category,
+    subcategory: fields.subcategory,
     cardImage: "cardImage" in product ? (existing ?? null) : cardImageUrl(product),
     assortment: clientAssortment(product),
   };

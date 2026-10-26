@@ -1,7 +1,16 @@
 import { matchesAudience, productAudience } from "@/lib/audience";
 import { clientAssortment, renderAssortmentLabel } from "@/lib/assortment";
+import { AUDIENCES } from "@/lib/catalog";
 import { DPO_TEST_CODE } from "@/lib/dpo-test-product";
 import { formatPrice } from "@/lib/format";
+import {
+  audienceTiles,
+  footwearLandingTiles,
+  sportSeriesFolders,
+  subcategoryHubGroups,
+  type HubFolderTile,
+} from "@/lib/hubs";
+import { asHomeSpan, asHomeTone } from "@/lib/home-tiles";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
 import { eurPerNad } from "@/lib/i18n/config";
 import {
@@ -21,23 +30,23 @@ import { itemFamilyOf, productLineLabel } from "@/lib/joma-item";
 import { jomaTeamsLandingTiles } from "@/lib/joma-nav";
 import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
 import { isOutletFolderKey, jomaFolderByKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
-import { filterListing, type ListingItem } from "@/lib/listing-core";
+import { catalogProductFields, filterListing, type ListingItem } from "@/lib/listing-core";
 import { hasUsableProductImage, listingCardCandidates, tileImageUrl } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
 import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import {
+  FEED_EXCLUDED_FOLDER_KEY,
   FEED_MENUS,
-  FLOW_TILE,
   HOME_TILES,
   KIDS_FOOTWEAR_TILE,
+  SHOE_TILES,
   TEAM_TILES,
   feedAudienceTargets,
   feedCategoryTargets,
   feedMenuKey,
-  feedTargetTable,
-  footwearTypeKeys,
+  feedTargetFor,
   headerMenuKeys,
-  sportswearTypeKeys,
+  namespacedFeedTargets,
   type FeedMenuDef,
   type FeedTargetTile,
 } from "@/lib/mobile-feed-targets";
@@ -52,6 +61,15 @@ const tEn = makeT("na");
 const tFr = makeT("eu");
 
 export type FeedText = { en: string; fr: string };
+
+/** One audience row on a category node. label is plain text. target is a fixed literal. */
+export type FeedAudienceRef = {
+  id: string;
+  label: FeedText;
+  /** Finite integer. Same count audienceTiles() returns. */
+  count: number;
+  target: string;
+};
 
 export type FeedNode = {
   key: string;
@@ -71,10 +89,22 @@ export type FeedNode = {
   group: string | null;
   /** Ordered child keys for a menu, category shop-by-type list, or folder. */
   tiles: string[];
+  /** Home tiles only. 1 or 2, or null when this node is not a home tile. */
+  span: 1 | 2 | null;
+  /** Home tiles only. dark or light, or null when this node is not a home tile. */
+  tone: "dark" | "light" | null;
+  /** Audience nodes only. men, women, or kids. Null on every other kind. */
+  slug: string | null;
   /**
-   * Site path from feedTargetTable(). The only link field.
+   * Per-hub audiences. Empty unless audienceTiles() returns more than one,
+   * which is the same rule the category page uses.
+   */
+  audiences: FeedAudienceRef[];
+  /**
+   * Site path from the fixed target table. The only link field.
+   * A namespaced id reads the namespaced literal map.
    * Never a request value or a product field.
-   * A key that is not in that table is an unknown target and is not emitted.
+   * A key with no fixed target is not emitted.
    */
   target: string;
 };
@@ -243,11 +273,25 @@ function plainText(value: string): string {
     .trim();
 }
 
-function slugText(value: string | null | undefined): string | null {
+const CATALOG_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const GROUP_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const AUDIENCE_SLUGS = new Set<string>(AUDIENCES.map((audience) => audience.slug));
+
+/** Catalog slug as stored. No publicCopy pass, so a brand prefix cannot change it. */
+function catalogSlug(value: string | null | undefined): string | null {
+  if (!value || !CATALOG_SLUG.test(value)) return null;
+  return value;
+}
+
+/**
+ * Folder group through publicFolderKey, then the public slug pattern.
+ * publicCopy is not used here. It strips a brand prefix and can leave a leading hyphen.
+ */
+function feedGroup(value: string | null | undefined): string | null {
   if (!value) return null;
-  const next = plainText(value);
-  if (!next || !/^[A-Za-z0-9-]+$/.test(next)) return null;
-  return next;
+  const key = publicFolderKey(value);
+  if (!GROUP_SLUG.test(key)) return null;
+  return key;
 }
 
 /** fr is the French plain text, or the English plain text when that is empty. */
@@ -458,6 +502,7 @@ export function feedProductCard(product: Product): FeedProduct | null {
   const images = productImages(product);
   const pairCount = view.pairCount;
   if (pairCount !== null) assertFiniteInteger(pairCount, `pairCount ${product.code}`);
+  const fields = catalogProductFields(product);
   return {
     code: product.code,
     name,
@@ -471,8 +516,8 @@ export function feedProductCard(product: Product): FeedProduct | null {
     cardImage: images[0] ?? null,
     images,
     line: productLine(product),
-    category: slugText(product.category),
-    subcategory: slugText(product.subcategory),
+    category: catalogSlug(fields.category),
+    subcategory: catalogSlug(fields.subcategory),
     audience: productAudience(product),
   };
 }
@@ -513,16 +558,24 @@ export function folderProductCounts(catalog: FeedSource[]): Map<string, number> 
 }
 
 function emptyNode(
-  partial: Omit<FeedNodeDraft, "tiles" | "description" | "group"> & {
+  partial: Omit<FeedNodeDraft, "tiles" | "description" | "group" | "span" | "tone" | "slug" | "audiences"> & {
     tiles?: string[];
     description?: FeedText;
     group?: string | null;
+    span?: FeedNode["span"];
+    tone?: FeedNode["tone"];
+    slug?: string | null;
+    audiences?: FeedAudienceRef[];
   },
 ): FeedNodeDraft {
   return {
-    group: null,
-    tiles: [],
     ...partial,
+    group: partial.group ?? null,
+    tiles: partial.tiles ?? [],
+    span: partial.span ?? null,
+    tone: partial.tone ?? null,
+    slug: partial.slug ?? null,
+    audiences: partial.audiences ?? [],
     description: partial.description ?? partial.title,
   };
 }
@@ -551,20 +604,65 @@ function feedCheckout(): FeedCheckout {
   };
 }
 
+function homeNodeKey(tile: { id: string; href: string }): string {
+  if (tile.href === "/teamwear") return feedMenuKey("teams");
+  if (tile.href === "/shop/kids") return feedMenuKey("kids");
+  if (tile.href === "/category/sportswear") return "sportswear";
+  if (tile.href === "/category/running-fitness") return "running-fitness";
+  if (tile.href === "/category/lifestyle") return "lifestyle";
+  if (tile.href === "/category/shoes") return "shoes";
+  throw new Error(`Home tile ${tile.id} has no feed key`);
+}
+
 function homeKeys(): string[] {
-  return HOME_TILES.map((tile) => {
-    if (tile.href === "/teamwear") return feedMenuKey("teams");
-    if (tile.href === "/shop/kids") return feedMenuKey("kids");
-    if (tile.href === "/category/sportswear") return "sportswear";
-    if (tile.href === "/category/running-fitness") return "running-fitness";
-    if (tile.href === "/category/lifestyle") return "lifestyle";
-    if (tile.href === "/category/shoes") return "shoes";
-    throw new Error(`Home tile ${tile.id} has no feed key`);
-  });
+  return HOME_TILES.map((tile) => homeNodeKey(tile));
+}
+
+function siteGroupTitle(tile: HubFolderTile): { title: FeedText } {
+  if (tile.exactName) return { title: textPair(tile.name, tile.name, tile.name) };
+  if (tile.nameGroup) {
+    const english = groupName(tile.nameGroup.kind, tile.nameGroup.key, tEn);
+    const french = groupName(tile.nameGroup.kind, tile.nameGroup.key, tFr);
+    const en = english !== tile.nameGroup.key ? english : tile.name;
+    const fr = french !== tile.nameGroup.key ? french : tile.name;
+    return { title: textPair(en, fr, tile.name) };
+  }
+  return {
+    title: textPair(subName(tile.key, tEn), subName(tile.key, tFr), tile.name),
+  };
+}
+
+function hubTileImage(tile: HubFolderTile): string | null {
+  if (tile.cover) return tile.cover;
+  if (tile.sample) {
+    const url = tileImageUrl(tile.sample);
+    return url || null;
+  }
+  return null;
+}
+
+function hubAudiences(slug: string, catalog: FeedSource[]): FeedAudienceRef[] {
+  const tiles = audienceTiles(catalog, { categorySlug: slug });
+  if (tiles.length <= 1) return [];
+  const rows: FeedAudienceRef[] = [];
+  for (const tile of tiles) {
+    if (!AUDIENCE_SLUGS.has(tile.key)) continue;
+    const id = `${slug}--${tile.key}`;
+    const target = namespacedFeedTargets().get(id);
+    if (!target || tile.href !== target) continue;
+    const count = assertFiniteInteger(tile.count, `audience ${id}`);
+    if (count <= 0) continue;
+    rows.push({
+      id,
+      label: textPair(audienceName(tile.key, tEn), audienceName(tile.key, tFr), tile.name),
+      count,
+      target,
+    });
+  }
+  return rows;
 }
 
 export function buildMobileStorefront(catalog: FeedSource[], version: string): MobileStorefront {
-  const table = feedTargetTable();
   const counts = folderProductCounts(catalog);
   const navVisible = catalog.filter(
     (product) => product.available !== false && product.code !== DPO_TEST_CODE,
@@ -585,7 +683,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     assertFiniteInteger(node.order, `order ${node.key}`);
     const count = assertFiniteInteger(node.count, `count ${node.key}`);
     if (count < 0) throw new Error(`Feed count is negative: ${node.key}`);
-    const target = table.get(node.key);
+    const target = feedTargetFor(node.key);
     if (!target) return;
     if (!/^\/[^\s\\]*$/.test(target)) {
       throw new Error(`Feed target ${node.key} is not a site path`);
@@ -611,6 +709,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   }
 
   for (const row of snapshot) {
+    if (row.key === FEED_EXCLUDED_FOLDER_KEY) continue;
     const key = publicFolderKey(row.key);
     const count = counts.get(row.key) ?? 0;
     const hidden =
@@ -626,7 +725,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
         image: tileImage(folderImageSource(row.key, catalog)),
         hidden,
         count,
-        group: row.sub ? slugText(row.sub) : null,
+        group: feedGroup(row.sub),
       }),
     );
   }
@@ -636,22 +735,57 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     node.tiles = childKeys.filter((child) => nodes.has(child));
   }
 
+  const categoryShopTileIds = (slug: string): string[] => {
+    if (slug === "shoes") {
+      const byHref = new Map(SHOE_TILES.map((tile) => [tile.href, tile.id]));
+      const ids: string[] = [];
+      for (const tile of footwearLandingTiles(catalog)) {
+        const id = byHref.get(tile.href);
+        if (!id || ids.includes(id)) continue;
+        ids.push(id);
+      }
+      return ids;
+    }
+    const typeGroups = subcategoryHubGroups(slug, catalog);
+    const series = sportSeriesFolders(slug, catalog).filter(
+      (tile) => !typeGroups.some((folder) => folder.key === tile.key),
+    );
+    const ids: string[] = [];
+    for (const tile of [...typeGroups, ...series]) {
+      const id = `${slug}--${publicFolderKey(tile.key)}`;
+      const target = namespacedFeedTargets().get(id);
+      if (!target || tile.href !== target) continue;
+      const names = siteGroupTitle(tile);
+      put(
+        emptyNode({
+          key: id,
+          kind: "tile",
+          ...names,
+          order: ids.length,
+          parent: slug,
+          image: tileImage(hubTileImage(tile)),
+          hidden: false,
+          count: assertFiniteInteger(tile.count, `count ${id}`),
+          group: feedGroup(tile.key),
+        }),
+      );
+      if (nodes.has(id)) ids.push(id);
+    }
+    return ids;
+  };
+
   const categoryOrder: string[] = [];
   for (const category of feedCategoryTargets()) {
     const count = categoryCounts[category.slug] ?? 0;
     const names = { title: textPair(hubName(category.slug, tEn), hubName(category.slug, tFr), category.slug) };
     const text = descriptionFor("hub", category.slug, names.title);
-    const shopKeys =
-      category.slug === "sportswear"
-        ? sportswearTypeKeys()
-        : category.slug === "shoes"
-          ? footwearTypeKeys()
-          : [];
-    const tiles = shopKeys.filter((key) => nodes.has(key));
+    const tiles = categoryShopTileIds(category.slug);
+    const audiences = hubAudiences(category.slug, catalog);
     const existing = nodes.get(category.slug);
     if (existing) {
       existing.description = text;
-      if (shopKeys.length) existing.tiles = tiles;
+      existing.tiles = tiles;
+      existing.audiences = audiences;
     } else {
       put(
         emptyNode({
@@ -665,6 +799,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
           hidden: category.slug === "netball" || count === 0,
           count,
           tiles,
+          audiences,
         }),
       );
     }
@@ -672,6 +807,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   }
 
   for (const audience of feedAudienceTargets()) {
+    if (!AUDIENCE_SLUGS.has(audience.slug)) continue;
     if (nodes.has(audience.id)) continue;
     const names = {
       title: textPair(audienceName(audience.slug, tEn), audienceName(audience.slug, tFr), audience.slug),
@@ -688,6 +824,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
         image: tileImage(AUDIENCE_IMAGE[audience.slug] ?? null),
         hidden: false,
         count: navVisible.filter((product) => matchesAudience(product, audience.slug)).length,
+        slug: audience.slug,
       }),
     );
   }
@@ -695,10 +832,6 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   const menuTileIds = (menu: FeedMenuDef) => {
     const ids = menu.tiles.map((tile) => tile.id);
     if (menu.id === "kids") ids.push(KIDS_FOOTWEAR_TILE.id);
-    if (menu.id === "shoes") {
-      const flow = nodes.get(FLOW_TILE.id);
-      if (flow && flow.count > 0) ids.push(FLOW_TILE.id);
-    }
     return ids;
   };
 
@@ -716,7 +849,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
         image: tileImage(tile.image),
         hidden,
         count,
-        group: tile.folderKey ? slugText(tile.folderKey) : null,
+        group: feedGroup(tile.folderKey),
       }),
     );
   };
@@ -789,6 +922,13 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   const footwear = nodes.get(KIDS_FOOTWEAR_TILE.id);
   if (footwear) footwear.count = kidsShoes;
 
+  for (const tile of HOME_TILES) {
+    const node = nodes.get(homeNodeKey(tile));
+    if (!node) continue;
+    node.span = asHomeSpan(tile.span);
+    node.tone = asHomeTone(tile.tone);
+  }
+
   for (const node of nodes.values()) {
     if (node.parent && !nodes.has(node.parent)) node.parent = null;
     const seen = new Set<string>();
@@ -842,7 +982,6 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
 
 function tileById(menu: FeedMenuDef, id: string): FeedTargetTile | null {
   if (id === KIDS_FOOTWEAR_TILE.id) return KIDS_FOOTWEAR_TILE;
-  if (id === FLOW_TILE.id) return FLOW_TILE;
   return menu.tiles.find((tile) => tile.id === id) ?? TEAM_TILES.find((tile) => tile.id === id) ?? null;
 }
 

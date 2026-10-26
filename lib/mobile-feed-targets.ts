@@ -1,4 +1,6 @@
-import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
+import { AUDIENCES, CATEGORIES, TYPE_FOLDERS } from "@/lib/catalog";
+import { homeTileLayout, type HomeTileSpan, type HomeTileTone } from "@/lib/home-tiles";
+import { sportSeriesRoot } from "@/lib/hubs";
 import { jomaAccessoriesLandingTiles, jomaTeamsLandingTiles } from "@/lib/joma-nav";
 import {
   jomaAccessoriesLinks,
@@ -16,6 +18,7 @@ import {
   OUTLET_FOLDERS,
   WOMAN_APPAREL_FOLDERS,
   WOMAN_FOOTWEAR_FOLDERS,
+  jomaFolderByKey,
   type JomaFolderDef,
 } from "@/lib/joma-tree";
 import { publicFolderKey } from "@/lib/mobile-feed-slugs";
@@ -99,13 +102,25 @@ export function teamTileId(href: string): string {
   throw new Error("Teams tile has no target key");
 }
 
-export const HOME_TILES: readonly FeedTargetTile[] = [
-  { id: "teamwear", label: "Teamwear", href: "/teamwear", image: TEAM_COVER },
-  { id: "sportswear", label: "Sportswear", href: "/category/sportswear", image: SPORT_COVER },
-  { id: "running", label: "Running", href: "/category/running-fitness", image: SHOE_COVER },
-  { id: "lifestyle", label: "Lifestyle", href: "/category/lifestyle", image: SPORT_COVER },
-  { id: "footwear", label: "Footwear", href: "/category/shoes", image: SHOE_COVER },
-  { id: "kids", label: "Kids", href: "/shop/kids", image: SPORT_COVER },
+export type HomeFeedTile = FeedTargetTile & {
+  span: HomeTileSpan;
+  tone: HomeTileTone;
+};
+
+function homeFeedTile(
+  tile: FeedTargetTile,
+): HomeFeedTile {
+  const layout = homeTileLayout(tile.id);
+  return { ...tile, span: layout.span, tone: layout.tone };
+}
+
+export const HOME_TILES: readonly HomeFeedTile[] = [
+  homeFeedTile({ id: "teamwear", label: "Teamwear", href: "/teamwear", image: TEAM_COVER }),
+  homeFeedTile({ id: "sportswear", label: "Sportswear", href: "/category/sportswear", image: SPORT_COVER }),
+  homeFeedTile({ id: "running", label: "Running", href: "/category/running-fitness", image: SHOE_COVER }),
+  homeFeedTile({ id: "lifestyle", label: "Lifestyle", href: "/category/lifestyle", image: SPORT_COVER }),
+  homeFeedTile({ id: "footwear", label: "Footwear", href: "/category/shoes", image: SHOE_COVER }),
+  homeFeedTile({ id: "kids", label: "Kids", href: "/shop/kids", image: SPORT_COVER }),
 ];
 
 /** Men and women tiles are jomaAudienceLinks(), in that function's order. */
@@ -144,7 +159,13 @@ export const SHOE_TILES: readonly FeedTargetTile[] = [
   },
 ];
 
-/** Shown on the footwear menu only while the folder has products. */
+/**
+ * Live shoes landing has no Flow tile, so this folder stays out of the feed.
+ * The folder row stays in the tree. Only the feed skips it.
+ */
+export const FEED_EXCLUDED_FOLDER_KEY = "joma-flow";
+
+/** Shown on the footwear menu only while the folder has products. The feed skips it. */
 export const FLOW_TILE: FeedTargetTile = {
   id: "flow",
   label: "Flow",
@@ -287,10 +308,13 @@ function groupHref(base: string, key: string): string {
 
 function buildFolderHrefs(): Map<string, string> {
   const hrefs = new Map<string, string>();
+  const footballSeries = sportSeriesRoot("football");
   const visit = (folders: readonly JomaFolderDef[], base: string) => {
     for (const folder of folders) {
-      hrefs.set(folder.key, groupHref(base, folder.key));
-      if (folder.children?.length) visit(folder.children, base);
+      if (folder.key === FEED_EXCLUDED_FOLDER_KEY) continue;
+      const nextBase = folder.key === footballSeries ? "/shop/football" : base;
+      hrefs.set(folder.key, groupHref(nextBase, folder.key));
+      if (folder.children?.length) visit(folder.children, nextBase);
     }
   };
   visit(FOOTWEAR_FOLDERS, "/shop/shoes");
@@ -357,8 +381,16 @@ function constantTiles(): FeedTargetTile[] {
 }
 
 let targetTable: Map<string, string> | null = null;
+let namespacedTargets: Map<string, string> | null = null;
 
 const TARGET_KEY = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
+
+/** hub--leaf. Lowercase, one double hyphen, no leading or trailing hyphen. */
+export const NAMESPACED_FEED_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*--[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function feedIdExcluded(id: string): boolean {
+  return id === publicFolderKey(FEED_EXCLUDED_FOLDER_KEY);
+}
 
 /**
  * Fixed id to site path. The feed copies this path onto the node as `target`.
@@ -371,11 +403,15 @@ export function feedTargetTable(): ReadonlyMap<string, string> {
   if (targetTable) return targetTable;
   const map = new Map<string, string>();
   const add = (id: string, href: string) => {
+    if (feedIdExcluded(id)) return;
     if (!TARGET_KEY.test(id)) throw new Error(`Feed target key is not a fixed id: ${id}`);
     if (map.has(id)) return;
     map.set(id, href);
   };
-  for (const tile of constantTiles()) add(tile.id, tile.href);
+  for (const tile of constantTiles()) {
+    if (tile.folderKey === FEED_EXCLUDED_FOLDER_KEY) continue;
+    add(tile.id, tile.href);
+  }
   add(MENU_KEY.home, "/");
   for (const menu of FEED_MENUS) add(feedMenuKey(menu.id), menu.href);
   for (const audience of feedAudienceTargets()) add(audience.id, audience.href);
@@ -389,7 +425,55 @@ export function feedTargetKeys(): ReadonlySet<string> {
   return new Set(feedTargetTable().keys());
 }
 
-/** Every href the feed is allowed to emit. Built from this module, not from a request. */
+/** Every static href. Built from this module, not from a request. */
 export function feedTargetSet(): ReadonlySet<string> {
   return new Set(feedTargetTable().values());
+}
+
+/**
+ * Fixed hub--leaf paths. Built from category slugs, audience slugs, type folder
+ * keys, and series children. Nothing here is read from a feed row or a query.
+ * These ids are not added to feedTargetTable(), so a small catalog does not
+ * have to emit every one.
+ */
+export function namespacedFeedTargets(): ReadonlyMap<string, string> {
+  if (namespacedTargets) return namespacedTargets;
+  const map = new Map<string, string>();
+  const staticIds = feedTargetTable();
+  const add = (id: string, href: string) => {
+    if (!NAMESPACED_FEED_KEY.test(id)) return;
+    if (staticIds.has(id)) throw new Error(`Namespaced feed id collides with a fixed id: ${id}`);
+    const previous = map.get(id);
+    if (previous && previous !== href) throw new Error(`Namespaced feed id ${id} has two targets`);
+    if (!previous) map.set(id, href);
+  };
+  for (const category of CATEGORIES) {
+    const hub = category.slug;
+    for (const audience of AUDIENCES) {
+      add(`${hub}--${audience.slug}`, `/shop/${hub}?audience=${audience.slug}`);
+    }
+    for (const typeKey of Object.keys(TYPE_FOLDERS)) {
+      add(`${hub}--${typeKey}`, `/shop/${hub}?group=${encodeURIComponent(typeKey)}`);
+    }
+    const root = sportSeriesRoot(hub);
+    if (!root) continue;
+    for (const child of jomaFolderByKey(root)?.children ?? []) {
+      const leaf = publicFolderKey(child.key);
+      add(`${hub}--${leaf}`, `/shop/${hub}?group=${encodeURIComponent(leaf)}`);
+    }
+  }
+  namespacedTargets = map;
+  return map;
+}
+
+/** Static table first, then the namespaced literal map. */
+export function feedTargetFor(id: string): string | null {
+  return feedTargetTable().get(id) ?? namespacedFeedTargets().get(id) ?? null;
+}
+
+/** Static paths plus namespaced literals. The only paths the feed may copy. */
+export function feedAllowedTargets(): ReadonlySet<string> {
+  const allowed = new Set<string>(feedTargetSet());
+  for (const href of namespacedFeedTargets().values()) allowed.add(href);
+  return allowed;
 }

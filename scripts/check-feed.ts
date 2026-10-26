@@ -8,16 +8,22 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { clientAssortment, renderAssortmentLabel } from "../lib/assortment";
-import { CATEGORIES } from "../lib/catalog";
+import { AUDIENCES, CATEGORIES } from "../lib/catalog";
 import { catalogVersion } from "../lib/catalog-version";
 import { formatPrice } from "../lib/format";
 import { productInHub } from "../lib/hub-membership";
+import {
+  audienceTiles,
+  footwearLandingTiles,
+  sportSeriesFolders,
+  subcategoryHubGroups,
+} from "../lib/hubs";
 import { allowedImageHosts, imageHostAllows } from "../lib/image-hosts";
 import { eurPerNad } from "../lib/i18n/config";
-import { shippingName } from "../lib/i18n/labels";
+import { audienceName, shippingName, subName } from "../lib/i18n/labels";
 import { makeT } from "../lib/i18n/translate";
 import { isLiveFolder } from "../lib/joma-live";
-import { FOOTWEAR_FOLDERS } from "../lib/joma-tree";
+import { FOOTWEAR_FOLDERS, jomaFolderMetaSnapshot } from "../lib/joma-tree";
 import { filterListing, type ListingItem } from "../lib/listing-core";
 import { listingCardCandidates } from "../lib/media";
 import { CANONICAL_SITE_ORIGIN } from "../lib/meta/site";
@@ -47,23 +53,28 @@ import {
 } from "../lib/mobile-feed";
 import { LEGACY_FOLDER_SLUGS, publicCopy, publicFolderKey } from "../lib/mobile-feed-slugs";
 import {
+  FEED_EXCLUDED_FOLDER_KEY,
   FLOW_TILE,
+  HOME_TILES,
   KIDS_FOOTWEAR_TILE,
   KIDS_TILES,
+  NAMESPACED_FEED_KEY,
   PROMO_TILES,
   SHOE_TILES,
   TEAM_TILES,
+  feedAllowedTargets,
   feedMenuKey,
+  feedTargetFor,
   feedTargetKeys,
   feedTargetSet,
   feedTargetTable,
   folderHref,
-  footwearTypeKeys,
   headerMenuKeys,
   kidsAgeChildren,
+  namespacedFeedTargets,
   sponsorReplicaTiles,
-  sportswearTypeKeys,
 } from "../lib/mobile-feed-targets";
+import { products as siteCatalog } from "../lib/products";
 import { feedVersionParamStatus, mobileFeedVersion } from "../lib/mobile-feed-version";
 import { SHIPPING_METHODS } from "../lib/shipping";
 import type { Product } from "../lib/types";
@@ -188,15 +199,23 @@ assert.deepEqual(Object.keys(LEGACY_FOLDER_SLUGS).sort(), ["joma-flow", "joma-ki
 assert.equal(publicFolderKey("joma-flow"), "flow");
 assert.equal(publicFolderKey("joma-kids"), "kids");
 assert.equal(publicFolderKey("wf-joma-flow"), "wf-flow");
-assert.equal(folderHref("joma-flow"), FLOW_TILE.href);
-assert.equal(folderHref("joma-flow"), "/shop/shoes?group=flow");
+assert.equal(folderHref(FEED_EXCLUDED_FOLDER_KEY), null);
+assert.equal(feedTargetTable().has(FLOW_TILE.id), false);
+assert.equal(feedTargetTable().has(publicFolderKey(FEED_EXCLUDED_FOLDER_KEY)), false);
+assert.equal(feedTargetTable().get("jackets"), "/shop/sportswear?group=jackets");
+assert.equal(feedTargetTable().get("pants"), "/shop/sportswear?group=pants");
+assert.equal(feedTargetTable().get("shoes"), "/category/shoes");
+assert.equal(feedTargetTable().get("accessories"), "/shop/balls-bags");
+assert.equal(folderHref("tw-football"), "/shop/football?group=tw-football");
+assert.equal(folderHref("tw-football-tshirts"), "/shop/football?group=tw-football-tshirts");
+assert.equal(feedTargetTable().get("tw-football-tshirts"), "/shop/football?group=tw-football-tshirts");
 
 const products = loadFixtureProducts();
 assert.equal(products.length, 20);
 const version = catalogVersion(products);
 const feed = buildMobileStorefront(products, version);
 assert.equal(feed.version, mobileFeedVersion(version));
-assert.equal(feed.version.endsWith(".7"), true);
+assert.equal(feed.version.endsWith(".8"), true);
 const buildsBefore = mobileStorefrontBuildCount();
 const memoFirst = memoizedMobileStorefront(products, version);
 assert.equal(mobileStorefrontBuildCount(), buildsBefore + 1);
@@ -209,7 +228,7 @@ assert.equal(matchedVersion.status, 200);
 assert.equal(matchedVersion.cacheControl, STOREFRONT_CACHE);
 assert.equal(matchedVersion.cacheControl.includes("s-maxage=300"), true);
 assert.equal(matchedVersion.body, memoFirst);
-const staleVersion = "zzzzzzzz.7";
+const staleVersion = "zzzzzzzz.8";
 const stale = storefrontFromFeed([staleVersion], memoFirst);
 assert.equal(stale.status, 200);
 assert.equal(stale.cacheControl, "no-store");
@@ -382,17 +401,12 @@ const footwearMenu = byKey.get(feedMenuKey("shoes"));
 assert.ok(footwearMenu);
 assert.equal(footwearMenu.tiles.includes("flow"), false);
 assert.deepEqual(footwearMenu.tiles, SHOE_TILES.map((tile) => tile.id));
-const flow = byKey.get("flow");
-assert.ok(flow);
-assert.equal(flow.kind, "folder");
-assert.equal(flow.count, 0);
-assert.equal(flow.title.en, "Flow");
-assert.equal(flow.hidden, !isLiveFolder("joma-flow"));
+assert.equal(byKey.has("flow"), false);
 const shoesCategory = byKey.get("shoes");
 assert.ok(shoesCategory);
-assert.equal(shoesCategory.tiles.includes("flow"), true);
-assert.equal(shoesCategory.tiles.includes("footwear-outlet"), false);
-assert.deepEqual(shoesCategory.tiles, footwearTypeKeys());
+assert.equal(shoesCategory.tiles.includes("flow"), false);
+assert.equal(shoesCategory.tiles.includes("footwear-outlet"), true);
+assert.deepEqual(shoesCategory.tiles, expectedHubTileIds("shoes", products));
 
 const children = byKey.get(feedMenuKey("kids"));
 assert.ok(children);
@@ -429,8 +443,9 @@ assert.ok(kits);
 assert.deepEqual(kits.tiles, sponsorReplicaTiles().map((tile) => tile.id));
 const sportswear = byKey.get("sportswear");
 assert.ok(sportswear);
-assert.deepEqual(sportswear.tiles, sportswearTypeKeys());
-assert.equal(sportswear.tiles.length, 14);
+assert.deepEqual(sportswear.tiles, expectedHubTileIds("sportswear", products));
+assert.equal(sportswear.tiles.includes("teamwear"), false);
+assert.equal(sportswear.tiles.includes("jp-916ee19d09"), false);
 const outlet = byKey.get("outlet");
 assert.ok(outlet);
 assert.deepEqual(outlet.tiles, PROMO_TILES.map((tile) => tile.id));
@@ -579,7 +594,7 @@ assert.equal(codes.has("HIDDEN-UNAVAIL"), false);
 assert.equal(codes.has("DPO-TEST"), false);
 assert.equal(feed.products.length, 18);
 
-for (const key of ["kids-1-4", "w-cycling", "outlet-promotions", "joma-flow", "teamwear"]) {
+for (const key of ["kids-1-4", "w-cycling", "outlet-promotions", "teamwear"]) {
   const expected = filterListing(products as ListingItem[], { group: key }).length;
   const folder = byKey.get(publicFolderKey(key));
   assert.ok(folder, key);
@@ -602,14 +617,12 @@ const withFlow = [
 ];
 const flowFeed = buildMobileStorefront(withFlow, catalogVersion(withFlow));
 const flowNodes = indexNodes(flowFeed);
-const flowFolder = flowNodes.get("flow");
-assert.ok(flowFolder);
-assert.equal(flowFolder.title.en, "Flow");
-assert.equal(flowFolder.count, 1);
-assert.equal(flowFolder.hidden, false);
+assert.equal(flowNodes.has("flow"), false);
+assert.equal(flowNodes.has(publicFolderKey(FEED_EXCLUDED_FOLDER_KEY)), false);
 assert.equal(JSON.stringify(flowFeed).includes("joma-flow"), false);
+assert.equal(JSON.stringify(flowFeed).includes("\"-flow\""), false);
 assert.equal(JSON.stringify(flowFeed).includes("joma-kids"), false);
-assert.equal(flowNodes.get(feedMenuKey("shoes"))?.tiles.includes("flow"), true);
+assert.equal(flowNodes.get(feedMenuKey("shoes"))?.tiles.includes("flow"), false);
 for (const value of copyValues(flowFeed)) {
   if (value.toLowerCase().includes("joma")) fail(`flow feed copy contains the brand word: ${value}`);
 }
@@ -789,9 +802,9 @@ const bakedWithFolders = baked.map((product) => ({
   ...product,
   folders: folderMap[product.id] ?? folderMap[product.code] ?? [],
 }));
-const bakedFeed = buildMobileStorefront(bakedWithFolders, catalogVersion(bakedWithFolders));
-assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
-assert.equal(bakedFeed.version.endsWith(".7"), true);
+const bakedFeed = buildMobileStorefront(siteCatalog, catalogVersion(siteCatalog));
+assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(siteCatalog)));
+assert.equal(bakedFeed.version.endsWith(".8"), true);
 assertFeedShape(bakedFeed);
 let imageEqual = 0;
 let imageDiffer = 0;
@@ -812,7 +825,7 @@ for (const node of bakedFeed.nodes) {
   }
 }
 console.log(`node images kept ${nodeImages}`);
-const bakedByCode = new Map(bakedWithFolders.map((product) => [product.code, product]));
+const bakedByCode = new Map(siteCatalog.map((product) => [product.code, product]));
 let lineNull = 0;
 let labelFrTranslated = 0;
 for (const card of bakedFeed.products) {
@@ -843,7 +856,6 @@ for (const key of [
   "acc-balls",
   "acc-palas-padel",
   "padel-shoes",
-  "flow",
 ]) {
   assert.equal(bakedNodes.has(key), true, key);
 }
@@ -926,6 +938,142 @@ for (const group of groups) {
 }
 
 const liveFootwear = FOOTWEAR_FOLDERS.filter((folder) => folder.key !== "footwear-outlet" && isLiveFolder(folder.key));
+const typeCountExpected: Record<string, number> = {
+  football: 7,
+  basketball: 5,
+  rugby: 4,
+  cricket: 3,
+  swimming: 2,
+  sportswear: 9,
+};
+for (const [slug, count] of Object.entries(typeCountExpected)) {
+  const groups = subcategoryHubGroups(slug, siteCatalog);
+  assert.equal(groups.length, count, slug);
+  assert.deepEqual(bakedNodes.get(slug)?.tiles, expectedHubTileIds(slug, siteCatalog), slug);
+}
+const seriesCountExpected: Record<string, number> = {
+  football: 6,
+  basketball: 12,
+  rugby: 10,
+  cricket: 0,
+  swimming: 0,
+};
+for (const [slug, count] of Object.entries(seriesCountExpected)) {
+  const types = subcategoryHubGroups(slug, siteCatalog);
+  const series = sportSeriesFolders(slug, siteCatalog).filter(
+    (tile) => !types.some((folder) => folder.key === tile.key),
+  );
+  assert.equal(series.length, count, `${slug} series`);
+}
+const audienceExpected: Record<string, Record<string, number>> = {
+  football: { men: 652, women: 2, kids: 133 },
+  swimming: { men: 18, women: 1 },
+  sportswear: { men: 6049, women: 108, kids: 164 },
+  shoes: { men: 893, women: 353, kids: 486 },
+  basketball: { men: 78 },
+  rugby: { men: 92 },
+  cricket: { men: 9 },
+};
+for (const [slug, expected] of Object.entries(audienceExpected)) {
+  const tiles = audienceTiles(siteCatalog, { categorySlug: slug });
+  const got = Object.fromEntries(tiles.map((tile) => [tile.key, tile.count]));
+  assert.deepEqual(got, expected, slug);
+  const node = bakedNodes.get(slug);
+  assert.ok(node, slug);
+  if (tiles.length <= 1) {
+    assert.deepEqual(node.audiences, [], slug);
+  } else {
+    assert.equal(node.audiences.length, tiles.length, slug);
+    tiles.forEach((tile, index) => {
+      const row = node.audiences[index];
+      assert.equal(row.id, `${slug}--${tile.key}`, slug);
+      assert.equal(row.count, tile.count, row.id);
+      assert.equal(row.target, tile.href, row.id);
+      assert.equal(row.target, namespacedFeedTargets().get(row.id), row.id);
+      assert.equal(row.label.en, audienceName(tile.key, makeT("na")), row.id);
+      assert.equal(Number.isInteger(row.count), true, row.id);
+    });
+  }
+}
+assert.deepEqual(bakedNodes.get("shoes")?.tiles, expectedHubTileIds("shoes", siteCatalog));
+assert.equal(bakedNodes.get("shoes")?.tiles.includes("footwear-outlet"), true);
+assert.equal(bakedNodes.get("shoes")?.tiles.includes("flow"), false);
+assert.equal(bakedNodes.get(feedMenuKey("shoes"))?.tiles.includes("flow"), false);
+assert.deepEqual(bakedNodes.get(feedMenuKey("shoes"))?.tiles, SHOE_TILES.map((tile) => tile.id));
+const footballShirts = subcategoryHubGroups("football", siteCatalog).find((tile) => tile.key === "shirts");
+assert.equal(footballShirts?.name, "T-Shirts");
+assert.equal(bakedNodes.get("football--shirts")?.title.en, subName("shirts", makeT("na")));
+assert.equal(bakedNodes.get("football--shirts")?.title.en, "Shirts");
+assert.equal(bakedNodes.get("sportswear--bras")?.title.en, "Sports Bras");
+const teamSource = siteCatalog.find((product) => /team\/14/i.test(`${product.code} ${product.name} ${product.displayName}`));
+assert.ok(teamSource);
+assert.equal(teamSource.category, "balls-bags");
+const teamCard = bakedFeed.products.find((card) => card.code === teamSource.code) ?? feedProductCard(teamSource);
+assert.ok(teamCard);
+assert.equal(teamCard.category, "balls-bags");
+assert.equal(teamCard.subcategory, teamSource.subcategory);
+let categoryDiffs = 0;
+for (const card of bakedFeed.products) {
+  const source = bakedByCode.get(card.code);
+  assert.ok(source, card.code);
+  if (card.category !== source.category) categoryDiffs += 1;
+  if (card.subcategory !== source.subcategory) categoryDiffs += 1;
+  assert.deepEqual(Object.keys(card), [...FEED_PRODUCT_KEYS], card.code);
+}
+assert.equal(categoryDiffs, 0);
+const groupDiffs: string[] = [];
+for (const row of jomaFolderMetaSnapshot()) {
+  if (!row.sub) continue;
+  const before = legacyGroupSlug(row.sub);
+  const after = publicFolderKey(row.sub);
+  if (before !== after) groupDiffs.push(`${row.key} ${before} -> ${after}`);
+}
+assert.deepEqual(groupDiffs, [`${FEED_EXCLUDED_FOLDER_KEY} -flow -> flow`]);
+for (const node of bakedFeed.nodes) {
+  if (node.group !== null) assert.match(node.group, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, node.key);
+  assert.notEqual(node.group, "-flow", node.key);
+  assert.notEqual(node.key, "flow", node.key);
+}
+assert.equal(bakedNodes.get(feedMenuKey("teams"))?.span, 2);
+assert.equal(bakedNodes.get(feedMenuKey("teams"))?.tone, "dark");
+assert.equal(bakedNodes.get("sportswear")?.span, 1);
+assert.equal(bakedNodes.get("sportswear")?.tone, "dark");
+assert.equal(bakedNodes.get("running-fitness")?.span, 1);
+assert.equal(bakedNodes.get("running-fitness")?.tone, "dark");
+assert.equal(bakedNodes.get("lifestyle")?.span, 1);
+assert.equal(bakedNodes.get("lifestyle")?.tone, "dark");
+assert.equal(bakedNodes.get("shoes")?.span, 1);
+assert.equal(bakedNodes.get("shoes")?.tone, "dark");
+assert.equal(bakedNodes.get(feedMenuKey("kids"))?.span, 2);
+assert.equal(bakedNodes.get(feedMenuKey("kids"))?.tone, "light");
+for (const tile of HOME_TILES) {
+  assert.equal(tile.span === 1 || tile.span === 2, true, tile.id);
+  assert.equal(tile.tone === "dark" || tile.tone === "light", true, tile.id);
+}
+const audienceNode = bakedNodes.get("men");
+assert.equal(audienceNode?.kind, "audience");
+assert.equal(audienceNode?.slug, "men");
+assert.equal(bakedNodes.get("women")?.slug, "women");
+assert.equal(bakedNodes.get("kids")?.slug, "kids");
+const removedSportswearTiles = [
+  "teamwear",
+  "teamwear-pro-2026",
+  "running-trail",
+  "cycling",
+  "racket-sports",
+  "hiking-outdoor",
+  "jp-916ee19d09",
+  "aguila-line",
+  "lifestyle-apparel",
+  "resort",
+  "beachwear",
+  "underwear-brama",
+  "athletes-combat",
+  "elite-club",
+];
+for (const id of removedSportswearTiles) {
+  assert.equal(bakedNodes.get("sportswear")?.tiles.includes(id), false, id);
+}
 const countLines = [
   `man site ${man.tiles.length} feed ${bakedNodes.get(feedMenuKey("men"))?.tiles.length}`,
   `woman site ${woman.tiles.length} feed ${bakedNodes.get(feedMenuKey("women"))?.tiles.length}`,
@@ -935,8 +1083,8 @@ const countLines = [
   `kits site ${sponsorReplicaTiles().length} feed ${bakedNodes.get(feedMenuKey("kits"))?.tiles.length}`,
   `accessories site 14 feed ${bakedNodes.get("accessories")?.tiles.length}`,
   `outlet site ${PROMO_TILES.length} feed ${bakedNodes.get("outlet")?.tiles.length}`,
-  `sportswear shop ${sportswearTypeKeys().length} feed ${bakedNodes.get("sportswear")?.tiles.length}`,
-  `footwear shop structural ${footwearTypeKeys().length} live ${liveFootwear.length} feed ${bakedNodes.get("shoes")?.tiles.length}`,
+  `sportswear shop ${expectedHubTileIds("sportswear", siteCatalog).length} feed ${bakedNodes.get("sportswear")?.tiles.length}`,
+  `footwear shop landing ${expectedHubTileIds("shoes", siteCatalog).length} live structural ${liveFootwear.length} feed ${bakedNodes.get("shoes")?.tiles.length}`,
   `kids age children ${ageChildren.length}`,
   "product line is plain text or null",
   "Kosovo code XK is user-assigned, not an official ISO 3166-1 alpha-2",
@@ -947,6 +1095,28 @@ writeFileSync("/tmp/mobile-feed-tree.txt", tree);
 writeFileSync("/tmp/mobile-feed-counts.txt", countLines.join("\n"));
 console.log(`tree lines ${tree.split("\n").length} chars ${tree.length}`);
 
+const tileReport: string[] = [];
+for (const category of CATEGORIES) {
+  const node = bakedNodes.get(category.slug);
+  if (!node) continue;
+  tileReport.push(`# ${category.slug} tiles ${node.tiles.length} audiences ${node.audiences.length}`);
+  for (const id of node.tiles) {
+    const child = bakedNodes.get(id);
+    tileReport.push(
+      `${id}\t${child?.title.en ?? ""}\t${child?.count ?? ""}\t${child?.target ?? ""}\t${child?.image ? "img" : "null"}`,
+    );
+  }
+  for (const row of node.audiences) {
+    tileReport.push(`${row.id}\t${row.label.en}\t${row.count}\t${row.target}\taudience`);
+  }
+}
+const retargeted: string[] = [];
+for (const [key, href] of feedTargetTable()) {
+  if (href.startsWith("/shop/football?group=")) retargeted.push(`${key} ${href}`);
+}
+tileReport.push(`# football folder targets ${retargeted.length}`);
+tileReport.push(...retargeted);
+writeFileSync("/tmp/feed-tiles.txt", tileReport.join("\n"));
 console.log(`feed check ok (fixture products ${feed.products.length}, version ${feed.version})`);
 
 function assertAllowedFeedImage(url: string, label: string) {
@@ -977,7 +1147,7 @@ function indexNodes(feedValue: MobileStorefront) {
 function assertFeedShape(feedValue: MobileStorefront) {
   const keys = feedTargetKeys();
   const paths = feedTargetSet();
-  const table = feedTargetTable();
+  const allowed = feedAllowedTargets();
   const parsed = JSON.parse(JSON.stringify(feedValue)) as MobileStorefront;
   assert.equal(parsed.version, feedValue.version);
   assert.equal(Array.isArray(parsed.nodes), true);
@@ -1003,20 +1173,39 @@ function assertFeedShape(feedValue: MobileStorefront) {
       }
       if (value.startsWith("/")) {
         if (key !== "target") fail(`${path} starts with a path`);
-        if (!paths.has(value)) fail(`${path} is not in the fixed target list`);
+        if (!allowed.has(value)) fail(`${path} is not in the fixed target list`);
       }
     }
   });
-  assert.equal(new Set(feedValue.nodes.map((node) => node.target)).size, paths.size);
+  const used = new Set<string>();
+  const nodeKeys = new Set(feedValue.nodes.map((node) => node.key));
   for (const node of feedValue.nodes) {
-    assert.equal(keys.has(node.key), true, node.key);
+    const namespaced = NAMESPACED_FEED_KEY.test(node.key);
+    if (namespaced) assert.equal(keys.has(node.key), false, node.key);
+    else assert.equal(keys.has(node.key), true, node.key);
     assert.equal("href" in node, false, node.key);
     assert.equal("line" in node, false, node.key);
     assert.equal("label" in node, false, node.key);
     assert.equal("labelFr" in node, false, node.key);
-    assert.equal(node.target, table.get(node.key), node.key);
-    assert.equal(paths.has(node.target), true, node.target);
+    assert.equal(node.target, feedTargetFor(node.key), node.key);
+    assert.equal(allowed.has(node.target), true, node.target);
     assert.equal(/^\/[^\s\\]*$/.test(node.target), true, node.key);
+    used.add(node.target);
+    assert.equal(node.span === null || node.span === 1 || node.span === 2, true, node.key);
+    assert.equal(node.tone === null || node.tone === "dark" || node.tone === "light", true, node.key);
+    if (node.kind === "audience") {
+      assert.equal(AUDIENCES.some((audience) => audience.slug === node.slug), true, node.key);
+    } else {
+      assert.equal(node.slug, null, node.key);
+    }
+    assert.equal(Array.isArray(node.audiences), true, node.key);
+    for (const row of node.audiences) {
+      assert.match(row.id, NAMESPACED_FEED_KEY, row.id);
+      assert.equal(namespacedFeedTargets().get(row.id), row.target, row.id);
+      assert.equal(Number.isInteger(row.count) && row.count > 0, true, row.id);
+      assert.equal(row.label.en.length > 0 && row.label.fr.length > 0, true, row.id);
+      assert.equal(/[<>\u0000-\u001f\u007f]/.test(row.label.en + row.label.fr), false, row.id);
+    }
     assert.equal(Number.isInteger(node.order), true, node.key);
     assert.equal(typeof node.hidden, "boolean", node.key);
     assert.equal(node.title.fr.length > 0, true, node.key);
@@ -1025,15 +1214,18 @@ function assertFeedShape(feedValue: MobileStorefront) {
       assert.equal(/[<>\u0000-\u001f\u007f]/.test(text), false, node.key);
     }
     assert.equal(PREFIX.test(node.key), false, node.key);
+    if (node.group !== null) assert.match(node.group, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, node.key);
     if (node.parent) {
-      assert.equal(keys.has(node.parent), true, node.parent);
+      assert.equal(nodeKeys.has(node.parent), true, node.parent);
       assert.equal(PREFIX.test(node.parent), false, node.parent);
     }
     for (const tile of node.tiles) {
-      assert.equal(keys.has(tile), true, tile);
+      assert.equal(nodeKeys.has(tile), true, tile);
+      assert.equal(feedTargetFor(tile) !== null, true, tile);
       assert.equal(PREFIX.test(tile), false, tile);
     }
   }
+  for (const path of paths) assert.equal(used.has(path), true, path);
   for (const key of [...feedValue.menus, ...feedValue.categoryOrder]) {
     assert.equal(keys.has(key), true, key);
     assert.equal(PREFIX.test(key), false, key);
@@ -1100,6 +1292,39 @@ function cardByCode(feedValue: MobileStorefront, code: string): FeedProduct {
   return card;
 }
 
+function expectedHubTileIds(slug: string, catalog: Product[]): string[] {
+  if (slug === "shoes") {
+    const byHref = new Map(SHOE_TILES.map((tile) => [tile.href, tile.id]));
+    const ids: string[] = [];
+    for (const tile of footwearLandingTiles(catalog)) {
+      const id = byHref.get(tile.href);
+      if (!id || ids.includes(id)) continue;
+      ids.push(id);
+    }
+    return ids;
+  }
+  const typeGroups = subcategoryHubGroups(slug, catalog);
+  const series = sportSeriesFolders(slug, catalog).filter(
+    (tile) => !typeGroups.some((folder) => folder.key === tile.key),
+  );
+  const ids: string[] = [];
+  for (const tile of [...typeGroups, ...series]) {
+    const id = `${slug}--${publicFolderKey(tile.key)}`;
+    const target = namespacedFeedTargets().get(id);
+    if (target && tile.href === target) ids.push(id);
+  }
+  return ids;
+}
+
+function legacyGroupSlug(value: string): string | null {
+  const next = publicCopy(value)
+    .replace(/[<>\u0000-\u001f\u007f]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!next || !/^[A-Za-z0-9-]+$/.test(next)) return null;
+  return next;
+}
+
 function copyValues(feedValue: MobileStorefront): string[] {
   return [
     ...feedValue.nodes.flatMap((node) => [
@@ -1107,6 +1332,7 @@ function copyValues(feedValue: MobileStorefront): string[] {
       node.title.fr,
       node.description.en,
       node.description.fr,
+      ...node.audiences.flatMap((row) => [row.label.en, row.label.fr]),
     ]),
     ...feedValue.products.flatMap((product) => [
       product.name,
