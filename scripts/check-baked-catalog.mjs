@@ -154,6 +154,9 @@ const nextConfig = readFileSync(new URL("../next.config.ts", import.meta.url), "
 if (!/wzmzwerzbyudcvoiiege\.supabase\.co/.test(nextConfig)) {
   fail("next.config missing AI gallery supabase remotePattern");
 }
+if (!/contentDispositionType:\s*"inline"/.test(nextConfig)) {
+  fail("next.config must serve optimized photos inline, not as attachments");
+}
 if (!/source:\s*"\/shop\/teampro"/.test(nextConfig) || !/destination:\s*"\/shop\/teampro-2026"/.test(nextConfig)) {
   fail("missing /shop/teampro redirect");
 }
@@ -164,6 +167,15 @@ if (!/source:\s*"\/category\/teampro"/.test(nextConfig)) {
 const productImage = readFileSync(new URL("../components/product-image.tsx", import.meta.url), "utf8");
 if (!/productImageAlt/.test(productImage) || /alt=\{\s*alt \?\? product\.code\s*\}/.test(productImage)) {
   fail("product image alt still falls back to SKU code");
+}
+if (!/from "next\/image"/.test(productImage)) {
+  fail("product photos are not going through next/image");
+}
+if (!/RETRIES_PER_URL/.test(productImage)) {
+  fail("product photos missing a retry before the next URL");
+}
+if (!/sources/.test(productImage) || !/onError/.test(productImage)) {
+  fail("product photos missing gallery URL fallbacks");
 }
 
 const tee = catalog.find((p) => p.code === "104409.484");

@@ -132,11 +132,15 @@ export function LocaleProvider({
 
   const setMarket = useCallback(
     (next: Market, nextSource: MarketSource = "manual") => {
-      setOverride(next);
       persistMarket(next, nextSource);
+      if (next === market) {
+        setOverride(next === initialMarket ? null : next);
+        return;
+      }
+      setOverride(next);
       router.refresh();
     },
-    [router],
+    [router, market, initialMarket],
   );
 
   const t = useMemo(() => makeT(market), [market]);

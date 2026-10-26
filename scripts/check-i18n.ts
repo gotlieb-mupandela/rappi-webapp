@@ -5,6 +5,7 @@ import { detectMarketFromSignals, prefersFrench } from "../lib/i18n/detect";
 import { audienceName, hubName, subName } from "../lib/i18n/labels";
 import { en, fr } from "../lib/i18n/messages";
 import { makeT } from "../lib/i18n/translate";
+import { productCardImageCandidates } from "../lib/media";
 import { SHIPPING_METHODS } from "../lib/shipping";
 import { quoteVat, resolveVatCountry } from "../lib/vat";
 import { SUBCATEGORY_LABELS, CATEGORIES, AUDIENCES } from "../lib/catalog";
@@ -130,5 +131,17 @@ if (audienceName("women", tFr) !== "Femmes") fail("FR women label");
 if (audienceName("kids", tFr) !== "Enfants") fail("FR kids label");
 if (hubName("shoes", tFr) !== "Chaussures") fail("FR shoes hub");
 if (hubName("swimming", tFr) !== "Natation") fail("FR swimming hub");
+
+const photoUrls = productCardImageCandidates({
+  imageUrl: "https://v1.joma-sport.net/files/primary.jpg",
+  images: [
+    "https://v1.joma-sport.net/files/primary.jpg",
+    "https://www.joma-sport.com/on/demandware.static/extra.jpg",
+  ],
+});
+if (photoUrls[0] !== "https://v1.joma-sport.net/files/primary.jpg") {
+  fail(`primary photo should stay first: ${photoUrls[0]}`);
+}
+if (photoUrls.length !== 2) fail(`expected 2 unique photo URLs, got ${photoUrls.length}`);
 
 if (!process.exitCode) console.log("i18n checks ok");

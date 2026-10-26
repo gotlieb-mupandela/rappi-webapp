@@ -1,13 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
 import { productImageAlt } from "@/lib/copy";
 import { productImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 
-/** Empty media plate — never silhouette shapes. */
+/** One retry per URL, then walk the next fallback. */
+const RETRIES_PER_URL = 1;
+
+type LoadState = {
+  key: string;
+  index: number;
+  attempt: number;
+  exhausted: boolean;
+};
+
+/** Empty media plate. Never silhouette shapes. */
 function ImagePlate({ className }: { className?: string }) {
   return (
     <div
@@ -18,8 +28,8 @@ function ImagePlate({ className }: { className?: string }) {
 }
 
 /**
- * Product photos are multi‑MB on Joma CDNs. We resize via wsrv.nl (custom loader)
- * and walk fallback sources when a URL fails.
+ * Product photos are multi-MB on supplier CDNs. We resize via wsrv.nl (custom loader)
+ * and walk fallback sources when a URL fails. Each URL is retried once first.
  */
 export function ProductImage({
   product,
@@ -37,7 +47,7 @@ export function ProductImage({
 }: {
   product: Product;
   src?: string | null;
-  /** Preferred ordered fallbacks (e.g. medium → joma.net). */
+  /** Preferred ordered fallbacks (medium, then joma.net). */
   sources?: string[] | null;
   alt?: string;
   className?: string;
@@ -51,23 +61,36 @@ export function ProductImage({
 }) {
   const candidates = useMemo(() => {
     // Prefer the explicit `src` (active gallery shot / card primary), then walk
-    // `sources` as fallbacks. Never drop `src` when sources is non-empty —
-    // that made every PDP thumbnail render the first gallery URL.
+    // `sources` as fallbacks. Never drop `src` when sources is non-empty.
+    // Dropping it made every PDP thumbnail render the first gallery URL.
     const list = [src, ...(sources ?? [])].filter(
       (url): url is string => Boolean(url),
     );
     return [...new Set(list)];
   }, [src, sources]);
 
-  const [index, setIndex] = useState(0);
-  const [exhausted, setExhausted] = useState(false);
+  const sourceKey = candidates.join("\n");
+  const [load, setLoad] = useState<LoadState>({
+    key: sourceKey,
+    index: 0,
+    attempt: 0,
+    exhausted: false,
+  });
 
-  useEffect(() => {
-    setIndex(0);
-    setExhausted(false);
-  }, [candidates]);
+  if (load.key !== sourceKey) {
+    setLoad({
+      key: sourceKey,
+      index: 0,
+      attempt: 0,
+      exhausted: false,
+    });
+  }
 
-  const current = !exhausted ? candidates[index] : undefined;
+  const active =
+    load.key === sourceKey
+      ? load
+      : { key: sourceKey, index: 0, attempt: 0, exhausted: false };
+  const current = !active.exhausted ? candidates[active.index] : undefined;
 
   if (!current) {
     return <ImagePlate className={fallbackClassName ?? className} />;
@@ -76,17 +99,24 @@ export function ProductImage({
   const remote = /^https?:\/\//i.test(current);
 
   function advance() {
-    setIndex((prev) => {
-      if (prev + 1 < candidates.length) return prev + 1;
-      setExhausted(true);
-      return prev;
+    setLoad((prev) => {
+      if (prev.key !== sourceKey) {
+        return { key: sourceKey, index: 0, attempt: 0, exhausted: false };
+      }
+      if (prev.attempt < RETRIES_PER_URL) {
+        return { ...prev, attempt: prev.attempt + 1 };
+      }
+      if (prev.index + 1 < candidates.length) {
+        return { ...prev, index: prev.index + 1, attempt: 0, exhausted: false };
+      }
+      return { ...prev, exhausted: true };
     });
   }
 
   if (fill) {
     return (
       <Image
-        key={current}
+        key={`${current}:${active.attempt}`}
         src={current}
         alt={alt ?? productImageAlt(product)}
         fill
@@ -102,7 +132,7 @@ export function ProductImage({
 
   return (
     <Image
-      key={current}
+      key={`${current}:${active.attempt}`}
       src={current}
       alt={alt ?? productImageAlt(product)}
       width={width}

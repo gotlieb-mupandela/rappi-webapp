@@ -22,6 +22,8 @@ const nextConfig: NextConfig = {
   // Dev binds to 0.0.0.0; browsers hit 127.0.0.1 / localhost — allow HMR + assets.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
+    // Display optimized photos inline (Next 15+ default is attachment).
+    contentDispositionType: "inline",
     // Cache optimized product thumbs for a day (remote Joma files are multi‑MB originals).
     minimumCacheTTL: 60 * 60 * 24,
     qualities: [70, 75, 80],
