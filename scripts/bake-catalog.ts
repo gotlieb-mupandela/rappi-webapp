@@ -14,6 +14,7 @@ import {
   indexCatalogIntoJomaFolders,
   jomaFolderMetaSnapshot,
 } from "../lib/joma-tree";
+import { productLineLabel } from "../lib/joma-item";
 import { listingHay } from "../lib/listing-core";
 import type { ListingItem } from "../lib/listing-types";
 import { hasUsableProductImage, productCardImageCandidates, withProductImages } from "../lib/media";
@@ -159,7 +160,7 @@ function toListingItem(product: ListingItem): ListingItem {
   return {
     id: product.id,
     code: product.code,
-    item: product.item,
+    line: productLineLabel(product.item),
     name: product.name,
     displayName: product.displayName,
     category: product.category,
