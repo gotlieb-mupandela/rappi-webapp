@@ -23,10 +23,7 @@ type Fixture = {
 };
 
 function product(images: string[], patch: Partial<Fixture> = {}): Fixture {
-  const imageUrl = images[0] ?? "";
   return {
-    imageUrl,
-    images,
     price: 480,
     unitPrice: 480,
     stockQty: 7,
