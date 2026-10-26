@@ -7,6 +7,7 @@ import { ProductMoreHeading } from "@/components/product-more-heading";
 import { getProduct, productsByCategory } from "@/lib/products";
 import { offlineCatalog } from "@/lib/offline-catalog";
 import { withFullResProductImages } from "@/lib/media";
+import { toClientProduct } from "@/lib/listing-core";
 import { withCatalogSizes } from "@/lib/sizes";
 import { decodeProductCode } from "@/lib/utils";
 
@@ -25,10 +26,11 @@ export default async function ProductPage({
   const sku = decodeProductCode(code);
   const found = getProduct(sku, offlineCatalog);
   if (!found || (found.available === false && !isZeroStockVisible(found))) notFound();
-  const product = withFullResProductImages(withCatalogSizes(found));
+  const product = toClientProduct(withFullResProductImages(withCatalogSizes(found)));
   const related = productsByCategory(product.category, offlineCatalog)
     .filter((p) => p.code !== product.code)
-    .slice(0, 4);
+    .slice(0, 4)
+    .map((p) => toClientProduct(p));
 
   return (
     <div className="page-shell py-8">
