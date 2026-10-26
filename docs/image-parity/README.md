@@ -3,7 +3,7 @@
 Draft. Nothing merged or deployed. Only data/products.json image fields (imageUrl, images) change. Supabase is not touched.
 
 ## What changed
-For every product on the public store (7,403 codes in data/store-image-indexes.json), images is now exactly the store photo list in ascending index order, and imageUrl is the first one. Store URL format is the same as demandwareUrl(code, n) in scripts/enrich-demandware-images.mjs.
+For every product on the public store (7,405 codes in data/store-image-indexes.json), images is now exactly the store photo list in ascending index order, and imageUrl is the first one. Store URL format is the same as demandwareUrl(code, n) in scripts/enrich-demandware-images.mjs.
 
 - Products changed: 7,092 of 11,104. Not changed: 4,012.
 - Reason tags (a product can have more than one): B2B_DROPPED 7,001 (all v1.joma-sport.net links dropped from on-store products, of which 37 were dead 404s), OTHER_EXTRA_DROPPED 1,403 (non-store or other-colour photos, includes the 9 MORE), ADDED_STORE_PHOTOS 480, RELATIVE_TO_STORE 70, RELATIVE_PREFIXED 3, LOGO_ONLY 3, LOGO_ONLY_CLEARED 2, REORDERED_ONLY 19.
@@ -50,3 +50,6 @@ Not missing a photo. Store indexes _1 to _5 return 200 and _6 to _10 return 404 
 
 ## Supabase
 See held-supabase/README.md: read-only backup and sizing, and the held one-transaction script. Nothing was written.
+
+## Two baked-only products added after QA's report
+401346.331 and 700133.100 were not in QA's parity CSV, so the first pass left a v1 photo first. Their store photos were probed with GET on 2026-10-26 (401346.331: _1 to _3; 700133.100: _1 to _5) and added by hand: the v1 photo is dropped, the store photos were already there. This brings the totals to 7,405 on-store products and 7,003 v1 drops (v1-drop-revert.csv, dry-run.csv and backup-old-images.json have the 2 extra rows). Note: 700133.100 is marked available:false in the baked data. The other 2,547 baked-only products (mostly hidden, available:false) stay out of scope.
