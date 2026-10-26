@@ -551,16 +551,21 @@ function feedCheckout(): FeedCheckout {
   };
 }
 
-function homeKeys(): string[] {
-  return HOME_TILES.map((tile) => {
-    if (tile.href === "/teamwear") return feedMenuKey("teams");
-    if (tile.href === "/shop/kids") return feedMenuKey("kids");
-    if (tile.href === "/category/sportswear") return "sportswear";
-    if (tile.href === "/category/running-fitness") return "running-fitness";
-    if (tile.href === "/category/lifestyle") return "lifestyle";
-    if (tile.href === "/category/shoes") return "shoes";
-    throw new Error(`Home tile ${tile.id} has no feed key`);
-  });
+/**
+ * Picture for a web home tile, chosen as app/page.tsx does: a pinned gallery frame
+ * (TILE_GALLERY_FILE), else the pinned product's tile photo, else the brand cover.
+ * The caller runs the result through feedImageUrl.
+ */
+function homeTileImage(tile: FeedTargetTile, catalog: FeedSource[]): string {
+  if (!tile.pin) return tile.image;
+  const product = productByCode(catalog, TILE_PRODUCT_CODES[tile.pin]);
+  const file = TILE_GALLERY_FILE[tile.pin];
+  if (product && file) {
+    const frame = product.images?.find((url) => url.endsWith(file)) ?? "";
+    if (frame) return frame;
+  }
+  if (product) return tileImageUrl(product) || tile.image;
+  return tile.image;
 }
 
 export function buildMobileStorefront(catalog: FeedSource[], version: string): MobileStorefront {
@@ -769,6 +774,21 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     if (stored) menuNodes.push(stored);
   });
 
+  HOME_TILES.forEach((tile, order) => {
+    put(
+      emptyNode({
+        key: tile.id,
+        kind: "tile",
+        ...namesFor(tile.id, tile.label, tile.labelKey),
+        order,
+        parent: feedMenuKey("home"),
+        image: tileImage(homeTileImage(tile, catalog)),
+        hidden: false,
+        count: 0,
+        group: null,
+      }),
+    );
+  });
   const home = messagePair("home.shopTitle", "Shop");
   const homeNode = emptyNode({
     key: feedMenuKey("home"),
@@ -779,7 +799,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     image: null,
     hidden: false,
     count: products.length,
-    tiles: homeKeys().filter((key) => nodes.has(key)),
+    tiles: HOME_TILES.map((tile) => tile.id).filter((key) => nodes.has(key)),
   });
   put(homeNode);
 

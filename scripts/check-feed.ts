@@ -929,6 +929,37 @@ for (const node of bakedFeed.nodes) {
   if (node.parent) assert.equal(bakedNodes.has(node.parent), true, node.key);
 }
 assert.equal(bakedNodes.get("resort")?.kind, "folder");
+// App home = web home (app/page.tsx, components/home-hero.tsx): order, labels, links, pictures.
+const bakedPhoto = (code: string, file: string) => {
+  const url = baked.find((row) => row.code === code)?.images?.find((image) => image.endsWith(`/${file}`));
+  assert.ok(url, `${code} ${file}`);
+  return url;
+};
+const WEB_HOME = [
+  ["home-teamwear", "Teamwear", "/teamwear", `${CANONICAL_SITE_ORIGIN}/brand/hub-teampro-2026.webp`],
+  ["home-sportswear", "Sportswear", "/category/sportswear", `${CANONICAL_SITE_ORIGIN}/brand/hub-sportswear.png?v=5`],
+  ["home-running", "Running", "/category/running-fitness", bakedPhoto("104129.100", "104129.100_1.jpg")],
+  ["home-lifestyle", "Lifestyle", "/category/lifestyle", bakedPhoto("100818.200", "100818.200_1.jpg")],
+  ["home-footwear", "Footwear", "/category/shoes", `${CANONICAL_SITE_ORIGIN}/brand/hub-shoes.png`],
+  ["home-kids", "Kids", "/shop/kids", bakedPhoto("500828.345", "500828.345_2.jpg")],
+];
+const bakedHome = bakedNodes.get(feedMenuKey("home"));
+assert.ok(bakedHome);
+assert.deepEqual(bakedHome.tiles, WEB_HOME.map(([key]) => key));
+const homeImages: string[] = [];
+for (const [key, label, target, image] of WEB_HOME as [string, string, string, string][]) {
+  const node = bakedNodes.get(key);
+  assert.ok(node, key);
+  assert.equal(node.title.en, label, key);
+  assert.equal(node.target, target, key);
+  assert.equal(node.image, image, key);
+  assert.ok(node.image, key);
+  assertAllowedFeedImage(node.image, key);
+  assert.equal(feedImageUrl(node.image), node.image, key);
+  homeImages.push(node.image);
+}
+assert.equal(new Set(homeImages).size, 6, "home tile images repeat");
+console.log(`home tiles match web home: ${WEB_HOME.map(([, label]) => label).join(", ")}`);
 for (const slug of ["football", "basketball", "swimming", "rugby", "cricket"]) {
   const tile = jomaTeamsLandingTiles().find((row) => row.href.split("?")[0] === `/shop/${slug}`);
   assert.ok(tile, slug);

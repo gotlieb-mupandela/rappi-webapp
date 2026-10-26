@@ -19,6 +19,7 @@ import {
   type JomaFolderDef,
 } from "@/lib/joma-tree";
 import { publicFolderKey } from "@/lib/mobile-feed-slugs";
+import { HOME_COVERS } from "@/lib/tile-cover-pins";
 
 export type FeedTargetTile = {
   id: string;
@@ -28,6 +29,8 @@ export type FeedTargetTile = {
   folderKey?: string;
   /** messages.ts key. The feed reads it. The string is not copied here. */
   labelKey?: string;
+  /** Home tiles only: TILE_PRODUCT_CODES key whose product photo the web home shows. */
+  pin?: string;
 };
 
 const MEN_COVER = "/brand/audience-men.png?v=3";
@@ -99,13 +102,18 @@ export function teamTileId(href: string): string {
   throw new Error("Teams tile has no target key");
 }
 
+/**
+ * The six web home tiles (app/page.tsx and components/home-hero.tsx): same order, labels,
+ * links and pictures. Brand covers come from HOME_COVERS (also lib/hubs.ts HUB_COVERS).
+ * Running, Lifestyle and Kids show the pinned product photo, as the web home does.
+ */
 export const HOME_TILES: readonly FeedTargetTile[] = [
-  { id: "teamwear", label: "Teamwear", href: "/teamwear", image: TEAM_COVER },
-  { id: "sportswear", label: "Sportswear", href: "/category/sportswear", image: SPORT_COVER },
-  { id: "running", label: "Running", href: "/category/running-fitness", image: SHOE_COVER },
-  { id: "lifestyle", label: "Lifestyle", href: "/category/lifestyle", image: SPORT_COVER },
-  { id: "footwear", label: "Footwear", href: "/category/shoes", image: SHOE_COVER },
-  { id: "kids", label: "Kids", href: "/shop/kids", image: SPORT_COVER },
+  { id: "home-teamwear", label: "Teamwear", labelKey: "home.teamwearEyebrow", href: "/teamwear", image: HOME_COVERS["teampro-2026"] },
+  { id: "home-sportswear", label: "Sportswear", labelKey: "hub.sportswear.nav", href: "/category/sportswear", image: HOME_COVERS.sportswear },
+  { id: "home-running", label: "Running", labelKey: "hub.running-fitness.nav", href: "/category/running-fitness", image: HOME_COVERS["running-fitness"], pin: "home:running" },
+  { id: "home-lifestyle", label: "Lifestyle", labelKey: "hub.lifestyle.name", href: "/category/lifestyle", image: "", pin: "home:lifestyle" },
+  { id: "home-footwear", label: "Footwear", labelKey: "hub.shoes.name", href: "/category/shoes", image: HOME_COVERS.shoes },
+  { id: "home-kids", label: "Kids", labelKey: "audience.kids.name", href: "/shop/kids", image: "", pin: "home:kids" },
 ];
 
 /** Men and women tiles are jomaAudienceLinks(), in that function's order. */
@@ -343,6 +351,7 @@ export function feedCategoryTargets() {
 
 function constantTiles(): FeedTargetTile[] {
   return [
+    ...HOME_TILES,
     ...MEN_TILES,
     ...WOMEN_TILES,
     ...KIDS_TILES,
