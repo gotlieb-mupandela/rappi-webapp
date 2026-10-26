@@ -1,4 +1,4 @@
-import { sanitizeAdminProductSearch } from "../lib/admin-search";
+import { readAdminSearchParam, sanitizeAdminProductSearch } from "../lib/admin-search";
 
 function fail(msg: string) {
   console.error(`FAIL ${msg}`);
@@ -128,6 +128,17 @@ for (const testCase of cases) {
 const injection = sanitizeAdminProductSearch("x),code.eq.1,(y");
 if (injection.includes(",") || injection.includes("(") || injection.includes(")")) {
   fail(`filter injection still has a comma or parenthesis: ${JSON.stringify(injection)}`);
+}
+
+const readArray = readAdminSearchParam(["a", "b"]);
+const readString = readAdminSearchParam("abc");
+const readMissing = readAdminSearchParam(undefined);
+if (readArray !== "" || readString !== "abc" || readMissing !== "") {
+  fail(
+    `read search param: expected ["a","b"] -> "", "abc" -> "abc", undefined -> "", got ${JSON.stringify(readArray)}, ${JSON.stringify(readString)}, ${JSON.stringify(readMissing)}`,
+  );
+} else {
+  console.log("ok read search param");
 }
 
 if (!process.exitCode) console.log("admin search checks ok");

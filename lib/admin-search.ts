@@ -22,3 +22,8 @@ export function sanitizeAdminProductSearch(input: string): string {
   const cleaned = input.replace(STRIPPED, "").replace(/\s+/g, " ").trim();
   return Array.from(cleaned).slice(0, MAX_LENGTH).join("");
 }
+
+/** Repeated query keys arrive as an array. Only a single string is searchable. */
+export function readAdminSearchParam(value: string | string[] | undefined): string {
+  return typeof value === "string" ? value : "";
+}

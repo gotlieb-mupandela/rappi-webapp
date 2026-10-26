@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { sanitizeAdminProductSearch } from "@/lib/admin-search";
+import { readAdminSearchParam, sanitizeAdminProductSearch } from "@/lib/admin-search";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ export default async function AdminProductsPage({
     .select("id, code, item, name, category_slug, price, stock_qty, badge, image_url")
     .order("code");
 
-  const q = sanitizeAdminProductSearch(sp.q ?? "");
+  const q = sanitizeAdminProductSearch(readAdminSearchParam(sp.q));
   if (q) {
     query = query.or(`code.ilike.%${q}%,item.ilike.%${q}%,name.ilike.%${q}%`);
   }
