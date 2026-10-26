@@ -30,6 +30,7 @@
     "dev:checkout-quote": "npx tsx scripts/checkout-quote-local.ts",
     "check:gallery-source": "npx tsx --test scripts/check-gallery-source.ts",
     "check:no-supplier-fields": "npx tsx scripts/check-no-supplier-fields.ts",
+    "check:admin-search": "npx tsx scripts/check-admin-search.ts",
     "bake:catalog": "npx tsx scripts/bake-catalog.ts",
     "sync:joma": "node scripts/sync-joma-catalog.mjs",
     "sync:stock-db": "node scripts/sync-stock-db.mjs",
