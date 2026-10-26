@@ -431,8 +431,158 @@ export function feedTargetSet(): ReadonlySet<string> {
 }
 
 /**
+ * Header subcategory hrefs. Each value is a complete site path.
+ * The id is hub--sub-leaf. The strings come from catalog constants and the
+ * baked header list, and they are stored here so a request cannot supply them.
+ * npm run gen:sub-links rewrites the committed sub link list.
+ * These ids are not feed nodes.
+ */
+export const SUB_LINK_TARGETS: Readonly<Record<string, string>> = {
+  "sportswear--sub-jerseys": "/shop/sportswear?sub=jerseys&group=shirts",
+  "sportswear--sub-tees": "/shop/sportswear?sub=tees&group=shirts",
+  "sportswear--sub-tees-kids": "/shop/sportswear?sub=tees-kids&group=shirts",
+  "sportswear--sub-polos": "/shop/sportswear?sub=polos&group=shirts",
+  "sportswear--sub-tops": "/shop/sportswear?sub=tops&group=shirts",
+  "sportswear--sub-shorts": "/shop/sportswear?sub=shorts",
+  "sportswear--sub-pants": "/shop/sportswear?sub=pants",
+  "sportswear--sub-tracksuits": "/shop/sportswear?sub=tracksuits&group=pants",
+  "sportswear--sub-leggings": "/shop/sportswear?sub=leggings&group=pants",
+  "sportswear--sub-tights": "/shop/sportswear?sub=tights&group=pants",
+  "sportswear--sub-skins": "/shop/sportswear?sub=skins&group=pants",
+  "sportswear--sub-jackets": "/shop/sportswear?sub=jackets",
+  "sportswear--sub-hoodies": "/shop/sportswear?sub=hoodies&group=jackets",
+  "sportswear--sub-dresses": "/shop/sportswear?sub=dresses",
+  "sportswear--sub-skirts": "/shop/sportswear?sub=skirts",
+  "sportswear--sub-bras": "/shop/sportswear?sub=bras",
+  "sportswear--sub-football-fg": "/shop/sportswear?sub=football-fg&group=shoes",
+  "sportswear--sub-football-ag": "/shop/sportswear?sub=football-ag&group=shoes",
+  "sportswear--sub-football-sg": "/shop/sportswear?sub=football-sg&group=shoes",
+  "sportswear--sub-protection": "/shop/sportswear?sub=protection&group=accessories",
+  "sportswear--sub-gk-gloves": "/shop/sportswear?sub=gk-gloves&group=accessories",
+  "sportswear--sub-socks": "/shop/sportswear?sub=socks&group=accessories",
+  "sportswear--sub-caps": "/shop/sportswear?sub=caps&group=accessories",
+  "sportswear--sub-accessories": "/shop/sportswear?sub=accessories",
+  "football--sub-tees": "/shop/football?sub=tees&group=shirts",
+  "football--sub-polos": "/shop/football?sub=polos&group=shirts",
+  "football--sub-shorts": "/shop/football?sub=shorts",
+  "football--sub-pants": "/shop/football?sub=pants",
+  "football--sub-tracksuits": "/shop/football?sub=tracksuits&group=pants",
+  "football--sub-jackets": "/shop/football?sub=jackets",
+  "football--sub-hoodies": "/shop/football?sub=hoodies&group=jackets",
+  "football--sub-football-fg": "/shop/football?sub=football-fg&group=shoes",
+  "football--sub-football-ag": "/shop/football?sub=football-ag&group=shoes",
+  "football--sub-football-sg": "/shop/football?sub=football-sg&group=shoes",
+  "football--sub-futsal": "/shop/football?sub=futsal&group=shoes",
+  "football--sub-turf": "/shop/football?sub=turf&group=shoes",
+  "football--sub-boots": "/shop/football?sub=boots&group=shoes",
+  "football--sub-balls": "/shop/football?sub=balls&group=equipment",
+  "football--sub-protection": "/shop/football?sub=protection&group=accessories",
+  "football--sub-shin-guards": "/shop/football?sub=shin-guards&group=accessories",
+  "football--sub-gk-gloves": "/shop/football?sub=gk-gloves&group=accessories",
+  "football--sub-socks": "/shop/football?sub=socks&group=accessories",
+  "basketball--sub-tees": "/shop/basketball?sub=tees&group=shirts",
+  "basketball--sub-shorts": "/shop/basketball?sub=shorts",
+  "basketball--sub-pants": "/shop/basketball?sub=pants",
+  "basketball--sub-basketball-shoes": "/shop/basketball?sub=basketball-shoes&group=shoes",
+  "basketball--sub-socks": "/shop/basketball?sub=socks&group=accessories",
+  "swimming--sub-swimwear": "/shop/swimming?sub=swimwear",
+  "swimming--sub-shorts": "/shop/swimming?sub=shorts",
+  "swimming--sub-caps": "/shop/swimming?sub=caps&group=accessories",
+  "rugby--sub-jerseys": "/shop/rugby?sub=jerseys&group=shirts",
+  "rugby--sub-shorts": "/shop/rugby?sub=shorts",
+  "rugby--sub-balls": "/shop/rugby?sub=balls&group=equipment",
+  "rugby--sub-protection": "/shop/rugby?sub=protection&group=accessories",
+  "cricket--sub-jerseys": "/shop/cricket?sub=jerseys&group=shirts",
+  "cricket--sub-polos": "/shop/cricket?sub=polos&group=shirts",
+  "cricket--sub-pants": "/shop/cricket?sub=pants",
+  "cricket--sub-hoodies": "/shop/cricket?sub=hoodies&group=jackets",
+  "boxing--sub-shorts": "/shop/boxing?sub=shorts",
+  "hockey--sub-hockey-shoes": "/shop/hockey?sub=hockey-shoes&group=shoes",
+  "running-fitness--sub-tees": "/shop/running-fitness?sub=tees&group=shirts",
+  "running-fitness--sub-polos": "/shop/running-fitness?sub=polos&group=shirts",
+  "running-fitness--sub-tops": "/shop/running-fitness?sub=tops&group=shirts",
+  "running-fitness--sub-shorts": "/shop/running-fitness?sub=shorts",
+  "running-fitness--sub-pants": "/shop/running-fitness?sub=pants",
+  "running-fitness--sub-tracksuits": "/shop/running-fitness?sub=tracksuits&group=pants",
+  "running-fitness--sub-leggings": "/shop/running-fitness?sub=leggings&group=pants",
+  "running-fitness--sub-tights": "/shop/running-fitness?sub=tights&group=pants",
+  "running-fitness--sub-jackets": "/shop/running-fitness?sub=jackets",
+  "running-fitness--sub-hoodies": "/shop/running-fitness?sub=hoodies&group=jackets",
+  "running-fitness--sub-skirts": "/shop/running-fitness?sub=skirts",
+  "running-fitness--sub-bras": "/shop/running-fitness?sub=bras",
+  "running-fitness--sub-running-shoes": "/shop/running-fitness?sub=running-shoes&group=shoes",
+  "running-fitness--sub-trail-running": "/shop/running-fitness?sub=trail-running&group=shoes",
+  "running-fitness--sub-training-shoes": "/shop/running-fitness?sub=training-shoes&group=shoes",
+  "running-fitness--sub-kids-shoes": "/shop/running-fitness?sub=kids-shoes&group=shoes",
+  "running-fitness--sub-socks": "/shop/running-fitness?sub=socks&group=accessories",
+  "running-fitness--sub-caps": "/shop/running-fitness?sub=caps&group=accessories",
+  "running-fitness--sub-accessories": "/shop/running-fitness?sub=accessories",
+  "brama--sub-shorts": "/shop/brama?sub=shorts",
+  "brama--sub-tights": "/shop/brama?sub=tights&group=pants",
+  "brama--sub-skins": "/shop/brama?sub=skins&group=pants",
+  "padel--sub-tees": "/shop/padel?sub=tees&group=shirts",
+  "padel--sub-polos": "/shop/padel?sub=polos&group=shirts",
+  "padel--sub-shorts": "/shop/padel?sub=shorts",
+  "padel--sub-tracksuits": "/shop/padel?sub=tracksuits&group=pants",
+  "padel--sub-skirts": "/shop/padel?sub=skirts",
+  "padel--sub-padel-shoes": "/shop/padel?sub=padel-shoes&group=shoes",
+  "padel--sub-bags": "/shop/padel?sub=bags&group=equipment",
+  "padel--sub-rackets": "/shop/padel?sub=rackets&group=equipment",
+  "padel--sub-accessories": "/shop/padel?sub=accessories",
+  "hiking--sub-tees": "/shop/hiking?sub=tees&group=shirts",
+  "hiking--sub-pants": "/shop/hiking?sub=pants",
+  "hiking--sub-jackets": "/shop/hiking?sub=jackets",
+  "hiking--sub-skirts": "/shop/hiking?sub=skirts",
+  "hiking--sub-trail-running": "/shop/hiking?sub=trail-running&group=shoes",
+  "hiking--sub-outdoor-shoes": "/shop/hiking?sub=outdoor-shoes&group=shoes",
+  "resort--sub-tees": "/shop/resort?sub=tees&group=shirts",
+  "resort--sub-polos": "/shop/resort?sub=polos&group=shirts",
+  "resort--sub-tops": "/shop/resort?sub=tops&group=shirts",
+  "resort--sub-shorts": "/shop/resort?sub=shorts",
+  "resort--sub-pants": "/shop/resort?sub=pants",
+  "resort--sub-leggings": "/shop/resort?sub=leggings&group=pants",
+  "resort--sub-jackets": "/shop/resort?sub=jackets",
+  "resort--sub-hoodies": "/shop/resort?sub=hoodies&group=jackets",
+  "lifestyle--sub-sneakers": "/shop/lifestyle?sub=sneakers&group=shoes",
+  "teampro-2026--sub-tees": "/shop/teampro-2026?sub=tees&group=shirts",
+  "teampro-2026--sub-polos": "/shop/teampro-2026?sub=polos&group=shirts",
+  "teampro-2026--sub-shorts": "/shop/teampro-2026?sub=shorts",
+  "teampro-2026--sub-pants": "/shop/teampro-2026?sub=pants",
+  "teampro-2026--sub-jackets": "/shop/teampro-2026?sub=jackets",
+  "shoes--sub-football-fg": "/shop/shoes?sub=football-fg&group=shoes",
+  "shoes--sub-football-ag": "/shop/shoes?sub=football-ag&group=shoes",
+  "shoes--sub-football-sg": "/shop/shoes?sub=football-sg&group=shoes",
+  "shoes--sub-futsal": "/shop/shoes?sub=futsal&group=shoes",
+  "shoes--sub-turf": "/shop/shoes?sub=turf&group=shoes",
+  "shoes--sub-boots": "/shop/shoes?sub=boots&group=shoes",
+  "shoes--sub-running-shoes": "/shop/shoes?sub=running-shoes&group=shoes",
+  "shoes--sub-trail-running": "/shop/shoes?sub=trail-running&group=shoes",
+  "shoes--sub-training-shoes": "/shop/shoes?sub=training-shoes&group=shoes",
+  "shoes--sub-basketball-shoes": "/shop/shoes?sub=basketball-shoes&group=shoes",
+  "shoes--sub-tennis-shoes": "/shop/shoes?sub=tennis-shoes&group=shoes",
+  "shoes--sub-padel-shoes": "/shop/shoes?sub=padel-shoes&group=shoes",
+  "shoes--sub-pickleball-shoes": "/shop/shoes?sub=pickleball-shoes&group=shoes",
+  "shoes--sub-handball-shoes": "/shop/shoes?sub=handball-shoes&group=shoes",
+  "shoes--sub-volleyball-shoes": "/shop/shoes?sub=volleyball-shoes&group=shoes",
+  "shoes--sub-hockey-shoes": "/shop/shoes?sub=hockey-shoes&group=shoes",
+  "shoes--sub-outdoor-shoes": "/shop/shoes?sub=outdoor-shoes&group=shoes",
+  "shoes--sub-sneakers": "/shop/shoes?sub=sneakers&group=shoes",
+  "shoes--sub-sandals": "/shop/shoes?sub=sandals&group=shoes",
+  "shoes--sub-barefoot": "/shop/shoes?sub=barefoot&group=shoes",
+  "shoes--sub-comfort-shoes": "/shop/shoes?sub=comfort-shoes&group=shoes",
+  "shoes--sub-summer-shoes": "/shop/shoes?sub=summer-shoes&group=shoes",
+  "shoes--sub-kids-shoes": "/shop/shoes?sub=kids-shoes&group=shoes",
+  "shoes--sub-shoes": "/shop/shoes?sub=shoes",
+  "balls-bags--sub-balls": "/shop/balls-bags?sub=balls&group=equipment",
+  "balls-bags--sub-bags": "/shop/balls-bags?sub=bags&group=equipment",
+  "balls-bags--sub-rackets": "/shop/balls-bags?sub=rackets&group=equipment",
+  "balls-bags--sub-socks": "/shop/balls-bags?sub=socks&group=accessories",
+};
+
+/**
  * Fixed hub--leaf paths. Built from category slugs, audience slugs, type folder
- * keys, and series children. Nothing here is read from a feed row or a query.
+ * keys, series children, and SUB_LINK_TARGETS. Nothing here is read from a
+ * feed row, a query, or a request.
  * These ids are not added to feedTargetTable(), so a small catalog does not
  * have to emit every one.
  */
@@ -461,6 +611,13 @@ export function namespacedFeedTargets(): ReadonlyMap<string, string> {
       const leaf = publicFolderKey(child.key);
       add(`${hub}--${leaf}`, `/shop/${hub}?group=${encodeURIComponent(leaf)}`);
     }
+  }
+  for (const [id, href] of Object.entries(SUB_LINK_TARGETS)) {
+    if (map.has(id) || staticIds.has(id)) {
+      throw new Error(`Sub link id collides with another target: ${id}`);
+    }
+    add(id, href);
+    if (map.get(id) !== href) throw new Error(`Sub link target was not stored: ${id}`);
   }
   namespacedTargets = map;
   return map;

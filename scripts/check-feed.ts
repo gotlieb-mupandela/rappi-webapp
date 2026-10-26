@@ -61,6 +61,7 @@ import {
   NAMESPACED_FEED_KEY,
   PROMO_TILES,
   SHOE_TILES,
+  SUB_LINK_TARGETS,
   TEAM_TILES,
   feedAllowedTargets,
   feedMenuKey,
@@ -80,6 +81,7 @@ import { SHIPPING_METHODS } from "../lib/shipping";
 import type { Product } from "../lib/types";
 import { VAT_COUNTRIES } from "../lib/vat";
 import { loadFixtureProducts } from "./feed-fixture";
+import { renderStorefrontSubLinks, storefrontSubLinks, subLinkTargetId } from "./gen-sub-links";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const tFr = makeT("eu");
@@ -1117,7 +1119,56 @@ for (const [key, href] of feedTargetTable()) {
 tileReport.push(`# football folder targets ${retargeted.length}`);
 tileReport.push(...retargeted);
 writeFileSync("/tmp/feed-tiles.txt", tileReport.join("\n"));
+assertSubLinkTargets(byKey, bakedNodes);
 console.log(`feed check ok (fixture products ${feed.products.length}, version ${feed.version})`);
+
+function assertSubLinkTargets(...nodeMaps: Array<Map<string, FeedNode>>) {
+  const generated = storefrontSubLinks();
+  const rendered = renderStorefrontSubLinks(generated);
+  assert.equal(read("data/storefront-sub-links.json"), rendered);
+  const targetsSource = read("lib/mobile-feed-targets.ts");
+  const literalStart = targetsSource.indexOf("export const SUB_LINK_TARGETS");
+  const literalEnd = targetsSource.indexOf("export function namespacedFeedTargets");
+  assert.equal(literalStart >= 0 && literalEnd > literalStart, true);
+  const literalBlock = targetsSource.slice(literalStart, literalEnd);
+  assert.equal(literalBlock.includes("storefront-sub-links"), false);
+  assert.equal(literalBlock.includes("storefront-nav"), false);
+  assert.equal(literalBlock.includes("searchParams"), false);
+  assert.equal(literalBlock.includes("taxonomy"), false);
+  assert.equal(literalBlock.includes("${"), false);
+  assert.equal(targetsSource.includes("storefrontSubLinks"), false);
+  assert.equal(targetsSource.includes("storefront-sub-links"), false);
+  assert.equal(targetsSource.includes("storefront-nav"), false);
+  const registerStart = targetsSource.indexOf(
+    "for (const [id, href] of Object.entries(SUB_LINK_TARGETS))",
+  );
+  const registerEnd = targetsSource.indexOf("namespacedTargets = map;", registerStart);
+  const registerBlock = targetsSource.slice(registerStart, registerEnd);
+  assert.equal(registerStart >= 0 && registerEnd > registerStart, true);
+  assert.equal(registerBlock.includes("searchParams"), false);
+  assert.equal(registerBlock.includes("storefront"), false);
+  assert.equal(registerBlock.includes("taxonomy"), false);
+  assert.equal(read("lib/mobile-feed.ts").includes("storefront-sub-links"), false);
+  assert.equal(read("lib/mobile-feed.ts").includes("subLinks"), false);
+  const ids = new Set<string>();
+  for (const row of generated) {
+    const id = subLinkTargetId(row.hub, row.sub);
+    assert.equal(ids.has(id), false, id);
+    ids.add(id);
+    assert.match(id, NAMESPACED_FEED_KEY, id);
+    assert.equal(SUB_LINK_TARGETS[id], row.href, id);
+    assert.equal(literalBlock.includes(`${JSON.stringify(id)}: ${JSON.stringify(row.href)}`), true, id);
+    assert.equal(feedTargetFor(id), row.href, id);
+    assert.equal(namespacedFeedTargets().get(id), row.href, id);
+    assert.equal(feedTargetTable().has(id), false, id);
+    for (const nodes of nodeMaps) assert.equal(nodes.has(id), false, id);
+  }
+  assert.equal(Object.keys(SUB_LINK_TARGETS).length, generated.length);
+  assert.equal(ids.size, generated.length);
+  const hubCounts = new Map<string, number>();
+  for (const row of generated) hubCounts.set(row.hub, (hubCounts.get(row.hub) ?? 0) + 1);
+  console.log(`sub link targets ${generated.length} hubs ${hubCounts.size}`);
+}
 
 function assertAllowedFeedImage(url: string, label: string) {
   assert.equal(url.startsWith("https://"), true, label);
