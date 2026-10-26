@@ -8,6 +8,7 @@
     "build": "node scripts/brand-versions.mjs && next build",
     "start": "next start --hostname 127.0.0.1 --port 43123",
     "lint": "eslint",
+    "test:payment-access": "npx tsx --test scripts/dpo-payment-access.test.ts",
     "catalog": "python3 scripts/write-source.py",
     "check:catalog": "python3 scripts/check-catalog.py",
     "check:merch": "node scripts/check-baked-catalog.mjs",

@@ -2,15 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
+import { presentCheckoutFailure } from "@/lib/checkout-payment-error";
+import { cancelVisitorMessageKey, trustForCheckoutCaller } from "@/lib/dpo-payment-access";
 import { cancelDpoPayment } from "@/lib/dpo-payments";
+import { getT } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Payment cancelled",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t("checkout.paymentCancelledTitle"),
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function CheckoutCancelPage({
   searchParams,
@@ -25,27 +31,28 @@ export default async function CheckoutCancelPage({
   const params = await searchParams;
   const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
+  const t = await getT();
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let body = "Checkout was closed before payment. Your bag is still saved.";
+  let body = t("checkout.checkoutClosedBeforePayment");
   if (transToken || companyRef) {
     try {
       const result = await cancelDpoPayment({
         transToken,
         companyRef,
-        // Native checkouts use a browser without the app's Supabase cookie.
         userId: user?.id,
+        // Same trust rule as the return page. A signed-out cancel still
+        // needs a TransactionToken that DPO has verified.
+        trusted: trustForCheckoutCaller(user),
       });
-      if (result.status === "paid") {
-        body = "This payment was already verified as paid.";
-      } else if (result.payment) {
-        body = `Payment ${result.payment.company_ref} is ${result.status}.`;
+      if (result.payment || result.status === "paid") {
+        body = t(cancelVisitorMessageKey({ status: result.status, message: result.message }));
       }
     } catch (err) {
-      body = err instanceof Error ? err.message : "Could not update the cancelled payment.";
+      body = presentCheckoutFailure(err, t("checkout.paymentConfirmFailed"), "cancel");
     }
   }
 
@@ -60,7 +67,7 @@ export default async function CheckoutCancelPage({
       />
       <p className="mt-6 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">Payment</p>
       <h1 className="mt-2 font-[family-name:var(--font-oswald)] text-3xl uppercase sm:text-4xl">
-        Payment cancelled
+        {t("checkout.paymentCancelledHeading")}
       </h1>
       <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{body}</p>
       <Button asChild className="mt-8">

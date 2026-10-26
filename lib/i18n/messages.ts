@@ -376,6 +376,15 @@ export const en = {
     invalidLine: "Invalid cart line for {code}.",
     lineStock: "Only {max} in stock for {code} size {size}.",
     failed: "Checkout failed.",
+    paymentConfirmFailed:
+      "We could not confirm this payment right now. If you were charged, please contact us with your order reference.",
+    paymentStatusConfirming: "We are confirming this payment status. It has not been cancelled.",
+    paymentAlreadyPaid: "This payment was already verified as paid.",
+    paymentCancelled: "This payment has been cancelled.",
+    paymentNotCancelled: "This payment was not cancelled.",
+    paymentCancelledTitle: "Payment cancelled",
+    paymentCancelledHeading: "Payment cancelled",
+    checkoutClosedBeforePayment: "Checkout was closed before payment. Your bag is still saved.",
   },
   shipping: {
     standard: "Standard (5–8 days)",
@@ -1573,6 +1582,15 @@ export const fr: Messages = {
     invalidLine: "Ligne de panier invalide pour {code}.",
     lineStock: "Plus que {max} en stock pour {code} taille {size}.",
     failed: "Échec de la commande.",
+    paymentConfirmFailed:
+      "Nous n’avons pas pu confirmer ce paiement pour le moment. Si vous avez été débité, contactez-nous avec votre référence de commande.",
+    paymentStatusConfirming: "Nous confirmons le statut de ce paiement. Il n’a pas été annulé.",
+    paymentAlreadyPaid: "Ce paiement a déjà été vérifié comme payé.",
+    paymentCancelled: "Ce paiement a été annulé.",
+    paymentNotCancelled: "Ce paiement n’a pas été annulé.",
+    paymentCancelledTitle: "Paiement annulé",
+    paymentCancelledHeading: "Paiement annulé",
+    checkoutClosedBeforePayment: "La commande a été fermée avant le paiement. Votre panier est toujours enregistré.",
   },
   shipping: {
     standard: "Standard (5–8 jours)",

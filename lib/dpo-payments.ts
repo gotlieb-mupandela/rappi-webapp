@@ -1,4 +1,11 @@
 import { verifyToken } from "@/lib/dpo";
+import {
+  DPO_CANCEL_CONFIRMING,
+  commitPendingCancel,
+  decideCancelAfterVerify,
+  resolveDpoPaymentAccess,
+  type DpoPaymentTrust,
+} from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
@@ -64,7 +71,7 @@ async function withOrder(payment: Payment | null, message: string, extra: Omit<D
   return { ...extra, message, payment, orderId };
 }
 
-async function loadPayment(transToken?: string | null, companyRef?: string | null) {
+async function loadPayment(transToken: string | null, companyRef: string | null, tokenOnly: boolean) {
   const admin = createAdminClient();
   if (transToken) {
     const { data } = await admin
@@ -74,15 +81,9 @@ async function loadPayment(transToken?: string | null, companyRef?: string | nul
       .maybeSingle();
     if (data) return data;
   }
-  if (companyRef) {
-    const { data } = await admin
-      .from("payments")
-      .select("*")
-      .eq("company_ref", companyRef)
-      .maybeSingle();
-    if (data) return data;
-  }
-  return null;
+  if (tokenOnly || !companyRef) return null;
+  const { data } = await admin.from("payments").select("*").eq("company_ref", companyRef).maybeSingle();
+  return data ?? null;
 }
 
 const PAYMENT_NOT_FOUND: DpoFulfillResult = {
@@ -93,28 +94,32 @@ const PAYMENT_NOT_FOUND: DpoFulfillResult = {
   orderId: null,
 };
 
-function ownsPayment(payment: Payment, userId?: string | null) {
-  if (userId === undefined) return true;
-  return Boolean(userId && payment.user_id === userId);
+async function authorizePayment(input: {
+  transToken?: string | null;
+  companyRef?: string | null;
+  userId?: string | null;
+  trusted?: DpoPaymentTrust;
+}) {
+  return resolveDpoPaymentAccess(input, {
+    loadPayment,
+    verifyToken,
+  });
 }
 
 export async function fulfillDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
   userId?: string | null;
+  trusted?: DpoPaymentTrust;
 }): Promise<DpoFulfillResult> {
-  if (input.userId !== undefined && !input.userId) {
-    return PAYMENT_NOT_FOUND;
-  }
-  const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || !ownsPayment(payment, input.userId)) {
-    return PAYMENT_NOT_FOUND;
-  }
+  const access = await authorizePayment(input);
+  if (!access) return PAYMENT_NOT_FOUND;
+  const payment = access.payment;
   if (payment.status === "paid") {
     return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
   }
 
-  const token = input.transToken || payment.trans_token;
+  const token = access.transToken || payment.trans_token;
   if (!token) {
     return {
       ok: false,
@@ -125,7 +130,7 @@ export async function fulfillDpoPayment(input: {
     };
   }
 
-  const verified = await verifyToken(token);
+  const verified = access.verification ?? (await verifyToken(token));
   const admin = createAdminClient();
   const nextStatus = statusForResult(verified.result);
 
@@ -205,14 +210,11 @@ export async function cancelDpoPayment(input: {
   transToken?: string | null;
   companyRef?: string | null;
   userId?: string | null;
+  trusted?: DpoPaymentTrust;
 }): Promise<DpoFulfillResult> {
-  if (input.userId !== undefined && !input.userId) {
-    return PAYMENT_NOT_FOUND;
-  }
-  const payment = await loadPayment(input.transToken, input.companyRef);
-  if (!payment || !ownsPayment(payment, input.userId)) {
-    return PAYMENT_NOT_FOUND;
-  }
+  const access = await authorizePayment(input);
+  if (!access) return PAYMENT_NOT_FOUND;
+  const payment = access.payment;
   if (payment.status === "paid") {
     return withOrder(payment, "Already paid.", { ok: true, status: "paid" });
   }
@@ -226,20 +228,95 @@ export async function cancelDpoPayment(input: {
     };
   }
 
-  const admin = createAdminClient();
-  const { data: updated } = await admin
-    .from("payments")
-    .update({ status: "cancelled", verify_result: "904" })
-    .eq("id", payment.id)
-    .eq("status", "pending")
-    .select("*")
-    .single();
+  const decided = await decideCancelAfterVerify({
+    localStatus: payment.status,
+    verify: async () => {
+      if (access.verification) return access.verification;
+      const token = access.transToken || payment.trans_token;
+      if (!token) return { result: null };
+      return verifyToken(token);
+    },
+  });
+  if (!decided.update) {
+    if (decided.outcome.status === "paid") {
+      return {
+        ok: true,
+        status: "paid",
+        message: decided.verifyResult?.trim() === "001" ? "Card authorized" : "Already paid.",
+        payment,
+        orderId: payment.order_id,
+      };
+    }
+    if (decided.outcome.confirming) {
+      return {
+        ok: true,
+        status: payment.status,
+        message: DPO_CANCEL_CONFIRMING,
+        payment,
+        orderId: payment.order_id,
+      };
+    }
+    return {
+      ok: true,
+      status: payment.status,
+      message: `Payment is ${payment.status}.`,
+      payment,
+      orderId: payment.order_id,
+    };
+  }
 
+  const admin = createAdminClient();
+  const settled = await commitPendingCancel({
+    update: decided.update,
+    writeIfPending: async (update) => {
+      const { data, error } = await admin
+        .from("payments")
+        .update(update)
+        .eq("id", payment.id)
+        .eq("status", "pending")
+        .select("*");
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+    reread: async () => {
+      const { data, error } = await admin.from("payments").select("*").eq("id", payment.id).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!settled.payment || settled.status === "pending") {
+    return {
+      ok: true,
+      status: "pending",
+      message: DPO_CANCEL_CONFIRMING,
+      payment: settled.payment ?? payment,
+      orderId: settled.payment?.order_id ?? payment.order_id,
+    };
+  }
+  if (settled.status === "paid") {
+    return {
+      ok: true,
+      status: "paid",
+      message: "Already paid.",
+      payment: settled.payment,
+      orderId: settled.payment.order_id,
+    };
+  }
+  if (settled.status === "cancelled") {
+    return {
+      ok: true,
+      status: "cancelled",
+      message: "Payment cancelled.",
+      payment: settled.payment,
+      orderId: settled.payment.order_id,
+    };
+  }
   return {
     ok: true,
-    status: "cancelled",
-    message: "Payment cancelled.",
-    payment: updated ?? { ...payment, status: "cancelled" },
-    orderId: payment.order_id,
+    status: settled.status,
+    message: `Payment is ${settled.status}.`,
+    payment: settled.payment,
+    orderId: settled.payment.order_id,
   };
 }

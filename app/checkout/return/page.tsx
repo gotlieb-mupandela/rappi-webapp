@@ -4,8 +4,11 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { ClearCartOnPaid } from "@/components/clear-cart-on-paid";
 import { MetaPurchase } from "@/components/meta-purchase";
+import { presentCheckoutFailure } from "@/lib/checkout-payment-error";
+import { trustForCheckoutCaller } from "@/lib/dpo-payment-access";
 import { fulfillDpoPayment } from "@/lib/dpo-payments";
 import { formatPrice } from "@/lib/format";
+import { getT } from "@/lib/i18n/server";
 import { purchaseContentsFromPayment } from "@/lib/meta/capi";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,6 +32,7 @@ export default async function CheckoutReturnPage({
   const params = await searchParams;
   const transToken = params.TransactionToken || params.TransToken || params.TransID || null;
   const companyRef = params.CompanyRef || null;
+  const t = await getT();
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,9 +53,11 @@ export default async function CheckoutReturnPage({
       const result = await fulfillDpoPayment({
         transToken,
         companyRef,
-        // DPO's signed transaction token is verified server-side. Mobile
-        // checkouts return in a browser that does not share the app session.
         userId: user?.id,
+        // Signed-in shoppers must own the payment. Mobile returns have no
+        // app session, so only a DPO TransactionToken verified server-side
+        // can open the payment. A company reference alone cannot.
+        trusted: trustForCheckoutCaller(user),
       });
       paid = result.ok && result.status === "paid";
       heading = paid ? "Payment received" : "Payment not complete";
@@ -66,7 +72,7 @@ export default async function CheckoutReturnPage({
       }
     } catch (err) {
       heading = "Payment not verified";
-      body = err instanceof Error ? err.message : "Could not verify the payment.";
+      body = presentCheckoutFailure(err, t("checkout.paymentConfirmFailed"), "return");
     }
   }
 
