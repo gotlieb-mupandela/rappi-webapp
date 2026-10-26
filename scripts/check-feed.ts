@@ -28,12 +28,19 @@ import {
   COUNTRY_LIST_CAP,
   COUNTRY_NAME_MAX,
 } from "../lib/mobile-feed-countries";
+import { jomaTeamsLandingTiles } from "../lib/joma-nav";
+import { jomaLandingTileImage } from "../lib/joma-tile-images";
 import {
   assertFiniteInteger,
   assertFiniteNumber,
   buildMobileStorefront,
+  FEED_PRODUCT_KEYS,
   feedImageUrl,
   feedProductCard,
+  memoizedMobileStorefront,
+  mobileStorefrontBuildCount,
+  STOREFRONT_CACHE,
+  storefrontFromFeed,
   type FeedNode,
   type FeedProduct,
   type MobileStorefront,
@@ -190,6 +197,31 @@ const version = catalogVersion(products);
 const feed = buildMobileStorefront(products, version);
 assert.equal(feed.version, mobileFeedVersion(version));
 assert.equal(feed.version.endsWith(".7"), true);
+const buildsBefore = mobileStorefrontBuildCount();
+const memoFirst = memoizedMobileStorefront(products, version);
+assert.equal(mobileStorefrontBuildCount(), buildsBefore + 1);
+const memoAgain = memoizedMobileStorefront(products, version);
+assert.equal(memoAgain, memoFirst);
+assert.equal(mobileStorefrontBuildCount(), buildsBefore + 1);
+assert.equal(memoFirst.version, feed.version);
+const matchedVersion = storefrontFromFeed([memoFirst.version], memoFirst);
+assert.equal(matchedVersion.status, 200);
+assert.equal(matchedVersion.cacheControl, STOREFRONT_CACHE);
+assert.equal(matchedVersion.cacheControl.includes("s-maxage=300"), true);
+assert.equal(matchedVersion.body, memoFirst);
+const staleVersion = "zzzzzzzz.7";
+const stale = storefrontFromFeed([staleVersion], memoFirst);
+assert.equal(stale.status, 200);
+assert.equal(stale.cacheControl, "no-store");
+assert.equal(stale.body, memoFirst);
+assert.equal(JSON.stringify(stale.body).includes(staleVersion), false);
+assert.equal(mobileStorefrontBuildCount(), buildsBefore + 1);
+const invalidVersion = storefrontFromFeed(["bad value"], memoFirst);
+assert.equal(invalidVersion.status, 400);
+assert.equal(invalidVersion.cacheControl, "no-store");
+assert.deepEqual(invalidVersion.body, { error: "Invalid version." });
+assert.equal(JSON.stringify(invalidVersion.body).includes("bad value"), false);
+assert.equal(mobileStorefrontBuildCount(), buildsBefore + 1);
 assert.equal(feedBodyHas(feed, probe), false);
 assert.deepEqual(feed.menus, headerMenuKeys());
 assert.deepEqual(feed.categoryOrder, CATEGORIES.map((category) => category.slug));
@@ -260,6 +292,10 @@ for (const card of feed.products) {
     assert.equal(card.labelFr, null, card.code);
   }
   assert.equal(card.line, null, card.code);
+  assert.deepEqual(Object.keys(card), [...FEED_PRODUCT_KEYS]);
+  for (const banned of ["item", "sheetCategory", "hay", "folders"]) {
+    assert.equal(Object.hasOwn(card, banned), false, card.code);
+  }
   assert.equal("title" in card, false, card.code);
   assert.equal("description" in card, false, card.code);
   assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.name), false, card.code);
@@ -320,10 +356,25 @@ const markedCard = marked.products.find((card) => card.code === "MARKUP");
 assert.ok(markedCard);
 assert.equal(markedCard.name, "Court btrainer/b");
 assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.name), false);
-assert.equal(markedCard.line, "scriptnope/script");
-assert.equal(/[<>\u0000-\u001f\u007f]/.test(markedCard.line), false);
+assert.equal(markedCard.line, null);
+assert.equal(JSON.stringify(markedCard).includes("script"), false);
+assert.equal(JSON.stringify(markedCard).includes("Supplier heading"), false);
 assert.equal("title" in markedCard, false);
 assert.equal("description" in markedCard, false);
+const itemOnly = feedProductCard({
+  ...products.find((product) => product.code === "PLAIN-01")!,
+  id: "ITEM-ONLY",
+  code: "ITEM-ONLY",
+  name: "",
+  displayName: "",
+  item: "Supplier heading",
+  title: "Supplier heading",
+});
+assert.ok(itemOnly);
+assert.equal(itemOnly.name, "ITEM-ONLY");
+assert.equal(itemOnly.line, null);
+assert.equal(JSON.stringify(itemOnly).includes("Supplier heading"), false);
+assert.deepEqual(Object.keys(itemOnly), [...FEED_PRODUCT_KEYS]);
 assert.equal(JSON.stringify(markedCard).includes("<"), false);
 assert.equal(JSON.stringify(markedCard).includes("<script"), false);
 
@@ -667,6 +718,14 @@ assert.equal(feedBuilder.includes('makeT("eu")'), true);
 assert.equal(feedBuilder.includes("allowedImageHosts()"), true);
 assert.equal(feedBuilder.includes("imageHostAllows("), true);
 assert.equal(feedBuilder.includes("CANONICAL_SITE_ORIGIN"), true);
+assert.equal(feedBuilder.includes("productLineLabel(product.item)"), true);
+assert.equal(feedBuilder.includes("product.displayName || product.name || product.code"), true);
+assert.equal(feedBuilder.includes("product.item ||"), false);
+assert.equal(feedBuilder.includes("memoizedMobileStorefront"), true);
+const resultFn = feedBuilder.slice(feedBuilder.indexOf("export async function storefrontResult"));
+assert.ok(resultFn.indexOf("=== \"invalid\"") >= 0);
+assert.ok(resultFn.indexOf("=== \"invalid\"") < resultFn.indexOf("await read()"));
+assert.equal(storefrontRoute.includes("storefrontResult"), true);
 assert.equal(feedBuilder.includes("isAllowedProductImageUrl("), false);
 assert.equal(feedBuilder.includes("metaSiteUrl"), false);
 assert.equal(feedBuilder.includes("metaAbsoluteUrl"), false);
@@ -728,7 +787,7 @@ for (const extra of [
 const folderMap = JSON.parse(read("data/product-folders.json")) as Record<string, string[]>;
 const bakedWithFolders = baked.map((product) => ({
   ...product,
-  folders: folderMap[product.code] ?? [],
+  folders: folderMap[product.id] ?? folderMap[product.code] ?? [],
 }));
 const bakedFeed = buildMobileStorefront(bakedWithFolders, catalogVersion(bakedWithFolders));
 assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
@@ -792,6 +851,41 @@ for (const node of bakedFeed.nodes) {
   if (node.parent) assert.equal(bakedNodes.has(node.parent), true, node.key);
 }
 assert.equal(bakedNodes.get("resort")?.kind, "folder");
+for (const slug of ["football", "basketball", "swimming", "rugby", "cricket"]) {
+  const tile = jomaTeamsLandingTiles().find((row) => row.href.split("?")[0] === `/shop/${slug}`);
+  assert.ok(tile, slug);
+  const expected = feedImageUrl(jomaLandingTileImage("teams", tile.label));
+  assert.ok(expected, slug);
+  assert.equal(bakedNodes.get(slug)?.kind, "category", slug);
+  assert.equal(bakedNodes.get(slug)?.image, expected, slug);
+}
+for (const key of ["resort", "w-resort", "acc-backpacks", "acc-tiendas"]) {
+  const image = bakedNodes.get(key)?.image;
+  assert.ok(image, key);
+  assertAllowedFeedImage(image, key);
+}
+for (const key of ["official-kits", "brama", "padel", "hiking"]) {
+  assert.equal(bakedNodes.get(key)?.image ?? null, null, key);
+}
+for (const key of [
+  "k14-outerwear-chubasqueros",
+  "k14-outerwear-anoracks-jackets",
+  "jp-86ae5088b9",
+  "k14-pants-pants-largos",
+]) {
+  const image = bakedNodes.get(key)?.image ?? null;
+  assert.ok(image, key);
+  assertAllowedFeedImage(image, key);
+  console.log(`checked kids folder ${key} image ${image}`);
+}
+const nullNodes = bakedFeed.nodes.filter((node) => !node.image).map((node) => node.key);
+console.log(`null images ${nullNodes.length}: ${nullNodes.join(", ")}`);
+for (const card of bakedFeed.products) {
+  assert.deepEqual(Object.keys(card), [...FEED_PRODUCT_KEYS], card.code);
+  for (const banned of ["item", "sheetCategory", "hay", "folders"]) {
+    assert.equal(Object.hasOwn(card, banned), false, card.code);
+  }
+}
 const groups: Array<{
   name: string;
   entry: string;

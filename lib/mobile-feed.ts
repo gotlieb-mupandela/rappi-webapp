@@ -14,12 +14,15 @@ import {
   subName,
 } from "@/lib/i18n/labels";
 import { makeT, type TFunction } from "@/lib/i18n/translate";
+import { sortByFolderOrder } from "@/lib/folder-order";
 import { isLiveFolder } from "@/lib/joma-live";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
-import { jomaFolderTileImage } from "@/lib/joma-tile-images";
-import { isOutletFolderKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
+import { itemFamilyOf, productLineLabel } from "@/lib/joma-item";
+import { jomaTeamsLandingTiles } from "@/lib/joma-nav";
+import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
+import { isOutletFolderKey, jomaFolderByKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { filterListing, type ListingItem } from "@/lib/listing-core";
-import { hasUsableProductImage, listingCardCandidates } from "@/lib/media";
+import { hasUsableProductImage, listingCardCandidates, tileImageUrl } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
 import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import {
@@ -38,9 +41,10 @@ import {
   type FeedMenuDef,
   type FeedTargetTile,
 } from "@/lib/mobile-feed-targets";
-import { mobileFeedVersion } from "@/lib/mobile-feed-version";
+import { feedVersionParamStatus, mobileFeedVersion } from "@/lib/mobile-feed-version";
 import { publicCopy, publicFolderKey } from "@/lib/mobile-feed-slugs";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
+import { EMPTY_FOLDER_CODES, TILE_GALLERY_FILE, TILE_PRODUCT_CODES } from "@/lib/tile-cover-pins";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/taxonomy";
 import type { Product } from "@/lib/types";
 
@@ -75,6 +79,25 @@ export type FeedNode = {
   target: string;
 };
 
+/** Product object keys, in the order the feed emits them. */
+export const FEED_PRODUCT_KEYS = [
+  "code",
+  "name",
+  "label",
+  "labelFr",
+  "packLabel",
+  "pairCount",
+  "isPack",
+  "price",
+  "priceLabel",
+  "cardImage",
+  "images",
+  "line",
+  "category",
+  "subcategory",
+  "audience",
+] as const;
+
 export type FeedProduct = {
   code: string;
   name: string;
@@ -90,7 +113,10 @@ export type FeedProduct = {
   priceLabel: string;
   cardImage: string | null;
   images: string[];
-  /** Plain text supplier line, or null when the product record has none. */
+  /**
+   * Plain text from productLineLabel. Null when that label is empty.
+   * This branch's label function returns "" until the line module is stacked.
+   */
   line: string | null;
   category: string | null;
   subcategory: string | null;
@@ -310,11 +336,116 @@ const AUDIENCE_IMAGE: Record<string, string> = {
   kids: "/brand/hub-sportswear.png",
 };
 
+/** Sport category nodes whose picture is the teams landing tile, not a hub plate. */
+const TEAM_CATEGORY_SLUGS = new Set(["football", "basketball", "swimming", "rugby", "cricket"]);
+
+/**
+ * Folder nodes filled from the same product photo the site tile uses.
+ * Checked live pages that show a product photo, plus the pinned accessory folders.
+ * Unchecked kids folders are omitted on purpose.
+ */
+const FOLDER_PRODUCT_PHOTO = new Set([
+  "resort",
+  "w-resort",
+  "acc-backpacks",
+  "acc-tiendas",
+  "k14-outerwear-chubasqueros",
+  "k14-outerwear-anoracks-jackets",
+  "jp-86ae5088b9",
+  "k14-pants-pants-largos",
+]);
+
+const PHOTO_SKIP = /\/default\.jpe?g(\?|$)/i;
+
+function usablePhotoUrl(url: string | null | undefined): string {
+  if (!url || PHOTO_SKIP.test(url) || url.startsWith("/brand/")) return "";
+  return url;
+}
+
+function photographed(product: FeedSource): boolean {
+  if (!hasUsableProductImage(product)) return false;
+  const urls = [product.imageUrl, ...(product.images ?? [])];
+  return urls.some((url) => Boolean(usablePhotoUrl(url)));
+}
+
+function productByCode(catalog: FeedSource[], code: string | undefined): FeedSource | null {
+  if (!code) return null;
+  const product = catalog.find((row) => row.code === code || row.id === code) ?? null;
+  if (!product || !photographed(product)) return null;
+  return product;
+}
+
+function inFolderPhoto(key: string, catalog: FeedSource[]): FeedSource | null {
+  const rows = catalog.filter((product) => (product.folders ?? []).includes(key) && photographed(product));
+  if (!rows.length) return null;
+  return sortByFolderOrder(key, rows)[0] ?? null;
+}
+
+function familyPhoto(key: string, catalog: FeedSource[]): FeedSource | null {
+  const folder = jomaFolderByKey(key);
+  if (!folder) return null;
+  const needles = new Set<string>();
+  for (const name of [...(folder.families ?? []), ...(folder.exactFamilies ?? [])]) {
+    const norm = itemFamilyOf({ item: name });
+    if (norm.length >= 3) needles.add(norm);
+  }
+  if (!needles.size) return null;
+  for (const product of catalog) {
+    if (!needles.has(itemFamilyOf(product))) continue;
+    if (folder.sport && product.category !== folder.sport && !product.hubs?.includes(folder.sport)) continue;
+    if (photographed(product)) return product;
+  }
+  return null;
+}
+
+/**
+ * Product photo for a folder tile. Same choice as the site folder picture:
+ * pinned gallery file, pinned product, in-folder photo, empty-folder pin, then family.
+ * Brand plates are not returned. The caller still runs the URL through feedImageUrl.
+ */
+function folderProductPhoto(key: string, catalog: FeedSource[]): string {
+  const pin = productByCode(catalog, TILE_PRODUCT_CODES[key]);
+  const file = TILE_GALLERY_FILE[key];
+  if (pin && file) {
+    const frame = pin.images?.find((url) => url.endsWith(file)) ?? "";
+    if (frame) return frame;
+  }
+  const sample =
+    pin ??
+    inFolderPhoto(key, catalog) ??
+    productByCode(catalog, EMPTY_FOLDER_CODES[key]) ??
+    familyPhoto(key, catalog);
+  if (!sample) return "";
+  return usablePhotoUrl(tileImageUrl(sample));
+}
+
+function teamLandingLabel(slug: string): string | null {
+  const href = `/shop/${slug}`;
+  const tile = jomaTeamsLandingTiles().find((row) => row.href.split("?")[0] === href);
+  return tile?.label ?? null;
+}
+
+function categoryImageSource(slug: string): string | null {
+  if (TEAM_CATEGORY_SLUGS.has(slug)) {
+    const label = teamLandingLabel(slug);
+    if (!label) return null;
+    return jomaLandingTileImage("teams", label) || null;
+  }
+  return CATEGORY_IMAGE[slug] ?? null;
+}
+
+function folderImageSource(key: string, catalog: FeedSource[]): string | null {
+  const exact = jomaFolderTileImage(key);
+  if (exact) return exact;
+  if (!FOLDER_PRODUCT_PHOTO.has(key)) return null;
+  return folderProductPhoto(key, catalog) || null;
+}
+
 export function feedProductCard(product: Product): FeedProduct | null {
   if (product.code === DPO_TEST_CODE || product.available === false) return null;
   if (!hasUsableProductImage(product)) return null;
   const view = clientAssortment(product);
-  const base = product.displayName || product.name || product.item || product.code;
+  const base = product.displayName || product.name || product.code;
   const suffix = view.titleSuffix ?? "";
   const suffixText = suffix.replace(/^ · /, "");
   const combined = suffixText && !base.includes(suffixText) ? `${base}${suffix}` : base;
@@ -347,9 +478,7 @@ export function feedProductCard(product: Product): FeedProduct | null {
 }
 
 function productLine(product: Product): string | null {
-  const raw = (product as Product & { line?: unknown }).line;
-  if (typeof raw !== "string") return null;
-  const text = plainText(raw);
+  const text = plainText(productLineLabel(product.item));
   return text || null;
 }
 
@@ -494,7 +623,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
         ...names,
         order: siblingIndex.get(row.key) ?? 0,
         parent: row.parent ? publicFolderKey(row.parent) : null,
-        image: tileImage(jomaFolderTileImage(row.key) || null),
+        image: tileImage(folderImageSource(row.key, catalog)),
         hidden,
         count,
         group: row.sub ? slugText(row.sub) : null,
@@ -532,7 +661,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
           description: text,
           order: category.order,
           parent: null,
-          image: tileImage(CATEGORY_IMAGE[category.slug] ?? null),
+          image: tileImage(categoryImageSource(category.slug)),
           hidden: category.slug === "netball" || count === 0,
           count,
           tiles,
@@ -715,4 +844,66 @@ function tileById(menu: FeedMenuDef, id: string): FeedTargetTile | null {
   if (id === KIDS_FOOTWEAR_TILE.id) return KIDS_FOOTWEAR_TILE;
   if (id === FLOW_TILE.id) return FLOW_TILE;
   return menu.tiles.find((tile) => tile.id === id) ?? TEAM_TILES.find((tile) => tile.id === id) ?? null;
+}
+
+/** Long CDN lifetime for the current version. A mismatched valid `v` uses no-store. */
+export const STOREFRONT_CACHE = "public, s-maxage=300, stale-while-revalidate=86400";
+
+const builtFeeds = new Map<string, MobileStorefront>();
+let storefrontBuilds = 0;
+
+/** How many times this process has built a storefront document. */
+export function mobileStorefrontBuildCount(): number {
+  return storefrontBuilds;
+}
+
+/**
+ * One built feed per process per version.
+ * A later call with the same version returns the stored document and does not build again.
+ */
+export function memoizedMobileStorefront(catalog: FeedSource[], version: string): MobileStorefront {
+  const key = mobileFeedVersion(version);
+  const hit = builtFeeds.get(key);
+  if (hit) return hit;
+  storefrontBuilds += 1;
+  const feed = buildMobileStorefront(catalog, version);
+  if (feed.version !== key) throw new Error("Feed version does not match the memo key");
+  builtFeeds.set(key, feed);
+  return feed;
+}
+
+export type StorefrontResult =
+  | { status: 400; cacheControl: "no-store"; body: { error: string } }
+  | { status: 200; cacheControl: string; body: MobileStorefront };
+
+/**
+ * Missing `v` and a `v` equal to the current version are cacheable.
+ * A valid `v` that is not the current version returns that same feed with no-store.
+ * An invalid `v` is a 400. The supplied text is not copied into the body.
+ * Invalid input does not call `read`.
+ */
+/** Cache decision for an already built feed. Does not build. */
+export function storefrontFromFeed(values: readonly string[], feed: MobileStorefront): StorefrontResult {
+  if (feedVersionParamStatus(values) === "invalid") {
+    return { status: 400, cacheControl: "no-store", body: { error: "Invalid version." } };
+  }
+  const mismatch = values.length === 1 && values[0] !== feed.version;
+  return {
+    status: 200,
+    cacheControl: mismatch ? "no-store" : STOREFRONT_CACHE,
+    body: feed,
+  };
+}
+
+/**
+ * Invalid `v` returns before `read`, so a bad query does not build a feed.
+ */
+export async function storefrontResult(
+  values: readonly string[],
+  read: () => Promise<MobileStorefront>,
+): Promise<StorefrontResult> {
+  if (feedVersionParamStatus(values) === "invalid") {
+    return { status: 400, cacheControl: "no-store", body: { error: "Invalid version." } };
+  }
+  return storefrontFromFeed(values, await read());
 }
