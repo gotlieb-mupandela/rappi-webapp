@@ -35,11 +35,19 @@ export const TILE_PRODUCT_CODES: Record<string, string> = {
   "acc-outdoor": "401970.477",
   "acc-teamwear": "400024.100",
   "acc-racket": "401845.100",
-  "acc-backpacks": "400001.450",
-
-  resort: "104657.100",
-  "w-resort": "902748.649",
 };
+
+/**
+ * Brand covers for the hub tiles on the web home (components/home-hero.tsx via app/page.tsx).
+ * lib/hubs.ts HUB_COVERS is this object, and the mobile feed home tiles read it too,
+ * so the web home and the app home use one source.
+ */
+export const HOME_COVERS = {
+  sportswear: "/brand/hub-sportswear.png?v=5",
+  shoes: "/brand/hub-shoes.png",
+  "teampro-2026": "/brand/hub-teampro-2026.webp",
+  "running-fitness": "/brand/hub-shoes.png",
+} as const satisfies Record<string, string>;
 
 /** Used only when the folder itself has no photographed product. */
 export const EMPTY_FOLDER_CODES: Record<string, string> = {
