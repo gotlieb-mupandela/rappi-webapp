@@ -79,6 +79,7 @@ export type FeedProduct = {
   code: string;
   name: string;
   label: string | null;
+  /** Plain text French card badge. Null when label is null. */
   labelFr: string | null;
   packLabel: string | null;
   /** Pairs or pieces, or null. Finite integer when present. */
@@ -314,11 +315,11 @@ export function feedProductCard(product: Product): FeedProduct | null {
   const suffixText = suffix.replace(/^ · /, "");
   const combined = suffixText && !base.includes(suffixText) ? `${base}${suffix}` : base;
   const name = plainText(combined) || product.code;
-  const label = view.label ? plainText(view.label) : null;
-  const french = view.labelKey
-    ? renderAssortmentLabel(view.labelKey, view.labelParams, tFr, view.label)
-    : view.label;
-  const labelFr = french ? plainText(french) : null;
+  const label = view.label ? plainText(view.label) || null : null;
+  // French card badge: labelKey and labelParams through t() for the French locale.
+  // The strings live in the site messages. This file has no French literals.
+  const renderedFr = renderAssortmentLabel(view.labelKey, view.labelParams, tFr, view.label);
+  const labelFr = label && renderedFr ? plainText(renderedFr) || null : null;
   const images = productImages(product);
   const pairCount = view.pairCount;
   if (pairCount !== null) assertFiniteInteger(pairCount, `pairCount ${product.code}`);
@@ -326,7 +327,7 @@ export function feedProductCard(product: Product): FeedProduct | null {
     code: product.code,
     name,
     label,
-    labelFr: label ? labelFr || label : null,
+    labelFr,
     packLabel: label,
     pairCount,
     isPack: view.isPack,

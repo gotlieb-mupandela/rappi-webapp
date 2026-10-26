@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { clientAssortment } from "../lib/assortment";
+import { clientAssortment, renderAssortmentLabel } from "../lib/assortment";
 import { CATEGORIES } from "../lib/catalog";
 import { catalogVersion } from "../lib/catalog-version";
 import { formatPrice } from "../lib/format";
@@ -38,7 +38,7 @@ import {
   type FeedProduct,
   type MobileStorefront,
 } from "../lib/mobile-feed";
-import { LEGACY_FOLDER_SLUGS, publicFolderKey } from "../lib/mobile-feed-slugs";
+import { LEGACY_FOLDER_SLUGS, publicCopy, publicFolderKey } from "../lib/mobile-feed-slugs";
 import {
   FLOW_TILE,
   KIDS_FOOTWEAR_TILE,
@@ -65,6 +65,22 @@ import { loadFixtureProducts } from "./feed-fixture";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const tFr = makeT("eu");
+
+function asFeedPlain(value: string): string {
+  return publicCopy(value)
+    .replace(/[<>\u0000-\u001f\u007f]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** French card badge, then the same plain-text pass the feed uses. Null when label is null. */
+function expectedLabelFr(product: Product): string | null {
+  const view = clientAssortment(product);
+  if (!view.label || !asFeedPlain(view.label)) return null;
+  const rendered = renderAssortmentLabel(view.labelKey, view.labelParams, tFr, view.label);
+  if (!rendered) return null;
+  return asFeedPlain(rendered) || null;
+}
 
 function fail(message: string): never {
   throw new Error(message);
@@ -234,11 +250,13 @@ for (const card of feed.products) {
   }
   const expectedLabel = clientAssortment(source).label;
   assert.equal(card.packLabel, card.label);
+  assert.equal(card.labelFr, expectedLabelFr(source), card.code);
   if (expectedLabel) {
     assert.equal(typeof card.label, "string", card.code);
     assert.equal(card.label!.toLowerCase().includes("joma"), false, card.code);
     assert.equal(card.label!.includes("<"), false, card.code);
     assert.equal(typeof card.labelFr, "string", card.code);
+    assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.labelFr!), false, card.code);
   } else {
     assert.equal(card.label, null, card.code);
     assert.equal(card.labelFr, null, card.code);
@@ -428,6 +446,8 @@ assert.equal(
 
 const pack = cardByCode(feed, "PACK-25");
 assert.equal(pack.name.includes("Pack of 25"), true);
+assert.equal(pack.label, "Pack");
+assert.equal(pack.labelFr, "Pack");
 assert.equal(pack.packLabel, "Pack");
 assert.equal(pack.pairCount, 25);
 assert.equal(pack.isPack, true);
@@ -440,6 +460,14 @@ assert.equal(assort.isPack, true);
 assert.equal(assort.pairCount, 12);
 assert.equal(assort.name.includes("12"), true);
 assert.ok(assort.packLabel);
+assert.equal(assort.labelFr, expectedLabelFr(products.find((product) => product.code === "ASSORT-12")!));
+assert.notEqual(assort.labelFr, assort.label);
+const multi = cardByCode(feed, "MULTI-6");
+assert.equal(multi.labelFr, expectedLabelFr(products.find((product) => product.code === "MULTI-6")!));
+assert.notEqual(multi.labelFr, multi.label);
+const plain = cardByCode(feed, "PLAIN-01");
+assert.equal(plain.label, null);
+assert.equal(plain.labelFr, null);
 
 const priced = cardByCode(feed, "PRICE-1083");
 assert.equal(priced.price, 1083);
@@ -624,6 +652,8 @@ const feedSources = [
 ];
 const feedBuilder = read("lib/mobile-feed.ts");
 const feedTargets = read("lib/mobile-feed-targets.ts");
+assert.equal(feedBuilder.includes("renderAssortmentLabel"), true);
+assert.equal(feedBuilder.includes('makeT("eu")'), true);
 assert.equal(feedBuilder.includes("allowedImageHosts()"), true);
 assert.equal(feedBuilder.includes("imageHostAllows("), true);
 assert.equal(feedBuilder.includes("CANONICAL_SITE_ORIGIN"), true);
@@ -656,6 +686,10 @@ for (const relativePath of feedSources) {
   const source = read(relativePath);
   for (const rule of allowedImageHosts()) {
     if (source.includes(rule.host)) fail(`${relativePath} copies host ${rule.host}`);
+  }
+  if (relativePath === "scripts/check-feed.ts") continue;
+  for (const literal of ["Assortiment", "paires", "pièces", "Pack de"]) {
+    if (source.includes(literal)) fail(`${relativePath} hardcodes French text`);
   }
 }
 
@@ -709,11 +743,21 @@ for (const node of bakedFeed.nodes) {
   }
 }
 console.log(`node images kept ${nodeImages}`);
+const bakedByCode = new Map(bakedWithFolders.map((product) => [product.code, product]));
 let lineNull = 0;
+let labelFrTranslated = 0;
 for (const card of bakedFeed.products) {
+  const source = bakedByCode.get(card.code);
+  assert.ok(source, card.code);
+  assert.equal(card.labelFr, expectedLabelFr(source), card.code);
+  if (card.label === null) assert.equal(card.labelFr, null, card.code);
+  if (card.label && card.labelFr && card.labelFr !== card.label) labelFrTranslated += 1;
+  if (card.labelFr) assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.labelFr), false, card.code);
   if (card.line === null) lineNull += 1;
   else assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.line), false, card.code);
 }
+assert.ok(labelFrTranslated > 0);
+console.log(`labelFr differs from label on ${labelFrTranslated} cards`);
 assert.equal(lineNull, bakedFeed.products.length);
 console.log(`product line null ${lineNull} of ${bakedFeed.products.length}`);
 assert.equal(imageDiffer, 0);
