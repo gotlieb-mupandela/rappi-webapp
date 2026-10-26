@@ -16,7 +16,7 @@ import { AssortmentBadge } from "@/components/assortment-label";
 import { packTitleSuffix } from "@/lib/assortment";
 import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
-import { productImageAlt } from "@/lib/copy";
+import { productHeading, productImageAlt } from "@/lib/copy";
 import { buyableSizes, isSoldOut } from "@/lib/product-stock";
 import { listingCardCandidates } from "@/lib/media";
 import { useCart } from "@/lib/stores/cart";
@@ -39,7 +39,7 @@ export function ProductCard({
   const { t, format } = useLocale();
   const first = buyableSizes(product)[0];
   const soldOut = isSoldOut(product);
-  const title = (product.displayName || product.item) + (packTitleSuffix(product, t) ?? "");
+  const title = productHeading(product) + (packTitleSuffix(product, t) ?? "");
   const cardSources = listingCardCandidates(product, audience);
   const cardSrc = cardSources[0] ?? "";
 

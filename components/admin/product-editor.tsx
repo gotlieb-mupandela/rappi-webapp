@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { revalidateCatalogAfterWrite } from "@/lib/admin/revalidate-catalog-action";
 import { createClient } from "@/lib/supabase/client";
 import { safeProductCode } from "@/lib/utils";
 
@@ -136,6 +137,15 @@ export function ProductEditor({ productId }: { productId: string | null }) {
     if (added) toast.success("Images uploaded");
   }
 
+  async function refreshCatalogueCache() {
+    try {
+      const result = await revalidateCatalogAfterWrite();
+      return result.ok;
+    } catch {
+      return false;
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -167,8 +177,17 @@ export function ProductEditor({ productId }: { productId: string | null }) {
       return;
     }
 
-    // Replace sizes
-    await supabase.from("product_sizes").delete().eq("product_id", productIdFinal);
+    const { error: deleteError } = await supabase
+      .from("product_sizes")
+      .delete()
+      .eq("product_id", productIdFinal);
+    if (deleteError) {
+      await refreshCatalogueCache();
+      toast.error(deleteError.message);
+      setSaving(false);
+      return;
+    }
+
     const sizePayload = sizes
       .filter((s) => s.size.trim())
       .map((s) => ({
@@ -179,13 +198,16 @@ export function ProductEditor({ productId }: { productId: string | null }) {
     if (sizePayload.length) {
       const { error: sizeError } = await supabase.from("product_sizes").insert(sizePayload);
       if (sizeError) {
+        await refreshCatalogueCache();
         toast.error(sizeError.message);
         setSaving(false);
         return;
       }
     }
 
+    const refreshed = await refreshCatalogueCache();
     toast.success("Product saved");
+    if (!refreshed) toast.error("The catalogue cache did not refresh.");
     setSaving(false);
     router.push(`/admin/products/${productIdFinal}`);
     router.refresh();
@@ -200,7 +222,9 @@ export function ProductEditor({ productId }: { productId: string | null }) {
       toast.error(error.message);
       return;
     }
+    const refreshed = await refreshCatalogueCache();
     toast.success("Deleted");
+    if (!refreshed) toast.error("The catalogue cache did not refresh.");
     router.push("/admin/products");
     router.refresh();
   }

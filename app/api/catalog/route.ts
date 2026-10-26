@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { catalogVersion } from "@/lib/catalog-version";
 import { buildListing, LISTING_PAGE_SIZE, toClientProduct } from "@/lib/listing-core";
 import { canonicalQuerySlug } from "@/lib/slug-aliases";
 import { getCatalogLive } from "@/lib/supabase/catalog";
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json(
     {
+      version: catalogVersion(catalog),
       total: listing.total,
       page: listing.page,
       pageSize: listing.pageSize ?? LISTING_PAGE_SIZE,

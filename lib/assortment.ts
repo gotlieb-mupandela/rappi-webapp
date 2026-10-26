@@ -1,6 +1,6 @@
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
-import type { TFunction } from "@/lib/i18n/translate";
+import { makeT, type TFunction } from "@/lib/i18n/translate";
 
 /**
  * Headwear (caps/hats/visors/beanies) and balls at/above these NAD sell
@@ -65,6 +65,46 @@ export type AssortmentInfo = {
   /** Keep the Joma size run (e.g. bib S01–S04) instead of collapsing to PACK. */
   preserveSizes?: boolean;
   kind?: "named" | "multipack" | "wholesale" | "wholesale-pack" | "pack" | "assortment";
+};
+
+/** Values passed to t(). `unitKey` is not a message placeholder. */
+export type AssortmentLabelParams = Record<string, string | number>;
+
+/**
+ * One assortment size slot (curve code or PACK), as the picker and stock table label it.
+ * Ordinary wearable sizes are not included.
+ */
+export type ClientAssortmentSize = {
+  size: string;
+  label: string;
+  pairCount: number | null;
+  split: string | null;
+  labelKey: string;
+  labelParams: AssortmentLabelParams | null;
+};
+
+/**
+ * Pack and assortment facts the storefront already shows, in English.
+ * `label` is the badge. `titleSuffix` is appended to the product title
+ * (leading separator included) and is null when the title stays as stored.
+ * `pairCount` is the count the product page prints, in pairs or pieces.
+ * It is null when the page has no single count.
+ * Localize with t(labelKey, labelParams). When `unitKey` is present, set
+ * `unit` to t(unitKey) first. When `labelParams.code` is set and `labelKey`
+ * is `product.assortment`, the size text is `${code} · ${t("product.assortment")}`.
+ * No price is computed here.
+ */
+export type ClientAssortment = {
+  label: string | null;
+  pairCount: number | null;
+  isPack: boolean;
+  kind: string;
+  labelKey: string | null;
+  labelParams: AssortmentLabelParams | null;
+  titleSuffix: string | null;
+  titleKey: string | null;
+  titleParams: AssortmentLabelParams | null;
+  sizes: ClientAssortmentSize[];
 };
 
 /** Explicit pack-policy flag values (see Product.sellAs). */
@@ -472,6 +512,58 @@ function surtidoSizeParts(product: Product, size: string): { code: string | null
   return { code: null, n: info.packSize && info.packSize > 1 ? info.packSize : null };
 }
 
+const en = makeT();
+
+const SINGLE_ASSORTMENT: ClientAssortment = {
+  label: null,
+  pairCount: null,
+  isPack: false,
+  kind: "single",
+  labelKey: null,
+  labelParams: null,
+  titleSuffix: null,
+  titleKey: null,
+  titleParams: null,
+  sizes: [],
+};
+
+/**
+ * Localized badge, title, or size text for one label choice.
+ * English `fallback` is what the storefront shows when the key is absent.
+ */
+export function renderAssortmentLabel(
+  labelKey: string | null,
+  labelParams: AssortmentLabelParams | null,
+  t: TFunction,
+  fallback: string | null,
+): string | null {
+  if (!labelKey) return fallback;
+  const params = labelParams ? { ...labelParams } : undefined;
+  if (
+    params &&
+    labelKey === "product.assortment" &&
+    typeof params.code === "string" &&
+    !Object.prototype.hasOwnProperty.call(params, "n")
+  ) {
+    return `${params.code} · ${t("product.assortment")}`;
+  }
+  if (params && typeof params.unitKey === "string") {
+    params.unit = t(params.unitKey);
+  }
+  const rendered = t(labelKey, params);
+  return rendered === labelKey ? fallback : rendered;
+}
+
+function unitParams(product: Product, n: number): AssortmentLabelParams {
+  const unitKey = isFootwearSku(product) ? "product.pairs" : "product.pcs";
+  return { n, unit: en(unitKey), unitKey };
+}
+
+function sizeNames(product: Product): string[] {
+  if (product.sizeOptions?.length) return product.sizeOptions;
+  return (product.sizes ?? []).map((row) => row.size);
+}
+
 /** English label for toasts that have no locale function. */
 export function surtidoSizeText(product: Product, size: string): string | null {
   const parts = surtidoSizeParts(product, size);
@@ -482,16 +574,56 @@ export function surtidoSizeText(product: Product, size: string): string | null {
   return parts.n && parts.n > 1 ? `Assortment · ${parts.n} ${unit}` : "Assortment";
 }
 
-export function surtidoSizeLabel(product: Product, size: string, t: TFunction): string | null {
+function sizeLabelChoice(product: Product, size: string): ClientAssortmentSize | null {
   const parts = surtidoSizeParts(product, size);
   if (!parts) return null;
-  const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
+  const split = parts.code ? curveSplitText(parts.code) : null;
   if (parts.code && parts.n && parts.n > 1) {
-    return t("product.assortmentCode", { code: parts.code, n: parts.n, unit });
+    const labelParams = { code: parts.code, ...unitParams(product, parts.n) };
+    return {
+      size,
+      label: en("product.assortmentCode", labelParams),
+      pairCount: parts.n,
+      split,
+      labelKey: "product.assortmentCode",
+      labelParams,
+    };
   }
-  if (parts.code) return `${parts.code} · ${t("product.assortment")}`;
-  if (parts.n && parts.n > 1) return t("product.assortmentNamed", { n: parts.n, unit });
-  return t("product.assortment");
+  if (parts.code) {
+    return {
+      size,
+      label: `${parts.code} · ${en("product.assortment")}`,
+      pairCount: null,
+      split,
+      labelKey: "product.assortment",
+      labelParams: { code: parts.code },
+    };
+  }
+  if (parts.n && parts.n > 1) {
+    const labelParams = unitParams(product, parts.n);
+    return {
+      size,
+      label: en("product.assortmentNamed", labelParams),
+      pairCount: parts.n,
+      split: null,
+      labelKey: "product.assortmentNamed",
+      labelParams,
+    };
+  }
+  return {
+    size,
+    label: en("product.assortment"),
+    pairCount: null,
+    split: null,
+    labelKey: "product.assortment",
+    labelParams: null,
+  };
+}
+
+export function surtidoSizeLabel(product: Product, size: string, t: TFunction): string | null {
+  const choice = sizeLabelChoice(product, size);
+  if (!choice) return null;
+  return renderAssortmentLabel(choice.labelKey, choice.labelParams, t, choice.label);
 }
 
 function inferredCurveAssortment(product: Product): AssortmentInfo | null {
@@ -601,6 +733,103 @@ export function getAssortment(
   return inferredCurveAssortment(product);
 }
 
+type LabelChoice = { key: string; params: AssortmentLabelParams | null };
+
+function badgeChoice(product: Product, info: AssortmentInfo): LabelChoice | null {
+  if (info.packSize === 10 && info.preserveSizes && isTrainingBibPack(product)) {
+    return { key: "product.packOf10", params: null };
+  }
+  if (info.kind === "pack") return { key: "product.pack", params: null };
+  if (info.kind === "assortment") {
+    if (surtidoCurveSizes(product)) return { key: "product.assortment", params: null };
+    if (info.packSize && info.packSize > 1) {
+      return { key: "product.assortmentNamed", params: unitParams(product, info.packSize) };
+    }
+    return { key: "product.assortmentPack", params: null };
+  }
+  if (info.kind === "multipack") {
+    if (info.packSize && info.packSize > 1) {
+      return { key: "product.multipackNamed", params: unitParams(product, info.packSize) };
+    }
+    return { key: "product.multipack", params: null };
+  }
+  if (info.packSize && info.packSize > 1) {
+    return { key: "product.packNamed", params: unitParams(product, info.packSize) };
+  }
+  if (info.kind === "wholesale-pack") return { key: "product.wholesalePack", params: null };
+  return null;
+}
+
+function titleChoice(product: Product, info: AssortmentInfo): LabelChoice | null {
+  if (info.kind === "assortment" && surtidoCurveSizes(product)) {
+    return { key: "product.assortment", params: null };
+  }
+  if (info.packSize && info.packSize > 1) {
+    if (info.kind === "assortment") {
+      return { key: "product.assortmentNamed", params: unitParams(product, info.packSize) };
+    }
+    if (info.kind === "multipack") {
+      return { key: "product.multipackNamed", params: unitParams(product, info.packSize) };
+    }
+    return { key: "product.titlePackNamed", params: { n: info.packSize } };
+  }
+  if (info.kind === "multipack") return { key: "product.multipack", params: null };
+  if (info.kind === "assortment") return { key: "product.assortmentPack", params: null };
+  if (info.kind === "pack") return { key: "product.pack", params: null };
+  return null;
+}
+
+/** Count printed on the product page: agreed curve count, otherwise the stored pack size. */
+function shownPairCount(product: Product, info: AssortmentInfo): number | null {
+  if (info.kind === "assortment") {
+    const lines = surtidoPackLines(product);
+    const agreed =
+      lines.length > 0 && lines.every((line) => line.pairs && line.pairs === lines[0].pairs)
+        ? lines[0].pairs
+        : null;
+    if (agreed && agreed > 1) return agreed;
+  }
+  if (info.packSize && info.packSize > 1) return info.packSize;
+  return null;
+}
+
+function titleSuffixFor(choice: LabelChoice | null, t: TFunction): string | null {
+  if (!choice) return null;
+  const inner = renderAssortmentLabel(choice.key, choice.params, t, null);
+  return inner ? ` · ${inner}` : null;
+}
+
+/**
+ * Badge, pair count, pack flag, title suffix, and assortment size labels.
+ * The website and the catalog API both call this.
+ */
+export function clientAssortment(product: Product): ClientAssortment {
+  const info = getAssortment(product);
+  if (!info) return { ...SINGLE_ASSORTMENT, sizes: [] };
+  const badge = badgeChoice(product, info);
+  const title = titleChoice(product, info);
+  const sizes: ClientAssortmentSize[] = [];
+  const seen = new Set<string>();
+  for (const size of sizeNames(product)) {
+    if (seen.has(size)) continue;
+    seen.add(size);
+    const row = sizeLabelChoice(product, size);
+    if (row) sizes.push(row);
+  }
+  return {
+    label: renderAssortmentLabel(badge?.key ?? null, badge?.params ?? null, en, info.label),
+    pairCount: shownPairCount(product, info),
+    isPack: true,
+    kind: info.kind ?? "pack",
+    labelKey: badge?.key ?? null,
+    labelParams: badge?.params ?? null,
+    titleSuffix: titleSuffixFor(title, en),
+    titleKey: title?.key ?? null,
+    titleParams: title?.params ?? null,
+    sizes,
+  };
+}
+
 export function assortmentCopy(
   product: Product,
   t: TFunction,
@@ -608,10 +837,12 @@ export function assortmentCopy(
 ) {
   const info = getAssortment(product, format);
   if (!info) return null;
+  const view = clientAssortment(product);
+  const label = renderAssortmentLabel(view.labelKey, view.labelParams, t, view.label) ?? info.label;
   if (info.packSize === 10 && info.preserveSizes && isTrainingBibPack(product)) {
     return {
       ...info,
-      label: t("product.packOf10"),
+      label,
       pairHint: t("product.aboutEach", { amount: format((product.price || product.unitPrice || 0) / 10) }),
     };
   }
@@ -622,56 +853,32 @@ export function assortmentCopy(
   if (info.kind === "pack") {
     return {
       ...info,
-      label: t("product.pack"),
+      label,
       pairHint: null,
     };
   }
   if (info.kind === "assortment") {
-    // Joma's listing tiles use one word: ASSORTMENT. Pair counts and the
+    // Listing tiles use one word: ASSORTMENT. Pair counts and the
     // EU size split belong on the product page and the hover, per code.
-    if (surtidoCurveSizes(product)) {
-      return {
-        ...info,
-        label: t("product.assortment"),
-        pairHint: null,
-      };
-    }
-    if (info.packSize && info.packSize > 1) {
-      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
-      return {
-        ...info,
-        label: t("product.assortmentNamed", { n: info.packSize, unit }),
-        pairHint: null,
-      };
-    }
     return {
       ...info,
-      label: t("product.assortmentPack"),
+      label,
       pairHint: null,
     };
   }
   if (info.kind === "multipack") {
-    if (info.packSize && info.packSize > 1) {
-      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
-      return {
-        ...info,
-        label: t("product.multipackNamed", { n: info.packSize, unit }),
-        pairHint: null,
-      };
-    }
     return {
       ...info,
-      label: t("product.multipack"),
+      label,
       pairHint: null,
     };
   }
   if (info.packSize && info.packSize > 1) {
     const footwear = isFootwearSku(product);
-    const unit = footwear ? t("product.pairs") : t("product.pcs");
     const price = product.price || product.unitPrice || 0;
     return {
       ...info,
-      label: t("product.packNamed", { n: info.packSize, unit }),
+      label,
       pairHint: footwear
         ? t("product.aboutPair", { amount: format(price / info.packSize) })
         : t("product.aboutEach", { amount: format(price / info.packSize) }),
@@ -680,7 +887,7 @@ export function assortmentCopy(
   if (info.kind === "wholesale-pack") {
     return {
       ...info,
-      label: t("product.wholesalePack"),
+      label,
       pairHint: null,
     };
   }
@@ -692,29 +899,12 @@ export function assortmentCopy(
 
 /**
  * Localized pack title suffix for render (cards, PDP, search).
- * Bake stores neutral base names only — this adds the pack wording in the
- * shopper's locale: "· Pack of 12" / "· pack de 12", "· Assortment · 8 pairs",
- * "· Multipack", … Returns null when the product is not sold as a pack.
+ * Bake stores neutral base names only. This adds the pack wording in the
+ * shopper's locale. Returns null when the product is not sold as a pack.
  */
 export function packTitleSuffix(product: Product, t: TFunction): string | null {
-  const info = getAssortment(product);
-  if (!info) return null;
-  if (info.kind === "assortment" && surtidoCurveSizes(product)) {
-    return ` · ${t("product.assortment")}`;
-  }
-  if (info.packSize && info.packSize > 1) {
-    if (info.kind === "assortment") {
-      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
-      return ` · ${t("product.assortmentNamed", { n: info.packSize, unit })}`;
-    }
-    if (info.kind === "multipack") {
-      const unit = isFootwearSku(product) ? t("product.pairs") : t("product.pcs");
-      return ` · ${t("product.multipackNamed", { n: info.packSize, unit })}`;
-    }
-    return ` · ${t("product.titlePackNamed", { n: info.packSize })}`;
-  }
-  if (info.kind === "multipack") return ` · ${t("product.multipack")}`;
-  if (info.kind === "assortment") return ` · ${t("product.assortmentPack")}`;
-  if (info.kind === "pack") return ` · ${t("product.pack")}`;
-  return null;
+  const view = clientAssortment(product);
+  if (!view.titleKey) return null;
+  const inner = renderAssortmentLabel(view.titleKey, view.titleParams, t, null);
+  return inner ? ` · ${inner}` : null;
 }

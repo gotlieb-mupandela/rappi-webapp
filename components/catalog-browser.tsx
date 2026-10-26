@@ -4,12 +4,8 @@ import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { useT } from "@/components/locale-provider";
 import { audienceName, hubName } from "@/lib/i18n/labels";
-import {
-  listingQueryFromSearchParams,
-  listingQueryIsActive,
-  type ListingQuery,
-  type ListingResult,
-} from "@/lib/listing-core";
+import { listingQueryFromSearchParams, listingQueryIsActive } from "@/lib/listing-query";
+import type { ListingQuery, ListingResult } from "@/lib/listing-types";
 import { canonicalSlug } from "@/lib/slug-aliases";
 
 function queryFromLocation(): ListingQuery {

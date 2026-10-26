@@ -73,7 +73,7 @@ const PATH_KEYS: Record<string, string> = {
   "/teamwear": "teamwear",
 };
 
-export type MobileStorefront = {
+type StorefrontCovers = {
   homeTiles: Record<string, string>;
   menus: Record<string, { image?: string; tiles: Record<string, string> }>;
   hubCovers: Record<string, string>;
@@ -180,7 +180,7 @@ function homeSources() {
   };
 }
 
-export async function buildMobileStorefront(): Promise<MobileStorefront> {
+export async function buildStorefrontCovers(): Promise<StorefrontCovers> {
   const menTiles = audienceLandingTiles("men");
   const womenTiles = audienceLandingTiles("women");
   const kidsTiles = kidsLandingTiles();

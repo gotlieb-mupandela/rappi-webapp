@@ -1,0 +1,12 @@
+Checks run 2026-10-26 (UTC+2) on fix/image-parity-1 after adding 401346.331 and 700133.100, fresh worktree, Node 20.19.2.
+
+npm ci --ignore-scripts: exit 0 (lifecycle scripts skipped). node_modules removed afterwards.
+npx tsc --noEmit: exit 0, no errors.
+npm run build (no env vars, no secrets, NEXT_TELEMETRY_DISABLED=1): exit 0, 89 of 89 static pages. Built without Supabase env, so live-data code paths were not exercised.
+npm run check:merch: exit 0.
+npm run check:pack-prices: exit 0.
+npm run check:i18n: exit 0, "i18n checks ok".
+npm run check:store-images: exit 0
+  check:store-images products=11104 on-store-checked=7405 failures=0 hidden-warnings=8 not-on-store-v1-held=3659
+  PASS
+Not run: feed checks (they live on the feed stack, not main). check:catalog fails on main too (expects 184 SKUs), not related.

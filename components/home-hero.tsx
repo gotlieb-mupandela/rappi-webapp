@@ -2,6 +2,7 @@
 
 import { HubTile } from "@/components/hub-tile";
 import { useT } from "@/components/locale-provider";
+import { homeTileLayout } from "@/lib/home-tiles";
 import { hubNav } from "@/lib/i18n/labels";
 import type { Product } from "@/lib/types";
 
@@ -33,6 +34,12 @@ export function HomeHero({
   kidsHref?: string;
 }) {
   const t = useT();
+  const teamwear = homeTileLayout("teamwear");
+  const sportswear = homeTileLayout("sportswear");
+  const running = homeTileLayout("running");
+  const lifestyle = homeTileLayout("lifestyle");
+  const footwear = homeTileLayout("footwear");
+  const kids = homeTileLayout("kids");
 
   return (
     <section className="bg-white">
@@ -56,7 +63,7 @@ export function HomeHero({
             imagePosition="object-center"
             showLabel
             priority
-            className="col-span-2 min-h-[12rem] md:min-h-0"
+            className={teamwear.className}
           />
 
           <HubTile
@@ -69,7 +76,7 @@ export function HomeHero({
             fill
             imageFit="cover"
             imagePosition="object-top"
-            className="min-h-[12rem] md:min-h-0"
+            className={sportswear.className}
           />
 
           <HubTile
@@ -82,7 +89,7 @@ export function HomeHero({
             fill
             imageFit="cover"
             imagePosition="object-[center_20%]"
-            className="min-h-[12rem] md:min-h-0"
+            className={running.className}
           />
 
           <HubTile
@@ -95,7 +102,7 @@ export function HomeHero({
             fill
             imageFit="cover"
             imagePosition="object-center"
-            className="min-h-[11rem] md:min-h-0"
+            className={lifestyle.className}
           />
 
           <HubTile
@@ -108,7 +115,7 @@ export function HomeHero({
             fill
             imageFit="cover"
             imagePosition="object-center"
-            className="min-h-[11rem] md:min-h-0"
+            className={footwear.className}
           />
 
           <HubTile
@@ -119,11 +126,11 @@ export function HomeHero({
             imageSrc={kidsCover}
             size="large"
             fill
-            tone="light"
+            tone={kids.tone}
             labelPosition="center"
             imageFit="cover"
             imagePosition="object-center"
-            className="col-span-2 min-h-[12rem] md:min-h-0"
+            className={kids.className}
           />
         </div>
       </div>

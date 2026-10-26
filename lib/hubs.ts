@@ -53,6 +53,7 @@ import {
   type AccessoriesLandingTileDef,
 } from "@/lib/joma-nav";
 import { tileImageUrl } from "@/lib/media";
+import { HOME_COVERS } from "@/lib/tile-cover-pins";
 import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
 import portalStructure from "@/data/joma-portal-structure.json";
 import { isLiveFolder } from "@/lib/joma-live";
@@ -392,12 +393,7 @@ export const HOME_CATEGORY_HUBS = ["shoes", "balls-bags", "lifestyle"] as const;
  * hub-lifestyle.png, hub-rugby.png, and hub-kids.png are not pictures of
  * those categories (adult activewear / a suit). Do not use them as covers.
  */
-export const HUB_COVERS: Partial<Record<string, string>> = {
-  sportswear: "/brand/hub-sportswear.png?v=5",
-  shoes: "/brand/hub-shoes.png",
-  "teampro-2026": "/brand/hub-teampro-2026.webp",
-  "running-fitness": "/brand/hub-shoes.png",
-};
+export const HUB_COVERS: Partial<Record<string, string>> = HOME_COVERS;
 function audienceSample(items: Product[], slug: AudienceSlug) {
   const preferred = items.filter((p) =>
     ["sportswear", "shoes", "running-fitness", "football", "rugby"].includes(p.category),
@@ -567,6 +563,11 @@ const SPORT_SERIES_FOLDER: Partial<Record<string, string>> = {
   cricket: "tw-cricket",
   boxing: "athletes-combat",
 };
+
+/** Series root folder for a sport hub, or null when that hub has no series section. */
+export function sportSeriesRoot(hubSlug: string): string | null {
+  return SPORT_SERIES_FOLDER[hubSlug] ?? null;
+}
 
 /** Series tiles under a sport hub (Phoenix III, R-City, football T-shirt, …). */
 export function sportSeriesFolders(hubSlug: string, catalog: Product[] = bundled): HubFolderTile[] {

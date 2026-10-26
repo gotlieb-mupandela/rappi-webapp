@@ -1,7 +1,8 @@
-const DEFAULT_SITE_URL = "https://www.rappisportshub.com";
+/** Fixed site origin. Feed paths use this constant, not the request Host and not env. */
+export const CANONICAL_SITE_ORIGIN = "https://www.rappisportshub.com";
 
 export function metaSiteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || CANONICAL_SITE_ORIGIN).replace(/\/$/, "");
 }
 
 export function metaAbsoluteUrl(pathOrUrl: string) {

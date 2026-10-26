@@ -34,7 +34,7 @@ import {
 } from "@/lib/hubs";
 import { isSportHub } from "@/lib/hub-membership";
 import { isJomaBrowseFolder } from "@/lib/joma-tree";
-import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
+import { buildListing, listingQueryIsActive, parseListingQuery, toClientSamples } from "@/lib/listing-core";
 import { canonicalSlug } from "@/lib/slug-aliases";
 import { getCatalog } from "@/lib/supabase/catalog";
 
@@ -390,14 +390,14 @@ export default async function ShopListingPage({
           <div className="space-y-8">
             {folders.length ? (
               <FolderGrid
-                folders={folders}
+                folders={toClientSamples(folders)}
                 slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
               />
             ) : null}
             {seriesFolders.length ? (
               <div className={folders.length ? "border-t border-[var(--border)] pt-8" : undefined}>
                 <FolderGrid
-                  folders={seriesFolders}
+                  folders={toClientSamples(seriesFolders)}
                   slug={audienceFromPath ? audienceFromPath.slug : hubSlug}
                 />
               </div>

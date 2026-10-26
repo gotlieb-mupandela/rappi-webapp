@@ -10,7 +10,7 @@ import { hasUsableProductImage, withProductImages } from "@/lib/media";
 import type { Product } from "@/lib/types";
 import productFolders from "@/data/product-folders.json";
 import bundled from "@/data/products.json";
-import { dpoTestProduct, isDpoTestCheckoutEnabled } from "@/lib/dpo-test-product";
+import { DPO_TEST_CODE, dpoTestProduct, isDpoTestCheckoutEnabled } from "@/lib/dpo-test-product";
 
 const FOLDERS_BY_ID = productFolders as Record<string, string[]>;
 
@@ -56,12 +56,16 @@ export function getProductByCode(code: string): Product | undefined {
 }
 
 export function productsInHub(slug: string): Product[] {
-  return (productsByHub.get(slug) ?? []).filter((p) => p.available !== false);
+  return (productsByHub.get(slug) ?? []).filter(
+    (p) => p.available !== false && p.code !== DPO_TEST_CODE,
+  );
 }
 
 export function productsByCategory(slug: string, catalog: Product[] = offlineCatalog) {
   if (catalog === offlineCatalog) return productsInHub(slug);
-  return catalog.filter((p) => p.available !== false && productInHub(p, slug));
+  return catalog.filter(
+    (p) => p.available !== false && p.code !== DPO_TEST_CODE && productInHub(p, slug),
+  );
 }
 
 export function categoryCountsFrom(catalog: Product[] = offlineCatalog) {
@@ -70,7 +74,7 @@ export function categoryCountsFrom(catalog: Product[] = offlineCatalog) {
       CATEGORIES.map((c) => [c.slug, productsInHub(c.slug).length]),
     ) as Record<string, number>;
   }
-  const visible = catalog.filter((p) => p.available !== false);
+  const visible = catalog.filter((p) => p.available !== false && p.code !== DPO_TEST_CODE);
   return Object.fromEntries(
     CATEGORIES.map((c) => [c.slug, visible.filter((p) => productInHub(p, c.slug)).length]),
   ) as Record<string, number>;
