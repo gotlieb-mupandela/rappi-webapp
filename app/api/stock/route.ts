@@ -1,19 +1,25 @@
 import { NextResponse } from "next/server";
 import { totalStock } from "@/lib/product-stock";
+import { lookupStockCodes, parseStockCodes } from "@/lib/stock-codes";
 import { getFreshCheckoutProducts } from "@/lib/supabase/catalog";
+import type { Product } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const raw = new URL(request.url).searchParams.get("codes") ?? "";
-  const codes = [...new Set(raw.split(",").map((code) => code.trim()).filter(Boolean))].slice(0, 50);
-  if (!codes.length) {
+  const parsed = parseStockCodes(new URL(request.url).searchParams);
+  if (!parsed.codes.length) {
     return NextResponse.json({ stock: {} }, { headers: { "Cache-Control": "no-store" } });
   }
 
-  const products = await getFreshCheckoutProducts(codes);
+  const lookup = lookupStockCodes(parsed);
+  const products: Map<string, Product> = lookup.length
+    ? await getFreshCheckoutProducts(lookup)
+    : new Map();
+  const overLength = new Set(parsed.overLength);
   const stock = Object.fromEntries(
-    codes.map((code) => {
+    parsed.codes.map((code) => {
+      if (overLength.has(code)) return [code, { available: false, sizes: [] }];
       const product = products.get(code);
       if (!product) return [code, { available: false, sizes: [] }];
       const count = totalStock(product);
