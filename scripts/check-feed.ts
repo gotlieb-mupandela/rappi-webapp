@@ -12,7 +12,7 @@ import { CATEGORIES } from "../lib/catalog";
 import { catalogVersion } from "../lib/catalog-version";
 import { formatPrice } from "../lib/format";
 import { productInHub } from "../lib/hub-membership";
-import { allowedImageHosts } from "../lib/image-hosts";
+import { allowedImageHosts, imageHostAllows } from "../lib/image-hosts";
 import { eurPerNad } from "../lib/i18n/config";
 import { shippingName } from "../lib/i18n/labels";
 import { makeT } from "../lib/i18n/translate";
@@ -20,7 +20,7 @@ import { isLiveFolder } from "../lib/joma-live";
 import { FOOTWEAR_FOLDERS } from "../lib/joma-tree";
 import { filterListing, type ListingItem } from "../lib/listing-core";
 import { listingCardCandidates } from "../lib/media";
-import { metaAbsoluteUrl } from "../lib/meta/site";
+import { CANONICAL_SITE_ORIGIN } from "../lib/meta/site";
 import {
   checkoutCountries,
   COUNTRY_LIST_CAP,
@@ -362,11 +362,37 @@ assert.equal(medium.cardImage.includes("card-primary"), false);
 assert.equal(feedImageUrl(medium.cardImage), medium.cardImage);
 
 const relative = cardByCode(feed, "REL-PATH");
-const relativeAbsolute = metaAbsoluteUrl("/catalog-photos/rel-path.jpg");
+const relativeAbsolute = `${CANONICAL_SITE_ORIGIN}/catalog-photos/rel-path.jpg`;
 assert.equal(relative.cardImage, relativeAbsolute);
 assert.equal(relative.images[0], relativeAbsolute);
 assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), relativeAbsolute);
 assert.equal(feedImageUrl(relativeAbsolute), relativeAbsolute);
+const savedSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+process.env.NEXT_PUBLIC_SITE_URL = "https://evil.example";
+try {
+  assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), relativeAbsolute);
+  assert.equal(feedImageUrl("https://evil.example/x.jpg"), null);
+} finally {
+  if (savedSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+  else process.env.NEXT_PUBLIC_SITE_URL = savedSiteUrl;
+}
+for (const hostile of [
+  "//evil.example/x.jpg",
+  "/../x",
+  "/a\\b",
+  "http://..",
+  "https://host:8443/x",
+  "/catalog-photos/a\u0001.jpg",
+  "/foo/%2e%2e/x",
+]) {
+  assert.equal(feedImageUrl(hostile), null, hostile);
+}
+const portOnListed = allowedImageHosts().find((rule) => rule.pathnamePrefix !== "/");
+assert.ok(portOnListed);
+assert.equal(
+  feedImageUrl(`https://${portOnListed.host}:8443${portOnListed.pathnamePrefix}kept.jpg`),
+  null,
+);
 
 const pack = cardByCode(feed, "PACK-25");
 assert.equal(pack.name.includes("Pack of 25"), true);
@@ -484,18 +510,25 @@ for (const product of baked) {
     excludedCodes.push(product.code);
     continue;
   }
+  const gallery = product.images?.[0];
+  assert.equal(typeof gallery, "string", product.code);
+  assert.equal(gallery!.startsWith("/"), true, product.code);
+  assert.equal(gallery!.startsWith("//"), false, product.code);
   const card = feedProductCard(product);
   if (!card) fail(`${product.code} was dropped instead of receiving an absolute card photo`);
-  if (!card.cardImage || !card.cardImage.startsWith("https://")) {
-    fail(`${product.code} cardImage is not absolute https`);
+  assert.equal(card.images[0], `${CANONICAL_SITE_ORIGIN}${gallery}`, product.code);
+  assert.equal(card.cardImage, card.images[0], product.code);
+  for (const image of [card.cardImage, ...card.images]) {
+    if (image) assertAllowedFeedImage(image, product.code);
   }
-  assert.equal(card.cardImage, card.images[0] ?? null, product.code);
-  if (feedImageUrl(card.cardImage) !== card.cardImage) fail(`${product.code} cardImage failed the host check`);
   relativeCodes.push(product.code);
 }
 relativeCodes.sort();
 excludedCodes.sort();
 assert.equal(relativeCodes.length, 75);
+for (const code of ["100807.400", "100947.401", "101114.200", "900682.100", "900683.100"]) {
+  assert.equal(relativeCodes.includes(code), true, code);
+}
 console.log(`relative card images absolutized (${relativeCodes.length})`);
 console.log(relativeCodes.join("\n"));
 console.log(`unavailable relative rows excluded (${excludedCodes.length}): ${excludedCodes.join(", ")}`);
@@ -553,7 +586,12 @@ const feedBuilder = read("lib/mobile-feed.ts");
 const feedTargets = read("lib/mobile-feed-targets.ts");
 assert.equal(feedBuilder.includes("allowedImageHosts()"), true);
 assert.equal(feedBuilder.includes("imageHostAllows("), true);
-assert.equal(feedBuilder.includes("isAllowedProductImageUrl("), true);
+assert.equal(feedBuilder.includes("CANONICAL_SITE_ORIGIN"), true);
+assert.equal(feedBuilder.includes("isAllowedProductImageUrl("), false);
+assert.equal(feedBuilder.includes("metaSiteUrl"), false);
+assert.equal(feedBuilder.includes("metaAbsoluteUrl"), false);
+assert.equal(feedBuilder.includes("process.env"), false);
+assert.equal(feedBuilder.includes("NEXT_PUBLIC_"), false);
 assert.equal(feedBuilder.includes("ALLOWED_IMAGE_HOSTS"), false);
 assert.equal(feedBuilder.includes("Content-Security-Policy"), false);
 assert.match(
@@ -612,6 +650,24 @@ const bakedFeed = buildMobileStorefront(bakedWithFolders, catalogVersion(bakedWi
 assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(bakedWithFolders)));
 assert.equal(bakedFeed.version.endsWith(".5"), true);
 assertFeedShape(bakedFeed);
+let imageEqual = 0;
+let imageDiffer = 0;
+let imageEmpty = 0;
+for (const card of bakedFeed.products) {
+  for (const image of [card.cardImage, ...card.images]) {
+    if (image) assertAllowedFeedImage(image, card.code);
+  }
+  if (!card.cardImage && card.images.length === 0) imageEmpty += 1;
+  else if (card.cardImage === card.images[0]) imageEqual += 1;
+  else imageDiffer += 1;
+}
+for (const node of bakedFeed.nodes) {
+  if (node.image) assertAllowedFeedImage(node.image, node.key);
+}
+assert.equal(imageDiffer, 0);
+console.log(
+  `cardImage equals images[0]: ${imageEqual}; differs: ${imageDiffer}; no image: ${imageEmpty}`,
+);
 const bakedNodes = indexNodes(bakedFeed);
 for (const key of [
   "hiking-outdoor",
@@ -692,6 +748,22 @@ writeFileSync("/tmp/mobile-feed-counts.txt", countLines.join("\n"));
 console.log(`tree lines ${tree.split("\n").length} chars ${tree.length}`);
 
 console.log(`feed check ok (fixture products ${feed.products.length}, version ${feed.version})`);
+
+function assertAllowedFeedImage(url: string, label: string) {
+  assert.equal(url.startsWith("https://"), true, label);
+  assert.equal(/^https:\/\/[^/?#\s:]+:\d+/i.test(url), false, label);
+  assert.equal(url.includes("\\"), false, label);
+  assert.equal(/[\u0000-\u001f\u007f]/.test(url), false, label);
+  const parsed = new URL(url);
+  assert.equal(parsed.protocol, "https:", label);
+  assert.equal(parsed.port, "", label);
+  const listed = allowedImageHosts().some((rule) =>
+    imageHostAllows(parsed.hostname, parsed.pathname, rule),
+  );
+  const canonical = parsed.origin === new URL(CANONICAL_SITE_ORIGIN).origin;
+  assert.equal(listed || canonical, true, `${label} ${parsed.hostname}`);
+  assert.equal(feedImageUrl(url), url, label);
+}
 
 function indexNodes(feedValue: MobileStorefront) {
   return new Map(feedValue.nodes.map((node) => [node.key, node]));

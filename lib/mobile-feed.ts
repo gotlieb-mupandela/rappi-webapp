@@ -19,12 +19,8 @@ import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 import { jomaFolderTileImage } from "@/lib/joma-tile-images";
 import { isOutletFolderKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { filterListing, type ListingItem } from "@/lib/listing-core";
-import {
-  hasUsableProductImage,
-  isAllowedProductImageUrl,
-  listingCardCandidates,
-} from "@/lib/media";
-import { metaAbsoluteUrl } from "@/lib/meta/site";
+import { hasUsableProductImage, listingCardCandidates } from "@/lib/media";
+import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
 import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import {
   FEED_MENUS,
@@ -117,37 +113,76 @@ type FeedNodeDraft = Omit<FeedNode, "target">;
 
 export type FeedSource = Product & { folders?: string[] };
 
+const IMAGE_CONTROL = /[\u0000-\u001f\u007f]/;
+
+function fixedSiteOrigin(): URL {
+  const origin = new URL(CANONICAL_SITE_ORIGIN);
+  if (origin.protocol !== "https:" || origin.port !== "" || origin.pathname !== "/") {
+    throw new Error("Canonical site origin is not a fixed https origin");
+  }
+  return origin;
+}
+
+/** Path only, so a query cannot hide a dot segment or a second slash. */
+function imagePath(value: string): string {
+  const bare = value.split("#")[0]?.split("?")[0] ?? "";
+  if (/^https:\/\//i.test(bare)) {
+    const rest = bare.replace(/^https:\/\//i, "");
+    const slash = rest.indexOf("/");
+    return slash === -1 ? "/" : rest.slice(slash);
+  }
+  return bare;
+}
+
+function imagePathRejected(path: string): boolean {
+  if (!path.startsWith("/") || path.startsWith("//") || path.includes("//")) return true;
+  if (path.includes("\\") || IMAGE_CONTROL.test(path) || /%2e%2e/i.test(path)) return true;
+  return path.split("/").some((part) => part === ".." || part === ".");
+}
+
 /**
  * Absolute https image, or null when the URL is dropped.
- * Relative paths are resolved with metaAbsoluteUrl first.
- * A host is kept only when allowedImageHosts() plus imageHostAllows() match.
- * The canonical site origin is not a row in that list. It is kept only when
- * isAllowedProductImageUrl allows it, which is the same same-origin check the
- * catalogue card field uses. No host strings are copied here.
+ * A path that starts with one "/" is joined to CANONICAL_SITE_ORIGIN.
+ * That origin is the fixed site constant. It is not a request header,
+ * an environment variable, or a value from the feed.
+ * Protocol-relative URLs, dot segments, backslashes, control characters,
+ * and ports are dropped. The absolute URL is kept only when
+ * allowedImageHosts() and imageHostAllows() match, or when its origin is
+ * that fixed site origin. No host strings are copied here.
  */
 export function feedImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   const trimmed = url.trim();
-  if (!trimmed || trimmed.startsWith("//") || /^http:\/\//i.test(trimmed)) return null;
-  const absolute = /^https:\/\//i.test(trimmed)
-    ? trimmed
-    : trimmed.startsWith("/")
-      ? metaAbsoluteUrl(trimmed)
-      : null;
-  if (!absolute || !/^https:\/\//i.test(absolute)) return null;
+  if (!trimmed || IMAGE_CONTROL.test(trimmed) || trimmed.includes("\\")) return null;
+  const path = imagePath(trimmed);
+  if (imagePathRejected(path)) return null;
+
+  let absolute: string;
+  if (/^https:\/\//i.test(trimmed)) {
+    if (/^https:\/\/[^/?#\s:]+:\d+/i.test(trimmed)) return null;
+    absolute = trimmed;
+  } else if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    absolute = `${CANONICAL_SITE_ORIGIN}${trimmed}`;
+  } else {
+    return null;
+  }
+
   let parsed: URL;
   try {
     parsed = new URL(absolute);
   } catch {
     return null;
   }
-  if (parsed.protocol !== "https:") return null;
+  if (parsed.protocol !== "https:" || parsed.port !== "") return null;
+  if (parsed.username !== "" || parsed.password !== "") return null;
+  if (imagePathRejected(parsed.pathname)) return null;
+
+  const onFixedOrigin = parsed.origin === fixedSiteOrigin().origin;
   const listed = allowedImageHosts().some((rule) =>
     imageHostAllows(parsed.hostname, parsed.pathname, rule),
   );
-  if (listed) return absolute;
-  if (isAllowedProductImageUrl(absolute)) return absolute;
-  return null;
+  if (!onFixedOrigin && !listed) return null;
+  return absolute;
 }
 
 function tileImage(path: string | null | undefined): string | null {
