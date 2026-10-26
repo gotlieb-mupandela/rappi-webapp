@@ -49,6 +49,8 @@ DPO company notify URL (after `DPO_WEBHOOK_SECRET` is on Vercel):
 
 Copy the token from `.env.local`. The return page still creates the order if the shopper comes back signed in.
 
+Checkout totals for the mobile app are computed on the server. The signed-in bag uses `POST /api/cart/prices` (current catalog unit prices and merchandise subtotal). Checkout display uses `POST /api/checkout/quote`. Payment create still charges that same `total` and now returns it on the response. Field list: [docs/checkout-api.md](docs/checkout-api.md).
+
 ## Admin panel
 
 1. Create a staff Auth user in Supabase.

@@ -2,6 +2,10 @@
 
 The site is a regular Next.js web app. Store listings use a Capacitor shell in `mobile/` that loads `https://www.rappisportshub.com`.
 
+## Bag and checkout totals
+
+The signed-in bag loads unit prices from `POST /api/cart/prices`. That replaces a direct read of `products.price`. Checkout shows `POST /api/checkout/quote` (`subtotal`, `shipping`, `vat`, `total`). `POST /api/payments/dpo/create` charges `total` and returns the same figures. Contracts: [checkout-api.md](checkout-api.md).
+
 ## Push (native app)
 
 ### Env (Vercel + `.env.local`)

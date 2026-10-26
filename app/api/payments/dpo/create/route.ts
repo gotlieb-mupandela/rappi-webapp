@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
+import { checkoutPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
 import {
   cartDescription,
-  cartShippingCost,
-  cartSubtotal,
   CartResolveError,
   parseShippingMethod,
   resolveCheckoutLines,
@@ -10,7 +9,6 @@ import {
 import type { DpoPaymentPayload } from "@/lib/dpo-payload";
 import {
   createToken,
-  dpoCurrency,
   dpoPaymentUrl,
   formatDpoNetworkError,
   requestSiteUrl,
@@ -19,7 +17,6 @@ import {
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRequestClient } from "@/lib/supabase/request";
-import { defaultVatCountry, quoteVat, resolveVatCountry } from "@/lib/vat";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -73,15 +70,17 @@ export async function POST(req: Request) {
   const pickup = shippingMethod === "pickup";
   const address = String(body.address ?? "").trim() || (pickup ? "Hub pickup" : "");
   const city = String(body.city ?? "").trim() || (pickup ? "—" : "");
-  const vatCountry = resolveVatCountry(String(body.country ?? "")) ?? (pickup ? resolveVatCountry(defaultVatCountry()) : null);
+  const vatCountry = resolveCheckoutCountry(body.country, shippingMethod);
   if (!address || !city || !vatCountry) {
     return NextResponse.json({ error: "Complete shipping details." }, { status: 400 });
   }
   const country = vatCountry.name;
 
   let lines;
+  let quote;
   try {
     lines = await resolveCheckoutLines(body.lines);
+    quote = checkoutPaymentQuote(lines, shippingMethod, country);
   } catch (err) {
     if (err instanceof CartResolveError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
@@ -89,17 +88,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not price the cart." }, { status: 400 });
   }
 
-  const shippingCost = cartShippingCost(shippingMethod);
-  const net = cartSubtotal(lines) + shippingCost;
-  const vat = quoteVat(country, net);
-  const amount = vat.total;
-  if (amount <= 0) {
+  const amount = quote.total;
+  if (!Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Cart total must be greater than zero." }, { status: 400 });
   }
 
   const companyRef = `RSH-${crypto.randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
   const { firstName, lastName } = splitName(name);
-  const currency = dpoCurrency();
+  const currency = quote.currency;
   const description = cartDescription(lines, companyRef);
   const payload: DpoPaymentPayload = {
     userId: user.id,
@@ -110,9 +106,9 @@ export async function POST(req: Request) {
     city,
     country,
     shippingMethod,
-    shippingCost,
-    vatRate: vat.rate,
-    vatAmount: vat.amount,
+    shippingCost: quote.shipping,
+    vatRate: quote.vat.rate,
+    vatAmount: quote.vat.amount,
     notes: String(body.notes ?? "").trim(),
     lines,
   };
@@ -177,5 +173,11 @@ export async function POST(req: Request) {
     paymentUrl: dpoPaymentUrl(created.transToken),
     companyRef,
     transToken: created.transToken,
+    items: quote.items,
+    subtotal: quote.subtotal,
+    shipping: quote.shipping,
+    vat: quote.vat,
+    total: quote.total,
+    currency: quote.currency,
   });
 }

@@ -1,0 +1,457 @@
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { bagPrices, checkoutPaymentQuote, resolveCheckoutCountry } from "../lib/checkout-quote";
+import {
+  consumeRateLimit,
+  memoryRateLimitAllowed,
+  memoryRateLimitFailNext,
+  resetMemoryRateLimit,
+} from "./checkout-memory-rate-limit";
+import {
+  CartResolveError,
+  parseCheckoutLineInput,
+  parseShippingMethod,
+  priceCheckoutLines,
+} from "../lib/checkout-lines";
+import { buildCreateTokenXml, xmlTag } from "../lib/dpo-xml";
+import type { DpoCartLine } from "../lib/dpo-payload";
+import { escapeHtml } from "../lib/html-escape";
+import type { Product } from "../lib/types";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+function fail(msg: string) {
+  console.error(`FAIL ${msg}`);
+  process.exitCode = 1;
+}
+
+function product(code: string, price: number, size = "M", stock = 20): Product {
+  return {
+    id: code,
+    code,
+    item: code,
+    title: code,
+    name: code,
+    displayName: code,
+    category: "football",
+    subcategory: "tees",
+    gender: "unisex",
+    price,
+    unitPrice: price,
+    currency: "NAD",
+    sheetCategory: null,
+    totalQty: stock,
+    stockQty: stock,
+    badge: null,
+    sizeOptions: [size],
+    sizes: [{ size, stock }],
+    imageUrl: "/x.webp",
+    images: ["/x.webp"],
+  };
+}
+
+function line(code: string, price: number, qty: number, size = "M"): DpoCartLine {
+  return { code, name: code, size, qty, price };
+}
+
+function expectThrow(fn: () => unknown, message: string) {
+  try {
+    fn();
+    fail(`expected throw: ${message}`);
+  } catch (err) {
+    if (!(err instanceof CartResolveError) || err.status !== 400) {
+      fail(`${message} should be a 400 CartResolveError`);
+    }
+  }
+}
+
+const parsed = parseCheckoutLineInput([
+  { code: "SKU1", size: "M", qty: 2, price: 1, unitPrice: 5, lineTotal: 9 },
+]);
+if (parsed.length !== 1 || parsed[0].code !== "SKU1" || parsed[0].qty !== 2) {
+  fail("parser dropped a valid line");
+}
+if ("price" in parsed[0] || "unitPrice" in parsed[0] || "lineTotal" in parsed[0]) {
+  fail("parser kept a client price");
+}
+
+const priced = priceCheckoutLines(parsed, new Map([["SKU1", product("SKU1", 304)]]));
+if (priced[0].price !== 304) fail(`client price was trusted: ${priced[0].price}`);
+
+expectThrow(() => parseCheckoutLineInput([]), "empty cart");
+expectThrow(() => parseCheckoutLineInput([{ code: "A", size: "M", qty: 0 }]), "qty 0");
+expectThrow(() => parseCheckoutLineInput([{ code: "A", size: "M", qty: 100 }]), "qty 100");
+expectThrow(() => parseCheckoutLineInput([{ code: "A", size: "M", qty: 1.5 }]), "fractional qty");
+expectThrow(
+  () => parseCheckoutLineInput(Array.from({ length: 51 }, () => ({ code: "A", size: "M", qty: 1 }))),
+  "51 lines",
+);
+expectThrow(
+  () => priceCheckoutLines([{ code: "MISSING", size: "M", qty: 1 }], new Map()),
+  "unknown code",
+);
+
+function catalogWithPrice(price: unknown) {
+  const item = product("BAD", 1);
+  (item as { price: unknown }).price = price;
+  return item;
+}
+
+for (const price of [null, Number.NaN, 0, -1]) {
+  expectThrow(
+    () =>
+      priceCheckoutLines(
+        [{ code: "BAD", size: "M", qty: 1 }],
+        new Map([["BAD", catalogWithPrice(price)]]),
+      ),
+    `rejected price ${String(price)}`,
+  );
+}
+
+try {
+  priceCheckoutLines([{ code: "SKU1", size: "<img>", qty: 1 }], new Map([["SKU1", product("SKU1", 10)]]));
+  fail("bad size should throw");
+} catch (err) {
+  if (!(err instanceof CartResolveError)) fail("bad size error type");
+  else if (escapeHtml(err.message).includes("<img>")) fail("size error was not escaped");
+  else if (!escapeHtml(err.message).includes("&lt;img&gt;")) fail("escaped size missing");
+}
+
+if (parseShippingMethod("standard") !== "standard") fail("standard shipping");
+if (parseShippingMethod("air") !== null) fail("unknown shipping should be rejected");
+for (const qty of ["5", true, null, 1.5, Number.NaN]) {
+  expectThrow(
+    () => parseCheckoutLineInput([{ code: "A", size: "M", qty }]),
+    `rejected qty ${String(qty)}`,
+  );
+}
+if (parseCheckoutLineInput([{ code: "A", size: "M", qty: 2 }])[0].qty !== 2) {
+  fail("integer qty should be accepted");
+}
+
+const dupProduct = product("DUP", 10, "M", 77);
+const dupCatalog = new Map([["DUP", dupProduct]]);
+const mergedFit = priceCheckoutLines(
+  Array.from({ length: 50 }, () => ({ code: "DUP", size: "M", qty: 1 })),
+  dupCatalog,
+);
+if (mergedFit.length !== 1 || mergedFit[0].qty !== 50) fail("duplicates that fit were not merged");
+const fitQuote = checkoutPaymentQuote(mergedFit, "standard", "Namibia");
+if (fitQuote.items.length !== 1 || fitQuote.items[0].qty !== 50 || fitQuote.total !== 690) {
+  fail(`merged quote qty ${fitQuote.items[0]?.qty} total ${fitQuote.total}`);
+}
+
+try {
+  priceCheckoutLines(
+    [
+      { code: "DUP", size: "M", qty: 40 },
+      { code: "DUP", size: "M", qty: 40 },
+    ],
+    dupCatalog,
+  );
+  fail("duplicates that exceed stock were accepted");
+} catch (err) {
+  if (!(err instanceof CartResolveError) || !err.message.includes("in stock")) {
+    fail("duplicates over stock should fail the stock check");
+  }
+}
+
+expectThrow(
+  () =>
+    priceCheckoutLines(
+      [
+        { code: "DUP", size: "M", qty: 60 },
+        { code: "DUP", size: "M", qty: 40 },
+      ],
+      new Map([["DUP", product("DUP", 10, "M", 500)]]),
+    ),
+  "merged qty above 99",
+);
+
+const quotedDupes = checkoutPaymentQuote(
+  [line("A", 10, 2), line("A", 10, 3), line("B", 5, 1)],
+  "pickup",
+  "United States",
+);
+if (quotedDupes.items.length !== 2 || quotedDupes.items[0].qty !== 5 || quotedDupes.items[0].lineTotal !== 50) {
+  fail("checkoutPaymentQuote did not return merged lines");
+}
+
+const carts: Array<{
+  lines: DpoCartLine[];
+  method: string;
+  country: string;
+  total: number;
+  shipping: number;
+  vatRate: number;
+  vatAmount: number;
+}> = [
+  {
+    lines: [line("A", 250, 2), line("B", 80, 1)],
+    method: "standard",
+    country: "Namibia",
+    shipping: 100,
+    vatRate: 15,
+    vatAmount: 102,
+    total: 782,
+  },
+  {
+    lines: [line("C", 100, 1)],
+    method: "express",
+    country: "France",
+    shipping: 150,
+    vatRate: 20,
+    vatAmount: 50,
+    total: 300,
+  },
+  {
+    lines: [line("D", 15.5, 2)],
+    method: "pickup",
+    country: "United States",
+    shipping: 0,
+    vatRate: 0,
+    vatAmount: 0,
+    total: 31,
+  },
+  {
+    lines: [line("E", 40, 3)],
+    method: "standard",
+    country: "Finland",
+    shipping: 100,
+    vatRate: 25.5,
+    vatAmount: 56.1,
+    total: 276.1,
+  },
+  {
+    lines: [line("F", 19, 1)],
+    method: "express",
+    country: "Cameroon",
+    shipping: 150,
+    vatRate: 19.25,
+    vatAmount: 32.53,
+    total: 201.53,
+  },
+];
+
+const previousCurrency = process.env.DPO_CURRENCY;
+process.env.DPO_CURRENCY = "USD";
+try {
+  for (const cart of carts) {
+    const country = resolveCheckoutCountry(cart.country, cart.method);
+    if (!country) fail(`country ${cart.country} did not resolve`);
+    const quote = checkoutPaymentQuote(cart.lines, cart.method, country?.name ?? cart.country);
+    if (quote.total !== cart.total) fail(`${cart.country} total ${quote.total} !== ${cart.total}`);
+    if (quote.shipping !== cart.shipping) fail(`${cart.country} shipping ${quote.shipping}`);
+    if (quote.vat.rate !== cart.vatRate || quote.vat.amount !== cart.vatAmount) {
+      fail(`${cart.country} vat ${quote.vat.rate}/${quote.vat.amount}`);
+    }
+    if (quote.currency !== "USD") fail("quote currency did not follow DPO_CURRENCY");
+    const xml = buildCreateTokenXml({
+      companyToken: "test-token",
+      serviceType: "1",
+      companyRef: "RSH-TEST",
+      amount: quote.total,
+      currency: quote.currency,
+      description: "quote test",
+      serviceDate: "2026/10/25 12:00",
+      customer: {
+        firstName: "Test",
+        lastName: "Buyer",
+        email: "buyer@example.com",
+        country: country?.name,
+      },
+      siteUrl: "https://www.rappisportshub.com",
+    });
+    const payloadAmount = xmlTag(xml, "PaymentAmount");
+    if (payloadAmount !== quote.total.toFixed(2)) {
+      fail(`PaymentAmount ${payloadAmount} !== quote.total ${quote.total.toFixed(2)}`);
+    }
+    if (Number(payloadAmount) !== quote.total) {
+      fail(`PaymentAmount number ${payloadAmount} !== quote.total ${quote.total}`);
+    }
+    if (xmlTag(xml, "PaymentCurrency") !== quote.currency) fail("PaymentCurrency drifted");
+    const bag = bagPrices(cart.lines);
+    if (bag.subtotal !== quote.subtotal) fail("bag subtotal drifted from quote");
+    if (bag.items.some((item, i) => item.unitPrice !== quote.items[i].unitPrice)) {
+      fail("bag unit price drifted from quote");
+    }
+    if ("total" in bag || "shipping" in bag || "vat" in bag) fail("bag prices included checkout totals");
+  }
+} finally {
+  if (previousCurrency === undefined) delete process.env.DPO_CURRENCY;
+  else process.env.DPO_CURRENCY = previousCurrency;
+}
+
+const za = resolveCheckoutCountry("za", "standard");
+if (za?.name !== "South Africa" || za.rate !== 15) fail("za alias");
+const zaQuote = checkoutPaymentQuote([line("G", 10, 1)], "standard", za?.name ?? "");
+if (zaQuote.total !== 126.5) fail(`za total ${zaQuote.total}`);
+
+const pickupDefault = resolveCheckoutCountry("", "pickup");
+if (pickupDefault?.name !== "Namibia") fail("pickup default country");
+const pickupQuote = checkoutPaymentQuote([line("H", 10, 1)], "pickup", pickupDefault?.name ?? "");
+if (pickupQuote.total !== 11.5 || pickupQuote.shipping !== 0) fail(`pickup default total ${pickupQuote.total}`);
+if (resolveCheckoutCountry("", "express") !== null) fail("express requires a country");
+
+const skuQuote = checkoutPaymentQuote(priced, "standard", "Namibia");
+if (skuQuote.items[0].unitPrice !== 304 || skuQuote.total === 1) {
+  fail("quote used a client price");
+}
+
+function source(path: string) {
+  return readFileSync(join(root, path), "utf8");
+}
+
+const createRoute = source("app/api/payments/dpo/create/route.ts");
+if (!createRoute.includes("quote = checkoutPaymentQuote(lines, shippingMethod, country);")) {
+  fail("create route does not call checkoutPaymentQuote");
+}
+const resolver = source("lib/dpo-cart.ts");
+const resolverBody = resolver.slice(resolver.indexOf("export async function resolveCheckoutLines"));
+const mergeAt = resolverBody.indexOf("mergeCheckoutLineRequests(");
+const priceAt = resolverBody.indexOf("priceCheckoutLines(");
+if (mergeAt < 0 || priceAt < 0 || mergeAt > priceAt) {
+  fail("resolveCheckoutLines must merge lines before the stock check");
+}
+const qtyFn = source("lib/checkout-lines.ts");
+const qtyBody = qtyFn.slice(qtyFn.indexOf("export function parseQty"), qtyFn.indexOf("function lineKey"));
+if (!qtyBody.includes("Number.isInteger(value)")) fail("qty must use Number.isInteger on the raw value");
+if (qtyBody.includes("Number(value)")) fail("qty must not coerce strings with Number()");
+if (!createRoute.includes("const amount = quote.total;")) {
+  fail("create route does not charge quote.total");
+}
+if (!createRoute.includes("!Number.isFinite(amount) || amount <= 0")) {
+  fail("create route accepts a non-finite or non-positive amount");
+}
+if (!/createToken\(\{[\s\S]*amount,[\s\S]*currency,/.test(createRoute)) {
+  fail("createToken is not called with the quote amount");
+}
+for (const field of ["items: quote.items", "subtotal: quote.subtotal", "shipping: quote.shipping", "vat: quote.vat", "total: quote.total", "currency: quote.currency"]) {
+  if (!createRoute.includes(field)) fail(`create response missing ${field}`);
+}
+if (!createRoute.includes("paymentUrl:") || !createRoute.includes("companyRef,") || !createRoute.includes("transToken: created.transToken")) {
+  fail("create response dropped an existing field");
+}
+
+const dpoSource = source("lib/dpo.ts");
+if (!dpoSource.includes("buildCreateTokenXml(")) fail("createToken does not build XML with the shared helper");
+if (dpoSource.includes("<PaymentAmount>")) fail("PaymentAmount is formatted outside the shared XML helper");
+
+for (const path of ["app/api/checkout/quote/route.ts", "app/api/cart/prices/route.ts"]) {
+  const text = source(path);
+  const methods = [...text.matchAll(/export async function (GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)/g)].map(
+    (match) => match[1],
+  );
+  if (methods.join(",") !== "POST") fail(`${path} methods: ${methods.join(",") || "none"}`);
+  if (!text.includes("enforceCheckoutRateLimit")) fail(`${path} has no rate limit`);
+  if (!text.includes("escapeHtml") && !text.includes("pricedCartError")) {
+    fail(`${path} can reflect user input unescaped`);
+  }
+  if (text.includes("row.price") || text.includes("body.price") || text.includes("unitPrice:")) {
+    fail(`${path} reads a client price`);
+  }
+}
+
+const quoteRoute = source("app/api/checkout/quote/route.ts");
+if (!quoteRoute.includes("checkoutPaymentQuote(lines, shippingMethod, vatCountry.name)")) {
+  fail("quote route does not call checkoutPaymentQuote");
+}
+const pricesRoute = source("app/api/cart/prices/route.ts");
+if (!pricesRoute.includes("bagPrices(lines)")) fail("bag route does not use bagPrices");
+
+const env = process.env as Record<string, string | undefined>;
+const previousVercel = env.VERCEL_ENV;
+const previousNodeEnv = env.NODE_ENV;
+try {
+  delete env.VERCEL_ENV;
+  delete env.NODE_ENV;
+  if (!memoryRateLimitAllowed()) fail("memory limiter should be allowed in local dev");
+  env.VERCEL_ENV = "production";
+  if (memoryRateLimitAllowed()) fail("memory limiter must be ignored when VERCEL_ENV=production");
+  env.VERCEL_ENV = "preview";
+  if (memoryRateLimitAllowed()) fail("memory limiter must be ignored when VERCEL_ENV=preview");
+  delete env.VERCEL_ENV;
+  env.NODE_ENV = "production";
+  if (memoryRateLimitAllowed()) fail("memory limiter must be ignored when NODE_ENV=production");
+  const hook = createRequire(import.meta.url)("./checkout-local-hook.cjs") as {
+    installCheckoutLocalHooks: () => boolean;
+  };
+  if (hook.installCheckoutLocalHooks()) {
+    fail("local hook must not install when NODE_ENV=production");
+  }
+  delete env.NODE_ENV;
+  env.VERCEL_ENV = "preview";
+  if (hook.installCheckoutLocalHooks()) {
+    fail("local hook must not install when VERCEL_ENV=preview");
+  }
+  env.VERCEL_ENV = "production";
+  if (hook.installCheckoutLocalHooks()) {
+    fail("local hook must not install when VERCEL_ENV=production");
+  }
+} finally {
+  if (previousVercel === undefined) delete env.VERCEL_ENV;
+  else env.VERCEL_ENV = previousVercel;
+  if (previousNodeEnv === undefined) delete env.NODE_ENV;
+  else env.NODE_ENV = previousNodeEnv;
+}
+
+async function checkMemoryRateLimit() {
+  resetMemoryRateLimit();
+  const limitKey = `checkout-quote:qa-${Date.now()}`;
+  let allowed = 0;
+  for (let i = 0; i < 60; i += 1) {
+    if (await consumeRateLimit(limitKey, 60, 60)) allowed += 1;
+  }
+  if (allowed !== 60) fail(`expected 60 allowed requests, got ${allowed}`);
+  if (await consumeRateLimit(limitKey, 60, 60)) fail("61st request in the minute must be rejected");
+  if (!(await consumeRateLimit(`cart-prices:other-${Date.now()}`, 60, 60))) {
+    fail("a different IP bucket should still be allowed");
+  }
+  memoryRateLimitFailNext();
+  if (await consumeRateLimit(limitKey, 60, 60)) fail("rate limit store errors must fail closed");
+  if (await consumeRateLimit("", 60, 60)) fail("empty rate limit key must fail closed");
+}
+
+void checkMemoryRateLimit()
+  .catch((err: unknown) => {
+    fail(err instanceof Error ? err.message : "memory rate limit test failed");
+  })
+  .then(() => {
+for (const path of [
+  "lib/rate-limit.ts",
+  "lib/checkout-http.ts",
+  "app/api/checkout/quote/route.ts",
+  "app/api/cart/prices/route.ts",
+  "app/api/payments/dpo/create/route.ts",
+]) {
+  const text = source(path);
+  if (text.includes("checkout-memory-rate-limit") || text.includes("memoryRateLimitAllowed")) {
+    fail(`${path} must not ship the in-memory rate limiter`);
+  }
+  if (text.includes("NEXT_PUBLIC_CHECKOUT") || text.includes("CHECKOUT_MEMORY_RATE_LIMIT")) {
+    fail(`${path} must not read a public flag for the memory limiter`);
+  }
+}
+
+for (const path of [
+  "scripts/checkout-quote-local.ts",
+  "scripts/checkout-local-hook.cjs",
+  "scripts/checkout-memory-rate-limit.ts",
+]) {
+  const text = source(path);
+  if (text.includes("NEXT_PUBLIC_")) fail(`${path} must not read a NEXT_PUBLIC_ variable`);
+  if (text.includes("CHECKOUT_MEMORY_RATE_LIMIT")) fail(`${path} must not define a memory limiter flag`);
+}
+const envExample = source(".env.example");
+if (envExample.includes("CHECKOUT_MEMORY_RATE_LIMIT") || envExample.includes("checkout-memory-rate-limit")) {
+  fail(".env.example must not set the in-memory rate limiter");
+}
+
+if (process.exitCode) {
+  console.error("checkout quote tests failed");
+} else {
+  console.log("checkout quote tests passed");
+}
+  });
