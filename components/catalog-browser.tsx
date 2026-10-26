@@ -10,6 +10,7 @@ import {
   type ListingQuery,
   type ListingResult,
 } from "@/lib/listing-core";
+import { canonicalSlug } from "@/lib/slug-aliases";
 
 function queryFromLocation(): ListingQuery {
   if (typeof window === "undefined") return {};
@@ -21,8 +22,8 @@ function apiParams(query: ListingQuery, categorySlug?: string, audienceSlug?: st
   if (query.q) params.set("q", query.q);
   const cat = categorySlug || query.cat;
   if (cat && cat !== "all") params.set("cat", cat);
-  if (query.sub) params.set("sub", query.sub);
-  if (query.group) params.set("group", query.group);
+  if (query.sub) params.set("sub", canonicalSlug(query.sub));
+  if (query.group) params.set("group", canonicalSlug(query.group));
   if (query.size) params.set("size", query.size);
   if (query.max) params.set("max", query.max);
   const audience = audienceSlug || query.audience;

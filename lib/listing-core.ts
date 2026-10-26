@@ -10,6 +10,7 @@ import {
   HIDDEN_TYPE_FOLDERS,
   SUBCATEGORY_LABELS,
   matchesTypeFolder,
+  publicSubcategorySlug,
   subcategoryChipRank,
 } from "@/lib/catalog";
 import { sortByFolderOrder } from "@/lib/folder-order";
@@ -24,6 +25,7 @@ import {
   type ListingResult,
 } from "@/lib/listing-types";
 import { versionProductImages } from "@/lib/image-cache";
+import { canonicalSlug } from "@/lib/slug-aliases";
 import type { Product } from "@/lib/types";
 
 export { LISTING_PAGE_SIZE } from "@/lib/listing-types";
@@ -62,8 +64,8 @@ export function parseListingQuery(sp: ListingQuery): ListingQuery {
   return {
     q: (sp.q ?? "").trim(),
     cat: sp.cat || undefined,
-    sub: sp.sub || undefined,
-    group: sp.group || undefined,
+    sub: sp.sub ? canonicalSlug(sp.sub) : undefined,
+    group: sp.group ? canonicalSlug(sp.group) : undefined,
     size: sp.size || undefined,
     max: sp.max || undefined,
     audience: sp.audience || undefined,
@@ -89,8 +91,8 @@ export function listingHref(basePath: string, query: ListingQuery, categorySlug?
   const q = (query.q ?? "").trim();
   if (q) next.set("q", q);
   if (query.cat && query.cat !== "all" && query.cat !== categorySlug) next.set("cat", query.cat);
-  if (query.sub && query.sub !== "all") next.set("sub", query.sub);
-  if (query.group && query.group !== "all") next.set("group", query.group);
+  if (query.sub && query.sub !== "all") next.set("sub", canonicalSlug(query.sub));
+  if (query.group && query.group !== "all") next.set("group", canonicalSlug(query.group));
   if (query.size && query.size !== "all") next.set("size", query.size);
   if (query.max) next.set("max", query.max);
   if (query.audience && query.audience !== "all") next.set("audience", query.audience);
@@ -140,7 +142,8 @@ function productHasImage(p: ListingItem) {
 }
 
 function listingInFolder(product: ListingItem, key: string) {
-  return Boolean(product.folders?.includes(key));
+  const want = canonicalSlug(key);
+  return Boolean(product.folders?.some((folder) => canonicalSlug(folder) === want));
 }
 
 export function filterListing(
@@ -152,8 +155,8 @@ export function filterListing(
   if (opts?.requireQuery && !q) return [];
 
   const scopedCat = opts?.categorySlug || query.cat;
-  const sub = query.sub && query.sub !== "all" ? query.sub : "";
-  const group = query.group && query.group !== "all" ? query.group : "";
+  const sub = query.sub && query.sub !== "all" ? canonicalSlug(query.sub) : "";
+  const group = query.group && query.group !== "all" ? canonicalSlug(query.group) : "";
   const size = query.size && query.size !== "all" ? query.size : "";
   const audience = query.audience && query.audience !== "all" ? query.audience : "";
   const max = query.max ? Number(query.max) : NaN;
@@ -197,7 +200,7 @@ export function filterListing(
   }
 
   const filtered = list.filter((p) => {
-    if (sub && p.subcategory !== sub) return false;
+    if (sub && publicSubcategorySlug(p.subcategory) !== publicSubcategorySlug(sub)) return false;
     if (group) {
       if (jomaGroup) {
         if (!listingInFolder(p, jomaGroup)) return false;
@@ -242,7 +245,10 @@ function facetAudiences(list: ListingItem[]): ListingFacet[] {
 
 function facetSubs(list: ListingItem[]): ListingFacet[] {
   const counts = new Map<string, number>();
-  for (const p of list) counts.set(p.subcategory, (counts.get(p.subcategory) ?? 0) + 1);
+  for (const p of list) {
+    const slug = canonicalSlug(p.subcategory);
+    counts.set(slug, (counts.get(slug) ?? 0) + 1);
+  }
   return [...counts.entries()]
     .filter(([slug]) => !HIDDEN_TYPE_FOLDERS.has(slug))
     .map(([slug, count]) => ({
@@ -309,7 +315,10 @@ export function paginateListing(
 /** Drop server-only search/folder helpers before sending a row to the browser. */
 export function toClientProduct(product: Product): Product {
   const { hay: _hay, folders: _folders, ...rest } = product as ListingItem;
-  return versionProductImages(rest);
+  return versionProductImages({
+    ...rest,
+    subcategory: canonicalSlug(rest.subcategory),
+  });
 }
 
 export function buildListing(
@@ -321,7 +330,7 @@ export function buildListing(
   const beforeAudience = audience
     ? filterListing(catalog, { ...query, audience: undefined }, opts)
     : null;
-  const groupKey = query.group && query.group !== "all" ? query.group : "";
+  const groupKey = query.group && query.group !== "all" ? canonicalSlug(query.group) : "";
   const filtered = beforeAudience
     ? beforeAudience.filter((p) => matchesAudienceInFolder(p, audience, groupKey))
     : filterListing(catalog, query, opts);

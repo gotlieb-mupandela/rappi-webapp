@@ -353,6 +353,7 @@ const SHOE_SUBS = new Set([
   "hockey-shoes",
   "volleyball-shoes",
   "comfort-shoes",
+  "flow",
   "joma-flow",
   "summer-shoes",
   "forloz",

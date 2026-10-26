@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildListing, LISTING_PAGE_SIZE, toClientProduct } from "@/lib/listing-core";
+import { canonicalQuerySlug } from "@/lib/slug-aliases";
 import { getCatalogLive } from "@/lib/supabase/catalog";
 
 export const runtime = "nodejs";
@@ -15,8 +16,8 @@ export async function GET(request: Request) {
     {
       q: url.searchParams.get("q") ?? undefined,
       cat: url.searchParams.get("cat") ?? url.searchParams.get("category") ?? undefined,
-      sub: url.searchParams.get("sub") ?? undefined,
-      group: url.searchParams.get("group") ?? undefined,
+      sub: canonicalQuerySlug(url.searchParams.get("sub")),
+      group: canonicalQuerySlug(url.searchParams.get("group")),
       size: url.searchParams.get("size") ?? undefined,
       max: url.searchParams.get("max") ?? undefined,
       audience: url.searchParams.get("audience") ?? url.searchParams.get("gender") ?? undefined,

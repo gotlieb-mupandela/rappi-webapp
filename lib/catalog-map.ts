@@ -1,4 +1,5 @@
 import type { Json } from "@/lib/database.types";
+import { publicSubcategorySlug } from "@/lib/catalog";
 import type { Product } from "@/lib/types";
 
 export type StorefrontCatalogRow = {
@@ -61,7 +62,7 @@ export function mapStorefrontRow(row: StorefrontCatalogRow): Product | null {
     displayName: row.display_name ?? row.name ?? "",
     category: row.category_slug ?? "sportswear",
     ...(hubs.length ? { hubs } : {}),
-    subcategory: row.subcategory ?? "general",
+    subcategory: publicSubcategorySlug(row.subcategory ?? "general"),
     gender: row.gender ?? "unisex",
     price: Number(row.price) || 0,
     unitPrice: Number(row.unit_price) || 0,

@@ -1,9 +1,7 @@
-import fixData from "@/data/b2c-price-fix-data.json";
+import hiddenPackCodes from "@/data/hidden-pack-codes.json";
 
 /** Pack-policy hidden SKUs (broken / hidden packs, e.g. 700133.100): never shown. */
-const DELIBERATELY_HIDDEN = new Set(
-  ((fixData as { hidden_packs?: Array<{ code: string }> }).hidden_packs ?? []).map((h) => h.code),
-);
+const DELIBERATELY_HIDDEN = new Set(hiddenPackCodes);
 
 type VisProduct = {
   code: string;

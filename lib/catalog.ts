@@ -1,3 +1,5 @@
+import { canonicalSlug } from "@/lib/slug-aliases";
+
 export type CategoryDef = {
   slug: string;
   name: string;
@@ -151,6 +153,8 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   "hockey-shoes": "Hockey",
   "volleyball-shoes": "Volleyball",
   "comfort-shoes": "Confort",
+  "flow": "Flow",
+  // Stored rows and old links may still use this slug. Never show it raw.
   "joma-flow": "Flow",
   "summer-shoes": "Summer shoes",
   forloz: "Forloz",
@@ -215,6 +219,7 @@ export const TYPE_FOLDERS: Record<string, readonly string[]> = {
     "hockey-shoes",
     "volleyball-shoes",
     "comfort-shoes",
+    "flow",
     "joma-flow",
     "summer-shoes",
     "forloz",
@@ -297,7 +302,7 @@ export const SUBCATEGORY_CHIP_ORDER = [
   "sandals",
   "barefoot",
   "comfort-shoes",
-  "joma-flow",
+  "flow",
   "summer-shoes",
   "forloz",
   "kids-shoes",
@@ -324,7 +329,12 @@ const SUBCATEGORY_CHIP_RANK = new Map<string, number>(
 );
 
 export function subcategoryChipRank(slug: string) {
-  return SUBCATEGORY_CHIP_RANK.get(slug) ?? SUBCATEGORY_CHIP_ORDER.length;
+  return SUBCATEGORY_CHIP_RANK.get(publicSubcategorySlug(slug)) ?? SUBCATEGORY_CHIP_ORDER.length;
+}
+
+/** Public subcategory slug. Older stored rows still say joma-flow. */
+export function publicSubcategorySlug(slug: string) {
+  return canonicalSlug(slug);
 }
 
 /** Shop-like order: clothes first, then shoes, then extras. */
@@ -360,12 +370,16 @@ const SUB_TO_TYPE_FOLDER: Record<string, string> = Object.fromEntries(
 );
 
 export function typeFolderForSubcategory(sub: string) {
-  return SUB_TO_TYPE_FOLDER[sub] ?? sub;
+  const key = publicSubcategorySlug(sub);
+  return SUB_TO_TYPE_FOLDER[key] ?? SUB_TO_TYPE_FOLDER[sub] ?? key;
 }
 
 export function matchesTypeFolder(subcategory: string, group: string) {
-  const slugs = TYPE_FOLDERS[group];
-  return slugs ? slugs.includes(subcategory) : subcategory === group;
+  const key = canonicalSlug(group);
+  const slugs = TYPE_FOLDERS[key];
+  const sub = publicSubcategorySlug(subcategory);
+  if (slugs) return slugs.some((slug) => publicSubcategorySlug(slug) === sub);
+  return sub === publicSubcategorySlug(key);
 }
 
 /** Legacy / short hub paths that should resolve to a live category slug. */

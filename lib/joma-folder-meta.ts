@@ -1,4 +1,5 @@
 import raw from "@/data/joma-folder-meta.json";
+import { canonicalSlug } from "@/lib/slug-aliases";
 
 export type JomaFolderMeta = {
   key: string;
@@ -18,25 +19,31 @@ for (const row of rows) {
   else CHILDREN.set(row.parent, [row]);
 }
 
+function storedFolderKey(key: string) {
+  if (BY_KEY.has(key)) return key;
+  const next = canonicalSlug(key);
+  return BY_KEY.has(next) ? next : key;
+}
+
 export function jomaFolderByKey(key: string) {
-  return BY_KEY.get(key);
+  return BY_KEY.get(storedFolderKey(key));
 }
 
 export function isJomaBrowseFolder(key: string) {
-  return BY_KEY.has(key);
+  return BY_KEY.has(storedFolderKey(key));
 }
 
 export function jomaFolderHasChildren(key: string) {
-  return Boolean(BY_KEY.get(key)?.hasChildren);
+  return Boolean(BY_KEY.get(storedFolderKey(key))?.hasChildren);
 }
 
 export function jomaFolderParentKey(key: string) {
-  return BY_KEY.get(key)?.parent ?? undefined;
+  return BY_KEY.get(storedFolderKey(key))?.parent ?? undefined;
 }
 
 export function jomaFolderAncestorKeys(key: string): string[] {
   const chain: string[] = [];
-  let cur = BY_KEY.get(key)?.parent ?? null;
+  let cur = jomaFolderParentKey(key) ?? null;
   while (cur) {
     chain.unshift(cur);
     cur = BY_KEY.get(cur)?.parent ?? null;

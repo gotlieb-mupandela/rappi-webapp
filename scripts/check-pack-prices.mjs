@@ -243,7 +243,7 @@ const INFERRED_PACK_SIZES = new Set([8, 12, 24]);
 const INFERRED_SHOE_SUBS = new Set([
   "sneakers", "running-shoes", "trail-running", "court-shoes", "tennis-shoes", "padel-shoes",
   "pickleball-shoes", "handball-shoes", "badminton-shoes", "basketball-shoes", "outdoor-shoes",
-  "hockey-shoes", "volleyball-shoes", "comfort-shoes", "joma-flow", "summer-shoes", "forloz",
+  "hockey-shoes", "volleyball-shoes", "comfort-shoes", "flow", "joma-flow", "summer-shoes", "forloz",
   "boots", "futsal", "turf", "football-fg", "football-ag", "football-sg", "sandals", "barefoot",
   "kids-shoes", "training-shoes", "shoes",
 ]);

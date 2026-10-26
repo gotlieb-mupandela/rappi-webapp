@@ -35,6 +35,7 @@ import {
 import { isSportHub } from "@/lib/hub-membership";
 import { isJomaBrowseFolder } from "@/lib/joma-tree";
 import { buildListing, listingQueryIsActive, parseListingQuery } from "@/lib/listing-core";
+import { canonicalSlug } from "@/lib/slug-aliases";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const revalidate = 21600;
@@ -338,7 +339,7 @@ export default async function ShopListingPage({
 
   // Joma portal folders with in-page tabs: full portal list, tab strip + sections.
   const tabs = groupKey && wantsProducts && !subKey && !showFolders ? folderTabs(groupKey) : [];
-  const activeTab = firstSearchParam(sp.tab) ?? "";
+  const activeTab = canonicalSlug(firstSearchParam(sp.tab) ?? "");
   const tabbedListing = tabs.length
     ? audienceFromPath
       ? buildListing(catalog, { ...query, page: undefined, audience: audienceFromPath.slug }, { pageSize: 5000 })
