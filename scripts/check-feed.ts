@@ -59,6 +59,7 @@ import {
   siteMenuTileKeys,
   siteMenuTiles,
   siteTileKey,
+  sponsorReplicasSitePicture,
 } from "../lib/mobile-feed-pictures";
 import { LEGACY_FOLDER_SLUGS, publicCopy, publicFolderKey } from "../lib/mobile-feed-slugs";
 import {
@@ -1094,9 +1095,21 @@ for (const menu of FEED_MENUS) {
     }),
   );
   const homeKids = bakedNodes.get("home-kids")?.image ?? null;
-  const expectedCover = siteMenuCover(menu.id, visible, homeKids);
+  const expectedCover = siteMenuCover(menu.id, visible, homeKids, siteCatalog);
   assert.ok(expectedCover, `${menu.id} cover`);
   assert.equal(menuNode.image, feedImageUrl(applyBrandHash(expectedCover)), `${menu.id} cover`);
+}
+// Teams and sponsor replicas show different site pictures: the first teams landing tile
+// and the official-kits landing tile for the sponsor replicas folder.
+{
+  const teamsCover = bakedNodes.get(feedMenuKey("teams"))?.image ?? "";
+  const kitsCover = bakedNodes.get(feedMenuKey("kits"))?.image ?? "";
+  assert.equal(teamsCover, bakedNodes.get("polyester")?.image, "teams cover is the first teams tile");
+  const sponsorPicture = sponsorReplicasSitePicture(siteCatalog);
+  assert.ok(sponsorPicture, "the kits landing shows a sponsor replicas tile");
+  assert.equal(kitsCover, feedImageUrl(applyBrandHash(sponsorPicture)), "kits cover is the site kits tile");
+  assert.notEqual(teamsCover, kitsCover);
+  for (const cover of [teamsCover, kitsCover]) assert.equal(cover.includes("/brand/"), false, cover);
 }
 // Every visible tile on a menu with a landing page shows that page's picture.
 const landingMenuVisible = FEED_MENUS.filter((menu) => menu.id !== "kits").reduce((sum, menu) => {

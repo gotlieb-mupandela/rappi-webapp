@@ -932,7 +932,8 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
       const node = nodes.get(id);
       return node && !node.hidden && node.image ? [[id, node.image] as const] : [];
     });
-    const cover = tileImage(siteMenuCover(menu.id, new Map(visible), homeKidsPicture)) ?? tileImage(menu.image);
+    const cover =
+      tileImage(siteMenuCover(menu.id, new Map(visible), homeKidsPicture, catalog)) ?? tileImage(menu.image);
     const existing = nodes.get(key);
     if (existing && (menu.id === "accessories" || menu.id === "outlet")) {
       existing.tiles = ids;

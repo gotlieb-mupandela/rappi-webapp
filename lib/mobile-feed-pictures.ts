@@ -5,9 +5,11 @@ import {
   audienceLandingTiles,
   footwearLandingTiles,
   kidsLandingTiles,
+  officialKitsLandingTiles,
   outletLandingTiles,
   teamsLandingTiles,
 } from "@/lib/hubs";
+import { sponsorReplicaFolder } from "@/lib/mobile-feed-targets";
 import type { Product } from "@/lib/types";
 
 /**
@@ -162,15 +164,17 @@ export function siteMenuPictures(menuId: string, catalog: Product[]): Map<string
 }
 
 /**
- * Cover for a header menu. The site header has no pictures, so this is the
- * rule the first storefront endpoint used: brand covers for men, women,
- * footwear, teams and kits; the home kids photo for children; the first
- * landing tile picture for accessories and outlet.
+ * Cover for a header menu. The site header has no pictures, so each cover is a
+ * picture the site renders for that destination: the audience covers the category
+ * pages show for men and women; the home tile photo for children and footwear;
+ * the official-kits landing tile for sponsor replicas; otherwise the first tile
+ * on the menu's own landing page (teams, accessories, outlet).
  */
 export function siteMenuCover(
   menuId: string,
   pictures: ReadonlyMap<string, string>,
   homeKidsPicture: string | null,
+  catalog: Product[],
 ): string | null {
   switch (menuId) {
     case "men":
@@ -181,15 +185,27 @@ export function siteMenuCover(
       return homeKidsPicture ?? firstPicture(pictures);
     case "shoes":
       return HUB_COVERS.shoes ?? null;
-    case "teams":
     case "kits":
-      return HUB_COVERS["teampro-2026"] ?? null;
+      return sponsorReplicasSitePicture(catalog) ?? firstPicture(pictures) ?? HUB_COVERS["teampro-2026"] ?? null;
+    case "teams":
+      return firstPicture(pictures) ?? HUB_COVERS["teampro-2026"] ?? null;
     case "accessories":
     case "outlet":
       return firstPicture(pictures);
     default:
       return null;
   }
+}
+
+/** The picture the site's official-kits landing shows on its sponsor replicas tile. */
+export function sponsorReplicasSitePicture(catalog: Product[]): string | null {
+  const folder = sponsorReplicaFolder();
+  if (!folder) return null;
+  for (const tile of officialKitsLandingTiles(catalog)) {
+    if (!tile.imageSrc) continue;
+    if (siteTileKey(tile.href, tile.label, "kits") === folder.key) return tile.imageSrc;
+  }
+  return null;
 }
 
 function firstPicture(pictures: ReadonlyMap<string, string>): string | null {
