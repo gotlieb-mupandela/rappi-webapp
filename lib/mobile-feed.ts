@@ -11,6 +11,7 @@ import {
   type HubFolderTile,
 } from "@/lib/hubs";
 import { asHomeSpan, asHomeTone } from "@/lib/home-tiles";
+import { applyBrandHash } from "@/lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
 import { eurPerNad } from "@/lib/i18n/config";
 import {
@@ -34,6 +35,7 @@ import { catalogProductFields, filterListing, type ListingItem } from "@/lib/lis
 import { hasUsableProductImage, listingCardCandidates, tileImageUrl } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
 import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
+import { siteMenuCover, siteMenuPictures, siteMenuTileKeys } from "@/lib/mobile-feed-pictures";
 import {
   FEED_EXCLUDED_FOLDER_KEY,
   FEED_MENUS,
@@ -50,7 +52,7 @@ import {
   type FeedMenuDef,
   type FeedTargetTile,
 } from "@/lib/mobile-feed-targets";
-import { feedVersionParamStatus, mobileFeedVersion } from "@/lib/mobile-feed-version";
+import { feedVersionParamStatus, mobileFeedVersion, picturesDigest } from "@/lib/mobile-feed-version";
 import { publicCopy, publicFolderKey } from "@/lib/mobile-feed-slugs";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
 import { EMPTY_FOLDER_CODES, TILE_GALLERY_FILE, TILE_PRODUCT_CODES } from "@/lib/tile-cover-pins";
@@ -260,9 +262,13 @@ export function feedImageUrl(url: string | null | undefined): string | null {
   return absolute;
 }
 
+/**
+ * A brand picture carries its content hash as `v`, the same cache-buster the
+ * site applies, so a replaced file under the same name is a new URL for the app.
+ */
 function tileImage(path: string | null | undefined): string | null {
   if (!path) return null;
-  return feedImageUrl(path);
+  return feedImageUrl(applyBrandHash(path));
 }
 
 /** Names and labels are plain text. Markup and control characters are removed. */
@@ -841,14 +847,44 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     );
   }
 
+  // Menu tiles follow the site landing pages: same tiles, same order, same pictures,
+  // from the same builders with the same catalog. Folders the portal sync added show
+  // up; tiles the site no longer shows stay in the document hidden, for deep links.
+  const siteTileKeys = new Map(FEED_MENUS.map((menu) => [menu.id, siteMenuTileKeys(menu.id, catalog)]));
   const menuTileIds = (menu: FeedMenuDef) => {
-    const ids = menu.tiles.map((tile) => tile.id);
-    if (menu.id === "kids") ids.push(KIDS_FOOTWEAR_TILE.id);
-    return ids;
+    const own = menu.tiles.map((tile) => tile.id);
+    if (menu.id === "kids") own.push(KIDS_FOOTWEAR_TILE.id);
+    const site = siteTileKeys.get(menu.id) ?? [];
+    if (!site.length) return own;
+    const shown = site.filter((key) => own.includes(key) || nodes.has(key));
+    return [...shown, ...own.filter((id) => !shown.includes(id))];
+  };
+  const siteShowsTile = (menu: FeedMenuDef, id: string) => {
+    const site = siteTileKeys.get(menu.id) ?? [];
+    return !site.length || site.includes(id);
   };
 
-  const ensureTile = (tile: FeedTargetTile, parent: string, order: number, hidden = false) => {
-    if (nodes.has(tile.id)) return;
+  // The fixed tile.image is only the fallback for a tile the site page has no picture for.
+  const sitePictures = new Map(FEED_MENUS.map((menu) => [menu.id, siteMenuPictures(menu.id, catalog)]));
+  const menuTilePicture = (menu: FeedMenuDef, tile: FeedTargetTile): { image: string | null; fromSite: boolean } => {
+    const site = tileImage(sitePictures.get(menu.id)?.get(tile.id));
+    return site ? { image: site, fromSite: true } : { image: tileImage(tile.image), fromSite: false };
+  };
+
+  const ensureTile = (
+    tile: FeedTargetTile,
+    parent: string,
+    order: number,
+    picture: { image: string | null; fromSite: boolean },
+    hidden = false,
+  ) => {
+    const { image } = picture;
+    if (nodes.has(tile.id)) {
+      // A folder node that is also a menu tile shows the landing page picture, as the site does.
+      const existing = nodes.get(tile.id);
+      if (existing && picture.fromSite && image && existing.image !== image) existing.image = image;
+      return;
+    }
     const names = namesFor(tile.folderKey ?? tile.id, tile.label, tile.labelKey);
     const count = tile.folderKey ? (counts.get(tile.folderKey) ?? 0) : 0;
     put(
@@ -858,7 +894,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
         ...names,
         order,
         parent,
-        image: tileImage(tile.image),
+        image,
         hidden,
         count,
         group: feedGroup(tile.folderKey),
@@ -871,26 +907,36 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     const ids = menuTileIds(menu);
     ids.forEach((id, order) => {
       const tile = tileById(menu, id);
-      if (!tile) return;
+      if (!tile) {
+        // A folder the portal sync added to this landing page: an existing folder node.
+        const node = nodes.get(id);
+        const site = tileImage(sitePictures.get(menu.id)?.get(id));
+        if (node && site && node.image !== site) node.image = site;
+        return;
+      }
       const outlet = menu.id === "outlet";
       const count = tile.folderKey ? (counts.get(tile.folderKey) ?? 0) : 0;
-      ensureTile(tile, parent, order, outlet && count === 0);
+      const hidden = (outlet && count === 0) || !siteShowsTile(menu, id);
+      ensureTile(tile, parent, order, menuTilePicture(menu, tile), hidden);
     });
   }
-  ensureTile(
-    KIDS_FOOTWEAR_TILE,
-    feedMenuKey("kids"),
-    FEED_MENUS.find((menu) => menu.id === "kids")?.tiles.length ?? 0,
-    false,
-  );
 
+  const homeKidsPicture = tileImage(
+    homeTileImage(HOME_TILES.find((tile) => tile.id === "home-kids") ?? HOME_TILES[0], catalog),
+  );
   const menuNodes: FeedNode[] = [];
   FEED_MENUS.forEach((menu, order) => {
     const key = feedMenuKey(menu.id);
     const ids = menuTileIds(menu).filter((id) => nodes.has(id));
+    const visible = ids.flatMap((id) => {
+      const node = nodes.get(id);
+      return node && !node.hidden && node.image ? [[id, node.image] as const] : [];
+    });
+    const cover = tileImage(siteMenuCover(menu.id, new Map(visible), homeKidsPicture)) ?? tileImage(menu.image);
     const existing = nodes.get(key);
     if (existing && (menu.id === "accessories" || menu.id === "outlet")) {
       existing.tiles = ids;
+      if (cover) existing.image = cover;
       menuNodes.push(existing);
       return;
     }
@@ -901,7 +947,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
       ...names,
       order: order + 1,
       parent: null,
-      image: tileImage(menu.image),
+      image: cover,
       hidden: false,
       count:
         menu.id === "men" || menu.id === "women" || menu.id === "kids"
@@ -994,7 +1040,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
   }
 
   return {
-    version: mobileFeedVersion(version),
+    version: mobileFeedVersion(version, picturesDigest(ordered.map((node) => node.image))),
     nodes: ordered,
     menus: headerMenuKeys(),
     categoryOrder,
@@ -1024,17 +1070,17 @@ export function mobileStorefrontBuildCount(): number {
 }
 
 /**
- * One built feed per process per version.
- * A later call with the same version returns the stored document and does not build again.
+ * One built feed per process per catalogue version.
+ * A later call with the same catalogue version returns the stored document and does not build again.
+ * The document's own version adds the pictures digest to this key.
  */
 export function memoizedMobileStorefront(catalog: FeedSource[], version: string): MobileStorefront {
-  const key = mobileFeedVersion(version);
-  const hit = builtFeeds.get(key);
+  const hit = builtFeeds.get(version);
   if (hit) return hit;
   storefrontBuilds += 1;
   const feed = buildMobileStorefront(catalog, version);
-  if (feed.version !== key) throw new Error("Feed version does not match the memo key");
-  builtFeeds.set(key, feed);
+  if (!feed.version.startsWith(`${version}-`)) throw new Error("Feed version does not match the memo key");
+  builtFeeds.set(version, feed);
   return feed;
 }
 

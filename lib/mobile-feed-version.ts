@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 /** Query `v` is a cache key only. Callers must not copy the value into a body or header. */
 export const FEED_VERSION_PARAM = /^[A-Za-z0-9._-]{1,64}$/;
 
@@ -7,9 +9,27 @@ export const FEED_VERSION_PARAM = /^[A-Za-z0-9._-]{1,64}$/;
  */
 export const FEED_TREE_REVISION = 8;
 
-export function mobileFeedVersion(catalogVersion: string): string {
+/**
+ * `<catalogue hash>-<pictures digest>.<revision>`.
+ * The pictures digest moves when any node picture changes, so the app downloads
+ * the new tiles after a picture is swapped on the site, not only after a product change.
+ */
+export function mobileFeedVersion(catalogVersion: string, picturesDigest = ""): string {
   const suffix = `.${FEED_TREE_REVISION}`;
-  return catalogVersion.endsWith(suffix) ? catalogVersion : `${catalogVersion}${suffix}`;
+  const base = picturesDigest ? `${catalogVersion}-${picturesDigest}` : catalogVersion;
+  const version = base.endsWith(suffix) ? base : `${base}${suffix}`;
+  if (!FEED_VERSION_PARAM.test(version)) throw new Error("Feed version is not a cache key");
+  return version;
+}
+
+/** Short stable digest of every node picture, in node order. */
+export function picturesDigest(images: ReadonlyArray<string | null>): string {
+  const hash = createHash("sha256");
+  for (const image of images) {
+    hash.update(image ?? "");
+    hash.update("\n");
+  }
+  return hash.digest("hex").slice(0, 8);
 }
 
 /**

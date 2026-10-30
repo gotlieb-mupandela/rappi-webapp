@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { CATALOG_CACHE_TAG } from "@/lib/catalog-cache-tag";
 import { catalogVersion } from "@/lib/catalog-version";
 import { memoizedMobileStorefront } from "@/lib/mobile-feed";
-import { FEED_TREE_REVISION, mobileFeedVersion } from "@/lib/mobile-feed-version";
+import { FEED_TREE_REVISION } from "@/lib/mobile-feed-version";
 import { getCatalogLive } from "@/lib/supabase/catalog";
 
 /**
@@ -12,9 +12,11 @@ import { getCatalogLive } from "@/lib/supabase/catalog";
  * which drops that tag, so the next read rebuilds this feed from the new snapshot.
  * The feed body is not stored in the data cache: a full card list can pass the
  * 2 MB cache entry limit. The version string is small and uses the same tag.
+ * The version is read from the built document so it carries the pictures digest;
+ * the build is memoized per catalogue version, so this costs one build per process.
  */
 export const getMobileCatalogueVersion = unstable_cache(
-  async () => mobileFeedVersion(catalogVersion(await getCatalogLive())),
+  async () => (await readMobileStorefront()).version,
   ["mobile-v1-version", String(FEED_TREE_REVISION)],
   { revalidate: 60, tags: [CATALOG_CACHE_TAG] },
 );
