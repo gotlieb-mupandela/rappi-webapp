@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { clientAssortment, renderAssortmentLabel } from "../lib/assortment";
@@ -18,6 +19,7 @@ import {
   sportSeriesFolders,
   subcategoryHubGroups,
 } from "../lib/hubs";
+import { applyBrandHash } from "../lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "../lib/image-hosts";
 import { eurPerNad } from "../lib/i18n/config";
 import { audienceName, shippingName, subName } from "../lib/i18n/labels";
@@ -51,18 +53,30 @@ import {
   type FeedProduct,
   type MobileStorefront,
 } from "../lib/mobile-feed";
+import {
+  siteMenuCover,
+  siteMenuPictures,
+  siteMenuTileKeys,
+  siteMenuTiles,
+  siteTileKey,
+  sponsorReplicasSitePicture,
+} from "../lib/mobile-feed-pictures";
 import { LEGACY_FOLDER_SLUGS, publicCopy, publicFolderKey } from "../lib/mobile-feed-slugs";
 import {
+  ACCESSORY_TILES,
   FEED_EXCLUDED_FOLDER_KEY,
+  FEED_MENUS,
   FLOW_TILE,
   HOME_TILES,
   KIDS_FOOTWEAR_TILE,
   KIDS_TILES,
+  MEN_TILES,
   NAMESPACED_FEED_KEY,
   PROMO_TILES,
   SHOE_TILES,
   SUB_LINK_TARGETS,
   TEAM_TILES,
+  WOMEN_TILES,
   feedAllowedTargets,
   feedMenuKey,
   feedTargetFor,
@@ -76,7 +90,7 @@ import {
   sponsorReplicaTiles,
 } from "../lib/mobile-feed-targets";
 import { products as siteCatalog } from "../lib/products";
-import { feedVersionParamStatus, mobileFeedVersion } from "../lib/mobile-feed-version";
+import { FEED_VERSION_PARAM, feedVersionParamStatus, mobileFeedVersion, picturesDigest } from "../lib/mobile-feed-version";
 import { SHIPPING_METHODS } from "../lib/shipping";
 import type { Product } from "../lib/types";
 import { productLineLabel } from "../lib/joma-item";
@@ -217,8 +231,17 @@ const products = loadFixtureProducts();
 assert.equal(products.length, 20);
 const version = catalogVersion(products);
 const feed = buildMobileStorefront(products, version);
-assert.equal(feed.version, mobileFeedVersion(version));
+// Version = catalogue hash, pictures digest, tree revision. Still a valid app cache key.
+assert.equal(feed.version, mobileFeedVersion(version, picturesDigest(feed.nodes.map((node) => node.image))));
+assert.equal(feed.version.startsWith(`${version}-`), true);
 assert.equal(feed.version.endsWith(".8"), true);
+assert.match(feed.version, FEED_VERSION_PARAM);
+assert.equal(feed.version.length <= 64, true);
+assert.equal(mobileFeedVersion("abc"), "abc.8");
+assert.equal(mobileFeedVersion("abc", "0011aabb"), "abc-0011aabb.8");
+assert.notEqual(picturesDigest(["https://a/x.jpg"]), picturesDigest(["https://a/y.jpg"]));
+assert.equal(picturesDigest(["https://a/x.jpg", null]), picturesDigest(["https://a/x.jpg", null]));
+throws(() => mobileFeedVersion("bad value"), /not a cache key/);
 const buildsBefore = mobileStorefrontBuildCount();
 const memoFirst = memoizedMobileStorefront(products, version);
 assert.equal(mobileStorefrontBuildCount(), buildsBefore + 1);
@@ -425,7 +448,16 @@ assert.deepEqual(shoesCategory.tiles, expectedHubTileIds("shoes", products));
 
 const children = byKey.get(feedMenuKey("kids"));
 assert.ok(children);
-assert.deepEqual(children.tiles, [...KIDS_TILES.map((tile) => tile.id), KIDS_FOOTWEAR_TILE.id]);
+assert.deepEqual(
+  children.tiles,
+  expectedMenuTileIds("kids", [...KIDS_TILES.map((tile) => tile.id), KIDS_FOOTWEAR_TILE.id], products, byKey),
+);
+// The site children landing shows the four age tiles; the footwear tile stays for deep links.
+assert.deepEqual(
+  children.tiles.filter((key) => !byKey.get(key)?.hidden),
+  KIDS_TILES.map((tile) => tile.id),
+);
+assert.equal(byKey.get(KIDS_FOOTWEAR_TILE.id)?.hidden, true);
 assert.equal((byKey.get("kids-1-4")?.count ?? 0) > 0, true);
 assert.equal(byKey.get("kids-6-10")?.count, 0);
 const ageChildren = kidsAgeChildren();
@@ -447,10 +479,16 @@ for (const key of ["hiking-outdoor", "underwear-brama", "racket-sports", "resort
 const accessories = byKey.get("accessories");
 assert.ok(accessories);
 assert.equal(accessories.tiles.includes("acc-socks"), true);
-assert.equal(accessories.tiles.length, 14);
+assert.deepEqual(
+  accessories.tiles,
+  expectedMenuTileIds("accessories", ACCESSORY_TILES.map((tile) => tile.id), products, byKey),
+);
+assert.equal(accessories.tiles.length >= 14, true);
+assert.deepEqual(man.tiles, expectedMenuTileIds("men", MEN_TILES.map((tile) => tile.id), products, byKey));
+assert.deepEqual(woman.tiles, expectedMenuTileIds("women", WOMEN_TILES.map((tile) => tile.id), products, byKey));
 const teams = byKey.get(feedMenuKey("teams"));
 assert.ok(teams);
-assert.deepEqual(teams.tiles, TEAM_TILES.map((tile) => tile.id));
+assert.deepEqual(teams.tiles, expectedMenuTileIds("teams", TEAM_TILES.map((tile) => tile.id), products, byKey));
 assert.equal(teams.tiles.includes("football"), true);
 assert.equal(PREFIX.test(teams.tiles.join(" ")), false);
 const kits = byKey.get(feedMenuKey("kits"));
@@ -463,7 +501,7 @@ assert.equal(sportswear.tiles.includes("teamwear"), false);
 assert.equal(sportswear.tiles.includes("jp-916ee19d09"), false);
 const outlet = byKey.get("outlet");
 assert.ok(outlet);
-assert.deepEqual(outlet.tiles, PROMO_TILES.map((tile) => tile.id));
+assert.deepEqual(outlet.tiles, expectedMenuTileIds("outlet", PROMO_TILES.map((tile) => tile.id), products, byKey));
 assert.equal(outlet.tiles.includes("outlet-promotions"), true);
 assert.equal(byKey.has("outlet-price-199-299"), true);
 assert.equal(byKey.get("netball")?.hidden, true);
@@ -733,7 +771,10 @@ assert.equal(fixtureRunner.includes("127.0.0.1"), true);
 assert.equal(fixtureRunner.includes("0.0.0.0"), false);
 assert.equal(fixtureRunner.includes("NEXT_PUBLIC_"), false);
 assert.equal(fixtureRunner.includes("process.exit(1)"), true);
-assert.equal(paymentRoute.includes("resolveVatCountry"), true);
+assert.equal(
+  paymentRoute.includes("resolveVatCountry") || paymentRoute.includes("resolveCheckoutCountry"),
+  true,
+);
 assert.equal(paymentRoute.includes("mobile-feed"), false);
 assert.equal(paymentRoute.includes("checkoutCountries"), false);
 
@@ -742,6 +783,7 @@ const feedSources = [
   "lib/mobile-feed-countries.ts",
   "lib/mobile-feed-data.ts",
   "lib/mobile-feed-http.ts",
+  "lib/mobile-feed-pictures.ts",
   "lib/mobile-feed-slugs.ts",
   "lib/mobile-feed-targets.ts",
   "lib/mobile-feed-version.ts",
@@ -814,11 +856,12 @@ for (const extra of [
   { VERCEL_ENV: "preview" },
   { NODE_ENV: "production" },
 ]) {
-  const result = spawnSync("npx", ["tsx", "scripts/dev-fixture.ts"], {
+  const result = spawnSync(process.platform === "win32" ? "npx.cmd" : "npx", ["tsx", "scripts/dev-fixture.ts"], {
     cwd: root,
     env: { ...process.env, CI: "1", ...extra } as NodeJS.ProcessEnv,
     encoding: "utf8",
     timeout: 30000,
+    shell: process.platform === "win32",
   });
   assert.notEqual(result.status, 0, JSON.stringify(extra));
   assert.match(`${result.stderr}`, /refuses to start/);
@@ -830,8 +873,9 @@ const bakedWithFolders = baked.map((product) => ({
   folders: folderMap[product.id] ?? folderMap[product.code] ?? [],
 }));
 const bakedFeed = buildMobileStorefront(siteCatalog, catalogVersion(siteCatalog));
-assert.equal(bakedFeed.version, mobileFeedVersion(catalogVersion(siteCatalog)));
+assert.equal(bakedFeed.version.startsWith(`${catalogVersion(siteCatalog)}-`), true);
 assert.equal(bakedFeed.version.endsWith(".8"), true);
+assert.match(bakedFeed.version, FEED_VERSION_PARAM);
 assertFeedShape(bakedFeed);
 let imageEqual = 0;
 let imageDiffer = 0;
@@ -962,12 +1006,19 @@ const bakedPhoto = (code: string, file: string) => {
   assert.ok(url, `${code} ${file}`);
   return url;
 };
+// Brand pictures carry the content hash from data/brand-versions.json as `v`.
+const brandUrl = (path: string) => {
+  const hashed = applyBrandHash(path);
+  assert.notEqual(hashed, path, `${path} has no brand hash`);
+  assert.match(new URL(hashed, CANONICAL_SITE_ORIGIN).searchParams.get("v") ?? "", /^[0-9a-f]{12}$/, path);
+  return `${CANONICAL_SITE_ORIGIN}${hashed}`;
+};
 const WEB_HOME = [
-  ["home-teamwear", "Teamwear", "/teamwear", `${CANONICAL_SITE_ORIGIN}/brand/hub-teampro-2026.webp`],
-  ["home-sportswear", "Sportswear", "/category/sportswear", `${CANONICAL_SITE_ORIGIN}/brand/hub-sportswear.png?v=5`],
+  ["home-teamwear", "Teamwear", "/teamwear", brandUrl("/brand/hub-teampro-2026.webp")],
+  ["home-sportswear", "Sportswear", "/category/sportswear", brandUrl("/brand/hub-sportswear.png?v=5")],
   ["home-running", "Running", "/category/running-fitness", bakedPhoto("104129.100", "104129.100_1.jpg")],
   ["home-lifestyle", "Lifestyle", "/category/lifestyle", bakedPhoto("100818.200", "100818.200_1.jpg")],
-  ["home-footwear", "Footwear", "/category/shoes", `${CANONICAL_SITE_ORIGIN}/brand/hub-shoes.png`],
+  ["home-footwear", "Footwear", "/category/shoes", brandUrl("/brand/hub-shoes.png")],
   ["home-kids", "Kids", "/shop/kids", bakedPhoto("500828.345", "500828.345_2.jpg")],
 ];
 const bakedHome = bakedNodes.get(feedMenuKey("home"));
@@ -987,6 +1038,136 @@ for (const [key, label, target, image] of WEB_HOME as [string, string, string, s
 }
 assert.equal(new Set(homeImages).size, 6, "home tile images repeat");
 console.log(`home tiles match web home: ${WEB_HOME.map(([, label]) => label).join(", ")}`);
+
+// Menu tiles show the picture the site landing page renders, from the same builder and catalog.
+// siteTileKey maps every site tile that has a feed node; shoes audiences take the shoes- prefix.
+assert.equal(siteTileKey("/shop/shoes?audience=men", "Men", "shoes"), "shoes-men");
+assert.equal(siteTileKey("/shop/shoes?group=footwear-outlet", "Outlet", "shoes"), "footwear-outlet");
+assert.equal(siteTileKey("/shop/kids?age=12-14&gender=girl", "Girl", "kids"), "kids-12-14-girl");
+assert.equal(siteTileKey("/shop/sportswear?q=goalkeeper", "Goalie", "teams"), "goalie");
+assert.equal(siteTileKey("/shop/football", "Football", "teams"), "football");
+assert.equal(siteTileKey(undefined, "Fitness / Gym", "women"), "fitness-gym-woman");
+assert.equal(siteTileKey(undefined, "Nothing", "outlet"), undefined);
+let menuTilesChecked = 0;
+let menuTilesFromSite = 0;
+for (const menu of FEED_MENUS) {
+  const menuNode = bakedNodes.get(feedMenuKey(menu.id));
+  assert.ok(menuNode, menu.id);
+  const pictures = siteMenuPictures(menu.id, siteCatalog);
+  const siteTiles = siteMenuTiles(menu.id, siteCatalog);
+  if (menu.id !== "kits") assert.ok(siteTiles.length > 0, `${menu.id} landing has tiles`);
+  // Visible menu tiles are the site landing tiles, in the site order, with no extras.
+  const siteKeys = siteMenuTileKeys(menu.id, siteCatalog).filter((key) => bakedNodes.has(key));
+  const visibleKeys = menuNode.tiles.filter((key) => !bakedNodes.get(key)?.hidden);
+  if (siteKeys.length) {
+    assert.deepEqual(visibleKeys, siteKeys, `${menu.id} shows the site landing tiles in order`);
+    for (const tile of siteTiles) {
+      const key = siteTileKey(tile.href, tile.label, menu.id);
+      assert.ok(key, `${menu.id} site tile "${tile.label}" ${tile.href ?? ""} maps to a feed key`);
+      assert.ok(bakedNodes.has(key), `${menu.id} site tile "${tile.label}" ${key} has a feed node`);
+    }
+  }
+  for (const tile of siteTiles) {
+    if (!tile.imageSrc) continue;
+    const key = siteTileKey(tile.href, tile.label, menu.id);
+    if (!key || !menuNode.tiles.includes(key)) continue;
+    const node = bakedNodes.get(key);
+    assert.ok(node, key);
+    const expected = feedImageUrl(applyBrandHash(tile.imageSrc));
+    assert.ok(expected, `${menu.id} ${key} site picture is allowed`);
+    assert.equal(node.image, expected, `${menu.id} ${key} shows the site landing picture`);
+    menuTilesFromSite += 1;
+  }
+  for (const key of menuNode.tiles) {
+    const node = bakedNodes.get(key);
+    assert.ok(node, key);
+    menuTilesChecked += 1;
+    if (node.hidden) continue;
+    assert.ok(node.image, `${menu.id} ${key} has a picture`);
+    const sitePicture = pictures.get(key);
+    if (sitePicture) assert.equal(node.image, feedImageUrl(applyBrandHash(sitePicture)), key);
+  }
+  // Menu covers: the site header has no pictures, so the first storefront endpoint's rule applies.
+  const visible = new Map(
+    menuNode.tiles.flatMap((key) => {
+      const node = bakedNodes.get(key);
+      return node && !node.hidden && node.image ? [[key, node.image] as const] : [];
+    }),
+  );
+  const homeKids = bakedNodes.get("home-kids")?.image ?? null;
+  const expectedCover = siteMenuCover(menu.id, visible, homeKids, siteCatalog);
+  assert.ok(expectedCover, `${menu.id} cover`);
+  assert.equal(menuNode.image, feedImageUrl(applyBrandHash(expectedCover)), `${menu.id} cover`);
+}
+// Teams and sponsor replicas show different site pictures: the first teams landing tile
+// and the official-kits landing tile for the sponsor replicas folder.
+{
+  const teamsCover = bakedNodes.get(feedMenuKey("teams"))?.image ?? "";
+  const kitsCover = bakedNodes.get(feedMenuKey("kits"))?.image ?? "";
+  assert.equal(teamsCover, bakedNodes.get("polyester")?.image, "teams cover is the first teams tile");
+  const sponsorPicture = sponsorReplicasSitePicture(siteCatalog);
+  assert.ok(sponsorPicture, "the kits landing shows a sponsor replicas tile");
+  assert.equal(kitsCover, feedImageUrl(applyBrandHash(sponsorPicture)), "kits cover is the site kits tile");
+  assert.notEqual(teamsCover, kitsCover);
+  for (const cover of [teamsCover, kitsCover]) assert.equal(cover.includes("/brand/"), false, cover);
+}
+// Every visible tile on a menu with a landing page shows that page's picture.
+const landingMenuVisible = FEED_MENUS.filter((menu) => menu.id !== "kits").reduce((sum, menu) => {
+  const node = bakedNodes.get(feedMenuKey(menu.id));
+  return sum + (node?.tiles.filter((key) => !bakedNodes.get(key)?.hidden).length ?? 0);
+}, 0);
+assert.equal(menuTilesFromSite, landingMenuVisible, `menu tiles from the site: ${menuTilesFromSite}`);
+assert.ok(menuTilesFromSite >= 75, `menu tiles from the site: ${menuTilesFromSite}`);
+console.log(`menu tiles ${menuTilesChecked}, pictures from site landing pages ${menuTilesFromSite}`);
+// Tiles the site landing page no longer shows stay in the document, hidden, for deep links.
+let hiddenByPortal = 0;
+let addedByPortal = 0;
+for (const menu of FEED_MENUS) {
+  const siteKeys = siteMenuTileKeys(menu.id, siteCatalog);
+  if (!siteKeys.length) continue;
+  const own = menu.tiles.map((tile) => tile.id);
+  for (const id of own) {
+    if (siteKeys.includes(id)) continue;
+    assert.equal(bakedNodes.get(id)?.hidden, true, `${menu.id} ${id} is hidden like on the site`);
+    assert.ok(feedTargetTable().has(id), `${menu.id} ${id} keeps its target`);
+    hiddenByPortal += 1;
+  }
+  for (const key of siteKeys) {
+    if (own.includes(key)) continue;
+    const node = bakedNodes.get(key);
+    assert.ok(node && !node.hidden, `${menu.id} shows the portal folder ${key}`);
+    assert.equal(node.kind, "folder", `${key} is a folder node`);
+    addedByPortal += 1;
+  }
+}
+assert.ok(hiddenByPortal >= 1, "a removed landing tile is hidden");
+assert.ok(addedByPortal >= 1, "an added portal folder is a landing tile");
+console.log(`landing tiles hidden by the portal sync ${hiddenByPortal}, added ${addedByPortal}`);
+// The accessories and outlet folders are menus too: covers come from their first tile.
+assert.equal(bakedNodes.get("accessories")?.image, bakedNodes.get("acc-balls")?.image);
+assert.ok(bakedNodes.get("outlet")?.image);
+assert.equal(bakedNodes.get(feedMenuKey("kids"))?.image, bakedNodes.get("home-kids")?.image);
+// Teams tiles that used to show a brand plate now show the portal tile photo.
+for (const key of ["polyester", "cotton", "jackets", "volleyball", "handball", "coach", "referee", "goalie", "pants"]) {
+  const image = bakedNodes.get(key)?.image ?? "";
+  assert.equal(image.includes("/brand/"), false, `${key} still shows a brand plate`);
+  assert.ok(image, key);
+}
+for (const key of ["shoes-men", "shoes-women", "shoes-kids"]) {
+  const image = bakedNodes.get(key)?.image ?? "";
+  assert.equal(image.includes("/brand/"), false, `${key} still shows a brand plate`);
+}
+// A picture change moves the version while the catalogue hash stays the prefix.
+{
+  const repainted = buildMobileStorefront(siteCatalog, catalogVersion(siteCatalog));
+  assert.equal(repainted.version, bakedFeed.version);
+  const images = bakedFeed.nodes.map((node) => node.image);
+  const swapped = images.map((image, index) => (index === 0 ? `${CANONICAL_SITE_ORIGIN}/brand/other.png` : image));
+  assert.notEqual(
+    mobileFeedVersion(catalogVersion(siteCatalog), picturesDigest(swapped)),
+    bakedFeed.version,
+  );
+}
 for (const slug of ["football", "basketball", "swimming", "rugby", "cricket"]) {
   const tile = jomaTeamsLandingTiles().find((row) => row.href.split("?")[0] === `/shop/${slug}`);
   assert.ok(tile, slug);
@@ -1152,7 +1333,11 @@ for (const row of jomaFolderMetaSnapshot()) {
   const after = publicFolderKey(row.sub);
   if (before !== after) groupDiffs.push(`${row.key} ${before} -> ${after}`);
 }
-assert.deepEqual(groupDiffs, [`${FEED_EXCLUDED_FOLDER_KEY} -flow -> flow`]);
+// Only the excluded flow folder (when the tree still has it) changes its public group key.
+assert.deepEqual(
+  groupDiffs.filter((diff) => !diff.startsWith(`${FEED_EXCLUDED_FOLDER_KEY} `)),
+  [],
+);
 for (const node of bakedFeed.nodes) {
   if (node.group !== null) assert.match(node.group, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, node.key);
   assert.notEqual(node.group, "-flow", node.key);
@@ -1215,8 +1400,8 @@ const countLines = [
 ];
 console.log(countLines.join("\n"));
 const tree = treeLines(bakedFeed);
-writeFileSync("/tmp/mobile-feed-tree.txt", tree);
-writeFileSync("/tmp/mobile-feed-counts.txt", countLines.join("\n"));
+writeFileSync(join(tmpdir(), "mobile-feed-tree.txt"), tree);
+writeFileSync(join(tmpdir(), "mobile-feed-counts.txt"), countLines.join("\n"));
 console.log(`tree lines ${tree.split("\n").length} chars ${tree.length}`);
 
 const tileReport: string[] = [];
@@ -1240,7 +1425,7 @@ for (const [key, href] of feedTargetTable()) {
 }
 tileReport.push(`# football folder targets ${retargeted.length}`);
 tileReport.push(...retargeted);
-writeFileSync("/tmp/feed-tiles.txt", tileReport.join("\n"));
+writeFileSync(join(tmpdir(), "feed-tiles.txt"), tileReport.join("\n"));
 assertSubLinkTargets(byKey, bakedNodes);
 // toClientProduct must keep both the public `line` and the stored category/subcategory.
 {
@@ -1482,6 +1667,27 @@ function cardByCode(feedValue: MobileStorefront, code: string): FeedProduct {
   const card = feedValue.products.find((product) => product.code === code);
   if (!card) fail(`missing card ${code}`);
   return card;
+}
+
+/**
+ * Menu tiles: the site landing tiles first, in site order (own tiles plus folders the
+ * portal sync added), then the own tiles the site no longer shows, which are hidden.
+ */
+function expectedMenuTileIds(
+  menuId: string,
+  own: readonly string[],
+  catalog: Product[],
+  nodes: Map<string, FeedNode>,
+): string[] {
+  const site = siteMenuTileKeys(menuId, catalog);
+  if (!site.length) return [...own];
+  const shown = site.filter((key) => own.includes(key) || nodes.has(key));
+  const ids = [...shown, ...own.filter((id) => !shown.includes(id))];
+  for (const id of ids) assert.ok(nodes.has(id), `${menuId} tile ${id}`);
+  for (const id of own) {
+    if (!shown.includes(id)) assert.equal(nodes.get(id)?.hidden, true, `${menuId} ${id} hidden`);
+  }
+  return ids;
 }
 
 function expectedHubTileIds(slug: string, catalog: Product[]): string[] {
