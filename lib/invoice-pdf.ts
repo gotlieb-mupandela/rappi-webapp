@@ -279,7 +279,7 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     y -= rowHeight;
   }
 
-  ensureSpace(110);
+  ensureSpace(130);
   const totalsPage = page!;
   totalsPage.drawLine({
     start: { x: MARGIN, y },
@@ -292,6 +292,22 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   totalsPage.drawText("Merchandise", { x: totalsX, y, size: 10, font: regular, color: MUTED });
   drawRight(totalsPage, formatInvoiceMoney(Number(order.subtotal)), regular, 10, PAGE_WIDTH - MARGIN, y);
   y -= 16;
+  const discountAmount = Number(order.discount_amount) || 0;
+  if (discountAmount > 0) {
+    const discountLabel = order.discount_code
+      ? `Discount ${pdfSafe(order.discount_code).slice(0, 18)}`
+      : "Discount";
+    totalsPage.drawText(discountLabel, { x: totalsX, y, size: 10, font: regular, color: MUTED });
+    drawRight(
+      totalsPage,
+      `-${formatInvoiceMoney(discountAmount)}`,
+      regular,
+      10,
+      PAGE_WIDTH - MARGIN,
+      y,
+    );
+    y -= 16;
+  }
   totalsPage.drawText("Shipping", { x: totalsX, y, size: 10, font: regular, color: MUTED });
   drawRight(totalsPage, formatInvoiceMoney(Number(order.shipping_cost)), regular, 10, PAGE_WIDTH - MARGIN, y);
   y -= 16;

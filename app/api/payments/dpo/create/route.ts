@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkoutPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
+import { discountRouteError } from "@/lib/discount";
+import { resolveActiveDiscount } from "@/lib/discount-lookup";
 import {
   cartDescription,
   CartResolveError,
@@ -31,6 +33,7 @@ export async function POST(req: Request) {
     country?: string;
     notes?: string;
     shippingMethod?: string;
+    discountCode?: unknown;
     lines?: unknown;
   };
   try {
@@ -79,9 +82,17 @@ export async function POST(req: Request) {
   let lines;
   let quote;
   try {
-    lines = await resolveCheckoutLines(body.lines);
-    quote = checkoutPaymentQuote(lines, shippingMethod, country);
+    const [discount, pricedLines] = await Promise.all([
+      resolveActiveDiscount(body.discountCode),
+      resolveCheckoutLines(body.lines),
+    ]);
+    lines = pricedLines;
+    quote = checkoutPaymentQuote(lines, shippingMethod, country, undefined, discount);
   } catch (err) {
+    const discountError = discountRouteError(err);
+    if (discountError) {
+      return NextResponse.json({ error: discountError.error }, { status: discountError.status });
+    }
     if (err instanceof CartResolveError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
@@ -109,6 +120,9 @@ export async function POST(req: Request) {
     shippingCost: quote.shipping,
     vatRate: quote.vat.rate,
     vatAmount: quote.vat.amount,
+    discountCode: quote.discount?.code ?? "",
+    discountRate: quote.discount?.rate ?? 0,
+    discountAmount: quote.discount?.amount ?? 0,
     notes: String(body.notes ?? "").trim(),
     lines,
   };
@@ -176,6 +190,7 @@ export async function POST(req: Request) {
     items: quote.items,
     subtotal: quote.subtotal,
     shipping: quote.shipping,
+    discount: quote.discount,
     vat: quote.vat,
     total: quote.total,
     currency: quote.currency,

@@ -184,6 +184,12 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             <span>Merchandise</span>
             <span>{formatPrice(Number(order.subtotal))}</span>
           </p>
+          {Number(order.discount_amount) > 0 ? (
+            <p className="flex justify-between text-sm">
+              <span>Discount{order.discount_code ? ` (${order.discount_code})` : ""}</span>
+              <span>-{formatPrice(Number(order.discount_amount))}</span>
+            </p>
+          ) : null}
           <p className="flex justify-between text-sm">
             <span>Shipping</span>
             <span>{formatPrice(Number(order.shipping_cost))}</span>

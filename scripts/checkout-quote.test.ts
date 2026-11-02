@@ -299,14 +299,64 @@ const skuQuote = checkoutPaymentQuote(priced, "standard", "Namibia");
 if (skuQuote.items[0].unitPrice !== 304 || skuQuote.total === 1) {
   fail("quote used a client price");
 }
+if (skuQuote.discount !== null) fail("quote invented a discount");
+
+const saved = checkoutPaymentQuote(
+  [line("A", 250, 2), line("B", 80, 1)],
+  "standard",
+  "Namibia",
+  "NAD",
+  { code: "SAVE10", rate: 10 },
+);
+if (saved.subtotal !== 580 || saved.discount?.amount !== 58 || saved.discount?.rate !== 10) {
+  fail(`discount amount ${saved.discount?.amount} subtotal ${saved.subtotal}`);
+}
+if (saved.shipping !== 100) fail("discount reduced shipping");
+if (saved.vat.amount !== 93.3 || saved.total !== 715.3) {
+  fail(`discounted vat ${saved.vat.amount} total ${saved.total}`);
+}
+
+const freePickup = checkoutPaymentQuote(
+  [line("D", 15.5, 2)],
+  "pickup",
+  "United States",
+  "NAD",
+  { code: "FREE", rate: 100 },
+);
+if (freePickup.discount?.amount !== 31 || freePickup.total !== 0 || freePickup.shipping !== 0) {
+  fail(`full discount total ${freePickup.total} amount ${freePickup.discount?.amount}`);
+}
+
+const ignored = checkoutPaymentQuote(
+  [line("D", 15.5, 2)],
+  "pickup",
+  "United States",
+  "NAD",
+  { code: "ZERO", rate: 0 },
+);
+if (ignored.discount !== null || ignored.total !== 31) fail("zero rate should not discount");
+
+const capped = checkoutPaymentQuote(
+  [line("D", 15.5, 2)],
+  "pickup",
+  "United States",
+  "NAD",
+  { code: "TOO", rate: 150 },
+);
+if (capped.discount?.rate !== 100 || capped.discount?.amount !== 31) {
+  fail(`rate cap ${capped.discount?.rate} ${capped.discount?.amount}`);
+}
 
 function source(path: string) {
   return readFileSync(join(root, path), "utf8");
 }
 
 const createRoute = source("app/api/payments/dpo/create/route.ts");
-if (!createRoute.includes("quote = checkoutPaymentQuote(lines, shippingMethod, country);")) {
+if (!createRoute.includes("checkoutPaymentQuote(lines, shippingMethod, country")) {
   fail("create route does not call checkoutPaymentQuote");
+}
+if (!createRoute.includes("resolveActiveDiscount")) {
+  fail("create route does not resolve the discount code on the server");
 }
 const resolver = source("lib/dpo-cart.ts");
 const resolverBody = resolver.slice(resolver.indexOf("export async function resolveCheckoutLines"));
@@ -355,8 +405,11 @@ for (const path of ["app/api/checkout/quote/route.ts", "app/api/cart/prices/rout
 }
 
 const quoteRoute = source("app/api/checkout/quote/route.ts");
-if (!quoteRoute.includes("checkoutPaymentQuote(lines, shippingMethod, vatCountry.name)")) {
+if (!quoteRoute.includes("checkoutPaymentQuote(lines, shippingMethod, vatCountry.name")) {
   fail("quote route does not call checkoutPaymentQuote");
+}
+if (!quoteRoute.includes("resolveActiveDiscount")) {
+  fail("quote route does not resolve the discount code on the server");
 }
 const pricesRoute = source("app/api/cart/prices/route.ts");
 if (!pricesRoute.includes("bagPrices(lines)")) fail("bag route does not use bagPrices");

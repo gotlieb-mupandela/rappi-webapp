@@ -93,6 +93,14 @@ export default function OrdersPage() {
                   {order.city}, {order.country}
                 </p>
                 <p className="mt-3 text-lg font-semibold">{format(order.total)}</p>
+                {order.discountAmount && order.discountAmount > 0 ? (
+                  <p className="text-xs text-[var(--muted)]">
+                    {t("account.discountNote", {
+                      code: order.discountCode || t("checkout.discountCode"),
+                      rate: String(order.discountRate ?? 0),
+                    })}
+                  </p>
+                ) : null}
                 <p className="mt-3">
                   <OrderStatusBadge status={order.status} />
                 </p>
@@ -146,7 +154,17 @@ export default function OrdersPage() {
                       <br />
                       {order.city}, {order.country}
                     </td>
-                    <td className="px-3 py-4">{format(order.total)}</td>
+                    <td className="px-3 py-4">
+                      {format(order.total)}
+                      {order.discountAmount && order.discountAmount > 0 ? (
+                        <p className="text-xs text-[var(--muted)]">
+                          {t("account.discountNote", {
+                            code: order.discountCode || t("checkout.discountCode"),
+                            rate: String(order.discountRate ?? 0),
+                          })}
+                        </p>
+                      ) : null}
+                    </td>
                     <td className="px-3 py-4">
                       <OrderStatusBadge status={order.status} />
                       <ol className="mt-3 space-y-1">

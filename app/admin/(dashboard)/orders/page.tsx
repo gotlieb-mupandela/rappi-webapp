@@ -17,7 +17,7 @@ export default async function AdminOrdersPage({
   const supabase = await createClient();
   let query = supabase
     .from("orders")
-    .select("id, email, full_name, total, status, created_at, city, country")
+    .select("id, email, full_name, total, discount_code, discount_amount, status, created_at, city, country")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -81,7 +81,12 @@ export default async function AdminOrdersPage({
                 {o.city}, {o.country}
               </p>
               <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="font-semibold">{formatPrice(Number(o.total))}</span>
+                <span className="text-right">
+                  <span className="block font-semibold">{formatPrice(Number(o.total))}</span>
+                  {Number(o.discount_amount) > 0 && o.discount_code ? (
+                    <span className="block text-xs text-[var(--muted)]">{o.discount_code}</span>
+                  ) : null}
+                </span>
                 <OrderStatusBadge status={o.status} />
               </div>
               <p className="mt-2 text-xs text-[var(--muted)]">{formatDate(o.created_at)}</p>
@@ -125,7 +130,12 @@ export default async function AdminOrdersPage({
                     <br />
                     {o.city}, {o.country}
                   </td>
-                  <td className="px-4 py-3">{formatPrice(Number(o.total))}</td>
+                  <td className="px-4 py-3">
+                    {formatPrice(Number(o.total))}
+                    {Number(o.discount_amount) > 0 && o.discount_code ? (
+                      <p className="text-xs text-[var(--muted)]">{o.discount_code}</p>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3">
                     <OrderStatusBadge status={o.status} />
                   </td>

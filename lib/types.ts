@@ -91,6 +91,9 @@ export type Order = {
     price: number;
   }>;
   subtotal: number;
+  discountCode?: string;
+  discountRate?: number;
+  discountAmount?: number;
   total: number;
   status: "reserved" | "preparing" | "shipped" | "cancelled";
   remote?: boolean;

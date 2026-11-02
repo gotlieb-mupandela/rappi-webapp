@@ -124,6 +124,33 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          rate: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          rate: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           code: string
@@ -178,6 +205,9 @@ export type Database = {
           city: string
           country: string
           created_at: string
+          discount_amount: number
+          discount_code: string | null
+          discount_rate: number
           email: string
           full_name: string
           id: string
@@ -201,6 +231,9 @@ export type Database = {
           city: string
           country: string
           created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_rate?: number
           email: string
           full_name: string
           id: string
@@ -224,6 +257,9 @@ export type Database = {
           city?: string
           country?: string
           created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_rate?: number
           email?: string
           full_name?: string
           id?: string
@@ -748,6 +784,13 @@ export type Database = {
           subcategory: string | null
           title: string | null
           unit_price: number | null
+        }[]
+      }
+      discount_use_counts: {
+        Args: Record<string, never>
+        Returns: {
+          code: string
+          used_count: number
         }[]
       }
       place_order: {

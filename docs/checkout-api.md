@@ -32,8 +32,9 @@ Read-only. No sign-in. Prices and stock are public.
 | `lines[].qty` | number | A JSON number that is an integer from 1 to 99. Strings such as `"5"`, booleans, null, floats, and NaN are rejected. |
 | `shippingMethod` | string | `standard` (100), `express` (150), or `pickup` (0). NAD. |
 | `country` | string | VAT country name or alias (`NA`, `France`, `za`). |
+| `discountCode` | string | Optional. Empty means no discount. A non-empty code must match an active admin code. The rate is read on the server. A client-supplied rate is ignored. |
 
-Any `price`, `unitPrice`, or `lineTotal` on a line is ignored. Unknown product codes are rejected. Pickup with an empty or unknown country uses Namibia, the same fallback as payment create. Any other method with an unknown country is rejected.
+Any `price`, `unitPrice`, `lineTotal`, or discount rate on the request is ignored. Unknown product codes are rejected. An unknown or inactive discount code is rejected. Pickup with an empty or unknown country uses Namibia, the same fallback as payment create. Any other method with an unknown country is rejected.
 
 `resolveCheckoutLines` merges lines with the same `code` and `size` by summing `qty` before the stock check. Quote, bag prices, and payment create all call that function. `qty` must be a JSON number: `Number.isInteger` is applied to the raw value, so `"5"` and `true` are rejected. The merged quantity must stay from 1 to 99. A merged quantity above 99 is rejected. Stock is checked against that summed quantity. `checkoutPaymentQuote` returns one item per code and size.
 
@@ -43,9 +44,10 @@ Any `price`, `unitPrice`, or `lineTotal` on a line is ignored. Unknown product c
 | --- | --- | --- |
 | `items` | array | `{ code, size, qty, unitPrice, lineTotal }` |
 | `subtotal` | number | Merchandise sum, rounded to cents. |
-| `shipping` | number | Server shipping cost for `shippingMethod`. |
+| `shipping` | number | Server shipping cost for `shippingMethod`. Shipping is not discounted. |
+| `discount` | object or null | `null` when no code was sent. Otherwise `{ code, rate, amount }`. `rate` is the percent off merchandise. `amount` is that discount in the charge currency. |
 | `vat.rate` | number | Percent, for example `15` or `25.5`. |
-| `vat.amount` | number | VAT on merchandise plus shipping. |
+| `vat.amount` | number | VAT on merchandise after discount, plus shipping. |
 | `total` | number | Amount charged. Equals DPO `PaymentAmount`. |
 | `currency` | string | `DPO_CURRENCY`, or `NAD` when that variable is unset. |
 
@@ -65,7 +67,7 @@ Read-only. No sign-in. Prices and stock are public. Same line rules as the quote
 
 ## POST /api/payments/dpo/create
 
-Unchanged request. Unchanged behaviour: sign-in, the same line checks, and the same charge.
+Same request as before, plus optional `discountCode`. Sign-in, the same line checks, and the same charge. When `discountCode` is set, the server resolves the active rate and `total` is the discounted amount sent to DPO. An invalid code is `400` and no payment is created.
 
 Existing response fields stay as they are:
 
@@ -82,6 +84,7 @@ Added fields, same names and meaning as `POST /api/checkout/quote`:
 | `items` | array `{ code, size, qty, unitPrice, lineTotal }` |
 | `subtotal` | number |
 | `shipping` | number |
+| `discount` | `{ code, rate, amount }` or `null` |
 | `vat` | `{ rate, amount }` |
 | `total` | number |
 | `currency` | string |
@@ -92,7 +95,7 @@ Added fields, same names and meaning as `POST /api/checkout/quote`:
 
 | Status | When |
 | --- | --- |
-| `400` | Invalid JSON, a quantity that is not an integer number from 1 to 99, a merged quantity above 99, more than 50 lines, unknown code, unknown size, merged quantity above stock, missing shipping method, or missing country. |
+| `400` | Invalid JSON, a quantity that is not an integer number from 1 to 99, a merged quantity above 99, more than 50 lines, unknown code, unknown size, merged quantity above stock, missing shipping method, missing country, or a discount code that is not active. |
 | `429` | Rate limit. |
 
 Payment create still returns its existing errors, including `401` when signed out. A quote total of zero is returned by the read routes. Payment create rejects a total that is not finite or not greater than zero. A catalog price that is missing, not a finite number, zero, or negative is rejected before that total is built.

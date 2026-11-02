@@ -78,6 +78,17 @@ function ConfirmationInner() {
             <span>{t("checkout.merchandise")}</span>
             <span>{format(order.subtotal)}</span>
           </p>
+          {order.discountAmount && order.discountAmount > 0 ? (
+            <p className="flex justify-between text-sm">
+              <span>
+                {t("checkout.discountLine", {
+                  code: order.discountCode || t("checkout.discountCode"),
+                  rate: formatVatRate(order.discountRate ?? 0),
+                })}
+              </span>
+              <span>-{format(order.discountAmount)}</span>
+            </p>
+          ) : null}
           <p className="flex justify-between text-sm">
             <span>{t("checkout.shipping")}</span>
             <span>{format(order.shippingCost)}</span>

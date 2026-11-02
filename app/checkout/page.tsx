@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { AssortmentBadge } from "@/components/assortment-label";
@@ -30,6 +30,14 @@ import { defaultVatCountry, formatVatRate, quoteVat, VAT_COUNTRIES } from "@/lib
 
 type ShippingRow = { id: string; name: string; cost: number };
 
+type CheckoutQuoteView = {
+  subtotal: number;
+  shipping: number;
+  vat: { rate: number; amount: number };
+  total: number;
+  discount: { code: string; rate: number; amount: number } | null;
+};
+
 const FALLBACK_SHIPPING: ShippingRow[] = shippingMethodsSnapshot();
 
 export default function CheckoutPage() {
@@ -50,6 +58,9 @@ export default function CheckoutPage() {
   const [country, setCountry] = useState("");
   const [method, setMethod] = useState(FALLBACK_SHIPPING[0].id);
   const [notes, setNotes] = useState("");
+  const [discountCode, setDiscountCode] = useState("");
+  const [quoted, setQuoted] = useState<CheckoutQuoteView | null>(null);
+  const [checkingCode, setCheckingCode] = useState(false);
   const checkoutTracked = useRef(false);
 
   useEffect(() => {
@@ -124,9 +135,106 @@ export default function CheckoutPage() {
   const shipping = shippingOptions.find((s) => s.id === method) ?? shippingOptions[0];
   const vat = quoteVat(country, subtotal + (shipping?.cost ?? 0));
   const total = vat.total;
-  const approx = approxCharge(total, market, t);
+  const pricedSubtotal = quoted?.subtotal ?? subtotal;
+  const pricedShipping = quoted?.shipping ?? shipping?.cost ?? 0;
+  const pricedVat = quoted?.vat ?? vat;
+  const pricedTotal = quoted?.total ?? total;
+  const pricedDiscount = quoted?.discount ?? null;
+  const approx = approxCharge(pricedTotal, market, t);
+
+  const loadDiscountQuote = useCallback(
+    async (code: string): Promise<CheckoutQuoteView | null> => {
+      try {
+        const res = await fetch("/api/checkout/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shippingMethod: method,
+            country,
+            discountCode: code,
+            lines: lines.map((line) => ({
+              code: line.code,
+              size: line.size,
+              qty: line.qty,
+            })),
+          }),
+        });
+        const raw = await res.text();
+        let data: Partial<CheckoutQuoteView> & { error?: string } = {};
+        try {
+          data = raw ? (JSON.parse(raw) as Partial<CheckoutQuoteView> & { error?: string }) : {};
+        } catch {
+          toast.error(t("checkout.failed"));
+          return null;
+        }
+        if (!res.ok || !data.discount || data.subtotal == null || data.total == null || !data.vat) {
+          toast.error(checkoutErrorText(data.error, t, t("checkout.discountInvalid")));
+          return null;
+        }
+        return {
+          subtotal: data.subtotal,
+          shipping: data.shipping ?? 0,
+          vat: data.vat,
+          total: data.total,
+          discount: data.discount,
+        };
+      } catch {
+        toast.error(t("checkout.failed"));
+        return null;
+      }
+    },
+    [country, lines, method, t],
+  );
+
+  const quoteKey = `${method}|${country}|${lines
+    .map((line) => `${line.code}:${line.size}:${line.qty}`)
+    .join(",")}`;
+  const appliedQuoteKey = useRef("");
+
+  useEffect(() => {
+    const code = quoted?.discount?.code;
+    if (!code || !lines.length) return;
+    const key = `${code}|${quoteKey}`;
+    if (appliedQuoteKey.current === key) return;
+    appliedQuoteKey.current = key;
+    let cancelled = false;
+    void loadDiscountQuote(code).then((next) => {
+      if (cancelled) return;
+      if (!next?.discount) {
+        appliedQuoteKey.current = "";
+        setQuoted(null);
+        return;
+      }
+      appliedQuoteKey.current = `${next.discount.code}|${quoteKey}`;
+      setQuoted(next);
+    });
+    return () => {
+      cancelled = true;
+      if (appliedQuoteKey.current === key) appliedQuoteKey.current = "";
+    };
+  }, [lines.length, loadDiscountQuote, quoteKey, quoted?.discount?.code]);
   const pickup = method === "pickup";
   const addressRequired = !pickup;
+
+  async function applyDiscount() {
+    const typed = discountCode.trim();
+    if (!typed) {
+      appliedQuoteKey.current = "";
+      setQuoted(null);
+      return;
+    }
+    setCheckingCode(true);
+    try {
+      const next = await loadDiscountQuote(typed);
+      if (!next?.discount) return;
+      appliedQuoteKey.current = `${next.discount.code}|${quoteKey}`;
+      setQuoted(next);
+      setDiscountCode(next.discount.code);
+      toast.success(t("checkout.discountApplied"));
+    } finally {
+      setCheckingCode(false);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -153,6 +261,17 @@ export default function CheckoutPage() {
     }
     setSubmitting(true);
     try {
+      let discountForPayment = "";
+      if (discountCode.trim()) {
+        const next = await loadDiscountQuote(discountCode.trim());
+        if (!next?.discount) return;
+        appliedQuoteKey.current = `${next.discount.code}|${quoteKey}`;
+        setQuoted(next);
+        discountForPayment = next.discount.code;
+      } else {
+        appliedQuoteKey.current = "";
+        setQuoted(null);
+      }
       let paying = lines;
       for (let attempt = 0; attempt < 2; attempt++) {
         const res = await fetch("/api/payments/dpo/create", {
@@ -167,6 +286,7 @@ export default function CheckoutPage() {
             country,
             notes,
             shippingMethod: shipping.id,
+            discountCode: discountForPayment || undefined,
             lines: paying.map((line) => ({
               code: line.code,
               size: line.size,
@@ -199,7 +319,7 @@ export default function CheckoutPage() {
           return;
         }
         if (!res.ok || !data.paymentUrl) {
-          toast.error(friendlyCheckoutError(data.error, t("checkout.failed")));
+          toast.error(checkoutErrorText(data.error, t, t("checkout.failed")));
           return;
         }
         window.location.href = data.paymentUrl;
@@ -423,6 +543,58 @@ export default function CheckoutPage() {
             </div>
           </section>
           <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+            <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.discountCode")}</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">{t("checkout.discountHint")}</p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void applyDiscount();
+                  }
+                }}
+                placeholder={t("checkout.discountPlaceholder")}
+                aria-label={t("checkout.discountCode")}
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                className="sm:flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="sm:w-auto"
+                disabled={checkingCode || submitting}
+                onClick={() => void applyDiscount()}
+              >
+                {checkingCode ? t("checkout.checkingDiscount") : t("checkout.applyDiscount")}
+              </Button>
+            </div>
+            {pricedDiscount ? (
+              <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                <p className="text-[var(--muted)]">
+                  {t("checkout.discountLine", {
+                    code: pricedDiscount.code,
+                    rate: formatVatRate(pricedDiscount.rate),
+                  })}
+                </p>
+                <button
+                  type="button"
+                  className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] hover:text-ink"
+                  onClick={() => {
+                    appliedQuoteKey.current = "";
+                    setDiscountCode("");
+                    setQuoted(null);
+                  }}
+                >
+                  {t("checkout.removeDiscount")}
+                </button>
+              </div>
+            ) : null}
+          </section>
+          <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
             <Label>{t("checkout.notes")}</Label>
             <textarea
               value={notes}
@@ -460,19 +632,30 @@ export default function CheckoutPage() {
             <div className="mt-4 space-y-1 text-sm">
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.merchandise")}</span>
-              <span>{formatPrice(subtotal)}</span>
+              <span>{formatPrice(pricedSubtotal)}</span>
             </p>
+            {pricedDiscount ? (
+              <p className="flex justify-between text-[var(--muted)]">
+                <span>
+                  {t("checkout.discountLine", {
+                    code: pricedDiscount.code,
+                    rate: formatVatRate(pricedDiscount.rate),
+                  })}
+                </span>
+                <span>-{formatPrice(pricedDiscount.amount)}</span>
+              </p>
+            ) : null}
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.shipping")}</span>
-              <span>{shipping.cost ? formatPrice(shipping.cost) : t("common.free")}</span>
+              <span>{pricedShipping ? formatPrice(pricedShipping) : t("common.free")}</span>
             </p>
             <p className="flex justify-between text-[var(--muted)]">
-              <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
-              <span>{vat.amount ? formatPrice(vat.amount) : t("common.free")}</span>
+              <span>{t("checkout.vat", { rate: formatVatRate(pricedVat.rate) })}</span>
+              <span>{pricedVat.amount ? formatPrice(pricedVat.amount) : t("common.free")}</span>
             </p>
             <ChargeTotal
               label={t("checkout.total")}
-              total={total}
+              total={pricedTotal}
               approx={approx}
               rowClassName="pt-2"
             />
@@ -481,7 +664,7 @@ export default function CheckoutPage() {
             type="submit"
             size="lg"
             className="mt-6 hidden w-full md:inline-flex"
-            disabled={submitting || !user}
+            disabled={submitting || !user || checkingCode}
           >
             {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
           </Button>
@@ -494,7 +677,7 @@ export default function CheckoutPage() {
         <div className="mx-auto flex max-w-[1440px] items-center gap-3">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t("checkout.total")}</p>
-            <p className="price text-lg font-semibold">{formatChargeNad(total)}</p>
+            <p className="price text-lg font-semibold">{formatChargeNad(pricedTotal)}</p>
             {approx ? (
               <p className="max-w-[11rem] text-[10px] font-normal leading-tight text-[var(--muted)]">
                 {approx}
@@ -506,7 +689,7 @@ export default function CheckoutPage() {
             form="checkout-form"
             size="lg"
             className="min-w-0 flex-1"
-            disabled={submitting || !user}
+            disabled={submitting || !user || checkingCode}
           >
             {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
           </Button>
@@ -560,6 +743,13 @@ function missingProductCodes(error: string | undefined) {
     .split(",")
     .map((code) => code.trim())
     .filter(Boolean);
+}
+
+function checkoutErrorText(error: string | undefined, t: TFunction, fallback: string) {
+  const text = (error ?? "").trim();
+  if (text === "That discount code is not valid.") return t("checkout.discountInvalid");
+  if (text === "Could not check the discount code.") return t("checkout.discountUnavailable");
+  return friendlyCheckoutError(error, fallback);
 }
 
 function friendlyCheckoutError(error: string | undefined, fallback: string) {

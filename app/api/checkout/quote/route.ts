@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { enforceCheckoutRateLimit, pricedCartError } from "@/lib/checkout-http";
 import { parseShippingMethod } from "@/lib/checkout-lines";
 import { checkoutPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
+import { discountRouteError } from "@/lib/discount";
+import { resolveActiveDiscount } from "@/lib/discount-lookup";
 import { resolveCheckoutLines } from "@/lib/dpo-cart";
 
 export const runtime = "nodejs";
@@ -21,7 +23,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const record = body as { shippingMethod?: unknown; country?: unknown; lines?: unknown };
+  const record = body as {
+    shippingMethod?: unknown;
+    country?: unknown;
+    lines?: unknown;
+    discountCode?: unknown;
+  };
   const shippingMethod = parseShippingMethod(record.shippingMethod);
   if (!shippingMethod) {
     return NextResponse.json({ error: "Choose a shipping method." }, { status: 400 });
@@ -32,10 +39,17 @@ export async function POST(req: Request) {
   }
 
   try {
-    const lines = await resolveCheckoutLines(record.lines);
-    const quote = checkoutPaymentQuote(lines, shippingMethod, vatCountry.name);
+    const [discount, lines] = await Promise.all([
+      resolveActiveDiscount(record.discountCode),
+      resolveCheckoutLines(record.lines),
+    ]);
+    const quote = checkoutPaymentQuote(lines, shippingMethod, vatCountry.name, undefined, discount);
     return NextResponse.json(quote, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
+    const discountError = discountRouteError(err);
+    if (discountError) {
+      return NextResponse.json({ error: discountError.error }, { status: discountError.status });
+    }
     return pricedCartError(err);
   }
 }

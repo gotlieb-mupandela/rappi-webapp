@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   Package,
+  Percent,
   Settings2,
   ShoppingBag,
   Truck,
@@ -27,6 +28,7 @@ const NAV = [
   { href: "/admin/quotes", label: "Quotes", icon: ClipboardList },
   { href: "/admin/content", label: "Content", icon: Settings2 },
   { href: "/admin/shipping", label: "Shipping", icon: Truck },
+  { href: "/admin/discounts", label: "Discounts", icon: Percent },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

@@ -18,6 +18,9 @@ export type DpoPaymentPayload = {
   shippingCost: number;
   vatRate?: number;
   vatAmount?: number;
+  discountCode?: string;
+  discountRate?: number;
+  discountAmount?: number;
   notes: string;
   lines: DpoCartLine[];
 };

@@ -1,4 +1,5 @@
 import { mergePricedLines } from "@/lib/checkout-lines";
+import type { DiscountRate } from "@/lib/discount";
 import type { DpoCartLine } from "@/lib/dpo-payload";
 import { dpoCurrency } from "@/lib/dpo-currency";
 import { shippingCostById } from "@/lib/shipping";
@@ -12,10 +13,17 @@ export type CheckoutQuoteItem = {
   lineTotal: number;
 };
 
+export type CheckoutDiscount = {
+  code: string;
+  rate: number;
+  amount: number;
+};
+
 export type CheckoutQuote = {
   items: CheckoutQuoteItem[];
   subtotal: number;
   shipping: number;
+  discount: CheckoutDiscount | null;
   vat: {
     rate: number;
     amount: number;
@@ -55,6 +63,22 @@ function quoteItems(lines: DpoCartLine[]): CheckoutQuoteItem[] {
   }));
 }
 
+/** Percent off the merchandise subtotal. Shipping is unchanged. */
+function merchandiseDiscount(
+  subtotal: number,
+  discount: DiscountRate | null,
+): CheckoutDiscount | null {
+  if (!discount) return null;
+  const code = discount.code.trim();
+  const rate = Number(discount.rate);
+  if (!code || !Number.isFinite(rate) || rate <= 0) return null;
+  const bounded = Math.min(rate, 100);
+  const base = roundMoney(subtotal);
+  const amount = Math.min(base, roundMoney(base * (bounded / 100)));
+  if (amount <= 0) return null;
+  return { code, rate: bounded, amount };
+}
+
 /**
  * Payable checkout totals. DPO createToken charges `total`
  * (PaymentAmount is total with two decimal places). The quote route and
@@ -65,15 +89,22 @@ export function checkoutPaymentQuote(
   shippingMethod: string,
   country: string,
   currency = dpoCurrency(),
+  discount: DiscountRate | null = null,
 ): CheckoutQuote {
   const merged = mergePricedLines(lines);
   const subtotal = merchandiseSubtotal(merged);
   const shipping = shippingCostById(shippingMethod);
-  const vat = quoteVat(country, subtotal + shipping);
+  const applied = merchandiseDiscount(subtotal, discount);
+  // No-discount quotes keep the previous taxable base so cent totals stay put.
+  const taxable = applied
+    ? roundMoney(subtotal - applied.amount + shipping)
+    : subtotal + shipping;
+  const vat = quoteVat(country, taxable);
   return {
     items: quoteItems(merged),
     subtotal: roundMoney(subtotal),
     shipping,
+    discount: applied,
     vat: { rate: vat.rate, amount: vat.amount },
     total: vat.total,
     currency,
