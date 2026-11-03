@@ -34,14 +34,13 @@ function LoginForm() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [gisDown, setGisDown] = useState(false);
   const nativeApp = useSyncExternalStore(
     () => () => {},
     isNativeApp,
     () => false,
   );
   const configured = isSupabaseConfigured();
-  const useGoogleIdentity = configured && isGoogleIdentityConfigured() && !nativeApp && !gisDown;
+  const useGoogleIdentity = configured && isGoogleIdentityConfigured() && !nativeApp;
 
   useEffect(() => {
     if (searchParams.get("error") === "auth") {
@@ -91,6 +90,7 @@ function LoginForm() {
   }
 
   async function onGoogle() {
+    if (!isNativeApp()) return;
     if (!configured) {
       toast.error(t("login.supabaseRequired"));
       return;
@@ -224,10 +224,10 @@ function LoginForm() {
               locale={market === "eu" ? "fr" : "en"}
               disabled={googleLoading || loading}
               onCredential={onGoogleCredential}
-              onUnavailable={() => setGisDown(true)}
+              onUnavailable={() => toast.error(t("login.authError"))}
             />
           ) : null}
-          {configured && !useGoogleIdentity ? (
+          {configured && nativeApp ? (
             <Button
               type="button"
               variant="outline"

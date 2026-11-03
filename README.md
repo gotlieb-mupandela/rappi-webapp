@@ -34,12 +34,19 @@ Checkout requires a signed-in account (guest browse is still allowed).
 
 ### Google sign-in setup
 
-1. Supabase Dashboard → Authentication → Providers → enable **Google** (Client ID + Secret from Google Cloud).
-2. Add redirect URLs to the allow list:
+The website button signs in with Google on this site, then sends the ID token to Supabase. Google shows the site origin (`www.rappisportshub.com`, or `127.0.0.1` locally), not the Supabase host. The native app still uses the Supabase redirect.
+
+1. Supabase Dashboard → Authentication → Providers → enable **Google**. Use the same web Client ID and secret. Leave nonce checks on.
+2. Set that Client ID as `NEXT_PUBLIC_GOOGLE_CLIENT_ID` locally and on Vercel. Do not put the client secret in the app.
+3. On that Google Cloud OAuth web client, add Authorized JavaScript origins:
+   - `http://127.0.0.1:43123`
+   - `https://www.rappisportshub.com`
+   - `https://rappisportshub.com`
+4. Keep the existing Authorized redirect URI so the native app can still sign in:
+   `https://wzmzwerzbyudcvoiiege.supabase.co/auth/v1/callback`
+5. Supabase Auth redirect allow list still needs the email-link callbacks:
    - `https://rappisportshub.com/auth/callback`
    - `http://127.0.0.1:43123/auth/callback`
-3. In Google Cloud OAuth client, set Authorized redirect URI to:
-   `https://wzmzwerzbyudcvoiiege.supabase.co/auth/v1/callback`
 
 Paid orders are stored in Supabase after DPO confirms the charged amount. Account → Orders reads those rows.
 
