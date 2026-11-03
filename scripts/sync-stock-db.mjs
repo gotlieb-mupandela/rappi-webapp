@@ -28,6 +28,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
+import {
+  formatSuspectList,
+  loadAllowlist,
+  unlabelledStylePacks,
+} from "./pack-label-guard.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const catalogPath = path.join(root, "data", "products.json");
@@ -320,8 +325,16 @@ export async function runStockSync({
 
 export async function main(argv = process.argv, env = process.env) {
   const dryRun = argv.includes("--dry-run");
-  const supabase = createStockSyncClient(env);
   const repoProducts = loadRepoProducts();
+  const suspects = unlabelledStylePacks(repoProducts, loadAllowlist());
+  if (suspects.length) {
+    console.error(
+      `Unlabelled pack suspects (${suspects.length}). Stock sync will not publish them.`,
+    );
+    console.error(formatSuspectList(suspects));
+    process.exit(1);
+  }
+  const supabase = createStockSyncClient(env);
   const result = await runStockSync({
     supabase,
     repoProducts,

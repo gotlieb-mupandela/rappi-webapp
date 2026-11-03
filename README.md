@@ -68,6 +68,21 @@ Normalized catalog: `/data/products.json` (offline fallback)
 
 The morning stock commit updates that file. `npm run sync:stock-db` then copies `stockQty`, `available`, and sizes into Supabase and busts the catalog cache. Setup, dry-run, and rollback: [docs/stock-sync.md](docs/stock-sync.md).
 
+### Pack labels
+
+A product sold as a pack is listed in `data/apparel-assortments.json` with `pack_size` and, when the supplier states one, a size breakdown (`curves`). Cards and product pages show Pack of N plus those sizes and quantities. Socks use pairs. Balls, caps, and other pieces use pcs. The price on the page is the full pack.
+
+`npm run check:pack-labels` fails when:
+
+- a code in `data/apparel-assortments.json` is missing from the catalog, is not a pack, or has the wrong piece count
+- a product has a single style size from S01 to S99 and no pack label, unless its code is in `data/non-pack-allowlist.json`
+
+The check runs before `next build` and in the stock sync workflow. `npm run sync:joma` and `npm run sync:stock-db` stop and print the suspect codes instead of publishing an unlabelled style size.
+
+### Retail price
+
+NAD = round(supplier USD x 18 x 1.45). The USD figure is the offer when one is recorded, otherwise the list price. Packs use the pack USD, not the unit USD. The function is `retailNadFromSupplierUsd` in `lib/retail-nad.mjs` (`retailNadFromEur` in `lib/pricing.ts` calls it). `npm run check:pack-prices` checks every catalog row that has an entry in `data/supplier-usd.json`. A row with no supplier USD keeps its current NAD.
+
 Integrity checks (184 unique SKUs, NAD currency, spot-check prices, 4–5 photos each):
 
 ```bash
