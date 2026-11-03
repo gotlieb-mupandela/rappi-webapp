@@ -47,9 +47,9 @@ export function StorefrontChrome({
         {t("skip")}
       </a>
       <Suspense fallback={null}>
-        <SiteHeader taxonomy={taxonomy} categoryCounts={categoryCounts} />
+        <SiteHeader taxonomy={taxonomy} />
       </Suspense>
-      <main id="main" key={pathname} className={isHome ? "flex-1" : "page-enter flex-1"}>
+      <main id="main" key={pathname} className="flex-1">
         {children}
       </main>
       {hideFooter ? null : <SiteFooter categoryCounts={categoryCounts} />}

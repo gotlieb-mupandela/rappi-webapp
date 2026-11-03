@@ -92,7 +92,7 @@ export function ProductDetail({ product }: { product: Product }) {
   );
 
   return (
-    <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start lg:gap-16">
+    <div className="grid min-w-0 gap-8 lg:grid-cols-2 lg:items-start lg:gap-12 xl:grid-cols-[minmax(0,36rem)_minmax(0,1fr)] xl:gap-16">
       <div className="min-w-0">
         <ProductGallery product={product} />
       </div>
@@ -108,7 +108,7 @@ export function ProductDetail({ product }: { product: Product }) {
           </h1>
           <button
             type="button"
-            className="mt-1 shrink-0 rounded-full p-2 text-[var(--muted)] hover:bg-[var(--hover)] hover:text-ink"
+            className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--hover)] hover:text-ink"
             aria-label={t("product.share")}
             onClick={() => {
               void shareContent({

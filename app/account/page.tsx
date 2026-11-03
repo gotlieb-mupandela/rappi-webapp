@@ -1,22 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Breadcrumbs } from "@/components/breadcrumbs";
-import { Button } from "@/components/ui/button";
-import { accountRoleKey, displayName } from "@/lib/auth/session";
-import { useAuth } from "@/lib/stores/auth";
-import { useOrders } from "@/lib/stores/orders";
+import { ChevronRight } from "lucide-react";
+import { AccountFrame } from "@/components/account-frame";
 import { PushToggle } from "@/components/push-toggle";
 import { useT } from "@/components/locale-provider";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/stores/auth";
+import { useOrders } from "@/lib/stores/orders";
+import { cn } from "@/lib/utils";
 
 export default function AccountPage() {
   const user = useAuth((s) => s.user);
-  const logout = useAuth((s) => s.logout);
   const orders = useOrders((s) => s.orders);
   const syncRemote = useOrders((s) => s.syncRemote);
-  const router = useRouter();
   const t = useT();
 
   useEffect(() => {
@@ -25,55 +23,56 @@ export default function AccountPage() {
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-[640px] px-4 py-16 text-center">
-        <h1 className="font-[family-name:var(--font-oswald)] text-4xl uppercase">{t("account.title")}</h1>
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          {t("account.signInHint")}
-        </p>
-        <Button asChild className="mt-6">
-          <Link href="/login">{t("nav.signIn")}</Link>
-        </Button>
+      <div className="page-shell py-10 sm:py-14">
+        <div className="mx-auto w-full min-w-0 max-w-lg">
+          <h1 className="text-2xl font-medium leading-tight text-black">{t("account.title")}</h1>
+          <p className="mt-3 text-sm leading-6 text-neutral-600">{t("account.signInHint")}</p>
+          <Button asChild className="mt-6">
+            <Link href="/login">{t("nav.signIn")}</Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
+  const orderCount = orders.length;
+
   return (
-    <div className="page-shell py-8">
-      <Breadcrumbs items={[{ href: "/", label: t("common.home") }, { label: t("account.myAccount") }]} />
-      <h1 className="mt-6 font-[family-name:var(--font-oswald)] text-4xl uppercase">
-        {t("account.myAccount")}
-      </h1>
-      <p className="mt-2 min-w-0 break-all text-sm text-[var(--muted)]">{t("account.signedInAs", { email: user.email })}</p>
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Link href="/account/orders" className="surface-card p-6">
-          <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.orders")}</p>
-          <p className="mt-2 text-2xl font-semibold">{orders.length}</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{t("account.ordersHint")}</p>
-        </Link>
-        <Link href="/account/profile" className="surface-card p-6">
-          <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("account.profile")}</p>
-          <p className="mt-2 text-2xl font-semibold">{displayName(user)}</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{t(accountRoleKey(user.role))}</p>
-        </Link>
-        <PushToggle />
-        <button
-          type="button"
-          onClick={() => {
-            void logout().then(() => router.push("/"));
-          }}
-          className="surface-card p-6 text-left"
+    <AccountFrame
+      section="account"
+      crumbs={[{ href: "/", label: t("common.home") }, { label: t("account.myAccount") }]}
+    >
+      <div className="flex min-w-0 flex-col gap-6">
+        <Link
+          href="/account/orders"
+          className="group relative flex min-h-11 w-full min-w-0 items-center gap-4 overflow-hidden border border-black/10 bg-white px-4 py-4 transition-colors hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/70 sm:px-5 sm:py-5"
         >
-          <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t("account.session")}</p>
-          <p className="mt-2 text-2xl font-semibold">{t("account.logout")}</p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{t("account.logoutHint")}</p>
-        </button>
+          <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--accent)]" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-black">{t("account.orders")}</span>
+            {orderCount === 0 ? (
+              <span className="mt-0.5 block text-sm leading-5 text-neutral-500">{t("account.noOrders")}</span>
+            ) : null}
+            <span className="mt-0.5 block text-sm leading-5 text-neutral-500">{t("account.ordersHint")}</span>
+          </span>
+          <span
+            className={cn(
+              "shrink-0 font-[family-name:var(--font-oswald)] text-3xl font-medium leading-none tabular-nums sm:text-4xl",
+              orderCount === 0 ? "text-neutral-400" : "text-black",
+            )}
+          >
+            {orderCount}
+          </span>
+          <ChevronRight
+            className="h-4 w-4 shrink-0 text-neutral-400 transition-transform group-hover:translate-x-0.5 group-hover:text-black"
+            aria-hidden
+          />
+        </Link>
+
+        <div className="border-y border-black/10">
+          <PushToggle />
+        </div>
       </div>
-      <Link
-        href="/account/delete"
-        className="mt-8 inline-block text-sm text-[var(--muted)] underline underline-offset-4 hover:text-red-500"
-      >
-        {t("account.deleteAccount")}
-      </Link>
-    </div>
+    </AccountFrame>
   );
 }

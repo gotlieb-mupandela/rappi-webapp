@@ -11,6 +11,17 @@ import { productImageLoader } from "@/lib/product-image-loader";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+/** `fill` only means the image covers its tile. Sizes follow the tile span. */
+function tileImageSizes(size: "large" | "medium" | "small", folder: boolean) {
+  if (folder || size === "small") {
+    return "(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 240px";
+  }
+  if (size === "large") {
+    return "(max-width: 767px) calc(100vw - 2rem), min(50vw, 800px)";
+  }
+  return "(max-width: 767px) calc(50vw - 12px), min(25vw, 420px)";
+}
+
 function CoverImage({
   src,
   alt,
@@ -31,6 +42,7 @@ function CoverImage({
       fill
       sizes={sizes}
       priority={priority}
+      fetchPriority={priority ? "high" : undefined}
       className={className}
       loader={/^https?:\/\//i.test(src) ? productImageLoader : undefined}
     />
@@ -121,6 +133,8 @@ export function HubTile({
   const light = tone === "light";
   const folder = variant === "folder";
 
+  const imageSizes = tileImageSizes(size, folder);
+
   const imageClassName = cn(
     "bento-tile__media absolute inset-0 h-full w-full min-h-full min-w-full max-w-none motion-reduce:transition-none",
     contain ? "object-contain" : "object-cover",
@@ -165,6 +179,7 @@ export function HubTile({
               src={coverSrc}
               alt={productImageAlt(product)}
               priority={priority}
+              sizes={imageSizes}
               className={imageClassName}
               fallbackClassName="absolute inset-0 h-full w-full"
             />
@@ -174,7 +189,7 @@ export function HubTile({
               alt={label}
               className={imageClassName}
               priority={priority}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 240px"
+              sizes={imageSizes}
             />
           ) : (
             <div className="absolute inset-0 bg-[var(--surface-2)]" />
@@ -222,7 +237,7 @@ export function HubTile({
             alt={productImageAlt(product)}
             priority={priority}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 280px"
+            sizes={imageSizes}
             className={imageClassName}
             fallbackClassName="absolute inset-0 h-full w-full"
           />
@@ -232,11 +247,7 @@ export function HubTile({
             alt={label}
             className={imageClassName}
             priority={priority}
-            sizes={
-              size === "large" || fill
-                ? "(max-width: 1024px) 100vw, 50vw"
-                : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            }
+            sizes={imageSizes}
           />
         ) : (
           <div className="absolute inset-0 bg-[var(--surface-2)]" />

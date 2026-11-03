@@ -25,8 +25,9 @@ export function BrandLogo({
       height={img.height}
       className={cn("brand-logo max-w-none object-contain", className)}
       style={variant === "mark" ? undefined : { width: "auto" }}
-      sizes="200px"
+      sizes="128px"
       priority={priority}
+      fetchPriority={priority ? "high" : undefined}
     />
   );
 }

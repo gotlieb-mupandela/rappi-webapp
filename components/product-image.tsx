@@ -123,6 +123,7 @@ export function ProductImage({
         sizes={sizes}
         quality={quality}
         priority={priority}
+        fetchPriority={priority ? "high" : undefined}
         className={className}
         loader={remote ? productImageLoader : undefined}
         onError={advance}
@@ -140,6 +141,7 @@ export function ProductImage({
       sizes={sizes}
       quality={quality}
       priority={priority}
+      fetchPriority={priority ? "high" : undefined}
       className={className}
       loader={remote ? productImageLoader : undefined}
       onError={advance}

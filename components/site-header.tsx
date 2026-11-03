@@ -4,12 +4,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { ChevronDown, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useT } from "@/components/locale-provider";
 import { AUDIENCES, CATEGORIES } from "@/lib/catalog";
-import { hubName } from "@/lib/i18n/labels";
 import {
   jomaAccessoriesLinks,
   jomaAudienceLinks,
@@ -20,9 +19,7 @@ import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
 import { CategorySubNav } from "@/components/category-sub-nav";
 import { FolderSubNav } from "@/components/folder-sub-nav";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 
@@ -37,16 +34,17 @@ type NavKey =
 
 type UnderLink = { href: string; label: string };
 
+/** Same routes and labels as the site footer legal list. */
+const LEGAL_MENU_LINKS = [
+  { href: "/privacy", labelKey: "footer.privacy" },
+  { href: "/terms", labelKey: "footer.terms" },
+  { href: "/returns", labelKey: "footer.returns" },
+] as const;
+
 /** Part B Accessories dropdown — folder-backed destinations (shared with landing). */
 const JOMA_ACCESSORIES_LINKS: UnderLink[] = jomaAccessoriesLinks();
 
-export function SiteHeader({
-  taxonomy,
-  categoryCounts,
-}: {
-  taxonomy: StorefrontTaxonomy;
-  categoryCounts: Record<string, number>;
-}) {
+export function SiteHeader({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   const pathname = usePathname();
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -54,6 +52,7 @@ export function SiteHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<NavKey | null>(null);
+  const [mobileSection, setMobileSection] = useState<NavKey | null>(null);
   const [ready, setReady] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -73,6 +72,7 @@ export function SiteHeader({
     setSearchOpen(false);
     setAccountOpen(false);
     setHoveredNav(null);
+    setMobileSection(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -153,7 +153,6 @@ export function SiteHeader({
     setSearchOpen(false);
   }
 
-  const visibleCategories = CATEGORIES.filter((c) => (categoryCounts[c.slug] ?? 0) > 0);
   const activeSlug = CATEGORIES.find(
     (c) => pathname === `/category/${c.slug}` || pathname.startsWith(`/shop/${c.slug}`),
   )?.slug;
@@ -216,14 +215,20 @@ export function SiteHeader({
   };
 
   const iconBtn =
-    "flex h-10 w-10 items-center justify-center text-[var(--text)] transition-colors hover:bg-[var(--accent-muted)]";
+    "flex h-11 w-11 items-center justify-center text-[var(--text)] transition-colors hover:bg-[var(--accent-muted)]";
+  /** Bar is h-16 below lg. --header-h jumps to 4.5rem at 640px and would leave a hole. */
+  const mobileBarOffset = "calc(4rem + env(safe-area-inset-top))";
+  const accountMenuRow =
+    "flex min-h-11 w-full items-center whitespace-nowrap bg-white px-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50";
+  const accountLegalRow =
+    "flex min-h-11 w-full items-center whitespace-nowrap bg-white px-4 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900";
 
   return (
     <>
       {open ? (
         <div
           className="lg:hidden"
-          style={{ height: "calc(var(--header-h) + env(safe-area-inset-top))" }}
+          style={{ height: mobileBarOffset }}
           aria-hidden
         />
       ) : null}
@@ -242,7 +247,13 @@ export function SiteHeader({
             aria-controls="mobile-nav"
             onClick={() => {
               setSearchOpen(false);
-              setOpen((v) => !v);
+              setOpen((current) => {
+                const next = !current;
+                setMobileSection(
+                  next ? (catalogNav.find((item) => item.active)?.key ?? null) : null,
+                );
+                return next;
+              });
             }}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -346,7 +357,7 @@ export function SiteHeader({
             </div>
             <Link
               href="/cart"
-              className="relative flex h-10 items-center gap-1.5 px-1.5 text-neutral-900 transition-colors hover:text-neutral-500"
+              className="relative flex h-11 items-center gap-1.5 px-1.5 text-neutral-900 transition-colors hover:text-neutral-500"
               aria-label={t("nav.cart")}
             >
               <ShoppingBag className="h-5 w-5" />
@@ -372,30 +383,15 @@ export function SiteHeader({
               {accountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-20 mt-2 min-w-48 overflow-hidden border border-black/10 bg-white py-1 text-neutral-900 shadow-sm"
+                  className="absolute right-0 top-full z-20 mt-2 w-max min-w-[18rem] overflow-hidden border border-black/10 bg-white py-1 text-neutral-900 shadow-sm"
                 >
                   {ready && user ? (
                     <>
-                      <Link
-                        href="/account"
-                        role="menuitem"
-                        className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
-                      >
+                      <Link href="/account" role="menuitem" className={accountMenuRow}>
                         {t("nav.account")}
                       </Link>
-                      <Link
-                        href="/account/orders"
-                        role="menuitem"
-                        className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
-                      >
+                      <Link href="/account/orders" role="menuitem" className={accountMenuRow}>
                         {t("nav.orders")}
-                      </Link>
-                      <Link
-                        href="/account/profile"
-                        role="menuitem"
-                        className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
-                      >
-                        {t("nav.profile")}
                       </Link>
                       <button
                         type="button"
@@ -405,22 +401,29 @@ export function SiteHeader({
                           setAccountOpen(false);
                           router.push("/");
                         }}
-                        className="block w-full px-3 py-2.5 text-left text-xs uppercase tracking-wider hover:bg-neutral-50"
+                        className={accountMenuRow}
                       >
                         {t("nav.logout")}
                       </button>
                     </>
                   ) : (
-                    <Link
-                      href="/login"
-                      role="menuitem"
-                      className="block px-3 py-2.5 text-xs uppercase tracking-wider hover:bg-neutral-50"
-                    >
+                    <Link href="/login" role="menuitem" className={accountMenuRow}>
                       {t("nav.signIn")}
                     </Link>
                   )}
-                  <div className="border-t border-black/8 px-3 py-3">
-                    <LocaleSwitcher className="w-full justify-center border-black/15 text-neutral-900" />
+                  <div className="my-1 border-t border-black/10" role="separator" />
+                  {LEGAL_MENU_LINKS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      className={accountLegalRow}
+                    >
+                      {t(item.labelKey)}
+                    </Link>
+                  ))}
+                  <div className="mt-1 border-t border-black/10 px-3 py-3 [&_button]:flex-1">
+                    <LocaleSwitcher className="h-11 w-full border-black/15 text-neutral-900 sm:h-11" />
                   </div>
                 </div>
               ) : null}
@@ -442,9 +445,10 @@ export function SiteHeader({
               role="dialog"
               aria-modal="true"
               aria-label={t("nav.openMenu")}
-              className="fixed inset-x-0 bottom-0 z-[90] flex flex-col bg-white text-neutral-900 top-[calc(var(--header-h)+env(safe-area-inset-top))] lg:hidden"
+              className="fixed inset-x-0 bottom-0 z-[90] flex flex-col bg-white text-neutral-900 lg:hidden"
+              style={{ top: mobileBarOffset }}
             >
-              <ScrollArea className="min-h-0 flex-1 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
                 <form onSubmit={onSearch} className="mb-5">
                   <Input
                     value={q}
@@ -454,82 +458,134 @@ export function SiteHeader({
                   />
                 </form>
                 <ul className="grid gap-1">
-                  {catalogNav.map((item) => (
-                    <li key={item.key}>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50",
-                          item.active && "text-black",
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                      <ul className="mb-2 ml-3 grid gap-0.5 border-l border-black/10 pl-3">
-                        {underLinksByKey[item.key].slice(0, 8).map((link, i) => (
-                          <li key={`${item.key}-${i}-${link.href}-${link.label}`}>
-                            <Link
-                              href={link.href}
-                              className="flex min-h-9 items-center text-[11px] uppercase tracking-wider text-neutral-600 hover:text-black"
+                  {catalogNav.map((item) => {
+                    const links = underLinksByKey[item.key];
+                    const expanded = mobileSection === item.key;
+                    const panelId = `mobile-section-${item.key}`;
+                    return (
+                      <li key={item.key}>
+                        <div className="flex items-center">
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              "flex min-h-11 flex-1 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50",
+                              item.active && "text-black",
+                            )}
+                          >
+                            {item.label}
+                          </Link>
+                          {links.length > 0 ? (
+                            <button
+                              type="button"
+                              className="flex h-11 w-11 shrink-0 items-center justify-center text-neutral-900 hover:bg-neutral-50"
+                              aria-expanded={expanded}
+                              aria-controls={panelId}
+                              aria-label={item.label}
+                              onClick={() =>
+                                setMobileSection((current) =>
+                                  current === item.key ? null : item.key,
+                                )
+                              }
                             >
-                              {link.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
+                              <ChevronDown
+                                className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  expanded && "rotate-180",
+                                )}
+                                aria-hidden
+                              />
+                            </button>
+                          ) : null}
+                        </div>
+                        {expanded ? (
+                          <ul
+                            id={panelId}
+                            className="mb-2 ml-3 grid gap-0.5 border-l border-black/10 pl-3"
+                          >
+                            <li>
+                              <Link
+                                href={item.href}
+                                className="flex min-h-11 items-center text-[11px] uppercase tracking-wider text-neutral-600 hover:text-black"
+                              >
+                                {t("common.shopAll")}
+                              </Link>
+                            </li>
+                            {links.map((link, i) => (
+                              <li key={`${item.key}-${i}-${link.href}-${link.label}`}>
+                                <Link
+                                  href={link.href}
+                                  className="flex min-h-11 items-center text-[11px] uppercase tracking-wider text-neutral-600 hover:text-black"
+                                >
+                                  {link.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
-                <ul className="mt-4 grid grid-cols-2 gap-1 border-t border-black/8 pt-4">
-                  {visibleCategories.map((c) => (
-                    <li key={c.slug}>
-                      <Link
-                        href={`/category/${c.slug}`}
-                        className={cn(
-                          "flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50",
-                          activeSlug === c.slug && "text-black",
-                        )}
-                      >
-                        {hubName(c.slug, t)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-5 grid gap-2">
+                <div className="mt-5 border-t border-black/10 pt-3">
                   <Link
                     href="/about"
                     className="flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50"
                   >
                     {t("footer.about")}
                   </Link>
-                  <Button asChild className="w-full" variant="outline">
-                    <Link href="/teamwear?view=quote">{t("home.teamwearCta")}</Link>
-                  </Button>
-                  <Button asChild className="w-full" variant="outline">
-                    <Link href={user ? "/account" : "/login"}>
+                  <Link
+                    href="/teamwear?view=quote"
+                    className="mt-1 flex min-h-11 items-center justify-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-center text-xs font-semibold uppercase tracking-wider text-[var(--on-accent)] hover:border-[var(--accent-bright)] hover:bg-[var(--accent-bright)]"
+                  >
+                    {t("home.teamwearCta")}
+                  </Link>
+                  <div
+                    className={cn(
+                      "mt-2 grid border border-black/15 bg-white",
+                      user && "grid-cols-2",
+                    )}
+                  >
+                    <Link
+                      href={user ? "/account" : "/login"}
+                      className={cn(
+                        "flex min-h-11 items-center justify-center px-3 text-center text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50",
+                        user && "border-r border-black/15",
+                      )}
+                    >
                       {user ? t("nav.myAccount") : t("nav.signIn")}
                     </Link>
-                  </Button>
-                  {user ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full"
-                      onClick={() => {
-                        void logout().then(() => {
-                          setOpen(false);
-                          router.push("/");
-                        });
-                      }}
-                    >
-                      {t("nav.logout")}
-                    </Button>
-                  ) : null}
-                  <div className="pt-2">
-                    <LocaleSwitcher className="border-black/15 text-neutral-900" />
+                    {user ? (
+                      <button
+                        type="button"
+                        className="flex min-h-11 items-center justify-center px-3 text-center text-xs font-semibold uppercase tracking-wider text-neutral-900 hover:bg-neutral-50"
+                        onClick={() => {
+                          void logout().then(() => {
+                            setOpen(false);
+                            router.push("/");
+                          });
+                        }}
+                      >
+                        {t("nav.logout")}
+                      </button>
+                    ) : null}
+                  </div>
+                  <ul className="mt-3 border-t border-black/10 pt-1">
+                    {LEGAL_MENU_LINKS.map((item) => (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="flex min-h-11 items-center px-2 text-[11px] font-medium uppercase tracking-wider text-neutral-500 hover:text-neutral-900"
+                        >
+                          {t(item.labelKey)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-1 border-t border-black/10 pt-3 [&_button]:h-11 [&_button]:min-h-11 [&_button]:flex-1 [&_button]:sm:h-11">
+                    <LocaleSwitcher className="h-12 w-full border-black/15 bg-white text-neutral-900 sm:h-12" />
                   </div>
                 </div>
-              </ScrollArea>
+              </div>
             </div>,
             document.body,
           )

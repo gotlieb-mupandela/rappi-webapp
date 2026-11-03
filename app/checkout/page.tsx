@@ -366,10 +366,10 @@ export default function CheckoutPage() {
           </ul>
         </section>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button asChild>
+          <Button asChild className="h-11">
             <Link href="/cart">{t("checkout.backToCart")}</Link>
           </Button>
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="h-11">
             <Link href="/">{t("common.continueShopping")}</Link>
           </Button>
         </div>
@@ -582,7 +582,7 @@ export default function CheckoutPage() {
                 </p>
                 <button
                   type="button"
-                  className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] hover:text-ink"
+                  className="inline-flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)] hover:text-ink"
                   onClick={() => {
                     appliedQuoteKey.current = "";
                     setDiscountCode("");

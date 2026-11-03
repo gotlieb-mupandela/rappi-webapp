@@ -108,7 +108,13 @@ export function AudienceLandingGrid({
                   src={tile.imageSrc}
                   alt={label}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  sizes={
+                    isKits
+                      ? "(max-width: 640px) 100vw, 33vw"
+                      : isKids || isFootwear
+                        ? "(max-width: 768px) 50vw, 25vw"
+                        : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
+                  }
                   priority={index < 4}
                   loader={/^https?:\/\//i.test(tile.imageSrc) ? productImageLoader : undefined}
                   className={cn(

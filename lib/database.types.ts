@@ -604,6 +604,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bag_quotations: {
+        Row: {
+          created_at: string
+          currency: string
+          email: string | null
+          emailed_at: string | null
+          id: string
+          item_count: number
+          items: Json
+          subtotal: number
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          email?: string | null
+          emailed_at?: string | null
+          id: string
+          item_count: number
+          items: Json
+          subtotal: number
+          token: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          email?: string | null
+          emailed_at?: string | null
+          id?: string
+          item_count?: number
+          items?: Json
+          subtotal?: number
+          token?: string
+        }
+        Relationships: []
+      }
       teamwear_quotes: {
         Row: {
           created_at: string

@@ -1,4 +1,4 @@
-import { contactEmail } from "@/lib/site-contact";
+import { escapeHtml } from "@/lib/html-escape";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   buildInvoicePdf,
@@ -7,6 +7,7 @@ import {
   invoiceSeller,
   loadInvoiceData,
 } from "@/lib/invoice-pdf";
+import { brandLogoUrl, sendPdfEmail } from "@/lib/resend-pdf";
 
 export type SendInvoiceResult =
   | { sent: true }
@@ -15,56 +16,6 @@ export type SendInvoiceResult =
 
 function errorMessage(err: unknown) {
   return err instanceof Error ? err.message : "Invoice send failed.";
-}
-
-function bytesToBase64(bytes: Uint8Array) {
-  return Buffer.from(bytes).toString("base64");
-}
-
-function invoiceLogoUrl() {
-  const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.rappisportshub.com").replace(/\/$/, "");
-  return `${site}/brand/logo-dark.png`;
-}
-
-async function sendResendEmail(input: {
-  to: string;
-  subject: string;
-  html: string;
-  filename: string;
-  pdf: Uint8Array;
-}) {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error("RESEND_API_KEY is not set.");
-  }
-
-  const seller = invoiceSeller();
-  const from = `${seller.legalName} <${seller.email}>`;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [input.to],
-      reply_to: contactEmail(),
-      subject: input.subject,
-      html: input.html,
-      attachments: [
-        {
-          filename: input.filename,
-          content: bytesToBase64(input.pdf),
-        },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(body.slice(0, 400) || `Resend HTTP ${res.status}`);
-  }
 }
 
 export async function sendOrderInvoice(
@@ -124,13 +75,13 @@ export async function sendOrderInvoice(
 
     const pdf = await buildInvoicePdf(data);
     const seller = invoiceSeller();
-    await sendResendEmail({
+    await sendPdfEmail({
       to,
       subject: `Invoice ${data.order.id} - ${seller.legalName}`,
       html: [
         `<div style="font-family:Arial,sans-serif;color:#111">`,
         `<div style="background:#ffffff;border-bottom:3px solid #5eff38;padding:16px 20px">`,
-        `<img src="${escapeHtml(invoiceLogoUrl())}" alt="${escapeHtml(seller.legalName)}" width="160" style="display:block;height:auto" />`,
+        `<img src="${escapeHtml(brandLogoUrl())}" alt="${escapeHtml(seller.legalName)}" width="160" style="display:block;height:auto" />`,
         `</div>`,
         `<p>Hi ${escapeHtml(data.order.full_name)},</p>`,
         `<p>Thank you for your order <strong>${escapeHtml(data.order.id)}</strong>. Your invoice is attached.</p>`,
@@ -148,12 +99,4 @@ export async function sendOrderInvoice(
     console.error("invoice email", message);
     return { sent: false, error: message };
   }
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }

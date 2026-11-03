@@ -1,22 +1,16 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { FolderGrid } from "@/components/folder-grid";
 import { HubTile } from "@/components/hub-tile";
 import { PageHeader } from "@/components/page-header";
-import { ProductImage } from "@/components/product-image";
-import { tileImageCandidates } from "@/lib/media";
 import { SectionHeading } from "@/components/section-heading";
 import { NoStockBody } from "@/components/no-stock-body";
-import { OtherHubsNav } from "@/components/other-hubs-nav";
 import { TLink } from "@/components/t-link";
 import { Translated } from "@/components/translated";
 import { CATEGORIES, CATEGORY_ALIASES, categoryBySlug, resolveCategorySlug } from "@/lib/catalog";
-import { sampleForCategory } from "@/lib/classify";
 import { audienceTiles, categoryHubFolders } from "@/lib/hubs";
 import { toClientProduct, toClientSamples } from "@/lib/listing-core";
 import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
-import { productPath } from "@/lib/utils";
 
 export const revalidate = 21600;
 
@@ -38,12 +32,8 @@ export default async function CategoryHubPage({
   if (!cat) notFound();
   const catalog = await getCatalog();
   const items = productsByCategory(hubSlug, catalog);
-  const sample = sampleForCategory(catalog, hubSlug);
   const typeGroups = categoryHubFolders(hubSlug, catalog);
   const audiences = audienceTiles(catalog, { categorySlug: hubSlug });
-  const otherHubs = CATEGORIES.filter(
-    (c) => c.slug !== hubSlug && sampleForCategory(catalog, c.slug),
-  );
   const shopAllHref = `/shop/${hubSlug}?view=all`;
   const folderLandingHref = `/shop/${hubSlug}`;
 
@@ -55,60 +45,6 @@ export default async function CategoryHubPage({
         eyebrowCount={items.length || undefined}
         eyebrowKey={items.length ? undefined : "shop.hub"}
         titleHub={hubSlug}
-        descriptionHub={hubSlug}
-        actions={
-          items.length ? (
-            <>
-              <TLink
-                href={folderLandingHref}
-                k="shop.shopByType"
-                size="lg"
-                className="w-full sm:w-auto"
-              />
-              <TLink
-                href={shopAllHref}
-                k="common.shopAll"
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto"
-              />
-            </>
-          ) : (
-            <TLink
-              href="/search"
-              k="common.browseCatalog"
-              size="lg"
-              className="w-full sm:w-auto"
-            />
-          )
-        }
-        media={
-          sample ? (
-            <Link
-              href={productPath(sample.code)}
-              className="media-frame group relative block overflow-hidden rounded-lg border border-[var(--border)]"
-            >
-              <ProductImage
-                product={toClientProduct(sample)}
-                src={sample.imageUrl}
-                sources={tileImageCandidates(sample)}
-                alt={sample.displayName}
-                priority
-                className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                fallbackClassName="aspect-[4/5] w-full"
-                sizes="(max-width: 1024px) 100vw, 420px"
-              />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--accent)]">
-                  <Translated k="common.featured" />
-                </p>
-                <p className="mt-1 truncate font-[family-name:var(--font-oswald)] text-sm uppercase text-white">
-                  {sample.displayName}
-                </p>
-              </div>
-            </Link>
-          ) : null
-        }
       />
       <div className="page-shell py-10 lg:py-14">
         {typeGroups.length > 0 ? (
@@ -130,7 +66,7 @@ export default async function CategoryHubPage({
               linkLabelKey="common.shopAll"
             />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
-              {audiences.map((g) => (
+              {audiences.map((g, i) => (
                 <HubTile
                   key={g.key}
                   slug={hubSlug}
@@ -141,7 +77,7 @@ export default async function CategoryHubPage({
                   imageSrc={g.cover}
                   shape="square"
                   imageFit={g.cover ? "contain" : "cover"}
-                  priority
+                  priority={typeGroups.length === 0 && i < 2}
                 />
               ))}
             </div>
@@ -162,8 +98,6 @@ export default async function CategoryHubPage({
             </div>
           </section>
         ) : null}
-
-        {otherHubs.length ? <OtherHubsNav hubs={otherHubs.map((c) => c.slug)} /> : null}
       </div>
     </div>
   );

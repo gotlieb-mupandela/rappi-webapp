@@ -12,7 +12,6 @@ import {
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/locale-provider";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { subName } from "@/lib/i18n/labels";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
 
@@ -46,45 +45,62 @@ export function CategorySubNav({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
   );
   if (!subs.length) return null;
 
+  const items = [
+    {
+      key: "all",
+      href: `/shop/${slug}`,
+      label: t("common.all"),
+      active: onShop && viewAll && !activeSub,
+    },
+    ...subs.map((s) => {
+      const folder = typeFolderForSubcategory(s.slug);
+      const groupParam =
+        TYPE_FOLDERS[folder] && folder !== s.slug
+          ? `&group=${encodeURIComponent(folder)}`
+          : "";
+      return {
+        key: s.slug,
+        href: `/shop/${slug}?sub=${encodeURIComponent(s.slug)}${groupParam}`,
+        label: subName(s.slug, t),
+        active: activeSub === s.slug,
+      };
+    }),
+  ];
+
   return (
     <nav className="border-t border-black/8 bg-white">
-      <ScrollArea className="page-shell w-full">
-        <ul className="flex items-center gap-x-5 py-2 xl:gap-x-6 lg:justify-center">
-          <li className="shrink-0">
-            <Link
-              href={`/shop/${slug}`}
-              data-active={onShop && viewAll && !activeSub ? "true" : undefined}
-              className={cn(
-                "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
-                onShop && viewAll && !activeSub && "text-black",
-              )}
-            >
-              {t("common.all")}
-            </Link>
-          </li>
-          {subs.map((s) => {
-            const folder = typeFolderForSubcategory(s.slug);
-            const groupParam =
-              TYPE_FOLDERS[folder] && folder !== s.slug
-                ? `&group=${encodeURIComponent(folder)}`
-                : "";
-            return (
-              <li key={s.slug} className="shrink-0">
-                <Link
-                  href={`/shop/${slug}?sub=${encodeURIComponent(s.slug)}${groupParam}`}
-                  data-active={activeSub === s.slug ? "true" : undefined}
-                  className={cn(
-                    "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
-                    activeSub === s.slug && "text-black",
-                  )}
-                >
-                  {subName(s.slug, t)}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </ScrollArea>
+      <div className="page-shell w-full">
+        <div className="category-marquee-viewport">
+          <div className="category-marquee">
+            {[0, 1].map((copy) => (
+              <ul
+                key={copy}
+                aria-hidden={copy === 1 ? true : undefined}
+                className={cn(
+                  "flex shrink-0 items-center gap-x-5 py-2 pr-5 xl:gap-x-6 xl:pr-6 lg:justify-center",
+                  copy === 1 && "category-marquee-copy",
+                )}
+              >
+                {items.map((item) => (
+                  <li key={item.key} className="shrink-0">
+                    <Link
+                      href={item.href}
+                      tabIndex={copy === 1 ? -1 : undefined}
+                      data-active={item.active ? "true" : undefined}
+                      className={cn(
+                        "text-xs font-medium uppercase tracking-[0.12em] text-neutral-800 hover:text-neutral-500",
+                        item.active && "text-black",
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+      </div>
     </nav>
   );
 }

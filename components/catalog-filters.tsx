@@ -298,7 +298,7 @@ export function CatalogFilters({
                 aria-label={t("common.gridView")}
                 onClick={() => setLayout("grid")}
                 className={cn(
-                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  "flex h-11 w-11 items-center justify-center transition-colors",
                   layout === "grid" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >
@@ -309,7 +309,7 @@ export function CatalogFilters({
                 aria-label={t("common.listView")}
                 onClick={() => setLayout("list")}
                 className={cn(
-                  "flex h-9 w-9 items-center justify-center transition-colors",
+                  "flex h-11 w-11 items-center justify-center transition-colors",
                   layout === "list" ? "text-[var(--accent)]" : "text-[var(--muted-2)] hover:text-ink",
                 )}
               >

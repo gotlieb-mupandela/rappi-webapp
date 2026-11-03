@@ -61,7 +61,7 @@ export function ProductGallery({ product }: { product: Product }) {
           className="pdp-stage"
           fallbackClassName="aspect-square w-full sm:aspect-[4/5]"
           priority
-          sizes="(max-width: 1024px) 100vw, 560px"
+          sizes="(max-width: 1024px) 100vw, (max-width: 1280px) 50vw, 576px"
           width={1200}
           height={1500}
           quality={75}

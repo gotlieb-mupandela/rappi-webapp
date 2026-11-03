@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { BagQuotationDialog } from "@/components/bag-quotation-dialog";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { AssortmentBadge } from "@/components/assortment-label";
 import { ProductImage } from "@/components/product-image";
@@ -33,6 +34,7 @@ export default function CartPage() {
   );
 
   const subtotal = rows.reduce((s, r) => s + r.lineTotal, 0);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   return (
     <div className="page-shell py-8">
@@ -49,6 +51,7 @@ export default function CartPage() {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
+            className="h-11"
             onClick={() => {
               clear();
               toast.message(t("cart.emptied"));
@@ -57,7 +60,16 @@ export default function CartPage() {
           >
             {t("cart.emptyBag")}
           </Button>
-          <Button asChild disabled={!rows.length}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11"
+            disabled={!rows.length}
+            onClick={() => setQuoteOpen(true)}
+          >
+            {t("cart.quotation")}
+          </Button>
+          <Button asChild className="h-11" disabled={!rows.length}>
             <Link href="/checkout">{t("common.checkout")}</Link>
           </Button>
         </div>
@@ -69,7 +81,7 @@ export default function CartPage() {
           <p className="mt-2 text-sm text-[var(--muted)]">
             {t("cart.emptyHint")}
           </p>
-          <Button asChild className="mt-6">
+          <Button asChild className="mt-6 h-11">
             <Link href="/">{t("common.continueShopping")}</Link>
           </Button>
         </div>
@@ -86,6 +98,9 @@ export default function CartPage() {
                   src={line.imageUrl}
                   className="aspect-square w-full object-cover"
                   fallbackClassName="aspect-square"
+                  sizes="96px"
+                  width={192}
+                  height={192}
                 />
               </Link>
               <div className="min-w-0">
@@ -135,12 +150,24 @@ export default function CartPage() {
             <p className="text-xl font-semibold">
               {t("cart.subtotal", { amount: format(subtotal) })}
             </p>
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/checkout">{t("common.checkout")}</Link>
-            </Button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto"
+                onClick={() => setQuoteOpen(true)}
+              >
+                {t("cart.quotation")}
+              </Button>
+              <Button asChild size="lg" className="w-full sm:w-auto">
+                <Link href="/checkout">{t("common.checkout")}</Link>
+              </Button>
+            </div>
           </div>
         </div>
       )}
+      <BagQuotationDialog open={quoteOpen} onClose={() => setQuoteOpen(false)} lines={lines} />
     </div>
   );
 }

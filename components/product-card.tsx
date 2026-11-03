@@ -128,6 +128,9 @@ export function ProductCard({
             alt={productImageAlt(product)}
             className="aspect-square w-full object-contain p-1.5"
             fallbackClassName="aspect-square"
+            sizes="72px"
+            width={144}
+            height={144}
           />
         </Link>
         <Link href={productPath(product.code)} className="min-w-0">
@@ -148,10 +151,10 @@ export function ProductCard({
         <button
           type="button"
           onClick={quickAdd}
-          className="flex h-9 w-9 items-center justify-center text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
+          className="flex h-11 w-11 items-center justify-center text-[var(--muted)] transition-colors hover:text-[var(--accent)]"
           aria-label={t("common.addToBagAria", { title })}
         >
-          <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
+          <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
         </button>
         )}
       </article>
@@ -174,6 +177,7 @@ export function ProductCard({
             alt={productImageAlt(product)}
             className="h-full w-full object-contain object-center p-3 sm:p-4"
             fallbackClassName="h-full w-full"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, min(20vw, 320px)"
           />
           <div className="absolute left-2 top-2 z-10">
             <AssortmentBadge
@@ -203,9 +207,9 @@ export function ProductCard({
         type="button"
         aria-label={t("common.addToBagAria", { title })}
         onClick={quickAdd}
-        className="absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[var(--text)] shadow-sm transition-colors hover:text-[var(--accent)]"
+        className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-[var(--text)] shadow-sm transition-colors hover:text-[var(--accent)]"
       >
-        <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
+        <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
       </button>
       )}
 

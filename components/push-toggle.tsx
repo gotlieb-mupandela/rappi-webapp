@@ -87,24 +87,23 @@ export function PushToggle() {
     }
   }
 
-  if (!supported) {
-    return (
-      <div className="surface-card p-6 text-left">
-        <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t("notify.title")}</p>
-        <p className="mt-2 text-2xl font-semibold">{t("notify.disabled")}</p>
-        <p className="mt-1 text-sm text-[var(--muted)]">{t("notify.unsupported")}</p>
-      </div>
-    );
-  }
+  const status = enabled ? t("notify.enabled") : t("notify.disabled");
+  const detail = supported ? t("notify.body") : t("notify.unsupported");
 
   return (
-    <div className="surface-card p-6 text-left">
-      <p className="text-xs uppercase tracking-wider text-[var(--accent)]">{t("notify.title")}</p>
-      <p className="mt-2 text-2xl font-semibold">{enabled ? t("notify.enabled") : t("notify.disabled")}</p>
-      <p className="mt-1 text-sm text-[var(--muted)]">{t("notify.body")}</p>
-      <Button size="sm" className="mt-4" disabled={busy} onClick={() => void toggle()}>
-        {enabled ? t("notify.disable") : t("notify.enable")}
-      </Button>
+    <div className="px-4 py-3.5 sm:px-5">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-ink">{t("notify.title")}</p>
+          <p className="mt-0.5 text-sm leading-5 text-[var(--muted)]">{detail}</p>
+        </div>
+        <p className="shrink-0 text-sm text-[var(--muted)]">{status}</p>
+      </div>
+      {supported ? (
+        <Button size="sm" className="mt-3" disabled={busy} onClick={() => void toggle()}>
+          {enabled ? t("notify.disable") : t("notify.enable")}
+        </Button>
+      ) : null}
       {message ? <p className="mt-2 text-sm text-[var(--muted)]">{message}</p> : null}
     </div>
   );

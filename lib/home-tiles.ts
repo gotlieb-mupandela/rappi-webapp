@@ -20,8 +20,8 @@ export const HOME_TILE_LAYOUT: readonly HomeTileLayout[] = [
   { id: "teamwear", span: 2, tone: "dark", className: "col-span-2 min-h-[12rem] md:min-h-0" },
   { id: "sportswear", span: 1, tone: "dark", className: "min-h-[12rem] md:min-h-0" },
   { id: "running", span: 1, tone: "dark", className: "min-h-[12rem] md:min-h-0" },
-  { id: "lifestyle", span: 1, tone: "dark", className: "min-h-[11rem] md:min-h-0" },
-  { id: "footwear", span: 1, tone: "dark", className: "min-h-[11rem] md:min-h-0" },
+  { id: "lifestyle", span: 1, tone: "dark", className: "min-h-[12rem] md:min-h-0" },
+  { id: "footwear", span: 1, tone: "dark", className: "min-h-[12rem] md:min-h-0" },
   { id: "kids", span: 2, tone: "light", className: "col-span-2 min-h-[12rem] md:min-h-0" },
 ];
 

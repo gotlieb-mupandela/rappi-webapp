@@ -116,7 +116,7 @@ export function PageHeader({
           ) : null}
           <h1
             className={cn(
-              "font-[family-name:var(--font-oswald)] font-bold uppercase leading-[0.92] tracking-tight text-[var(--text-secondary)]",
+              "break-words font-[family-name:var(--font-oswald)] font-bold uppercase leading-[0.92] tracking-tight text-[var(--text-secondary)]",
               compact
                 ? "mt-2 text-2xl sm:text-3xl md:text-4xl"
                 : "text-4xl sm:text-5xl md:text-6xl",

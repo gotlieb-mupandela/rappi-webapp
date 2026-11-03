@@ -213,19 +213,6 @@ img {
   aspect-ratio: 1;
 }
 
-.page-enter {
-  animation: page-enter 560ms var(--ease) both;
-}
-
-@keyframes page-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 .img-in {
   animation: img-in 640ms var(--ease) both;
 }
@@ -266,7 +253,6 @@ a:hover .brand-logo {
   transform: scale(1) translateZ(0);
   transform-origin: center center;
   backface-visibility: hidden;
-  will-change: transform;
   transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -313,6 +299,62 @@ a:hover .brand-logo {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* Category strip: one slow pass of the duplicated link row. */
+.category-marquee-viewport {
+  overflow: hidden;
+}
+
+.category-marquee {
+  display: flex;
+  width: max-content;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .category-marquee-viewport {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 1.25rem, #000 calc(100% - 1.25rem), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 1.25rem, #000 calc(100% - 1.25rem), transparent);
+  }
+
+  .category-marquee {
+    animation: category-marquee 64s linear infinite;
+  }
+
+  .category-marquee-viewport:hover .category-marquee,
+  .category-marquee-viewport:focus-within .category-marquee {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes category-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-marquee-viewport {
+    overflow-x: auto;
+  }
+
+  .category-marquee {
+    width: 100%;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .category-marquee-copy {
+    display: none !important;
+  }
+
+  .category-marquee > ul {
+    width: 100%;
+    padding-right: 0;
   }
 }
 
