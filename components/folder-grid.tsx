@@ -1,5 +1,6 @@
 import { HubTile } from "@/components/hub-tile";
 import type { HubFolderTile } from "@/lib/hubs";
+import { FOLDER_TILE_FRAME } from "@/lib/tile-frame";
 
 /** Joma B2B folder matrix — near-flush gutters, up to 7 columns. */
 export function FolderGrid({
@@ -21,7 +22,8 @@ export function FolderGrid({
           href={g.href}
           product={g.sample ?? undefined}
           imageSrc={g.cover}
-          imageFit="cover"
+          imageFit={FOLDER_TILE_FRAME.fit}
+          imagePosition={FOLDER_TILE_FRAME.imagePosition}
           bannerKey={g.banner ? "group.shoes.offersBanner" : undefined}
           shape="portrait"
           variant="folder"

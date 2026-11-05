@@ -8,6 +8,7 @@ import { TLink } from "@/components/t-link";
 import { Translated } from "@/components/translated";
 import { CATEGORIES, CATEGORY_ALIASES, categoryBySlug, resolveCategorySlug } from "@/lib/catalog";
 import { audienceTiles, categoryHubFolders } from "@/lib/hubs";
+import { audienceTileFrame } from "@/lib/tile-frame";
 import { toClientProduct, toClientSamples } from "@/lib/listing-core";
 import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
@@ -66,20 +67,24 @@ export default async function CategoryHubPage({
               linkLabelKey="common.shopAll"
             />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
-              {audiences.map((g, i) => (
-                <HubTile
-                  key={g.key}
-                  slug={hubSlug}
-                  nameAudience={g.key}
-                  count={g.count}
-                  href={g.href}
-                  product={g.sample ? toClientProduct(g.sample) : undefined}
-                  imageSrc={g.cover}
-                  shape="square"
-                  imageFit={g.cover ? "contain" : "cover"}
-                  priority={typeGroups.length === 0 && i < 2}
-                />
-              ))}
+              {audiences.map((g, i) => {
+                const frame = audienceTileFrame(Boolean(g.cover));
+                return (
+                  <HubTile
+                    key={g.key}
+                    slug={hubSlug}
+                    nameAudience={g.key}
+                    count={g.count}
+                    href={g.href}
+                    product={g.sample ? toClientProduct(g.sample) : undefined}
+                    imageSrc={g.cover}
+                    shape="square"
+                    imageFit={frame.fit}
+                    imagePosition={frame.imagePosition}
+                    priority={typeGroups.length === 0 && i < 2}
+                  />
+                );
+              })}
             </div>
           </section>
         ) : null}

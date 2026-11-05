@@ -19,6 +19,7 @@ import {
   sportSeriesFolders,
   subcategoryHubGroups,
 } from "../lib/hubs";
+import { homeTileLayout } from "../lib/home-tiles";
 import { applyBrandHash } from "../lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "../lib/image-hosts";
 import { eurPerNad } from "../lib/i18n/config";
@@ -28,6 +29,7 @@ import { isLiveFolder } from "../lib/joma-live";
 import { FOOTWEAR_FOLDERS, jomaFolderMetaSnapshot } from "../lib/joma-tree";
 import { filterListing, toClientProduct, type ListingItem } from "../lib/listing-core";
 import { listingCardCandidates } from "../lib/media";
+import { PRODUCT_CARD_FRAME } from "../lib/tile-frame";
 import { CANONICAL_SITE_ORIGIN } from "../lib/meta/site";
 import {
   checkoutCountries,
@@ -42,6 +44,7 @@ import {
   assertFiniteInteger,
   assertFiniteNumber,
   buildMobileStorefront,
+  feedAudiencePicture,
   FEED_PRODUCT_KEYS,
   feedImageUrl,
   feedProductCard,
@@ -234,11 +237,11 @@ const feed = buildMobileStorefront(products, version);
 // Version = catalogue hash, pictures digest, tree revision. Still a valid app cache key.
 assert.equal(feed.version, mobileFeedVersion(version, picturesDigest(feed.nodes.map((node) => node.image))));
 assert.equal(feed.version.startsWith(`${version}-`), true);
-assert.equal(feed.version.endsWith(".8"), true);
+assert.equal(feed.version.endsWith(".9"), true);
 assert.match(feed.version, FEED_VERSION_PARAM);
 assert.equal(feed.version.length <= 64, true);
-assert.equal(mobileFeedVersion("abc"), "abc.8");
-assert.equal(mobileFeedVersion("abc", "0011aabb"), "abc-0011aabb.8");
+assert.equal(mobileFeedVersion("abc"), "abc.9");
+assert.equal(mobileFeedVersion("abc", "0011aabb"), "abc-0011aabb.9");
 assert.notEqual(picturesDigest(["https://a/x.jpg"]), picturesDigest(["https://a/y.jpg"]));
 assert.equal(picturesDigest(["https://a/x.jpg", null]), picturesDigest(["https://a/x.jpg", null]));
 throws(() => mobileFeedVersion("bad value"), /not a cache key/);
@@ -252,9 +255,10 @@ assert.equal(memoFirst.version, feed.version);
 const matchedVersion = storefrontFromFeed([memoFirst.version], memoFirst);
 assert.equal(matchedVersion.status, 200);
 assert.equal(matchedVersion.cacheControl, STOREFRONT_CACHE);
-assert.equal(matchedVersion.cacheControl.includes("s-maxage=300"), true);
+assert.equal(matchedVersion.cacheControl.includes("s-maxage=60"), true);
+assert.equal(matchedVersion.cacheControl.includes("stale-while-revalidate=60"), true);
 assert.equal(matchedVersion.body, memoFirst);
-const staleVersion = "zzzzzzzz.8";
+const staleVersion = "zzzzzzzz.9";
 const stale = storefrontFromFeed([staleVersion], memoFirst);
 assert.equal(stale.status, 200);
 assert.equal(stale.cacheControl, "no-store");
@@ -747,8 +751,8 @@ const dataLib = read("lib/mobile-feed-data.ts");
 const fixtureRunner = read("scripts/dev-fixture.ts");
 const paymentRoute = read("app/api/payments/dpo/create/route.ts");
 assert.equal(versionRoute.includes("NextResponse.json({ version },"), true);
-assert.equal(versionRoute.includes("s-maxage=60"), true);
-assert.equal(versionRoute.includes("stale-while-revalidate=300"), true);
+assert.equal(versionRoute.includes("STOREFRONT_CACHE"), true);
+assert.equal(STOREFRONT_CACHE, "public, s-maxage=60, stale-while-revalidate=60");
 assert.equal(storefrontRoute.includes("status: 400"), true);
 assert.equal(storefrontRoute.includes("Invalid version."), true);
 assert.equal(storefrontRoute.includes("${"), false);
@@ -874,7 +878,7 @@ const bakedWithFolders = baked.map((product) => ({
 }));
 const bakedFeed = buildMobileStorefront(siteCatalog, catalogVersion(siteCatalog));
 assert.equal(bakedFeed.version.startsWith(`${catalogVersion(siteCatalog)}-`), true);
-assert.equal(bakedFeed.version.endsWith(".8"), true);
+assert.equal(bakedFeed.version.endsWith(".9"), true);
 assert.match(bakedFeed.version, FEED_VERSION_PARAM);
 assertFeedShape(bakedFeed);
 let imageEqual = 0;
@@ -908,6 +912,10 @@ for (const card of bakedFeed.products) {
   if (card.labelFr) assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.labelFr), false, card.code);
   if (card.line === null) lineNull += 1;
   else assert.equal(/[<>\u0000-\u001f\u007f]/.test(card.line), false, card.code);
+  assert.equal(card.fit, PRODUCT_CARD_FRAME.fit, card.code);
+  assert.equal(card.objectPosition, PRODUCT_CARD_FRAME.objectPosition, card.code);
+  assert.equal(typeof card.audience, "string", card.code);
+  assert.equal(card.audience!.length > 0, true, card.code);
 }
 assert.ok(labelFrTranslated > 0);
 console.log(`labelFr differs from label on ${labelFrTranslated} cards`);
@@ -1034,8 +1042,19 @@ for (const [key, label, target, image] of WEB_HOME as [string, string, string, s
   assert.ok(node.image, key);
   assertAllowedFeedImage(node.image, key);
   assert.equal(feedImageUrl(node.image), node.image, key);
+  const layout = homeTileLayout(key.slice("home-".length));
+  assert.equal(node.fit, layout.fit, key);
+  assert.equal(node.objectPosition, layout.objectPosition, key);
   homeImages.push(node.image);
 }
+const kidsAudience = bakedNodes.get("kids");
+const sportswearKids = bakedNodes.get("sportswear")?.audiences.find((row) => row.id === "sportswear--kids");
+assert.ok(kidsAudience?.image, "kids audience image");
+assert.equal(kidsAudience?.image, sportswearKids?.image, "kids.image matches the sportswear kids tile");
+assert.notEqual(kidsAudience?.image, bakedNodes.get("sportswear")?.image, "kids.image is not the sportswear cover");
+assert.equal(kidsAudience?.fit, "cover");
+assert.equal(kidsAudience?.objectPosition, "center");
+assert.match(kidsAudience?.image ?? "", /500480\.322/);
 assert.equal(new Set(homeImages).size, 6, "home tile images repeat");
 console.log(`home tiles match web home: ${WEB_HOME.map(([, label]) => label).join(", ")}`);
 
@@ -1297,7 +1316,24 @@ for (const [slug, expected] of Object.entries(audienceExpected)) {
       assert.equal(row.target, namespacedFeedTargets().get(row.id), row.id);
       assert.equal(row.label.en, audienceName(tile.key, makeT("na")), row.id);
       assert.equal(Number.isInteger(row.count), true, row.id);
+      const picture = feedAudiencePicture(tile);
+      assert.equal(row.image, picture.image, row.id);
+      assert.equal(row.fit, picture.fit, row.id);
+      assert.equal(row.objectPosition, picture.objectPosition, row.id);
+      assert.equal(row.image?.includes("hub-sportswear"), false, row.id);
     });
+  }
+}
+for (const slug of ["sportswear", "shoes", "football", "running-fitness"]) {
+  const category = bakedNodes.get(slug);
+  assert.ok(category, slug);
+  assert.equal(category.fit, "cover", slug);
+  assert.equal(category.objectPosition, "center", slug);
+  for (const key of category.tiles) {
+    const child = bakedNodes.get(key);
+    assert.ok(child?.image, key);
+    assert.equal(child?.fit, "cover", key);
+    assert.equal(child?.objectPosition, "center", key);
   }
 }
 assert.deepEqual(bakedNodes.get("shoes")?.tiles, expectedHubTileIds("shoes", siteCatalog));

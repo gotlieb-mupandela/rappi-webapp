@@ -10,8 +10,8 @@ import {
   subcategoryHubGroups,
   type HubFolderTile,
 } from "@/lib/hubs";
-import { asHomeSpan, asHomeTone } from "@/lib/home-tiles";
-import { applyBrandHash } from "@/lib/image-cache";
+import { asHomeSpan, asHomeTone, homeTileLayout } from "@/lib/home-tiles";
+import { applyBrandHash, brandPath, galleryVersion, withCacheParam } from "@/lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
 import { eurPerNad } from "@/lib/i18n/config";
 import {
@@ -55,6 +55,13 @@ import {
 import { feedVersionParamStatus, mobileFeedVersion, picturesDigest } from "@/lib/mobile-feed-version";
 import { publicCopy, publicFolderKey } from "@/lib/mobile-feed-slugs";
 import { shippingMethodsSnapshot } from "@/lib/shipping";
+import {
+  audienceTileFrame,
+  audienceTileImage,
+  FOLDER_TILE_FRAME,
+  PRODUCT_CARD_FRAME,
+  type TileFit,
+} from "@/lib/tile-frame";
 import { EMPTY_FOLDER_CODES, TILE_GALLERY_FILE, TILE_PRODUCT_CODES } from "@/lib/tile-cover-pins";
 import { buildTaxonomy, categoryCountsFromTaxonomy } from "@/lib/taxonomy";
 import type { Product } from "@/lib/types";
@@ -71,6 +78,15 @@ export type FeedAudienceRef = {
   /** Finite integer. Same count audienceTiles() returns. */
   count: number;
   target: string;
+  /**
+   * Picture the category page shows on this athlete tile.
+   * Men and Women are the brand covers. Kids is the sample product tile photo.
+   */
+  image: string | null;
+  /** cover or contain. Same fit HubTile uses for this tile. */
+  fit: TileFit;
+  /** CSS object-position. Same crop HubTile uses for this tile. */
+  objectPosition: string;
 };
 
 export type FeedNode = {
@@ -95,6 +111,10 @@ export type FeedNode = {
   span: 1 | 2 | null;
   /** Home tiles only. dark or light, or null when this node is not a home tile. */
   tone: "dark" | "light" | null;
+  /** cover or contain. Null when this node has no picture. */
+  fit: TileFit | null;
+  /** CSS object-position. Null when this node has no picture. */
+  objectPosition: string | null;
   /** Audience nodes only. men, women, or kids. Null on every other kind. */
   slug: string | null;
   /**
@@ -128,6 +148,8 @@ export const FEED_PRODUCT_KEYS = [
   "category",
   "subcategory",
   "audience",
+  "fit",
+  "objectPosition",
 ] as const;
 
 export type FeedProduct = {
@@ -153,6 +175,10 @@ export type FeedProduct = {
   category: string | null;
   subcategory: string | null;
   audience: string | null;
+  /** Listing card crop. contain on the website card. */
+  fit: TileFit;
+  /** CSS object-position of the website card. */
+  objectPosition: string;
 };
 
 export type FeedCheckout = {
@@ -525,6 +551,8 @@ export function feedProductCard(product: Product): FeedProduct | null {
     category: catalogSlug(fields.category),
     subcategory: catalogSlug(fields.subcategory),
     audience: productAudience(product),
+    fit: PRODUCT_CARD_FRAME.fit,
+    objectPosition: PRODUCT_CARD_FRAME.objectPosition,
   };
 }
 
@@ -564,7 +592,10 @@ export function folderProductCounts(catalog: FeedSource[]): Map<string, number> 
 }
 
 function emptyNode(
-  partial: Omit<FeedNodeDraft, "tiles" | "description" | "group" | "span" | "tone" | "slug" | "audiences"> & {
+  partial: Omit<
+    FeedNodeDraft,
+    "tiles" | "description" | "group" | "span" | "tone" | "slug" | "audiences" | "fit" | "objectPosition"
+  > & {
     tiles?: string[];
     description?: FeedText;
     group?: string | null;
@@ -572,6 +603,8 @@ function emptyNode(
     tone?: FeedNode["tone"];
     slug?: string | null;
     audiences?: FeedAudienceRef[];
+    fit?: FeedNode["fit"];
+    objectPosition?: FeedNode["objectPosition"];
   },
 ): FeedNodeDraft {
   return {
@@ -582,6 +615,8 @@ function emptyNode(
     tone: partial.tone ?? null,
     slug: partial.slug ?? null,
     audiences: partial.audiences ?? [],
+    fit: partial.fit ?? null,
+    objectPosition: partial.objectPosition ?? null,
     description: partial.description ?? partial.title,
   };
 }
@@ -642,6 +677,26 @@ function hubTileImage(tile: HubFolderTile): string | null {
   return null;
 }
 
+/**
+ * Athlete tile picture for one category, using the same cover-or-sample choice
+ * as the category page. Brand covers keep their content hash. A product photo
+ * carries the gallery version so a changed file is a new URL.
+ */
+export function feedAudiencePicture(tile: {
+  cover?: string;
+  sample?: { imageUrl?: string | null; images?: string[] | null } | null;
+}): { image: string | null; fit: TileFit; objectPosition: string } {
+  const frame = audienceTileFrame(Boolean(tile.cover));
+  const raw = audienceTileImage(tile.cover, tile.sample ?? null);
+  if (!raw) return { image: null, fit: frame.fit, objectPosition: frame.objectPosition };
+  if (brandPath(raw)) {
+    return { image: tileImage(raw), fit: frame.fit, objectPosition: frame.objectPosition };
+  }
+  const token = tile.sample ? galleryVersion(tile.sample.imageUrl ?? "", tile.sample.images ?? []) : "";
+  const versioned = token ? withCacheParam(raw, token) : raw;
+  return { image: feedImageUrl(versioned), fit: frame.fit, objectPosition: frame.objectPosition };
+}
+
 function hubAudiences(slug: string, catalog: FeedSource[]): FeedAudienceRef[] {
   const tiles = audienceTiles(catalog, { categorySlug: slug });
   if (tiles.length <= 1) return [];
@@ -653,11 +708,15 @@ function hubAudiences(slug: string, catalog: FeedSource[]): FeedAudienceRef[] {
     if (!target || tile.href !== target) continue;
     const count = assertFiniteInteger(tile.count, `audience ${id}`);
     if (count <= 0) continue;
+    const picture = feedAudiencePicture(tile);
     rows.push({
       id,
       label: textPair(audienceName(tile.key, tEn), audienceName(tile.key, tFr), tile.name),
       count,
       target,
+      image: picture.image,
+      fit: picture.fit,
+      objectPosition: picture.objectPosition,
     });
   }
   return rows;
@@ -824,6 +883,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     categoryOrder.push(category.slug);
   }
 
+  const sportswearKids = audienceTiles(catalog, { categorySlug: "sportswear" }).find((tile) => tile.key === "kids");
   for (const audience of feedAudienceTargets()) {
     if (!AUDIENCE_SLUGS.has(audience.slug)) continue;
     if (nodes.has(audience.id)) continue;
@@ -831,6 +891,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
       title: textPair(audienceName(audience.slug, tEn), audienceName(audience.slug, tFr), audience.slug),
     };
     const text = descriptionFor("audience", audience.slug, names.title);
+    const kidsPicture = audience.slug === "kids" ? feedAudiencePicture(sportswearKids ?? {}) : null;
     put(
       emptyNode({
         key: audience.id,
@@ -839,7 +900,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
         description: text,
         order: audience.order,
         parent: null,
-        image: tileImage(AUDIENCE_IMAGE[audience.slug] ?? null),
+        image: kidsPicture ? kidsPicture.image : tileImage(AUDIENCE_IMAGE[audience.slug] ?? null),
         hidden: false,
         count: navVisible.filter((product) => matchesAudience(product, audience.slug)).length,
         slug: audience.slug,
@@ -1013,6 +1074,29 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
       tiles.push(key);
     }
     node.tiles = tiles;
+    if (!node.image) {
+      node.fit = null;
+      node.objectPosition = null;
+      continue;
+    }
+    if (node.key.startsWith("home-")) {
+      const layout = homeTileLayout(node.key.slice("home-".length));
+      node.fit = layout.fit;
+      node.objectPosition = layout.objectPosition;
+      continue;
+    }
+    if (node.kind === "audience" && (node.slug === "men" || node.slug === "women")) {
+      node.fit = "contain";
+      node.objectPosition = "center";
+      continue;
+    }
+    if (node.parent && nodes.get(node.parent)?.kind === "category") {
+      node.fit = FOLDER_TILE_FRAME.fit;
+      node.objectPosition = FOLDER_TILE_FRAME.objectPosition;
+      continue;
+    }
+    node.fit = "cover";
+    node.objectPosition = "center";
   }
 
   const emitted = new Set<string>();
@@ -1059,8 +1143,13 @@ function tileById(menu: FeedMenuDef, id: string): FeedTargetTile | null {
   return menu.tiles.find((tile) => tile.id === id) ?? TEAM_TILES.find((tile) => tile.id === id) ?? null;
 }
 
-/** Long CDN lifetime for the current version. A mismatched valid `v` uses no-store. */
-export const STOREFRONT_CACHE = "public, s-maxage=300, stale-while-revalidate=86400";
+/**
+ * Short CDN lifetime. Admin saves call revalidateCatalog, which drops the
+ * catalogue tag immediately. This header is the remaining edge cache:
+ * one minute fresh, then one minute stale while the next read rebuilds.
+ * A mismatched valid `v` uses no-store.
+ */
+export const STOREFRONT_CACHE = "public, s-maxage=60, stale-while-revalidate=60";
 
 const builtFeeds = new Map<string, MobileStorefront>();
 let storefrontBuilds = 0;

@@ -19,6 +19,7 @@ import { useLocale } from "@/components/locale-provider";
 import { productHeading, productImageAlt } from "@/lib/copy";
 import { buyableSizes, isSoldOut } from "@/lib/product-stock";
 import { listingCardCandidates } from "@/lib/media";
+import { PRODUCT_CARD_FRAME } from "@/lib/tile-frame";
 import { useCart } from "@/lib/stores/cart";
 import { productPath } from "@/lib/utils";
 
@@ -126,7 +127,7 @@ export function ProductCard({
             src={cardSrc}
             sources={cardSources}
             alt={productImageAlt(product)}
-            className="aspect-square w-full object-contain p-1.5"
+            className={`aspect-square w-full p-1.5 ${PRODUCT_CARD_FRAME.imagePosition} ${PRODUCT_CARD_FRAME.fit === "contain" ? "object-contain" : "object-cover"}`}
             fallbackClassName="aspect-square"
             sizes="72px"
             width={144}
@@ -175,7 +176,7 @@ export function ProductCard({
             src={cardSrc}
             sources={cardSources}
             alt={productImageAlt(product)}
-            className="h-full w-full object-contain object-center p-3 sm:p-4"
+            className={`h-full w-full p-3 sm:p-4 ${PRODUCT_CARD_FRAME.imagePosition} ${PRODUCT_CARD_FRAME.fit === "contain" ? "object-contain" : "object-cover"}`}
             fallbackClassName="h-full w-full"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, min(20vw, 320px)"
           />
