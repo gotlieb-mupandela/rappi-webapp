@@ -9,12 +9,14 @@ import { catalogVersion } from "../lib/catalog-version";
 import { formatPrice } from "../lib/format";
 import { audienceTiles } from "../lib/hubs";
 import { HOME_TILE_LAYOUT } from "../lib/home-tiles";
-import { brandPath, galleryVersion } from "../lib/image-cache";
+import { brandPath, galleryVersion, versionProductImages } from "../lib/image-cache";
 import { makeT } from "../lib/i18n/translate";
 import { publicCopy } from "../lib/mobile-feed-slugs";
 import { buildMobileStorefront, feedImageUrl } from "../lib/mobile-feed";
 import { namespacedFeedTargets } from "../lib/mobile-feed-targets";
+import { withFullResProductImages } from "../lib/media";
 import { products as catalog } from "../lib/products";
+import type { Product } from "../lib/types";
 import { audienceTileFrame, audienceTileImage, FOLDER_TILE_FRAME, PRODUCT_CARD_FRAME } from "../lib/tile-frame";
 
 const tEn = makeT("na");
@@ -39,6 +41,21 @@ function pathOf(url: string): string {
   }
 }
 
+/**
+ * Lead the product page opens on. toClientProduct(withFullResProductImages)
+ * versions imageUrl and images and the gallery renders images[0].
+ * This is not listingCardCandidates: that reorder drops an absolute
+ * catalog-photo URL out of the catalog bucket and picks the flat file.
+ */
+function siteRenderedLead(product: Product): string | null {
+  const full = withFullResProductImages(product);
+  const rendered = versionProductImages({
+    imageUrl: full.imageUrl || "",
+    images: [...(full.images ?? [])],
+  });
+  return feedImageUrl(rendered.images[0] || rendered.imageUrl || null);
+}
+
 function plain(value: string): string {
   return publicCopy(value)
     .replace(/[<>\u0000-\u001f\u007f]/g, "")
@@ -55,6 +72,7 @@ const counts = {
   feedProducts: feed.products.length,
   excluded: 0,
   cardImageMatch: 0,
+  siteLeadMatch: 0,
   priceMatch: 0,
   priceLabelMatch: 0,
   packLabelMatch: 0,
@@ -80,6 +98,10 @@ for (const card of feed.products) {
   }
   if (card.cardImage === (card.images[0] ?? null)) counts.cardImageMatch += 1;
   else note(card.code, "cardImage", card.cardImage, card.images[0] ?? null);
+
+  const siteLead = siteRenderedLead(product);
+  if (card.cardImage === siteLead && card.images[0] === siteLead) counts.siteLeadMatch += 1;
+  else note(card.code, "rendered lead", card.cardImage, siteLead);
 
   if (card.price === product.price && card.price === product.unitPrice) counts.priceMatch += 1;
   else note(card.code, "price", card.price, product.unitPrice);
@@ -199,6 +221,17 @@ console.log(`feed products ${counts.feedProducts}`);
 console.log(`excluded from feed ${counts.excluded}`);
 console.log(`catalog price equals unitPrice ${counts.catalogPriceEqual} of ${counts.catalog}`);
 console.log(`cardImage equals images[0] ${counts.cardImageMatch} of ${counts.feedProducts}`);
+console.log(`cardImage and images[0] equal the product page lead ${counts.siteLeadMatch} of ${counts.feedProducts}`);
+for (const code of ["100807.400", "105463.400", "902561.206"]) {
+  const card = byCode.get(code);
+  const product = catalog.find((row) => row.code === code);
+  const lead = product ? siteRenderedLead(product) : null;
+  console.log(`${code} lead ${lead}`);
+  console.log(`${code} feed ${card?.cardImage ?? ""}`);
+  if (!lead || !lead.includes(`/catalog-photos/${code}.jpg`)) {
+    note(code, "catalog photo", lead, `/catalog-photos/${code}.jpg`);
+  }
+}
 console.log(`price matches unitPrice ${counts.priceMatch} of ${counts.feedProducts}`);
 console.log(`priceLabel matches ${counts.priceLabelMatch} of ${counts.feedProducts}`);
 console.log(`packLabel matches ${counts.packLabelMatch} of ${counts.feedProducts}`);

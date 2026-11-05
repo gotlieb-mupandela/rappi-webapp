@@ -11,7 +11,7 @@ import {
   type HubFolderTile,
 } from "@/lib/hubs";
 import { asHomeSpan, asHomeTone, homeTileLayout } from "@/lib/home-tiles";
-import { applyBrandHash, brandPath, galleryVersion, withCacheParam } from "@/lib/image-cache";
+import { applyBrandHash, brandPath, galleryVersion, versionProductImages, withCacheParam } from "@/lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
 import { eurPerNad } from "@/lib/i18n/config";
 import {
@@ -32,7 +32,7 @@ import { jomaTeamsLandingTiles } from "@/lib/joma-nav";
 import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
 import { isOutletFolderKey, jomaFolderByKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { catalogProductFields, filterListing, type ListingItem } from "@/lib/listing-core";
-import { hasUsableProductImage, listingCardCandidates, tileImageUrl } from "@/lib/media";
+import { hasUsableProductImage, listingCardCandidates, tileImageUrl, withFullResProductImages } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
 import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import { siteMenuCover, siteMenuPictures, siteMenuTileKeys } from "@/lib/mobile-feed-pictures";
@@ -561,10 +561,22 @@ function productLine(product: Product): string | null {
   return text || null;
 }
 
+/**
+ * Gallery the product page renders: full-resolution files, then the same
+ * `?v=` token toClientProduct adds. images[0] of that gallery is the lead
+ * the page opens on. Listing candidates follow it, so a catalog photo that
+ * the card reorder used to bury stays first.
+ */
 function productImages(product: Product): string[] {
+  const full = withFullResProductImages(product);
+  const rendered = versionProductImages({
+    imageUrl: full.imageUrl || "",
+    images: [...(full.images ?? [])],
+  });
+  const lead = rendered.images[0] || rendered.imageUrl || "";
   const seen = new Set<string>();
   const images: string[] = [];
-  for (const candidate of listingCardCandidates(product)) {
+  for (const candidate of [lead, ...listingCardCandidates(rendered)]) {
     const absolute = feedImageUrl(candidate);
     if (!absolute || seen.has(absolute)) continue;
     seen.add(absolute);

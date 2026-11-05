@@ -20,7 +20,7 @@ import {
   subcategoryHubGroups,
 } from "../lib/hubs";
 import { homeTileLayout } from "../lib/home-tiles";
-import { applyBrandHash } from "../lib/image-cache";
+import { applyBrandHash, versionProductImages } from "../lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "../lib/image-hosts";
 import { eurPerNad } from "../lib/i18n/config";
 import { audienceName, shippingName, subName } from "../lib/i18n/labels";
@@ -28,7 +28,7 @@ import { makeT } from "../lib/i18n/translate";
 import { isLiveFolder } from "../lib/joma-live";
 import { FOOTWEAR_FOLDERS, jomaFolderMetaSnapshot } from "../lib/joma-tree";
 import { filterListing, toClientProduct, type ListingItem } from "../lib/listing-core";
-import { listingCardCandidates } from "../lib/media";
+import { withFullResProductImages } from "../lib/media";
 import { PRODUCT_CARD_FRAME } from "../lib/tile-frame";
 import { CANONICAL_SITE_ORIGIN } from "../lib/meta/site";
 import {
@@ -313,12 +313,24 @@ for (const value of copyValues(feed)) {
   if (value.toLowerCase().includes("joma")) fail(`public copy contains the brand word: ${value}`);
 }
 
+function siteRenderedLead(product: Product): string | null {
+  const full = withFullResProductImages(product);
+  const rendered = versionProductImages({
+    imageUrl: full.imageUrl || "",
+    images: [...(full.images ?? [])],
+  });
+  return feedImageUrl(rendered.images[0] || rendered.imageUrl || null);
+}
+
 for (const card of feed.products) {
   const source = products.find((product) => product.code === card.code);
   assert.ok(source);
   assert.equal(card.cardImage, card.images[0] ?? null, card.code);
-  const siteFirst = feedImageUrl(listingCardCandidates(source)[0] ?? null);
-  if (siteFirst) assert.equal(card.cardImage, siteFirst, card.code);
+  const siteLead = siteRenderedLead(source);
+  if (siteLead) {
+    assert.equal(card.cardImage, siteLead, card.code);
+    assert.equal(card.images[0], siteLead, card.code);
+  }
   if (card.cardImage === null) {
     assert.equal(card.code === "HTTP-DROP", true, card.code);
     assert.equal(card.images.length, 0);
@@ -534,8 +546,12 @@ assert.equal(medium.cardImage.includes("card-primary"), false);
 assert.equal(feedImageUrl(medium.cardImage), medium.cardImage);
 
 const relative = cardByCode(feed, "REL-PATH");
+const relativeSource = products.find((product) => product.code === "REL-PATH");
+assert.ok(relativeSource);
 const relativeKept = `${CANONICAL_SITE_ORIGIN}/catalog-photos/rel-path.jpg`;
-assert.equal(relative.cardImage, relativeKept);
+const relativeLead = siteRenderedLead(relativeSource);
+assert.equal(relative.cardImage, relativeLead);
+assert.match(relative.cardImage ?? "", /^https:\/\/www\.rappisportshub\.com\/catalog-photos\/rel-path\.jpg\?v=[0-9a-f]{8}$/);
 assert.equal(relative.images[0], relative.cardImage);
 assert.equal(relative.cardImage.startsWith("https://"), true);
 assert.equal(feedImageUrl("/catalog-photos/rel-path.jpg"), relativeKept);
@@ -906,6 +922,9 @@ let labelFrTranslated = 0;
 for (const card of bakedFeed.products) {
   const source = bakedByCode.get(card.code);
   assert.ok(source, card.code);
+  const siteLead = siteRenderedLead(source);
+  assert.equal(card.cardImage, siteLead, `${card.code} cardImage`);
+  assert.equal(card.images[0] ?? null, siteLead, `${card.code} images[0]`);
   assert.equal(card.labelFr, expectedLabelFr(source), card.code);
   if (card.label === null) assert.equal(card.labelFr, null, card.code);
   if (card.label && card.labelFr && card.labelFr !== card.label) labelFrTranslated += 1;
