@@ -19,6 +19,7 @@
     "check:assortment": "npx tsx scripts/check-assortment-parity.ts",
     "check:catalog-version": "npx tsx scripts/check-catalog-version.ts",
     "check:feed": "NODE_OPTIONS='--require ./scripts/check-feed-register.cjs' npx tsx scripts/check-feed.ts",
+    "check:feed-parity": "NODE_OPTIONS='--require ./scripts/check-feed-register.cjs' npx tsx scripts/check-feed-parity.ts",
     "gen:sub-links": "npx tsx scripts/gen-sub-links.ts",
     "check:sub-links": "npx tsx scripts/gen-sub-links.ts --check",
     "dev:fixture": "npx tsx scripts/dev-fixture.ts",
