@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "@/components/product-image";
 import { AssortmentBadge } from "@/components/assortment-label";
-import { packTitleSuffix } from "@/lib/assortment";
+import { packTitleSuffix, recordedPackContents } from "@/lib/assortment";
 import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
 import { productHeading, productImageAlt } from "@/lib/copy";
@@ -40,6 +40,7 @@ export function ProductCard({
   const first = buyableSizes(product)[0];
   const soldOut = isSoldOut(product);
   const title = productHeading(product) + (packTitleSuffix(product, t) ?? "");
+  const packContents = recordedPackContents(product);
   const cardSources = listingCardCandidates(product, audience);
   const cardSrc = cardSources[0] ?? "";
 
@@ -138,6 +139,9 @@ export function ProductCard({
           <p className="mt-0.5 truncate text-[12px] font-semibold uppercase tracking-[0.02em] text-[var(--text)]">
             {title}
           </p>
+          {packContents ? (
+            <p className="truncate text-[10px] leading-snug text-[var(--muted)]">{packContents}</p>
+          ) : null}
           <AssortmentBadge product={product} />
           <p className="price mt-1 text-[12px] font-semibold text-[var(--accent)]">
             {t("product.tariff", { amount: format(product.unitPrice) })}
@@ -196,6 +200,9 @@ export function ProductCard({
           <p className="line-clamp-2 min-h-[2.25rem] text-[11px] font-semibold uppercase leading-snug tracking-[0.02em] text-[var(--text)] sm:text-[12px]">
             {title}
           </p>
+          {packContents ? (
+            <p className="line-clamp-2 text-[10px] leading-snug text-[var(--muted)]">{packContents}</p>
+          ) : null}
           <p className="price pt-0.5 text-[12px] font-semibold text-[var(--accent)]">
             {t("product.tariff", { amount: format(product.unitPrice) })}
           </p>

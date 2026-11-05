@@ -1,6 +1,7 @@
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { makeT, type TFunction } from "@/lib/i18n/translate";
+import apparelAssortmentData from "@/data/apparel-assortments.json";
 
 /**
  * Headwear (caps/hats/visors/beanies) and balls at/above these NAD sell
@@ -79,7 +80,7 @@ export type ClientAssortmentSize = {
   label: string;
   pairCount: number | null;
   split: string | null;
-  labelKey: string;
+  labelKey: string | null;
   labelParams: AssortmentLabelParams | null;
 };
 
@@ -141,6 +142,7 @@ function blob(product: Product) {
  */
 export function isFootwearSku(product: Product) {
   if (isBallSku(product)) return false;
+  if (product.subcategory === "bags" || /\bshoe bags?\b/i.test(blob(product))) return false;
   if (product.category === "shoes") return true;
   if (SHOE_SUBS.has(product.subcategory)) return true;
   const text = blob(product);
@@ -186,6 +188,84 @@ export function isEventosTeePack(product: Product) {
 
 export function isMultipack(product: Product) {
   return MULTIPACK_RE.test(blob(product));
+}
+
+type ApparelCurvePiece = { size: string; qty: number };
+type ApparelCurve = { size: string; pieces: number; split: ApparelCurvePiece[] };
+type ApparelAssortmentRow = { code: string; pack_size: number; curves?: ApparelCurve[] };
+
+const RECORDED_PACKS = new Map(
+  ((apparelAssortmentData as { products: ApparelAssortmentRow[] }).products ?? []).map((row) => [
+    row.code,
+    row,
+  ]),
+);
+
+function formatPackSplit(split: ApparelCurvePiece[]) {
+  return split.map((piece) => `${piece.size}×${piece.qty}`).join(", ");
+}
+
+function recordedRow(product: Product) {
+  return RECORDED_PACKS.get(product.code) ?? null;
+}
+
+type RecordedCurveView = { size: string; pieces: number; text: string };
+
+function recordedCurveViews(product: Product): RecordedCurveView[] {
+  const row = recordedRow(product);
+  if (!row?.curves?.length) return [];
+  return row.curves.map((curve) => ({
+    size: curve.size.toUpperCase(),
+    pieces: curve.pieces,
+    text: formatPackSplit(curve.split),
+  }));
+}
+
+/** True when this SKU has a supplier size breakdown in the assortment file. */
+export function isRecordedApparelPack(product: Product) {
+  return recordedCurveViews(product).length > 0;
+}
+
+/** Sizes and quantities inside the pack, once per distinct breakdown. */
+export function recordedPackContents(product: Product): string | null {
+  const views = recordedCurveViews(product);
+  if (!views.length) return null;
+  return [...new Set(views.map((view) => view.text))].join(" · ");
+}
+
+/**
+ * Breakdown for one style size. A single recorded curve also covers a site
+ * size code that does not match the supplier code.
+ */
+export function recordedSizeSplit(product: Product, size: string): string | null {
+  const views = recordedCurveViews(product);
+  if (!views.length) return null;
+  const match = views.find((view) => view.size === size.toUpperCase());
+  if (match) return match.text;
+  if (views.length === 1) return views[0].text;
+  return null;
+}
+
+const SOCK_RE = /\b(socks?|calcet(?:ines|in)?)\b/i;
+
+export function isSockSku(product: Product) {
+  if (product.subcategory === "socks") return true;
+  return SOCK_RE.test(blob(product));
+}
+
+/**
+ * Pairs only for footwear and socks. Balls, caps, and other pieces stay pcs
+ * even when a code looks like footwear.
+ */
+export function packUnitKey(product: Product): "product.pairs" | "product.pcs" {
+  if (isBallSku(product) || isHeadwearSku(product)) return "product.pcs";
+  if (isSockSku(product) || isFootwearSku(product)) return "product.pairs";
+  return "product.pcs";
+}
+
+function packUnitParams(product: Product, n: number): AssortmentLabelParams {
+  const unitKey = packUnitKey(product);
+  return { n, unit: en(unitKey), unitKey };
 }
 
 const HEADWEAR_RE = /\b(caps?|hats?|visors?|beanies?)\b/i;
@@ -566,6 +646,8 @@ function sizeNames(product: Product): string[] {
 
 /** English label for toasts that have no locale function. */
 export function surtidoSizeText(product: Product, size: string): string | null {
+  const recorded = recordedSizeSplit(product, size);
+  if (recorded) return recorded;
   const parts = surtidoSizeParts(product, size);
   if (!parts) return null;
   const unit = isFootwearSku(product) ? "pairs" : "pcs";
@@ -575,6 +657,22 @@ export function surtidoSizeText(product: Product, size: string): string | null {
 }
 
 function sizeLabelChoice(product: Product, size: string): ClientAssortmentSize | null {
+  if (isRecordedApparelPack(product)) {
+    const text = recordedSizeSplit(product, size);
+    if (!text) return null;
+    const views = recordedCurveViews(product);
+    const match =
+      views.find((view) => view.size === size.toUpperCase()) ??
+      (views.length === 1 ? views[0] : undefined);
+    return {
+      size,
+      label: text,
+      pairCount: match && match.pieces > 1 ? match.pieces : null,
+      split: text,
+      labelKey: null,
+      labelParams: null,
+    };
+  }
   const parts = surtidoSizeParts(product, size);
   if (!parts) return null;
   const split = parts.code ? curveSplitText(parts.code) : null;
@@ -736,6 +834,9 @@ export function getAssortment(
 type LabelChoice = { key: string; params: AssortmentLabelParams | null };
 
 function badgeChoice(product: Product, info: AssortmentInfo): LabelChoice | null {
+  if (isRecordedApparelPack(product) && info.packSize && info.packSize > 1) {
+    return { key: "product.packOfUnit", params: packUnitParams(product, info.packSize) };
+  }
   if (info.packSize === 10 && info.preserveSizes && isTrainingBibPack(product)) {
     return { key: "product.packOf10", params: null };
   }
@@ -761,6 +862,9 @@ function badgeChoice(product: Product, info: AssortmentInfo): LabelChoice | null
 }
 
 function titleChoice(product: Product, info: AssortmentInfo): LabelChoice | null {
+  if (isRecordedApparelPack(product) && info.packSize && info.packSize > 1) {
+    return { key: "product.packOfUnit", params: packUnitParams(product, info.packSize) };
+  }
   if (info.kind === "assortment" && surtidoCurveSizes(product)) {
     return { key: "product.assortment", params: null };
   }

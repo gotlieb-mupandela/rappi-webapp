@@ -10,7 +10,15 @@ import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
 import { AssortmentBadge, AssortmentCurves, AssortmentHint } from "@/components/assortment-label";
-import { clientAssortment, getAssortment, isFootwearSku, packTitleSuffix, surtidoSizeLabel } from "@/lib/assortment";
+import {
+  clientAssortment,
+  getAssortment,
+  isFootwearSku,
+  isRecordedApparelPack,
+  packTitleSuffix,
+  recordedPackContents,
+  surtidoSizeLabel,
+} from "@/lib/assortment";
 import { productDescription, productHeading } from "@/lib/copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
@@ -44,6 +52,8 @@ export function ProductDetail({ product }: { product: Product }) {
   const title = productHeading(product) + (packTitleSuffix(product, t) ?? "");
   const assortment = getAssortment(product);
   const packView = clientAssortment(product);
+  const recordedPack = isRecordedApparelPack(product);
+  const packContents = recordedPackContents(product);
   const details = productDescription(product, { t, market });
   const showPicker = hasVisibleSizePicker(product);
   const assortmentPicker =
@@ -137,7 +147,9 @@ export function ProductDetail({ product }: { product: Product }) {
           <p className="mt-2 text-sm text-[var(--muted)]">{stockLabel(product, t)}</p>
           {assortment?.isAssortment ? (
             <p className="mt-1 text-[12px] text-[var(--muted-2)]">
-              {assortment.packSize === 10 && assortment.preserveSizes
+              {recordedPack && packView.pairCount && packView.pairCount > 1
+                ? t("product.packNamedPdp", { n: packView.pairCount, symbol })
+                : assortment.packSize === 10 && assortment.preserveSizes
                 ? t("product.pack10", { symbol })
                 : assortment.kind === "assortment"
                   ? packView.pairCount && packView.pairCount > 1
@@ -159,6 +171,9 @@ export function ProductDetail({ product }: { product: Product }) {
                           ? t("product.packNamedPdp", { n: assortment.packSize, symbol })
                           : t("product.packAssortment", { symbol })}
             </p>
+          ) : null}
+          {packContents ? (
+            <p className="mt-1 text-sm text-[var(--muted)]">{packContents}</p>
           ) : null}
         </div>
 
@@ -202,7 +217,9 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
         ) : (
           <p className="mt-8 text-sm text-[var(--muted)]">
-            {assortment?.packSize === 10 && assortment.preserveSizes
+            {recordedPack && packView.pairCount && packView.pairCount > 1
+              ? t("product.orderPackNamed", { n: packView.pairCount })
+              : assortment?.packSize === 10 && assortment.preserveSizes
               ? t("product.orderPack10")
               : assortment?.kind === "assortment"
                 ? packView.pairCount && packView.pairCount > 1

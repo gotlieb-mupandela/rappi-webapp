@@ -1,10 +1,38 @@
 {
-  "source": "Catalog family price-ratio audit 2026-10-08",
-  "policy": "Only exact SKU-family or exact product-name peers with a 6x, 8x, or 10x pack-price ratio are listed.",
+  "source": "Supplier pack audit. Piece counts and size breakdowns. Prices are not stored here.",
+  "policy": "Listed codes are sold as packs. pack_size is the piece count. curves, when present, is the size breakdown inside the pack.",
   "products": [
     {
       "code": "103171.425",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S08",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "103629.322",
@@ -84,27 +112,171 @@
     },
     {
       "code": "500832.322",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "500832.404",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "500834.715",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "500938.100",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "500938.172",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "500938.609",
-      "pack_size": 10
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
     },
     {
       "code": "900250.100",
@@ -265,6 +437,9038 @@
     {
       "code": "VDYNAW2611",
       "pack_size": 8
+    },
+    {
+      "code": "100808.100",
+      "pack_size": 2,
+      "curves": [
+        {
+          "size": "S48",
+          "pieces": 2,
+          "split": [
+            {
+              "size": "S",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "100912.200",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S31",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "2XS",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S32",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "XS",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S33",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "M",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S34",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "L",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S35",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "XL",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "100912.331",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S30",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "4XS",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S32",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "XS",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "101690.200",
+      "pack_size": 2,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 2,
+          "split": [
+            {
+              "size": "XL",
+              "qty": 2
+            }
+          ]
+        },
+        {
+          "size": "S05",
+          "pieces": 2,
+          "split": [
+            {
+              "size": "2XL",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "102221.027",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "6XS-5XS",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "4XS-3XS",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "2XS-XS",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "102221.066",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "6XS-5XS",
+              "qty": 10
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "4XS-3XS",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "103545.100",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "103545.322",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "103567.435",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104515.584",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104616.008",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104616.384",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104616.547",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104616.931",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104617.384",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104617.547",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104617.931",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104619.008",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104619.384",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104619.547",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104619.931",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104620.100",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104620.322",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104629.200",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104629.384",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104629.549",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104631.200",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104631.384",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104686.006",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104686.100",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104686.278",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104686.324",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104944.100",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104944.200",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104944.834",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104997.100",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104997.150",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "104997.324",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 3
+            },
+            {
+              "size": "L",
+              "qty": 3
+            },
+            {
+              "size": "XL",
+              "qty": 2
+            },
+            {
+              "size": "2XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400001.100",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400001.300",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400001.450",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400001.600",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400001.700",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.100",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.200",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.207",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.336",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.339",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.450",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.609",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.700",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.900",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400022.901",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400027.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400027.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400027.P03",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400028.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400028.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400030.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S26",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400030.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S26",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400032.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S30",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "47-50",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400032.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S30",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "47-50",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.010",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.020",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.060",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.100",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.150",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.200",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.331",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.350",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.450",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.550",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.600",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.671",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.700",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.880",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400054.900",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400175.100",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400175.200",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400175.331",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400176.100",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400176.200",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.100",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.200",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.331",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.450",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.600",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.700",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400194.900",
+      "pack_size": 20,
+      "curves": [
+        {
+          "size": "S21",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "S",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S22",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "M",
+              "qty": 20
+            }
+          ]
+        },
+        {
+          "size": "S23",
+          "pieces": 20,
+          "split": [
+            {
+              "size": "L",
+              "qty": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400205.200",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S46",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400205.331",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S46",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400205.700",
+      "pack_size": 10,
+      "curves": [
+        {
+          "size": "S46",
+          "pieces": 10,
+          "split": [
+            {
+              "size": "S",
+              "qty": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400228.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400228.702",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400245.P01",
+      "pack_size": 24,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 24,
+          "split": [
+            {
+              "size": "S",
+              "qty": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400245.P03",
+      "pack_size": 24,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 24,
+          "split": [
+            {
+              "size": "S",
+              "qty": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400279.100",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400279.500",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400279.600",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400279.700",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400279.900",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400285.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400285.200",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400285.331",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400287.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400288.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400288.200",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400289.041",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400289.102",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400289.201",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400289.602",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400289.702",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "M",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "L",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400292.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400292.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400292.P03",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400300.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "S",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400300.P03",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "S",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400358.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S42",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "S",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400358.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S42",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "S",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400363.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S42",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "S",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400378.102",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400378.106",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400378.109",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400378.452",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400378.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400378.702",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400379.040",
+      "pack_size": 50,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 50,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 50
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400379.100",
+      "pack_size": 50,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 50,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 50
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400379.700",
+      "pack_size": 50,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 50,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 50
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.100",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.200",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.331",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.450",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.600",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.700",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400392.901",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "S",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "M",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "L",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400435.P01",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400435.P02",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400458.100",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400458.331",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "S",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.100",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.200",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.331",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.450",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.600",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.700",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.901",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400476.922",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400534.331",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "M",
+              "qty": 5
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "XL",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400601.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400602.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S27",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400602.200",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S28",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400603.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S29",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400740.000",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400741.000",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400743.000",
+      "pack_size": 24,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 24,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400798.450",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400798.600",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400798.700",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400798.900",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.100",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.200",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.331",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.450",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.600",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.700",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400799.900",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 6
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.102",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.201",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.332",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.451",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.452",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.601",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.701",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.702",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400897.901",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.102",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.201",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.332",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.451",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.452",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.601",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.701",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.702",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400898.901",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400921.353",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "400922.353",
+      "pack_size": 5,
+      "curves": [
+        {
+          "size": "S37",
+          "pieces": 5,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401498.200",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.010",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.020",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.030",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.060",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.150",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.350",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.450",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.550",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.600",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.671",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.700",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401533.880",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.102",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.201",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.332",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.452",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.702",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401717.901",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.010",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.100",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.200",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.450",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.600",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.880",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401720.900",
+      "pack_size": 12,
+      "curves": [
+        {
+          "size": "S17",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S18",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 12
+            }
+          ]
+        },
+        {
+          "size": "S19",
+          "pieces": 12,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.010",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.020",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.030",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.060",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.100",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.150",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.200",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.331",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.350",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.450",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.550",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.600",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.671",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.700",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.880",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401964.900",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "31-34",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S02",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "35-38",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.102",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.152",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.201",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.203",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.206",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.207",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.336",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.339",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.452",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.552",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.602",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.609",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.702",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.901",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "401965.907",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S03",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "39-42",
+              "qty": 4
+            }
+          ]
+        },
+        {
+          "size": "S04",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "402039.477",
+      "pack_size": 3,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 3,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "402039.576",
+      "pack_size": 3,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 3,
+          "split": [
+            {
+              "size": "One size",
+              "qty": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500638.726",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "10 (3XS)",
+              "qty": 1
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 2
+            },
+            {
+              "size": "XS+",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500646.622",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "10 (3XS)",
+              "qty": 1
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 2
+            },
+            {
+              "size": "XS+",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500646.726",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S02",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "10 (3XS)",
+              "qty": 1
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 2
+            },
+            {
+              "size": "XS+",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500843.008",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500848.100",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500848.631",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500850.715",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500856.628",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500862.200",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500865.547",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500865.579",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500883.404",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500884.322",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500884.346",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500885.008",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500885.480",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500887.547",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500888.008",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500888.322",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500888.480",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500888.631",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500889.322",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500889.547",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500904.384",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500904.405",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500905.683",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500905.833",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500906.549",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500911.172",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500911.324",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500911.572",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500926.100",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S05",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "2 (8XS)",
+              "qty": 1
+            },
+            {
+              "size": "3 (7XS)",
+              "qty": 1
+            },
+            {
+              "size": "4 (6XS)",
+              "qty": 2
+            },
+            {
+              "size": "6 (5XS)",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500926.200",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S05",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "2 (8XS)",
+              "qty": 1
+            },
+            {
+              "size": "3 (7XS)",
+              "qty": 1
+            },
+            {
+              "size": "4 (6XS)",
+              "qty": 2
+            },
+            {
+              "size": "6 (5XS)",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500934.101",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500934.201",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500934.384",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500934.609",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500935.250",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500935.427",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "500935.548",
+      "pack_size": 8,
+      "curves": [
+        {
+          "size": "S01",
+          "pieces": 8,
+          "split": [
+            {
+              "size": "8 (4XS)",
+              "qty": 2
+            },
+            {
+              "size": "10 (3XS)",
+              "qty": 3
+            },
+            {
+              "size": "12 (2XS)",
+              "qty": 2
+            },
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "600146.487",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S05",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "2 (8XS)",
+              "qty": 1
+            },
+            {
+              "size": "3 (7XS)",
+              "qty": 1
+            },
+            {
+              "size": "4 (6XS)",
+              "qty": 2
+            },
+            {
+              "size": "6 (5XS)",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "600152.384",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S05",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "2 (8XS)",
+              "qty": 1
+            },
+            {
+              "size": "3 (7XS)",
+              "qty": 1
+            },
+            {
+              "size": "4 (6XS)",
+              "qty": 2
+            },
+            {
+              "size": "6 (5XS)",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "600152.549",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S05",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "2 (8XS)",
+              "qty": 1
+            },
+            {
+              "size": "3 (7XS)",
+              "qty": 1
+            },
+            {
+              "size": "4 (6XS)",
+              "qty": 2
+            },
+            {
+              "size": "6 (5XS)",
+              "qty": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "901923.104",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S06",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            },
+            {
+              "size": "S",
+              "qty": 2
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "901931.544",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S06",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "14 (XS)",
+              "qty": 1
+            },
+            {
+              "size": "S",
+              "qty": 2
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "902714.322",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "902715.008",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "902716.100",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "902763.006",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "902763.100",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "902763.200",
+      "pack_size": 6,
+      "curves": [
+        {
+          "size": "S04",
+          "pieces": 6,
+          "split": [
+            {
+              "size": "S",
+              "qty": 1
+            },
+            {
+              "size": "M",
+              "qty": 2
+            },
+            {
+              "size": "L",
+              "qty": 2
+            },
+            {
+              "size": "XL",
+              "qty": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "TI41744B0101",
+      "pack_size": 4,
+      "curves": [
+        {
+          "size": "S08",
+          "pieces": 4,
+          "split": [
+            {
+              "size": "43-46",
+              "qty": 4
+            }
+          ]
+        }
+      ]
     }
   ]
 }
