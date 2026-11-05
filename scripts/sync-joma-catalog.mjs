@@ -27,6 +27,13 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { retailNadFromSupplierUsd, supplierUsd } from "../lib/retail-nad.mjs";
+import {
+  allowlistPath,
+  isCatalogPack,
+  loadAllowlist,
+  unlabelledStylePacks,
+} from "./pack-label-guard.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const catalogPath = path.join(root, "data", "products.json");
@@ -35,6 +42,46 @@ const sourcePath = path.join(root, "data", "products-source.json");
 const dumpPath = process.env.JOMA_CATALOG_JSON;
 const write = process.argv.includes("--write") || process.argv.includes("--write-catalog");
 const writeCatalog = process.argv.includes("--write-catalog");
+
+function positive(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * Pack rows use the pack USD (offer, otherwise list), never the unit USD.
+ * Single items use the unit USD when the row has one, otherwise offer or list.
+ */
+function rowLooksLikePack(row) {
+  const kind = String(row.type || row.sell_as || row.sellAs || "");
+  if (/pack|assort/i.test(kind)) return true;
+  const pieces = Number(row.pieces ?? row.pack_size ?? row.packSize);
+  return Number.isFinite(pieces) && pieces > 1;
+}
+
+function usdForRow(row, product) {
+  const offer = row.offer_price_usd ?? row.offer_usd ?? row.offerPrice ?? row.offer;
+  const list = row.list_price_usd ?? row.list_usd ?? row.listPrice ?? row.list;
+  const unit = positive(row.unit_price_usd ?? row.unit_usd ?? row.unitPrice ?? row.unit_price);
+  const packUsd = supplierUsd(offer, list);
+  if ((product && isCatalogPack(product)) || rowLooksLikePack(row)) return packUsd;
+  if (unit != null) return unit;
+  return packUsd;
+}
+
+function refuseUnlabelled(catalog) {
+  let allow = [];
+  if (fs.existsSync(allowlistPath)) allow = loadAllowlist();
+  const suspects = unlabelledStylePacks(catalog, allow);
+  if (!suspects.length) return false;
+  console.error(
+    `Unlabelled pack suspects (${suspects.length}). Import will not publish them.`,
+  );
+  for (const row of suspects) {
+    console.error(`${row.code}\tsize ${row.size}\t${row.name}`);
+  }
+  return true;
+}
 
 function syncDatabaseAfterFileWrite() {
   if (!write) return;
@@ -100,6 +147,10 @@ function seedFromOpeningSheet(master) {
 
 if (!dumpPath) {
   const master = seedFromOpeningSheet(loadMaster());
+  if (write && fs.existsSync(catalogPath)) {
+    const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+    if (refuseUnlabelled(catalog)) process.exit(1);
+  }
   if (write) {
     fs.writeFileSync(masterPath, JSON.stringify(master, null, 2) + "\n");
   }
@@ -143,21 +194,22 @@ for (const row of rows) {
     oos += 1;
   }
   if (sizes.length) sized += 1;
+  const supplierPrice = usdForRow(row, null);
   master[code] = {
     sizes: sizes.length ? sizes : master[code]?.sizes || [],
     qty: nextQty ?? 0,
     perSize: perSize || master[code]?.perSize || null,
+    ...(supplierPrice != null ? { supplierUsd: supplierPrice, supplierRow: row } : {}),
   };
 }
 
-if (write) {
-  fs.writeFileSync(masterPath, JSON.stringify(master, null, 2) + "\n");
-}
-
 let catalogPatched = 0;
-if (writeCatalog && fs.existsSync(catalogPath)) {
-  const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
-  for (const product of catalog) {
+let catalogToPublish = null;
+if (fs.existsSync(catalogPath)) {
+  catalogToPublish = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+}
+if (writeCatalog && catalogToPublish) {
+  for (const product of catalogToPublish) {
     const row = master[product.code];
     if (!row) continue;
     catalogPatched += 1;
@@ -177,8 +229,29 @@ if (writeCatalog && fs.existsSync(catalogPath)) {
               : 0,
       }));
     }
+    const usd = row.supplierRow ? usdForRow(row.supplierRow, product) : row.supplierUsd;
+    if (usd != null) {
+      const nad = retailNadFromSupplierUsd(usd);
+      product.price = nad;
+      product.unitPrice = nad;
+    }
   }
-  fs.writeFileSync(catalogPath, JSON.stringify(catalog));
+}
+
+if (write && catalogToPublish && refuseUnlabelled(catalogToPublish)) {
+  process.exit(1);
+}
+
+for (const row of Object.values(master)) {
+  delete row.supplierRow;
+  delete row.supplierUsd;
+}
+
+if (write) {
+  fs.writeFileSync(masterPath, JSON.stringify(master, null, 2) + "\n");
+}
+if (writeCatalog && catalogToPublish) {
+  fs.writeFileSync(catalogPath, JSON.stringify(catalogToPublish));
 }
 
 console.log(

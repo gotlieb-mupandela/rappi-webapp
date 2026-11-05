@@ -95,3 +95,11 @@ curl -X POST -H "Authorization: Bearer $CATALOG_REVALIDATE_SECRET" \
 ```
 
 The catalog tag expires immediately (`revalidateTag` on the fixed tag `catalog`, with `expire: 0`). That is the only purge. It does not call `revalidatePath`, and it does not clear the rest of the site. The next listing request loads a fresh overlay. A valid secret can trigger this at most 12 times per hour (`consume_rate_limit` key `catalog-revalidate`). An error from that limiter, or a missing secret, does not clear the cache.
+
+## Pack labels block a publish
+
+`node scripts/check-pack-labels.mjs` runs in this workflow before the database sync, and `npm run sync:stock-db` runs the same rule itself. A product with a single style size from S01 to S99 and no pack label is a suspect, unless its code is in `data/non-pack-allowlist.json`. Codes in `data/apparel-assortments.json` must resolve to a pack with the recorded piece count.
+
+When suspects exist, the sync prints each code and exits non-zero. It does not write stock. The catalog import (`npm run sync:joma -- --write`) uses the same stop, before it writes files or calls this sync.
+
+Retail NAD for a row that has a supplier USD price is `round(usd x 18 x 1.45)` via `lib/retail-nad.mjs`. The import uses that function when a row includes an offer or list price. Offer wins. Pack rows use the pack USD. Rows with no supplier USD are not repriced.

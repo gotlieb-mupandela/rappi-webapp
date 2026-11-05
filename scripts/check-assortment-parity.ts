@@ -22,7 +22,9 @@ import {
   isBallSku,
   isFootwearSku,
   isHeadwearSku,
+  isSockSku,
   packTitleSuffix,
+  recordedSizeSplit,
   renderAssortmentLabel,
   surtidoPackLines,
   surtidoCurveSizes,
@@ -183,7 +185,7 @@ function siteIssues(product: Product, view: ClientAssortment): Issue[] {
   const texts = [view.label, view.titleSuffix, ...view.sizes.map((row) => row.label)];
   for (const text of texts) {
     if (!text) continue;
-    if (/\bpairs\b/i.test(text) && !isFootwearSku(product)) {
+    if (/\bpairs\b/i.test(text) && !isFootwearSku(product) && !isSockSku(product)) {
       push(`label "${text}" says pairs on a non-footwear product`);
     }
     if (/\bpcs\b/i.test(text) && isFootwearSku(product)) {
@@ -313,7 +315,9 @@ function checkProduct(product: Product) {
     if ((expected ?? null) !== (row?.label ?? null)) {
       fail(`${product.code} size ${size} label "${expected}" !== API "${row?.label}"`);
     }
-    if (row && row.split !== curveSplitText(row.labelParams?.code ? String(row.labelParams.code) : size)) {
+    const splitCode = row?.labelParams?.code ? String(row.labelParams.code) : size;
+    const expectedSplit = recordedSizeSplit(product, size) ?? curveSplitText(splitCode);
+    if (row && row.split !== expectedSplit) {
       fail(`${product.code} size ${size} split mismatch`);
     }
     if (!expected && row) fail(`${product.code} size ${size} is on the API but the UI has no label`);

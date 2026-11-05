@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 43123",
     "brand-versions": "node scripts/brand-versions.mjs",
+    "prebuild": "node scripts/check-pack-labels.mjs",
     "build": "node scripts/brand-versions.mjs && next build",
     "start": "next start --hostname 127.0.0.1 --port 43123",
     "lint": "eslint",
@@ -13,6 +14,7 @@
     "check:catalog": "python3 scripts/check-catalog.py",
     "check:merch": "node scripts/check-baked-catalog.mjs",
     "check:pack-prices": "node scripts/check-pack-prices.mjs",
+    "check:pack-labels": "node scripts/check-pack-labels.mjs",
     "check:store-images": "node scripts/check-store-images.mjs",
     "check:assortment": "npx tsx scripts/check-assortment-parity.ts",
     "check:catalog-version": "npx tsx scripts/check-catalog-version.ts",

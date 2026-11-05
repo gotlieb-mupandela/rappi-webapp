@@ -1,11 +1,14 @@
 /**
- * Catalog retail pricing from Joma EUR wholesale/cost.
+ * Catalog retail pricing from the supplier wholesale figure.
  *
- * Historical import (commit e390efd): NAD = round(EUR × FX × (1 + 0.67)).
- * Current target markup: 45%.
+ * Historical import (commit e390efd): NAD = round(EUR x FX x (1 + 0.67)).
+ * Current rule: NAD = round(usd x 18 x 1.45). Offer wins over list.
+ * The implementation lives in lib/retail-nad.mjs so scripts share it.
  */
-export const EUR_TO_NAD_FX = 18;
-export const RETAIL_MARKUP = 0.45;
+import { retailNadFromSupplierUsd, SUPPLIER_FX, SUPPLIER_MARKUP } from "./retail-nad.mjs";
+
+export const EUR_TO_NAD_FX = SUPPLIER_FX;
+export const RETAIL_MARKUP = SUPPLIER_MARKUP;
 /** Markup baked into data/products.json at B2B import. */
 export const LEGACY_RETAIL_MARKUP = 0.67;
 
@@ -14,9 +17,7 @@ export function retailNadFromEur(
   markup: number = RETAIL_MARKUP,
   fx: number = EUR_TO_NAD_FX,
 ) {
-  const eur = Number(eurCost) || 0;
-  if (eur <= 0) return 0;
-  return Math.round(eur * fx * (1 + markup));
+  return retailNadFromSupplierUsd(eurCost, markup, fx);
 }
 
 /** Recover EUR cost implied by a legacy 67% NAD sell price. */

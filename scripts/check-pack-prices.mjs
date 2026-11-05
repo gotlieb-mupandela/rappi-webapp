@@ -13,6 +13,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { retailNadFromSupplierUsd, supplierUsd } from "../lib/retail-nad.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const catalogPath = path.join(root, "data", "products.json");
@@ -21,6 +22,7 @@ const markupPath = path.join(root, "data", "retail-markup.json");
 const fixPath = path.join(root, "data", "b2c-price-fix-data.json");
 const apparelAssortmentsPath = path.join(root, "data", "apparel-assortments.json");
 const mapBPath = path.join(root, "data", "b2c-map-b.json");
+const supplierUsdPath = path.join(root, "data", "supplier-usd.json");
 
 // Unit-retail NAD that must never reappear as a selling price on mapped codes.
 // (783 excluded: it is the legitimate pack NAD for 101686.* bibs.)
@@ -126,7 +128,7 @@ for (const o of fix.pack_price_overrides || []) {
 }
 
 // Audited apparel assortments: exact pack flags must reach both catalog and
-// the public listing index. Prices are intentionally unchanged.
+// the public listing index. Supplier USD prices are checked later in this file.
 for (const row of apparelAssortments) {
   const p = byCode.get(row.code);
   if (!p) {
@@ -365,10 +367,50 @@ if (Number(markup.fx) !== 18 || Number(markup.markup) !== 0.45) {
   fail(`retail-markup changed: fx=${markup.fx} markup=${markup.markup}, expected 18/0.45`);
 }
 
+// Every catalog row with a supplier USD source must sell at round(usd * 18 * 1.45).
+// usd is the offer when one is recorded, otherwise the list price. Pack rows store
+// the pack USD, not the unit USD. Rows with no source are left unchecked.
+const supplierFile = JSON.parse(fs.readFileSync(supplierUsdPath, "utf8"));
+const supplierRows = supplierFile.products || [];
+let sourced = 0;
+let unsourced = 0;
+const supplierCodes = new Set();
+for (const row of supplierRows) {
+  supplierCodes.add(row.code);
+  const expectedUsd = supplierUsd(row.offer_usd, row.list_usd);
+  if (expectedUsd == null) {
+    fail(`${row.code} supplier USD row has no offer or list price`);
+    continue;
+  }
+  if (Number(row.usd) !== expectedUsd) {
+    fail(`${row.code} stored usd ${row.usd}, offer/list resolves to ${expectedUsd}`);
+  }
+  const expectedNad = retailNadFromSupplierUsd(expectedUsd);
+  const p = byCode.get(row.code);
+  if (!p) {
+    fail(`${row.code} supplier USD row is not in the catalog`);
+    continue;
+  }
+  sourced += 1;
+  if (p.price !== expectedNad || p.unitPrice !== expectedNad) {
+    fail(`${row.code} price ${p.price}/${p.unitPrice}, expected NAD ${expectedNad} from usd ${expectedUsd}`);
+  }
+  const indexed = listingByCode.get(row.code);
+  if (indexed && (indexed.price !== expectedNad || indexed.unitPrice !== expectedNad)) {
+    fail(`${row.code} listing price ${indexed.price}/${indexed.unitPrice}, expected NAD ${expectedNad}`);
+  }
+}
+for (const p of catalog) {
+  if (!supplierCodes.has(p.code)) unsourced += 1;
+}
+if (sourced + unsourced !== catalog.length) {
+  fail(`price coverage ${sourced}+${unsourced} !== catalog ${catalog.length}`);
+}
+
 if (process.exitCode) {
   console.error("pack-price guardrail FAILED");
 } else {
   console.log(
-    `ok pack-price guardrail: ${(fix.pack_price_overrides || []).length} pack overrides + ${mapBChecked} MAP B snaps + hidden SKUs absent from index + fx/markup 18/0.45`,
+    `ok pack-price guardrail: ${(fix.pack_price_overrides || []).length} pack overrides + ${mapBChecked} MAP B snaps + hidden SKUs absent from index + fx/markup 18/0.45 + supplier USD ${sourced} priced, ${unsourced} unchanged (no supplier USD)`,
   );
 }
