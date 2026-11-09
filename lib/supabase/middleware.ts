@@ -1,16 +1,22 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
-import { CSP_REPORT_ONLY_HEADER } from "@/lib/content-security-policy";
 
 /**
  * @param nonce per-request nonce, forwarded to the rendered route so Next can
  *   stamp it on its inline bootstrap scripts.
- * @param csp the full policy string; sent on every response as
- *   Content-Security-Policy-Report-Only, and forwarded on the request as
- *   Content-Security-Policy so Next reads the nonce from it.
+ * @param csp the full policy string; sent on every response under `cspHeader`,
+ *   and forwarded on the request as Content-Security-Policy so Next reads the
+ *   nonce from it.
+ * @param cspHeader the response header name — Content-Security-Policy-Report-Only
+ *   or the enforcing Content-Security-Policy, chosen by the CSP_ENFORCE switch.
  */
-export async function updateSession(request: NextRequest, nonce: string, csp: string) {
+export async function updateSession(
+  request: NextRequest,
+  nonce: string,
+  csp: string,
+  cspHeader: string,
+) {
   // Request headers the rendered route sees. Next reads the nonce from the
   // forwarded Content-Security-Policy header; x-nonce is for our own scripts.
   const requestHeaders = new Headers(request.headers);
@@ -19,14 +25,14 @@ export async function updateSession(request: NextRequest, nonce: string, csp: st
 
   const newResponse = () => {
     const res = NextResponse.next({ request: { headers: requestHeaders } });
-    res.headers.set(CSP_REPORT_ONLY_HEADER, csp);
+    res.headers.set(cspHeader, csp);
     return res;
   };
 
   const redirectTo = (location: URL, from: NextResponse) => {
     const redirect = NextResponse.redirect(location);
     from.cookies.getAll().forEach((c) => redirect.cookies.set(c));
-    redirect.headers.set(CSP_REPORT_ONLY_HEADER, csp);
+    redirect.headers.set(cspHeader, csp);
     return redirect;
   };
 

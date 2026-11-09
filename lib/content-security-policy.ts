@@ -17,6 +17,24 @@ export const CSP_ENFORCED_HEADER = "Content-Security-Policy";
 /** Where the browser POSTs violation reports. Served by app/api/csp-report. */
 export const CSP_REPORT_PATH = "/api/csp-report";
 
+/**
+ * Enforcement is a single runtime switch, not a code change: set the env var
+ * CSP_ENFORCE=true (e.g. on Vercel) and the policy is sent as the enforcing
+ * Content-Security-Policy header; unset or anything else keeps it on
+ * Content-Security-Policy-Report-Only. This makes turning the net on — and
+ * rolling it straight back — a one-variable flip with no redeploy of code.
+ */
+type EnvLike = Record<string, string | undefined>;
+
+export function cspEnforced(env: EnvLike = process.env) {
+  return env.CSP_ENFORCE === "true";
+}
+
+/** The response header name to use for the CSP, per the CSP_ENFORCE switch. */
+export function cspHeaderName(env: EnvLike = process.env) {
+  return cspEnforced(env) ? CSP_ENFORCED_HEADER : CSP_REPORT_ONLY_HEADER;
+}
+
 export type ContentSecurityPolicyEnv = {
   /** NEXT_PUBLIC_SUPABASE_URL. Host only. The value is not logged. */
   supabaseUrl?: string;

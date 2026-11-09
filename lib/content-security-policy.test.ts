@@ -9,6 +9,8 @@ import {
   PRODUCT_IMAGE_REMOTE_HOSTS,
   contentSecurityPolicy,
   contentSecurityPolicyReportOnly,
+  cspEnforced,
+  cspHeaderName,
 } from "./content-security-policy";
 import { securityHeaders } from "./security-headers";
 
@@ -18,9 +20,22 @@ function directive(policy: string, name: string) {
   return part;
 }
 
-test("the header stays report-only", () => {
+test("the header names are the two CSP variants", () => {
   assert.equal(CSP_REPORT_ONLY_HEADER, "Content-Security-Policy-Report-Only");
   assert.equal(CSP_ENFORCED_HEADER, "Content-Security-Policy");
+});
+
+test("CSP_ENFORCE switch picks the header name; default is report-only", () => {
+  // Default / unset / anything-but-"true" -> report-only (never blocks).
+  assert.equal(cspEnforced({}), false);
+  assert.equal(cspEnforced({ CSP_ENFORCE: "false" }), false);
+  assert.equal(cspEnforced({ CSP_ENFORCE: "1" }), false);
+  assert.equal(cspHeaderName({}), CSP_REPORT_ONLY_HEADER);
+  assert.equal(cspHeaderName({ CSP_ENFORCE: "false" }), CSP_REPORT_ONLY_HEADER);
+
+  // Exactly "true" -> enforcing header.
+  assert.equal(cspEnforced({ CSP_ENFORCE: "true" }), true);
+  assert.equal(cspHeaderName({ CSP_ENFORCE: "true" }), CSP_ENFORCED_HEADER);
 });
 
 test("remotePatterns and img-src share the loader and supplier hosts", () => {

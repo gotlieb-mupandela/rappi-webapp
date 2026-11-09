@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  CSP_REPORT_ONLY_HEADER,
   contentSecurityPolicy,
+  cspHeaderName,
 } from "@/lib/content-security-policy";
 import { securityHeaderEnv } from "@/lib/security-headers";
 import { fixedSlugRedirect } from "@/lib/slug-redirects";
@@ -18,6 +18,8 @@ function generateNonce() {
 export async function middleware(request: NextRequest) {
   const nonce = generateNonce();
   const csp = contentSecurityPolicy(securityHeaderEnv(), nonce);
+  // Report-only unless CSP_ENFORCE=true (see lib/content-security-policy.ts).
+  const headerName = cspHeaderName();
 
   const target = fixedSlugRedirect(request.nextUrl.pathname, request.nextUrl.searchParams);
   if (target) {
@@ -27,11 +29,11 @@ export async function middleware(request: NextRequest) {
     url.pathname = splitAt === -1 ? target : target.slice(0, splitAt);
     url.search = splitAt === -1 ? "" : target.slice(splitAt);
     const redirect = NextResponse.redirect(url, 308);
-    redirect.headers.set(CSP_REPORT_ONLY_HEADER, csp);
+    redirect.headers.set(headerName, csp);
     return redirect;
   }
 
-  return updateSession(request, nonce, csp);
+  return updateSession(request, nonce, csp, headerName);
 }
 
 export const config = {
