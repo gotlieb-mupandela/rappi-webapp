@@ -1,12 +1,8 @@
-import {
-  CSP_REPORT_ONLY_HEADER,
-  contentSecurityPolicyReportOnly,
-  type ContentSecurityPolicyEnv,
-} from "./content-security-policy";
+import type { ContentSecurityPolicyEnv } from "./content-security-policy";
 
 export type SecurityHeader = { key: string; value: string };
 
-/** Env names next.config.ts passes through. Values are not logged. */
+/** Env names next.config.ts and middleware.ts pass through. Values are not logged. */
 export function securityHeaderEnv(env: NodeJS.ProcessEnv = process.env): ContentSecurityPolicyEnv {
   return {
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
@@ -15,15 +11,14 @@ export function securityHeaderEnv(env: NodeJS.ProcessEnv = process.env): Content
 }
 
 /**
- * Headers for every page. CSP stays on Content-Security-Policy-Report-Only.
- * next.config.ts headers() and the CSP test both call this function.
+ * Static headers for every page, set by next.config.ts headers().
+ *
+ * The Content-Security-Policy is NOT here: it needs a fresh per-request nonce,
+ * so it is built in middleware.ts (contentSecurityPolicy) and sent — still as
+ * Content-Security-Policy-Report-Only — on every response there.
  */
-export function securityHeaders(env: ContentSecurityPolicyEnv = securityHeaderEnv()): SecurityHeader[] {
+export function securityHeaders(): SecurityHeader[] {
   return [
-    {
-      key: CSP_REPORT_ONLY_HEADER,
-      value: contentSecurityPolicyReportOnly(env),
-    },
     { key: "X-Frame-Options", value: "DENY" },
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

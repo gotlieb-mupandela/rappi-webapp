@@ -12,6 +12,10 @@ const SUPABASE_HOST_FALLBACK = "wzmzwerzbyudcvoiiege.supabase.co";
 const DPO_PAY_HOST_FALLBACK = "secure.3gdirectpay.com";
 
 export const CSP_REPORT_ONLY_HEADER = "Content-Security-Policy-Report-Only";
+export const CSP_ENFORCED_HEADER = "Content-Security-Policy";
+
+/** Where the browser POSTs violation reports. Served by app/api/csp-report. */
+export const CSP_REPORT_PATH = "/api/csp-report";
 
 export type ContentSecurityPolicyEnv = {
   /** NEXT_PUBLIC_SUPABASE_URL. Host only. The value is not logged. */
@@ -41,23 +45,42 @@ function unique(sources: Array<string | undefined>) {
 }
 
 /**
- * Report-only policy. img-src is only 'self', data:, and the product image
- * hosts (wsrv.nl, the Supabase product-images host, and the two supplier
- * hosts). blob: is allowed by the checker but unused. Checkout assigns
- * window.location to DPO_PAY_URL. Browsers do not support navigate-to, so
- * this policy does not send it and does not set a report collector.
+ * Explicit script hosts kept for browsers that do not support
+ * 'strict-dynamic' (CSP level 1/2). On level-3 browsers 'strict-dynamic'
+ * makes these — and 'unsafe-inline' — ignored, so trust flows only from the
+ * per-request nonce and scripts it loads.
  */
-export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = {}) {
+const SCRIPT_FALLBACK_HOSTS =
+  "https://accounts.google.com https://connect.facebook.net https://vercel.live https://*.vercel-scripts.com";
+
+/**
+ * Content-Security-Policy string.
+ *
+ * Pass a per-request `nonce` (from middleware) to get the hardened
+ * `script-src` with `'nonce-…' 'strict-dynamic'`. Call without a nonce only
+ * where one cannot be generated per request (e.g. a static header); that
+ * variant keeps the looser `'unsafe-inline'` script-src.
+ *
+ * img-src is only 'self', data:, and the product image hosts (wsrv.nl, the
+ * Supabase product-images host, and the two supplier hosts). Checkout assigns
+ * window.location to DPO_PAY_URL. `report-uri` points at CSP_REPORT_PATH so
+ * violations are collected while the header stays Report-Only.
+ */
+export function contentSecurityPolicy(env: ContentSecurityPolicyEnv = {}, nonce?: string) {
   const supabaseHost = httpsHost(env.supabaseUrl, SUPABASE_HOST_FALLBACK);
   const dpoPayHost = httpsHost(env.dpoPayUrl, DPO_PAY_HOST_FALLBACK);
   const imageHosts = unique(PRODUCT_IMAGE_REMOTE_HOSTS.map((host) => httpsOrigin(host)));
+
+  const scriptSrc = nonce
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline' ${SCRIPT_FALLBACK_HOSTS}`
+    : `script-src 'self' 'unsafe-inline' ${SCRIPT_FALLBACK_HOSTS}`;
 
   const directives = [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'none'",
-    "script-src 'self' 'unsafe-inline' https://accounts.google.com https://connect.facebook.net https://vercel.live https://*.vercel-scripts.com",
+    scriptSrc,
     "style-src 'self' 'unsafe-inline' https://accounts.google.com https://vercel.live",
     `img-src 'self' data: ${imageHosts.join(" ")}`,
     "font-src 'self' https://assets.vercel.com",
@@ -66,7 +89,16 @@ export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = 
     `form-action 'self' ${httpsOrigin(dpoPayHost)}`,
     "worker-src 'self'",
     "manifest-src 'self'",
+    `report-uri ${CSP_REPORT_PATH}`,
   ];
 
   return directives.join("; ");
+}
+
+/**
+ * Backwards-compatible alias. No nonce, so it emits the looser script-src.
+ * The live header is built per request in middleware via contentSecurityPolicy.
+ */
+export function contentSecurityPolicyReportOnly(env: ContentSecurityPolicyEnv = {}) {
+  return contentSecurityPolicy(env);
 }

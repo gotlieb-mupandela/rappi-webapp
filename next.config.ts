@@ -1,20 +1,13 @@
 import type { NextConfig } from "next";
 import { securityHeaders } from "./lib/security-headers";
 
-// Report-only on purpose. The header list is securityHeaders() in
-// lib/security-headers.ts, shared with the CSP test. Next inlines bootstrap
-// scripts and style attributes. Google Identity Services loads
-// accounts.google.com (script plus button frame). The Meta Pixel loads
-// connect.facebook.net. Product photos load from wsrv.nl plus the supplier
-// and Supabase hosts in images.remotePatterns. The browser talks to
-// NEXT_PUBLIC_SUPABASE_URL for auth, data, and storage. Checkout assigns
-// window.location to DPO_PAY_URL (default
-// https://secure.3gdirectpay.com/payv3.php). DPO_API_URL is called only from
-// the server. The policy does not send navigate-to, which browsers do not
-// support, and it does not set a report collector. DPO sends the shopper back
-// with a top-level
-// redirect to /checkout/return or /checkout/cancel. Nothing in the app frames
-// this site, so X-Frame-Options DENY is not on that return path.
+// securityHeaders() (lib/security-headers.ts) sets the static headers here:
+// X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+// and HSTS. The Content-Security-Policy is NOT set here — it needs a fresh
+// per-request nonce, so middleware.ts builds it (contentSecurityPolicy) and
+// sends it, still as Content-Security-Policy-Report-Only, with report-uri
+// pointing at /api/csp-report. See lib/content-security-policy.ts for the
+// third-party hosts (Google Identity, Meta Pixel, Supabase, DPO checkout).
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

@@ -1,8 +1,24 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  CSP_REPORT_ONLY_HEADER,
+  contentSecurityPolicy,
+} from "@/lib/content-security-policy";
+import { securityHeaderEnv } from "@/lib/security-headers";
 import { fixedSlugRedirect } from "@/lib/slug-redirects";
 import { updateSession } from "@/lib/supabase/middleware";
 
+/** Base64 nonce from 16 random bytes. Web Crypto + btoa exist on the Edge runtime. */
+function generateNonce() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
 export async function middleware(request: NextRequest) {
+  const nonce = generateNonce();
+  const csp = contentSecurityPolicy(securityHeaderEnv(), nonce);
+
   const target = fixedSlugRedirect(request.nextUrl.pathname, request.nextUrl.searchParams);
   if (target) {
     const url = request.nextUrl.clone();
@@ -10,11 +26,23 @@ export async function middleware(request: NextRequest) {
     // Path and search come only from the fixed table target.
     url.pathname = splitAt === -1 ? target : target.slice(0, splitAt);
     url.search = splitAt === -1 ? "" : target.slice(splitAt);
-    return NextResponse.redirect(url, 308);
+    const redirect = NextResponse.redirect(url, 308);
+    redirect.headers.set(CSP_REPORT_ONLY_HEADER, csp);
+    return redirect;
   }
-  return updateSession(request);
+
+  return updateSession(request, nonce, csp);
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/shop/:path*", "/category/:path*"],
+  matcher: [
+    /*
+     * Run on every request so the CSP (with its per-request nonce) covers all
+     * HTML responses, excluding Next internals and static asset files, which
+     * do not execute inline scripts and are heavily cached:
+     *  - _next/static, _next/image (framework assets / image optimizer)
+     *  - the common static file extensions
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|txt|xml|json|webmanifest|woff|woff2|ttf|map)$).*)",
+  ],
 };

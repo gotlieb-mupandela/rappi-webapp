@@ -3,8 +3,11 @@ import test from "node:test";
 import nextConfig from "../next.config";
 import { PRODUCT_IMAGE_PROXY_HOST } from "./product-image-loader";
 import {
+  CSP_ENFORCED_HEADER,
   CSP_REPORT_ONLY_HEADER,
+  CSP_REPORT_PATH,
   PRODUCT_IMAGE_REMOTE_HOSTS,
+  contentSecurityPolicy,
   contentSecurityPolicyReportOnly,
 } from "./content-security-policy";
 import { securityHeaders } from "./security-headers";
@@ -17,6 +20,7 @@ function directive(policy: string, name: string) {
 
 test("the header stays report-only", () => {
   assert.equal(CSP_REPORT_ONLY_HEADER, "Content-Security-Policy-Report-Only");
+  assert.equal(CSP_ENFORCED_HEADER, "Content-Security-Policy");
 });
 
 test("remotePatterns and img-src share the loader and supplier hosts", () => {
@@ -54,7 +58,26 @@ test("connect-src, form-action, and frame-src follow the env hosts", () => {
   assert.match(frame, /https:\/\/accounts\.google\.com/);
   assert.match(frame, /https:\/\/secure\.3gdirectpay\.com/);
   assert.equal(policy.split("; ").some((entry) => entry.startsWith("navigate-to")), false);
-  assert.doesNotMatch(policy, /report-uri|report-to/i);
+});
+
+test("the policy reports violations to the collector path", () => {
+  const policy = contentSecurityPolicyReportOnly();
+  assert.equal(CSP_REPORT_PATH, "/api/csp-report");
+  assert.match(directive(policy, "report-uri"), /report-uri \/api\/csp-report/);
+});
+
+test("without a nonce script-src keeps the legacy unsafe-inline shape", () => {
+  const script = directive(contentSecurityPolicy(), "script-src");
+  assert.match(script, /'unsafe-inline'/);
+  assert.doesNotMatch(script, /'nonce-|'strict-dynamic'/);
+});
+
+test("with a nonce script-src is nonce + strict-dynamic", () => {
+  const script = directive(contentSecurityPolicy({}, "testnonce123"), "script-src");
+  assert.match(script, /'nonce-testnonce123'/);
+  assert.match(script, /'strict-dynamic'/);
+  // The explicit hosts stay as a fallback for pre-CSP3 browsers.
+  assert.match(script, /https:\/\/accounts\.google\.com/);
 });
 
 const IMG_SRC_HOSTS = [
@@ -66,31 +89,9 @@ const IMG_SRC_HOSTS = [
 
 const IMG_SRC_ALLOWED = new Set<string>(["'self'", "data:", "blob:", ...IMG_SRC_HOSTS]);
 
-test("img-src allowlist is the header set next.config sends", async () => {
-  const built = securityHeaders();
-  const reportOnly = built.find((header) => header.key === CSP_REPORT_ONLY_HEADER);
-  assert.ok(reportOnly, "report-only CSP missing from securityHeaders()");
-  assert.equal(reportOnly.key, "Content-Security-Policy-Report-Only");
-  assert.equal(
-    built.some((header) => header.key.toLowerCase() === "content-security-policy"),
-    false,
-  );
-
-  const routes = await nextConfig.headers?.();
-  assert.ok(routes, "next.config headers() missing");
-  const site = routes.find((route) => route.source === "/:path*");
-  assert.ok(site, "/:path* header route missing");
-  const sent = site.headers?.find((header) => header.key === "Content-Security-Policy-Report-Only");
-  assert.ok(sent, "report-only CSP missing from next.config headers()");
-  assert.equal(sent.value, reportOnly.value);
-  assert.equal(
-    routes.some((route) =>
-      route.headers?.some((header) => header.key.toLowerCase() === "content-security-policy"),
-    ),
-    false,
-  );
-
-  const sources = directive(sent.value, "img-src").split(/\s+/).slice(1);
+test("img-src allowlist has no wildcards and only the known hosts", () => {
+  const policy = contentSecurityPolicy({}, "n");
+  const sources = directive(policy, "img-src").split(/\s+/).slice(1);
   for (const host of IMG_SRC_HOSTS) {
     assert.ok(sources.includes(host), `img-src missing ${host}`);
   }
@@ -98,6 +99,27 @@ test("img-src allowlist is the header set next.config sends", async () => {
     assert.equal(source.includes("*"), false, `wildcard in img-src: ${source}`);
     assert.ok(IMG_SRC_ALLOWED.has(source), `img-src allows ${source}`);
   }
+});
+
+test("CSP is built per-request in middleware, not emitted statically", async () => {
+  // The static header list (next.config.ts) must not carry any CSP header —
+  // the nonce-based policy is sent from middleware instead.
+  const built = securityHeaders();
+  assert.equal(
+    built.some((header) => header.key.toLowerCase().startsWith("content-security-policy")),
+    false,
+    "securityHeaders() must not include a CSP header",
+  );
+
+  const routes = await nextConfig.headers?.();
+  assert.ok(routes, "next.config headers() missing");
+  assert.equal(
+    routes.some((route) =>
+      route.headers?.some((header) => header.key.toLowerCase().startsWith("content-security-policy")),
+    ),
+    false,
+    "next.config headers() must not include a CSP header",
+  );
 });
 
 test("HSTS is one year and does not include subdomains or preload", async () => {
