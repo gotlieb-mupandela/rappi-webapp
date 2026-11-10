@@ -80,13 +80,28 @@ export type OdooClient = ReturnType<typeof createOdooClient>;
 
 export function createOdooClient(
   config: OdooConfig = odooConfigFromEnv(),
-  opts: { timeoutMs?: number; retries?: number; userAgent?: string } = {},
+  opts: {
+    timeoutMs?: number;
+    retries?: number;
+    userAgent?: string;
+    /** Called after every request (success or failure) with its duration. */
+    onCall?: (model: string, method: string, ms: number) => void;
+  } = {},
 ) {
   const timeoutMs = opts.timeoutMs ?? 60_000;
   const retries = opts.retries ?? 3;
   const userAgent = opts.userAgent ?? "rappi-webapp-odoo-sync/1.0";
 
   async function call<T = unknown>(model: string, method: string, body: Record<string, unknown> = {}): Promise<T> {
+    const started = Date.now();
+    try {
+      return await request<T>(model, method, body);
+    } finally {
+      opts.onCall?.(model, method, Date.now() - started);
+    }
+  }
+
+  async function request<T>(model: string, method: string, body: Record<string, unknown>): Promise<T> {
     const endpoint = `${config.url}/json/2/${encodeURIComponent(model)}/${encodeURIComponent(method)}`;
     const headers: Record<string, string> = {
       Authorization: `bearer ${config.apiKey}`,

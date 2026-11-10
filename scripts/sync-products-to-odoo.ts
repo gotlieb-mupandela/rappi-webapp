@@ -14,6 +14,7 @@
  *   --codes a,b     only these product codes
  *   --images        upload the main image for templates that have none
  *   --no-stock      do not touch stock quantities
+ *   --parallel N    batches sent to Odoo at the same time (default 3, max 8)
  *
  * Mapping: one Odoo product.template per website SKU. Sizes become variants of
  * a "Size" attribute; each variant's internal reference is "<code>-<size>"
@@ -61,10 +62,11 @@ type Options = {
   codes?: Set<string>;
   images: boolean;
   stock: boolean;
+  parallel: number;
 };
 
 function parseArgs(argv: string[]): Options {
-  const opts: Options = { apply: false, offset: 0, images: false, stock: true };
+  const opts: Options = { apply: false, offset: 0, images: false, stock: true, parallel: 3 };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const next = () => {
@@ -77,6 +79,7 @@ function parseArgs(argv: string[]): Options {
     else if (arg === "--no-stock") opts.stock = false;
     else if (arg === "--limit") opts.limit = positiveInt(next(), arg);
     else if (arg === "--offset") opts.offset = positiveInt(next(), arg, true);
+    else if (arg === "--parallel") opts.parallel = Math.min(8, positiveInt(next(), arg));
     else if (arg === "--codes") opts.codes = new Set(next().split(",").map((c) => c.trim()).filter(Boolean));
     else throw new Error(`Unknown option: ${arg}`);
   }
@@ -356,9 +359,18 @@ async function main() {
   const envFile = join(root, ".env.local");
   if (existsSync(envFile)) process.loadEnvFile(envFile);
 
+  const timings = new Map<string, { calls: number; ms: number }>();
+  const onCall = (model: string, method: string, ms: number) => {
+    const key = `${model}.${method}`;
+    const t = timings.get(key) ?? { calls: 0, ms: 0 };
+    t.calls += 1;
+    t.ms += ms;
+    timings.set(key, t);
+  };
+
   let odoo: OdooClient | null = null;
   try {
-    odoo = createOdooClient(odooConfigFromEnv());
+    odoo = createOdooClient(odooConfigFromEnv(), { onCall });
   } catch (error) {
     if (!(error instanceof OdooConfigError)) throw error;
     if (opts.apply) {
@@ -461,18 +473,24 @@ async function main() {
   const touchedTemplates = new Set<number>();
   const batches = chunk(selected, BATCH_SIZE);
 
-  for (const [index, batch] of batches.entries()) {
-    const label = `Batch ${index + 1}/${batches.length}`;
+  let batchesDone = 0;
+  let errorsPrinted = 0;
+  await pool([...batches.entries()], opts.parallel, async ([, batch]) => {
     try {
       await syncBatch(batch);
     } catch (error) {
       for (const p of batch) report.errors.push({ code: p.code, step: "batch", message: errorText(error) });
     }
+    batchesDone += 1;
     console.log(
-      `${label}: created ${report.created.length}, updated ${report.updated.length}, ` +
+      `Batch ${batchesDone}/${batches.length}: created ${report.created.length}, updated ${report.updated.length}, ` +
         `unchanged ${report.unchanged.length}, errors ${report.errors.length}`,
     );
-  }
+    for (const e of report.errors.slice(errorsPrinted, errorsPrinted + 5)) {
+      console.log(`  error ${e.code} [${e.step}]: ${e.message.slice(0, 300)}`);
+    }
+    errorsPrinted = report.errors.length;
+  });
 
   async function syncBatch(batch: SiteProduct[]) {
     // 1. Match.
@@ -660,16 +678,18 @@ async function main() {
 
     // 5. Stock.
     if (stockEnabled && state.stockLocationId !== null) {
-      const targets: Array<{ ref: string; variantId: number; qty: number }> = [];
+      const targets: Array<{ ref: string; variantId: number; qty: number; isNew: boolean }> = [];
+      const created = new Set(createdTemplates.map((t) => t.product.code));
       for (const { product } of [...createdTemplates, ...updatedTemplates]) {
+        const isNew = created.has(product.code);
         if (product.sizes.length) {
           for (const s of product.sizes) {
             const id = variantIdByRef.get(s.code);
-            if (id && Number.isFinite(s.stock)) targets.push({ ref: s.code, variantId: id, qty: s.stock });
+            if (id && Number.isFinite(s.stock)) targets.push({ ref: s.code, variantId: id, qty: s.stock, isNew });
           }
         } else if (product.singleStock !== null) {
           const id = variantIdByRef.get(product.code);
-          if (id) targets.push({ ref: product.code, variantId: id, qty: product.singleStock });
+          if (id) targets.push({ ref: product.code, variantId: id, qty: product.singleStock, isNew });
         }
       }
       await setStock(targets);
@@ -770,27 +790,52 @@ async function main() {
       if (v.default_code !== ref) writes.push({ id: v.id, ref, code: product.code });
     }
 
-    await pool(writes, WRITE_CONCURRENCY, async (w) => {
+    const templateByCode = new Map(templates.map((t) => [t.product.code, t.templateId]));
+    const remember = (w: { ref: string; code: string }) => state.refToTemplate.set(w.ref, templateByCode.get(w.code)!);
+
+    // One bulk `load` (Odoo's import) per 500 variants instead of one write each.
+    for (const part of chunk(writes, 500)) {
       try {
-        await odoo!.write("product.product", [w.id], { default_code: w.ref }, QUIET);
-        state.refToTemplate.set(w.ref, templates.find((t) => t.product.code === w.code)!.templateId);
-      } catch (error) {
-        report.errors.push({ code: w.code, step: `reference ${w.ref}`, message: errorText(error) });
+        const res = await odoo.call<{ ids: number[] | false; messages: Array<{ type: string; message: string }> }>(
+          "product.product",
+          "load",
+          { fields: [".id", "default_code"], data: part.map((w) => [String(w.id), w.ref]), context: QUIET },
+        );
+        const problems = res.messages.filter((m) => m.type === "error");
+        if (res.ids && !problems.length) {
+          part.forEach(remember);
+          continue;
+        }
+        throw new Error(problems.map((m) => m.message).join("; ") || "load returned no ids");
+      } catch {
+        // Fall back to one write per variant so a single bad row is isolated.
+        await pool(part, WRITE_CONCURRENCY, async (w) => {
+          try {
+            await odoo!.write("product.product", [w.id], { default_code: w.ref }, QUIET);
+            remember(w);
+          } catch (error) {
+            report.errors.push({ code: w.code, step: `reference ${w.ref}`, message: errorText(error) });
+          }
+        });
       }
-    });
+    }
     return result;
   }
 
-  async function setStock(targets: Array<{ ref: string; variantId: number; qty: number }>) {
+  async function setStock(targets: Array<{ ref: string; variantId: number; qty: number; isNew: boolean }>) {
     if (!odoo || !targets.length || state.stockLocationId === null) return;
-    const quants = await odoo.searchRead<{ product_id: M2O; quantity: number }>(
-      "stock.quant",
-      [
-        ["product_id", "in", targets.map((t) => t.variantId)],
-        ["location_id", "=", state.stockLocationId],
-      ],
-      ["product_id", "quantity"],
-    );
+    // Variants created in this run have no stock yet; only look up existing ones.
+    const existing = targets.filter((t) => !t.isNew).map((t) => t.variantId);
+    const quants = existing.length
+      ? await odoo.searchRead<{ product_id: M2O; quantity: number }>(
+          "stock.quant",
+          [
+            ["product_id", "in", existing],
+            ["location_id", "=", state.stockLocationId],
+          ],
+          ["product_id", "quantity"],
+        )
+      : [];
     const onHand = new Map<number, number>();
     for (const q of quants) {
       const id = m2oId(q.product_id);
@@ -898,6 +943,12 @@ async function main() {
   console.log(`Errors:               ${report.errors.length}`);
   if (odoo && !partial) console.log(`In Odoo, not on site: ${report.inOdooNotOnSite.length} (left untouched)`);
   for (const w of report.warnings) console.log(`Warning: ${w}`);
+  if (timings.size) {
+    console.log("\nOdoo time by call (total seconds / calls):");
+    for (const [key, t] of [...timings].sort((a, b) => b[1].ms - a[1].ms).slice(0, 12)) {
+      console.log(`  ${(t.ms / 1000).toFixed(1).padStart(8)}s  ${String(t.calls).padStart(6)}  ${key}`);
+    }
+  }
 
   const sample = report.created.slice(0, 10);
   if (sample.length) {
