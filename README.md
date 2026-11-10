@@ -118,6 +118,33 @@ Feed URL (after `META_CATALOG_FEED_TOKEN` is set):
 
 `https://www.rappisportshub.com/api/feeds/meta-catalog?token=…`
 
+## Odoo product sync
+
+`scripts/sync-products-to-odoo.ts` copies the website catalog (`data/products.json`) into Odoo Online (`https://rappisportshub.odoo.com`) through Odoo's JSON-2 API (`lib/odoo.ts`, server only).
+
+**Setup:** put `ODOO_URL`, `ODOO_API_KEY` (an Odoo API key with RPC scope) and, if needed, `ODOO_DB` in `.env.local`. That file is gitignored. Never commit the key, print it, or give it a `NEXT_PUBLIC_` prefix.
+
+```bash
+npm run odoo:sync                          # dry run: reads Odoo, changes nothing
+npm run odoo:sync -- --limit 5             # dry run, first 5 products
+npm run odoo:sync -- --apply --limit 5     # write the first 5, then check them in Odoo
+npm run odoo:sync -- --apply               # write everything
+npm run odoo:sync -- --apply --images      # second pass: upload missing main photos
+```
+
+Other options: `--offset N`, `--codes 100009.100,100014.300`, `--no-stock`.
+
+**What it does**
+
+- One Odoo product per website SKU. The display name, NAD sale price and category (missing categories are created) are copied over. Can be Sold and Available in POS are turned on.
+- Sizes become variants of a `Size` attribute. Each variant's internal reference is `<code>-<size>`. A single-size product keeps `<code>`.
+- Re-runs match on those references, then on an exact name that is unique on the site, so running it twice never creates duplicates.
+- Stock is set per size in the main warehouse when the site has a number. Each change is an inventory adjustment. Use `--no-stock` to leave stock alone.
+- Cost price and barcode are left blank: the site has neither.
+- Products hidden on the site, unpriced products and the DPO test product are skipped.
+- Nothing in Odoo is ever deleted or archived. Odoo products the site no longer has are only listed in the report.
+- Batches of 25. A JSON report of each run is written to `tmp/odoo-sync/`.
+
 ## Locale & currency
 
 The storefront serves two markets from the same NAD catalog:

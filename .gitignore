@@ -25,6 +25,7 @@
 *.pem
 /agent-tools/
 /tmp/joma-session/
+/tmp/odoo-sync/
 
 # generated catalog shots (uploaded to Supabase Storage)
 /public/products/
