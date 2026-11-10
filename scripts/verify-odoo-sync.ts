@@ -53,9 +53,14 @@ function expectedVariants(): { variants: Expected[]; products: number } {
 }
 
 /** Pages by id (id > last seen) rather than offset, which slows down on big tables. */
-async function readAll<T extends { id: number }>(odoo: OdooClient, model: string, domain: unknown[], fields: string[]) {
+async function readAll<T extends { id: number }>(
+  odoo: OdooClient,
+  model: string,
+  domain: unknown[],
+  fields: string[],
+  page = 1000,
+) {
   const out: T[] = [];
-  const page = 1000;
   let lastId = 0;
   for (;;) {
     const rows = await odoo.searchRead<T>(model, [...domain, ["id", ">", lastId]], fields, {
@@ -94,12 +99,20 @@ async function main() {
       t.list_price,
     ]),
   );
+  // Filter on the warehouse stock location ids directly: a join on
+  // location_id.usage times out on Odoo Online once there are ~40k quants.
+  const stockLocations = (
+    await odoo.searchRead<{ id: number; lot_stock_id: M2O }>("stock.warehouse", [], ["lot_stock_id"])
+  )
+    .map((w) => (Array.isArray(w.lot_stock_id) ? w.lot_stock_id[0] : null))
+    .filter((id): id is number => id !== null);
   const onHand = new Map<number, number>();
   for (const q of await readAll<{ id: number; product_id: M2O; quantity: number }>(
     odoo,
     "stock.quant",
-    [["location_id.usage", "=", "internal"]],
+    [["location_id", "child_of", stockLocations]],
     ["product_id", "quantity"],
+    500,
   )) {
     const id = Array.isArray(q.product_id) ? q.product_id[0] : null;
     if (id !== null) onHand.set(id, (onHand.get(id) ?? 0) + q.quantity);
