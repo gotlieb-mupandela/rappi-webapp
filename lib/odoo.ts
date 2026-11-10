@@ -89,7 +89,7 @@ export function createOdooClient(
   } = {},
 ) {
   const timeoutMs = opts.timeoutMs ?? 60_000;
-  const retries = opts.retries ?? 3;
+  const retries = opts.retries ?? 5;
   const userAgent = opts.userAgent ?? "rappi-webapp-odoo-sync/1.0";
 
   async function call<T = unknown>(model: string, method: string, body: Record<string, unknown> = {}): Promise<T> {
@@ -111,8 +111,10 @@ export function createOdooClient(
     if (config.db) headers["X-Odoo-Database"] = config.db;
 
     let lastError: unknown;
+    let waitMs = 0;
     for (let attempt = 0; attempt <= retries; attempt++) {
-      if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+      if (attempt > 0) await new Promise((r) => setTimeout(r, Math.max(waitMs, 500 * 2 ** attempt)));
+      waitMs = 0;
       let res: Response;
       try {
         res = await fetch(endpoint, {
@@ -155,6 +157,11 @@ export function createOdooClient(
       });
       // Retry only on rate limiting and server-side errors.
       if (res.status !== 429 && res.status < 500) break;
+      if (res.status === 429) {
+        // Rate limited: honour Retry-After, otherwise back off hard (5s, 10s, 20s…).
+        const retryAfter = Number(res.headers.get("retry-after"));
+        waitMs = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 5_000 * 2 ** attempt;
+      }
     }
     throw lastError;
   }

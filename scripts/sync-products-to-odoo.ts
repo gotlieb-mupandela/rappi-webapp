@@ -13,6 +13,7 @@
  *   --offset N      skip the first N products (sorted by code)
  *   --codes a,b     only these product codes
  *   --images        upload the main image for templates that have none
+ *   --images-only   only upload missing images; change nothing else
  *   --no-stock      do not touch stock quantities
  *   --parallel N    batches sent to Odoo at the same time (default 3, max 8)
  *
@@ -61,6 +62,8 @@ type Options = {
   offset: number;
   codes?: Set<string>;
   images: boolean;
+  /** Only upload missing images for products already in Odoo; change nothing else. */
+  imagesOnly?: boolean;
   stock: boolean;
   parallel: number;
 };
@@ -76,6 +79,10 @@ function parseArgs(argv: string[]): Options {
     };
     if (arg === "--apply") opts.apply = true;
     else if (arg === "--images") opts.images = true;
+    else if (arg === "--images-only") {
+      opts.images = true;
+      opts.imagesOnly = true;
+    }
     else if (arg === "--no-stock") opts.stock = false;
     else if (arg === "--limit") opts.limit = positiveInt(next(), arg);
     else if (arg === "--offset") opts.offset = positiveInt(next(), arg, true);
@@ -208,7 +215,8 @@ function errorText(error: unknown) {
 type M2O = [number, string] | false;
 const m2oId = (value: M2O) => (Array.isArray(value) ? value[0] : null);
 
-async function readAll<T>(
+/** Pages by id (id > last seen); offset paging slows down badly on large tables. */
+async function readAll<T extends { id: number }>(
   odoo: OdooClient,
   model: string,
   domain: unknown[],
@@ -217,12 +225,48 @@ async function readAll<T>(
 ): Promise<T[]> {
   const out: T[] = [];
   const page = 2000;
-  for (let offset = 0; ; offset += page) {
-    const rows = await odoo.searchRead<T>(model, domain, fields, { limit: page, offset, order: "id", context });
+  let lastId = 0;
+  for (;;) {
+    const rows = await odoo.searchRead<T>(model, [...domain, ["id", ">", lastId]], fields, {
+      limit: page,
+      order: "id",
+      context,
+    });
     out.push(...rows);
+    if (rows.length) lastId = rows[rows.length - 1].id;
     if (rows.length < page) break;
   }
   return out;
+}
+
+/**
+ * Download a product photo. Prefer the same wsrv.nl resizer the storefront
+ * uses (1024px JPEG, far smaller than the 1–3MB supplier originals), fall back
+ * to the original URL, and retry slow or flaky networks.
+ */
+async function downloadImage(url: string): Promise<Buffer> {
+  const resized = `https://wsrv.nl/?${new URLSearchParams({ url, w: "1024", output: "jpg", q: "85" })}`;
+  const sources = [resized, url];
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    for (const source of sources) {
+      try {
+        const res = await fetch(source, {
+          signal: AbortSignal.timeout(60_000),
+          headers: { "User-Agent": "rappi-webapp-odoo-sync/1.0" },
+        });
+        const type = res.headers.get("content-type") ?? "";
+        if (!res.ok || !type.startsWith("image/")) throw new Error(`image download ${res.status} ${type}`);
+        const bytes = Buffer.from(await res.arrayBuffer());
+        if (!bytes.length || bytes.length > IMAGE_MAX_BYTES) throw new Error(`image is ${bytes.length} bytes`);
+        return bytes;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    await new Promise((r) => setTimeout(r, 2_000 * (attempt + 1)));
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 // ---------------------------------------------------------------------------
@@ -431,7 +475,7 @@ async function main() {
   const names = categoryNames();
   const categoryName = (slug: string) => names.get(slug) ?? titleCase(slug);
   const neededCategories = [...new Set(selected.map((p) => categoryName(p.categorySlug)))];
-  const missingCategories = neededCategories.filter((n) => !state.categoryByName.has(n));
+  const missingCategories = opts.imagesOnly ? [] : neededCategories.filter((n) => !state.categoryByName.has(n));
   if (missingCategories.length) {
     report.categoriesCreated.push(...missingCategories);
     if (opts.apply && odoo) {
@@ -445,7 +489,7 @@ async function main() {
   }
 
   // --- Size attribute and values ---------------------------------------------
-  const neededSizes = [...new Set(selected.flatMap((p) => p.sizes.map((s) => s.size)))];
+  const neededSizes = opts.imagesOnly ? [] : [...new Set(selected.flatMap((p) => p.sizes.map((s) => s.size)))];
   if (neededSizes.length && opts.apply && odoo && state.sizeAttributeId === null) {
     const [id] = await odoo.create(
       "product.attribute",
@@ -517,6 +561,16 @@ async function main() {
         continue;
       }
       toCreate.push(p);
+    }
+
+    if (opts.imagesOnly) {
+      for (const p of toCreate) report.needsReview.push({ code: p.code, reason: "not in Odoo yet; run the sync first" });
+      if (opts.apply && odoo) {
+        await uploadImages(toUpdate.map((u) => ({ product: u.product, templateId: u.templateId })));
+      } else {
+        report.unchanged.push(...toUpdate.map((u) => u.product.code));
+      }
+      return;
     }
 
     // 2. Create.
@@ -893,11 +947,7 @@ async function main() {
       4,
       async ({ product, templateId }) => {
         try {
-          const res = await fetch(product.imageUrl, { signal: AbortSignal.timeout(30_000) });
-          const type = res.headers.get("content-type") ?? "";
-          if (!res.ok || !type.startsWith("image/")) throw new Error(`image download ${res.status} ${type}`);
-          const bytes = Buffer.from(await res.arrayBuffer());
-          if (bytes.length > IMAGE_MAX_BYTES) throw new Error(`image is ${bytes.length} bytes`);
+          const bytes = await downloadImage(product.imageUrl);
           await odoo!.write("product.template", [templateId], { image_1920: bytes.toString("base64") }, QUIET);
           report.imagesUploaded.push(product.code);
         } catch (error) {

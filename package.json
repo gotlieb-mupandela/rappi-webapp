@@ -10,6 +10,7 @@
     "start": "next start --hostname 127.0.0.1 --port 43123",
     "lint": "eslint",
     "odoo:sync": "npx tsx --require ./scripts/server-only-register.cjs scripts/sync-products-to-odoo.ts",
+    "odoo:verify": "npx tsx --require ./scripts/server-only-register.cjs scripts/verify-odoo-sync.ts",
     "test:payment-access": "npx tsx --test scripts/dpo-payment-access.test.ts",
     "catalog": "python3 scripts/write-source.py",
     "check:catalog": "python3 scripts/check-catalog.py",
