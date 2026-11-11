@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { RappiAgentPanel } from "@/components/admin/rappi-agent";
 
 export default function AdminDashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function AdminDashboardLayout({ children }: { children: ReactNode
           {children}
         </div>
       </div>
+      <RappiAgentPanel />
     </div>
   );
 }
