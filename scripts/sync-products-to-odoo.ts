@@ -388,6 +388,7 @@ type Report = {
   sizesAdded: Array<{ code: string; sizes: string[] }>;
   stockAdjustments: Array<{ ref: string; from: number; to: number }>;
   imagesUploaded: string[];
+  imagesFailed: Array<{ code: string; message: string }>;
   needsReview: Array<{ code: string; reason: string }>;
   errors: Array<{ code: string; step: string; message: string }>;
   inOdooNotOnSite: Array<{ templateId: number; refs: string[] }>;
@@ -443,6 +444,7 @@ async function main() {
     sizesAdded: [],
     stockAdjustments: [],
     imagesUploaded: [],
+    imagesFailed: [],
     needsReview: [],
     errors: [],
     inOdooNotOnSite: [],
@@ -951,7 +953,8 @@ async function main() {
           await odoo!.write("product.template", [templateId], { image_1920: bytes.toString("base64") }, QUIET);
           report.imagesUploaded.push(product.code);
         } catch (error) {
-          report.errors.push({ code: product.code, step: "image", message: errorText(error) });
+          // Usually a dead supplier photo link: worth listing, not worth failing the run.
+          report.imagesFailed.push({ code: product.code, message: errorText(error) });
         }
       },
     );
@@ -987,7 +990,10 @@ async function main() {
   console.log(`Sizes ${verb}added to existing products: ${report.sizesAdded.length}`);
   if (opts.apply) console.log(`Stock adjustments:    ${report.stockAdjustments.length}`);
   else console.log(`Stock:                ${stockEnabled ? "set per size after create (not simulated in dry run)" : "not touched"}`);
-  if (opts.images) console.log(`Images uploaded:      ${report.imagesUploaded.length}`);
+  if (opts.images) {
+    console.log(`Images uploaded:      ${report.imagesUploaded.length}`);
+    console.log(`Images not available: ${report.imagesFailed.length} (photo missing on the supplier site)`);
+  }
   console.log(`Skipped on website:   ${report.skipped.length}`);
   console.log(`Needs review:         ${report.needsReview.length}`);
   console.log(`Errors:               ${report.errors.length}`);
