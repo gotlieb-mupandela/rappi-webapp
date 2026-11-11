@@ -2823,6 +2823,54 @@
       "pack_size": null,
       "sell_as": "pack",
       "source": "Joma tariff 192.72 USD pack; count not established on B2B (2026-10-12)"
+    },
+    {
+      "code": "RACTIW2601",
+      "name": "ACTIVE 2601 BLACK \u00b7 RACTIW2601",
+      "pack_nad": 3769,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "footwear assortment codes (S11/S12/S28/S35/S49) priced per pack, fixed 2026-11-11"
+    },
+    {
+      "code": "RACTIW2602",
+      "name": "ACTIVE 2602 WHITE \u00b7 RACTIW2602",
+      "pack_nad": 3769,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "footwear assortment codes (S11/S12/S28/S35/S49) priced per pack, fixed 2026-11-11"
+    },
+    {
+      "code": "RACTIW2630",
+      "name": "ACTIVE 2630 MEDIUM GRAY \u00b7 RACTIW2630",
+      "pack_nad": 3769,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "footwear assortment codes (S11/S12/S28/S35/S49) priced per pack, fixed 2026-11-11"
+    },
+    {
+      "code": "RACTLW2601",
+      "name": "ACTIVE LADY 2601 BLACK \u00b7 RACTLW2601",
+      "pack_nad": 3769,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "footwear assortment codes (S11/S12/S28/S35/S49) priced per pack, fixed 2026-11-11"
+    },
+    {
+      "code": "RACTLW2627",
+      "name": "ACTIVE LADY 2627 TURQUOISE \u00b7 RACTLW2627",
+      "pack_nad": 3769,
+      "pack_size": 8,
+      "sell_as": "assortment",
+      "source": "footwear assortment codes (S11/S12/S28/S35/S49) priced per pack, fixed 2026-11-11"
+    },
+    {
+      "code": "RMETLW2620",
+      "name": "META LADY 2620 BURGUNDY \u00b7 RMETLW2620",
+      "pack_nad": 3428,
+      "pack_size": null,
+      "sell_as": "assortment",
+      "source": "footwear assortment codes (S11/S12/S28/S35/S49) priced per pack, fixed 2026-11-11"
     }
   ],
   "hidden_packs": [
