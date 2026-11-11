@@ -1,0 +1,49 @@
+# Weekly copy of the website catalog (data/products.json) into Odoo:
+# names, prices, categories, stock per size, new products and their photos.
+# Matches on internal references, so re-running never duplicates. Never deletes.
+name: Sync products to Odoo
+
+on:
+  schedule:
+    # Fridays 10:00 UTC (12:00 Namibia), after the morning catalog commit.
+    - cron: "0 10 * * 5"
+  workflow_dispatch:
+
+concurrency:
+  group: odoo-product-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Require Odoo credentials
+        env:
+          ODOO_URL: ${{ secrets.ODOO_URL }}
+          ODOO_API_KEY: ${{ secrets.ODOO_API_KEY }}
+        run: |
+          test -n "$ODOO_URL" || { echo "Missing GitHub secret ODOO_URL"; exit 1; }
+          test -n "$ODOO_API_KEY" || { echo "Missing GitHub secret ODOO_API_KEY"; exit 1; }
+      - name: Sync products, stock and missing photos
+        env:
+          ODOO_URL: ${{ secrets.ODOO_URL }}
+          ODOO_API_KEY: ${{ secrets.ODOO_API_KEY }}
+        run: npm run odoo:sync -- --apply --images
+      - name: Keep the run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odoo-sync-report
+          path: tmp/odoo-sync/
+          retention-days: 30
+          if-no-files-found: ignore
