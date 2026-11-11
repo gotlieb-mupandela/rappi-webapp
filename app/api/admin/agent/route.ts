@@ -100,7 +100,25 @@ export async function POST(req: Request) {
 
       /** Runs outstanding tool calls in order. Returns false when one waits for approval. */
       const runPending = async () => {
-        for (const tc of pendingCalls(messages)) {
+        const pending = pendingCalls(messages);
+        const calls = pending.map((tc) => ({ name: tc.function.name, args: parseArgs(tc.function.arguments) }));
+        // Lookups only: run them side by side, then record results in call order.
+        if (pending.length > 1 && !calls.some(needsApproval)) {
+          const results = await Promise.allSettled(calls.map((call) => runTool(call, deps)));
+          results.forEach((r, i) => {
+            const label = describeCall(calls[i]);
+            if (r.status === "fulfilled") {
+              messages.push({ role: "tool", tool_call_id: pending[i].id, content: r.value });
+              send({ t: "tool", label, ok: true });
+            } else {
+              const message = r.reason instanceof Error ? r.reason.message : String(r.reason);
+              messages.push({ role: "tool", tool_call_id: pending[i].id, content: `Error: ${message}` });
+              send({ t: "tool", label, ok: false, error: message.slice(0, 300) });
+            }
+          });
+          return true;
+        }
+        for (const tc of pending) {
           const call = { name: tc.function.name, args: parseArgs(tc.function.arguments) };
           const label = describeCall(call);
           const reply = (content: string) => messages.push({ role: "tool", tool_call_id: tc.id, content });
