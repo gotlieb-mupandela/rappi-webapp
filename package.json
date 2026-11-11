@@ -11,6 +11,7 @@
     "lint": "eslint",
     "odoo:sync": "npx tsx --require ./scripts/server-only-register.cjs scripts/sync-products-to-odoo.ts",
     "odoo:verify": "npx tsx --require ./scripts/server-only-register.cjs scripts/verify-odoo-sync.ts",
+    "odoo:orders": "npx tsx --require ./scripts/server-only-register.cjs scripts/sync-orders-to-odoo.ts",
     "test:payment-access": "npx tsx --test scripts/dpo-payment-access.test.ts",
     "catalog": "python3 scripts/write-source.py",
     "check:catalog": "python3 scripts/check-catalog.py",

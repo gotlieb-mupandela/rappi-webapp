@@ -145,6 +145,38 @@ Other options: `--offset N`, `--codes 100009.100,100014.300`, `--no-stock`.
 - Nothing in Odoo is ever deleted or archived. Odoo products the site no longer has are only listed in the report.
 - Batches of 25. A JSON report of each run is written to `tmp/odoo-sync/`.
 
+## Odoo order and customer sync
+
+Paid website orders become confirmed Odoo sales orders; their customers become Odoo contacts.
+
+```bash
+npm run odoo:orders                        # dry run
+npm run odoo:orders -- --apply --limit 5   # first 5 orders
+npm run odoo:orders -- --apply             # every paid order not yet in Odoo
+```
+
+Needs `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` as well as the Odoo variables.
+
+- Only orders with a DPO payment marked `paid` are sent. Cancelled orders are skipped.
+- The website order id (`RSH…`) is stored as the sales order's Customer Reference, so a re-run never duplicates an order.
+- Customers are matched by email. A different delivery address is added under the contact as a delivery address.
+- Lines use the price the customer paid, the order's VAT rate (Odoo's 15% tax), a delivery line and a negative "Website discount" line.
+- If Odoo's total differs from the website total by more than 5 cents, the order is left as a quotation and listed under "Needs review".
+- Registered customers who have not ordered yet are added as contacts too (`--no-customers` to skip).
+- Supabase is only read. Nothing is deleted, and Odoo sends no email (chatter and followers are switched off for these writes).
+- Confirming creates the delivery in Odoo; stock moves only when someone validates that delivery. The website remains the source of stock numbers: `npm run odoo:sync` resets Odoo stock to the website's figures.
+
+**Automatic on Vercel.** `app/api/cron/odoo-orders` copies new paid orders from the last 30 days, up to 25 per call. It runs daily via `vercel.json` (allowed on every Vercel plan) and does nothing until these are set in Vercel → Settings → Environment Variables:
+
+| Variable | Value |
+|---|---|
+| `ODOO_URL`, `ODOO_API_KEY` | same as `.env.local` |
+| `CRON_SECRET` | a long random string |
+| `ODOO_ORDERS_SYNC` | `on` |
+| `ODOO_ORDERS_CONFIRM` | optional, `off` to keep orders as quotations |
+
+For orders to arrive within seconds instead of daily, add a Supabase Database Webhook: Supabase → Database → Webhooks → table `orders`, event Insert, HTTP POST to `https://<your-domain>/api/cron/odoo-orders` with header `Authorization: Bearer <CRON_SECRET>`. On Vercel Pro you can instead change the schedule in `vercel.json` to `*/15 * * * *`.
+
 ## Locale & currency
 
 The storefront serves two markets from the same NAD catalog:
