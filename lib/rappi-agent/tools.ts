@@ -4,9 +4,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidateCatalog } from "@/lib/admin/revalidate-catalog";
 import { DPO_TEST_CODE } from "@/lib/dpo-test-product";
 import type { OdooClient } from "@/lib/odoo";
+import { syncOrdersToOdoo } from "@/lib/odoo-orders";
 import type { ChatTool } from "./llm";
 
-/** Website tables the agent may touch. Rate limits and push endpoints stay out. */
+/** Every table in the website database. */
 export const WEBSITE_TABLES = [
   "addresses",
   "bag_quotations",
@@ -19,12 +20,25 @@ export const WEBSITE_TABLES = [
   "product_sizes",
   "products",
   "profiles",
+  "push_subscriptions",
+  "rate_limits",
   "shipping_methods",
   "site_settings",
   "stock_sync_runs",
   "teamwear_quotes",
   "wishlist_items",
 ] as const;
+
+/** Website database functions that only read; any other function needs approval. */
+const WEBSITE_READ_FUNCTIONS = new Set(["discount_use_counts", "storefront_catalog_page", "is_admin"]);
+
+export type ToolDeps = {
+  /** Service-role client: full table access. */
+  supabase: SupabaseClient;
+  /** The signed-in admin's own session, so database functions see them as admin. */
+  adminDb: SupabaseClient;
+  odoo: () => OdooClient;
+};
 
 const CATALOG_TABLES = new Set(["products", "product_sizes", "categories", "site_settings", "shipping_methods"]);
 
@@ -69,6 +83,62 @@ const filterSchema = {
 };
 
 export const AGENT_TOOLS: ChatTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "search_everywhere",
+      description:
+        "Search both systems at once for a name, code, email, order id or word: website products, orders and customers, and Odoo contacts, products, sales orders, invoices, tasks, CRM leads, employees and knowledge articles. Use it first when you don't know where something lives.",
+      parameters: {
+        type: "object",
+        required: ["query"],
+        properties: { query: { type: "string" } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "odoo_find_models",
+      description:
+        "Find which Odoo models (tables) hold a kind of data, e.g. \"payslip\", \"expense\", \"attendance\", \"survey\". Returns model names to use with odoo_call. Then call fields_get on a model to see its fields.",
+      parameters: {
+        type: "object",
+        required: ["query"],
+        properties: { query: { type: "string" } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "website_function",
+      description:
+        "Run a website database function, as the signed-in admin. E.g. set_order_status {\"p_order_id\":\"RSH…\",\"p_status\":\"shipped\"} (statuses: reserved, preparing, shipped, cancelled), discount_use_counts {}. Functions that change data need approval.",
+      parameters: {
+        type: "object",
+        required: ["function"],
+        properties: {
+          function: { type: "string" },
+          args: { type: "object", description: "Named arguments." },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "sync_orders_to_odoo",
+      description:
+        "Copy paid website orders and their customers that are not in Odoo yet into Odoo as confirmed sales orders. Safe to repeat: orders already in Odoo are skipped. Needs approval.",
+      parameters: {
+        type: "object",
+        properties: {
+          since: { type: "string", description: "Only orders from this date, YYYY-MM-DD. Default: last 30 days." },
+        },
+      },
+    },
+  },
   {
     type: "function",
     function: {
@@ -207,7 +277,14 @@ type Filter = { column: string; op: (typeof FILTER_OPS)[number]; value: unknown 
 
 export type ToolCallInput = { name: string; args: Record<string, unknown> };
 
-const READ_ONLY_TOOLS = new Set(["website_select", "website_sales_summary", "website_low_stock", "odoo_person_agenda"]);
+const READ_ONLY_TOOLS = new Set([
+  "website_select",
+  "website_sales_summary",
+  "website_low_stock",
+  "odoo_person_agenda",
+  "search_everywhere",
+  "odoo_find_models",
+]);
 
 export function needsApproval(call: ToolCallInput) {
   if (READ_ONLY_TOOLS.has(call.name)) return false;
@@ -216,7 +293,15 @@ export function needsApproval(call: ToolCallInput) {
     if (!call.args.model || !call.args.method) return false;
     return !ODOO_READ_METHODS.has(String(call.args.method));
   }
+  if (call.name === "website_function") return !WEBSITE_READ_FUNCTIONS.has(String(call.args.function ?? ""));
   return true;
+}
+
+/** Deletions always wait for the admin, even with auto-approve on. */
+export function isDestructive(call: ToolCallInput) {
+  if (call.name === "website_delete") return true;
+  if (call.name === "odoo_call") return /unlink|delete|cancel/i.test(String(call.args.method ?? ""));
+  return false;
 }
 
 /** Short label for the approval card and the activity line. */
@@ -239,6 +324,14 @@ export function describeCall(call: ToolCallInput) {
       return `Delete from website ${a.table}`;
     case "odoo_call":
       return `Odoo ${a.model} → ${a.method}`;
+    case "search_everywhere":
+      return `Search website and Odoo for “${a.query ?? ""}”`;
+    case "odoo_find_models":
+      return `Find Odoo data about “${a.query ?? ""}”`;
+    case "website_function":
+      return `Website function ${a.function}`;
+    case "sync_orders_to_odoo":
+      return "Copy new paid website orders into Odoo";
     default:
       return call.name;
   }
@@ -309,6 +402,58 @@ function stripHtml(html: unknown, max = 1500) {
 
 type Row = Record<string, unknown>;
 const m2o = (v: unknown) => (Array.isArray(v) ? v[1] : null);
+
+/** Odoo models searched by name; each one is skipped if its app is missing. */
+const ODOO_SEARCH_MODELS: Array<[model: string, label: string]> = [
+  ["res.partner", "contacts"],
+  ["product.template", "products"],
+  ["sale.order", "sales orders"],
+  ["account.move", "invoices and bills"],
+  ["purchase.order", "purchase orders"],
+  ["project.task", "tasks and to-dos"],
+  ["project.project", "projects"],
+  ["crm.lead", "CRM leads"],
+  ["hr.employee", "employees"],
+  ["knowledge.article", "knowledge articles"],
+  ["calendar.event", "calendar events"],
+];
+
+async function searchEverywhere(deps: ToolDeps, raw: string) {
+  const q = raw.trim();
+  if (!q) throw new Error("query is required.");
+  // PostgREST or-filter values: keep to safe characters.
+  const like = `%${q.replace(/[,()*%\\]/g, " ").trim()}%`;
+  const db = deps.supabase;
+
+  const website = Promise.all([
+    db.from("products").select("code,name,price,stock_qty,available").or(`code.ilike.${like},name.ilike.${like}`).limit(10),
+    db.from("orders").select("id,full_name,email,status,total,created_at").or(`id.ilike.${like},email.ilike.${like},full_name.ilike.${like}`).order("created_at", { ascending: false }).limit(10),
+    db.from("profiles").select("id,full_name,email,role,created_at").or(`email.ilike.${like},full_name.ilike.${like}`).limit(10),
+  ]).then(([p, o, c]) => ({
+    products: p.data ?? [],
+    orders: o.data ?? [],
+    customers: c.data ?? [],
+  }));
+
+  const odoo = Promise.all(
+    ODOO_SEARCH_MODELS.map(async ([model, label]) => {
+      try {
+        const hits = await deps.odoo().call<Array<[number, string]> | Array<{ id: number; display_name: string }>>(
+          model,
+          "name_search",
+          { name: q, limit: 8 },
+        );
+        const list = (hits ?? []).map((h) => (Array.isArray(h) ? { id: h[0], name: h[1] } : { id: h.id, name: h.display_name }));
+        return list.length ? [label, { model, results: list }] : null;
+      } catch {
+        return null;
+      }
+    }),
+  ).then((rows) => Object.fromEntries(rows.filter((r): r is [string, { model: string; results: { id: number; name: string }[] }] => r !== null)));
+
+  const [w, o] = await Promise.all([website, odoo]);
+  return { query: q, website: w, odoo: o };
+}
 
 async function personAgenda(odoo: OdooClient, nameArg: unknown, dateArg: unknown, daysArg: unknown) {
   const name = String(nameArg ?? "").trim();
@@ -533,12 +678,54 @@ function clip(data: unknown) {
 
 export async function runTool(
   call: ToolCallInput,
-  deps: { supabase: SupabaseClient; odoo: () => OdooClient },
+  deps: ToolDeps,
 ): Promise<string> {
   const a = call.args;
   const db = deps.supabase;
 
   switch (call.name) {
+    case "search_everywhere":
+      return clip(await searchEverywhere(deps, String(a.query ?? "")));
+    case "odoo_find_models": {
+      const q = String(a.query ?? "").trim();
+      if (!q) throw new Error("query is required.");
+      const rows = await deps.odoo().searchRead<Row>(
+        "ir.model",
+        ["&", ["transient", "=", false], "|", ["model", "ilike", q], ["name", "ilike", q]],
+        ["model", "name"],
+        { limit: 40, order: "model asc" },
+      );
+      return clip({ models: rows.map((r) => ({ model: r.model, name: r.name })) });
+    }
+    case "website_function": {
+      const fn = String(a.function ?? "");
+      if (!/^[a-z_][a-z0-9_]*$/.test(fn)) throw new Error("Invalid function name.");
+      const { data, error } = await deps.adminDb.rpc(fn, a.args ? asRecord(a.args, "args") : {});
+      if (error) throw new Error(error.message);
+      if (!WEBSITE_READ_FUNCTIONS.has(fn)) revalidateCatalog();
+      return clip({ result: data ?? null });
+    }
+    case "sync_orders_to_odoo": {
+      const since =
+        typeof a.since === "string" && /^\d{4}-\d{2}-\d{2}$/.test(a.since)
+          ? a.since
+          : new Date(Date.now() - 30 * 24 * 3600_000).toISOString();
+      const r = await syncOrdersToOdoo(deps.supabase as never, deps.odoo(), {
+        apply: true,
+        confirm: true,
+        since,
+        limit: 25,
+        timeBudgetMs: 120_000,
+      });
+      return clip({
+        created: r.created.map((c) => c.order),
+        already_in_odoo: r.alreadyInOdoo,
+        contacts_created: r.contactsCreated,
+        needs_review: r.needsReview,
+        errors: r.errors,
+        stopped_early: r.stoppedEarly,
+      });
+    }
     case "odoo_person_agenda":
       return clip(await personAgenda(deps.odoo(), a.name, a.date, a.days));
     case "website_sales_summary":

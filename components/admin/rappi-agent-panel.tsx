@@ -23,6 +23,7 @@ import {
   Square,
   X,
   XCircle,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,8 @@ type Step = {
   name: string;
   args: Record<string, unknown>;
   status: "running" | "ok" | "error";
+  /** A change that ran without asking because auto-approve was on. */
+  auto?: boolean;
   ms?: number;
   preview?: string;
   error?: string;
@@ -71,6 +74,7 @@ type Saved = { v: 2; history: HistoryMessage[]; turns: Turn[] };
 const STORE_KEY = "rappi-agent-chat-v2";
 const OPEN_KEY = "rappi-agent-open";
 const WIDE_KEY = "rappi-agent-wide";
+const AUTO_KEY = "rappi-agent-auto-approve";
 const MAX_SAVED_TURNS = 60;
 
 function load<T>(key: string, fallback: T): T {
@@ -288,6 +292,9 @@ function StepRow({ step }: { step: Step }) {
         <span className={cn("flex-1", step.status === "error" && "text-red-300")}>
           {step.label}
           {step.status === "running" ? <span className="text-[var(--muted)]">…</span> : null}
+          {step.auto ? (
+            <span className="ml-1.5 rounded bg-amber-400/15 px-1 py-px text-[10px] font-medium uppercase text-amber-400">auto</span>
+          ) : null}
         </span>
         {step.ms !== undefined ? <span className="shrink-0 tabular-nums text-[var(--muted)]">{formatMs(step.ms)}</span> : null}
         <ChevronRight className={cn("mt-0.5 h-3 w-3 shrink-0 text-[var(--muted)] transition-transform", open && "rotate-90")} />
@@ -526,6 +533,7 @@ export default function RappiAgentPanel() {
   });
   const [open, setOpen] = useState(() => load(OPEN_KEY, window.innerWidth >= 1280));
   const [wide, setWide] = useState(() => load(WIDE_KEY, false));
+  const [autoApprove, setAutoApprove] = useState(() => load<unknown>(AUTO_KEY, false) === true);
   const [history, setHistory] = useState<HistoryMessage[]>(saved?.history ?? []);
   const [turns, setTurns] = useState<Turn[]>(saved?.turns ?? []);
   const [busy, setBusy] = useState(false);
@@ -598,7 +606,7 @@ export default function RappiAgentPanel() {
       const res = await fetch("/api/admin/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages, decision }),
+        body: JSON.stringify({ messages, decision, autoApprove }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -641,6 +649,7 @@ export default function RappiAgentPanel() {
                 name: String(e.name),
                 args: (e.args as Record<string, unknown>) ?? {},
                 status: "running",
+                ...(e.auto ? { auto: true } : {}),
               });
               return { ...r, activity, answer: "" };
             });
@@ -746,6 +755,11 @@ export default function RappiAgentPanel() {
     save(WIDE_KEY, next);
   }
 
+  function setAutoMode(next: boolean) {
+    setAutoApprove(next);
+    save(AUTO_KEY, next);
+  }
+
   const lastUserText = [...turns].reverse().find((t) => t.kind === "user")?.text;
 
   const panel = (
@@ -764,9 +778,30 @@ export default function RappiAgentPanel() {
         <div className="min-w-0 flex-1">
           <p className="font-[family-name:var(--font-oswald)] text-[15px] uppercase leading-none tracking-wide">Rappi Agent</p>
           <p className="mt-1 truncate text-[11px] text-[var(--muted)]">
-            {busy ? "Working…" : "Website + Odoo · changes need your approval"}
+            {busy
+              ? "Working…"
+              : autoApprove
+                ? "Full access · auto-approve on (deletes still ask)"
+                : "Full access · changes need your approval"}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setAutoMode(!autoApprove)}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[var(--hover)]",
+            autoApprove ? "text-amber-400" : "text-[var(--muted)] hover:text-ink",
+          )}
+          aria-pressed={autoApprove}
+          aria-label={autoApprove ? "Turn off auto-approve" : "Turn on auto-approve"}
+          title={
+            autoApprove
+              ? "Auto-approve is on: changes run without asking. Deletes still ask. Click to turn off."
+              : "Auto-approve is off: every change asks first. Click to let changes run without asking (deletes still ask)."
+          }
+        >
+          <Zap className={cn("h-4 w-4", autoApprove && "fill-current")} />
+        </button>
         <button
           type="button"
           onClick={reset}

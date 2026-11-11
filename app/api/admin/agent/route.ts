@@ -3,7 +3,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createOdooClient, odooConfigFromEnv, type OdooClient } from "@/lib/odoo";
 import { chatTurn, LlmConfigError, llmConfig, type ChatMessage, type ToolCall } from "@/lib/rappi-agent/llm";
 import { systemPrompt } from "@/lib/rappi-agent/prompt";
-import { AGENT_TOOLS, describeCall, needsApproval, runTool, type ToolCallInput } from "@/lib/rappi-agent/tools";
+import {
+  AGENT_TOOLS,
+  describeCall,
+  isDestructive,
+  needsApproval as needsApprovalBase,
+  runTool,
+  type ToolCallInput,
+  type ToolDeps,
+} from "@/lib/rappi-agent/tools";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +28,7 @@ type Event =
   | { t: "model"; name: string }
   | { t: "thinking"; v: string }
   | { t: "text"; v: string }
-  | { t: "step_start"; id: string; label: string; name: string; args: Record<string, unknown> }
+  | { t: "step_start"; id: string; label: string; name: string; args: Record<string, unknown>; auto?: boolean }
   | { t: "step_end"; id: string; ok: boolean; ms: number; preview?: string; error?: string }
   | { t: "approval"; id: string; label: string; name: string; args: Record<string, unknown> }
   | { t: "done"; messages: ChatMessage[] }
@@ -81,7 +89,7 @@ export async function POST(req: Request) {
   if (raw.length > MAX_BODY_CHARS) {
     return NextResponse.json({ error: "Conversation too long. Start a new chat." }, { status: 413 });
   }
-  let body: { messages?: unknown; decision?: unknown };
+  let body: { messages?: unknown; decision?: unknown; autoApprove?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -90,13 +98,19 @@ export async function POST(req: Request) {
   const messages = validMessages(body.messages);
   if (!messages) return NextResponse.json({ error: "Invalid messages." }, { status: 400 });
   let decision = body.decision === "approve" || body.decision === "reject" ? body.decision : null;
+  const autoApprove = body.autoApprove === true;
 
   const supabase = createAdminClient() as unknown as SupabaseClient;
   let odoo: OdooClient | null = null;
-  const deps = {
+  const deps: ToolDeps = {
     supabase,
+    adminDb: session as unknown as SupabaseClient,
     odoo: () => (odoo ??= createOdooClient(odooConfigFromEnv(), { timeoutMs: 30_000, retries: 1 })),
   };
+
+  // With auto-approve on, only deletions still wait for the admin.
+  const needsApproval = (call: ToolCallInput) => needsApprovalBase(call) && (!autoApprove || isDestructive(call));
+  const isWrite = (call: ToolCallInput) => needsApprovalBase(call);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -113,7 +127,8 @@ export async function POST(req: Request) {
 
       /** Runs one tool call, streaming its start and end. Returns the tool message content. */
       const execute = async (id: string, call: ToolCallInput) => {
-        send({ t: "step_start", id, label: describeCall(call), name: call.name, args: call.args });
+        const auto = autoApprove && isWrite(call) && !needsApproval(call);
+        send({ t: "step_start", id, label: describeCall(call), name: call.name, args: call.args, ...(auto ? { auto } : {}) });
         const started = Date.now();
         try {
           const result = await runTool(call, deps);
@@ -155,6 +170,8 @@ export async function POST(req: Request) {
               continue;
             }
             console.info("rappi-agent write", JSON.stringify({ admin: user.id, label: describeCall(call) }));
+          } else if (isWrite(call)) {
+            console.info("rappi-agent write", JSON.stringify({ admin: user.id, label: describeCall(call), auto: true }));
           }
           messages.push({ role: "tool", tool_call_id: id, content: await execute(id, call) });
         }
