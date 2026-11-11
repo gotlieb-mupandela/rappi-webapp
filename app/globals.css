@@ -372,3 +372,20 @@ a:hover .brand-logo {
     scroll-behavior: auto !important;
   }
 }
+
+/* Rappi Agent: moving highlight on the live "Thinking…" line. */
+.rappi-shimmer {
+  background: linear-gradient(90deg, var(--muted) 0%, var(--muted) 40%, #fff 50%, var(--muted) 60%, var(--muted) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rappi-shimmer 1.6s linear infinite;
+}
+@keyframes rappi-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rappi-shimmer { animation: none; color: var(--muted); }
+}

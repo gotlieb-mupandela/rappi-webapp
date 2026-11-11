@@ -72,6 +72,23 @@ export const AGENT_TOOLS: ChatTool[] = [
   {
     type: "function",
     function: {
+      name: "odoo_person_agenda",
+      description:
+        "Everything on a staff member's plate in Odoo in one call: their open tasks and to-dos (due that day, overdue, upcoming, with the task notes), activities, calendar events and approved time off. Use for any question about a person's tasks, to-dos, schedule, meetings or day.",
+      parameters: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: { type: "string", description: "Person's name or email, e.g. Gotlieb" },
+          date: { type: "string", description: "Day as YYYY-MM-DD. Default: today (Namibia time)." },
+          days: { type: "integer", description: "How many days from date to cover, default 1, max 31." },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "website_sales_summary",
       description:
         "Website sales in one call: paid orders (paid DPO payment, not cancelled, DPO test orders excluded), revenue, average order, orders by status, top products and latest orders. Use this for any sales, revenue or order-count question.",
@@ -190,7 +207,7 @@ type Filter = { column: string; op: (typeof FILTER_OPS)[number]; value: unknown 
 
 export type ToolCallInput = { name: string; args: Record<string, unknown> };
 
-const READ_ONLY_TOOLS = new Set(["website_select", "website_sales_summary", "website_low_stock"]);
+const READ_ONLY_TOOLS = new Set(["website_select", "website_sales_summary", "website_low_stock", "odoo_person_agenda"]);
 
 export function needsApproval(call: ToolCallInput) {
   if (READ_ONLY_TOOLS.has(call.name)) return false;
@@ -206,6 +223,8 @@ export function needsApproval(call: ToolCallInput) {
 export function describeCall(call: ToolCallInput) {
   const a = call.args;
   switch (call.name) {
+    case "odoo_person_agenda":
+      return `Odoo agenda for ${a.name ?? "?"}${a.date ? ` (${a.date})` : ""}`;
     case "website_sales_summary":
       return `Website sales summary${a.from || a.to ? ` (${a.from ?? "start"} to ${a.to ?? "today"})` : ""}`;
     case "website_low_stock":
@@ -257,6 +276,162 @@ function applyFilters(query: any, filters: Filter[]) {
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Namibia is UTC+2 all year; Odoo stores datetimes in UTC. */
+const TZ_OFFSET_HOURS = 2;
+
+function namibiaToday() {
+  return new Date(Date.now() + TZ_OFFSET_HOURS * 3600_000).toISOString().slice(0, 10);
+}
+
+/** "YYYY-MM-DD HH:MM:SS" in UTC, Odoo's datetime format, for local midnight of a day. */
+function odooUtc(day: string, addDays = 0) {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + addDays);
+  d.setUTCHours(d.getUTCHours() - TZ_OFFSET_HOURS);
+  return d.toISOString().slice(0, 19).replace("T", " ");
+}
+
+function stripHtml(html: unknown, max = 1500) {
+  if (typeof html !== "string") return "";
+  const text = html
+    .replace(/<\/(p|div|li|h\d)>|<br\s*\/?>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+type Row = Record<string, unknown>;
+const m2o = (v: unknown) => (Array.isArray(v) ? v[1] : null);
+
+async function personAgenda(odoo: OdooClient, nameArg: unknown, dateArg: unknown, daysArg: unknown) {
+  const name = String(nameArg ?? "").trim();
+  if (!name) throw new Error("name is required.");
+  const day = typeof dateArg === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateArg) ? dateArg : namibiaToday();
+  const days = Math.min(Math.max(Number(daysArg) || 1, 1), 31);
+  const start = odooUtc(day);
+  const end = odooUtc(day, days);
+
+  const users = await odoo.searchRead<Row>(
+    "res.users",
+    ["|", ["name", "ilike", name], ["login", "ilike", name]],
+    ["name", "login", "partner_id"],
+    { limit: 5 },
+  );
+  if (!users.length) {
+    return { found: false, message: `No Odoo user matches "${name}". Try another spelling or their email.` };
+  }
+  if (users.length > 1 && !users.some((u) => String(u.name).toLowerCase() === name.toLowerCase())) {
+    const exact = users.filter((u) => String(u.name).toLowerCase().startsWith(name.toLowerCase()));
+    if (exact.length !== 1) {
+      return { found: false, ambiguous: users.map((u) => ({ id: u.id, name: u.name, login: u.login })) };
+    }
+  }
+  const user = users.find((u) => String(u.name).toLowerCase() === name.toLowerCase()) ?? users[0];
+  const uid = Number(user.id);
+  const partnerId = Array.isArray(user.partner_id) ? Number(user.partner_id[0]) : null;
+  const notes: string[] = [];
+
+  const safe = async <T,>(what: string, fn: () => Promise<T>, fallback: T) => {
+    try {
+      return await fn();
+    } catch (error) {
+      notes.push(`${what}: ${error instanceof Error ? error.message.slice(0, 160) : "failed"}`);
+      return fallback;
+    }
+  };
+
+  const [tasks, activities, events, leaves] = await Promise.all([
+    safe(
+      "tasks",
+      () =>
+        odoo.searchRead<Row>(
+          "project.task",
+          [["user_ids", "in", [uid]], ["state", "not in", ["1_done", "1_canceled"]]],
+          ["name", "project_id", "stage_id", "state", "priority", "date_deadline", "description"],
+          { limit: 40, order: "date_deadline asc, priority desc" },
+        ),
+      [] as Row[],
+    ),
+    safe(
+      "activities",
+      () =>
+        odoo.searchRead<Row>(
+          "mail.activity",
+          [["user_id", "=", uid], ["date_deadline", "<", end.slice(0, 10)]],
+          ["summary", "activity_type_id", "res_name", "res_model", "date_deadline", "note"],
+          { limit: 40, order: "date_deadline asc" },
+        ),
+      [] as Row[],
+    ),
+    partnerId
+      ? safe(
+          "calendar",
+          () =>
+            odoo.searchRead<Row>(
+              "calendar.event",
+              [["partner_ids", "in", [partnerId]], ["start", "<", end], ["stop", ">=", start]],
+              ["name", "start", "stop", "allday", "location"],
+              { limit: 40, order: "start asc" },
+            ),
+          [] as Row[],
+        )
+      : Promise.resolve([] as Row[]),
+    safe(
+      "time off",
+      () =>
+        odoo.searchRead<Row>(
+          "hr.leave",
+          [["user_id", "=", uid], ["state", "in", ["confirm", "validate1", "validate"]], ["date_from", "<", end], ["date_to", ">=", start]],
+          ["name", "date_from", "date_to", "state"],
+          { limit: 10 },
+        ),
+      [] as Row[],
+    ),
+  ]);
+
+  const bucket = (t: Row) => {
+    const due = typeof t.date_deadline === "string" ? t.date_deadline : null;
+    if (!due) return "no_deadline";
+    if (due < start) return "overdue";
+    if (due < end) return "due_in_period";
+    return "upcoming";
+  };
+  const taskOut = (t: Row) => ({
+    id: t.id,
+    name: t.name,
+    project: m2o(t.project_id) ?? "To-do",
+    stage: m2o(t.stage_id),
+    priority: t.priority,
+    deadline_utc: t.date_deadline || null,
+    notes: stripHtml(t.description),
+  });
+  const grouped: Record<string, ReturnType<typeof taskOut>[]> = { due_in_period: [], overdue: [], no_deadline: [], upcoming: [] };
+  for (const t of tasks) grouped[bucket(t)].push(taskOut(t));
+
+  return {
+    person: { odoo_user_id: uid, name: user.name, login: user.login },
+    period: { from: day, days, timezone: "Africa/Windhoek (UTC+2); datetimes below are UTC" },
+    tasks: { ...grouped, upcoming: grouped.upcoming.slice(0, 10) },
+    activities: activities.map((x) => ({
+      summary: x.summary || m2o(x.activity_type_id),
+      type: m2o(x.activity_type_id),
+      on: x.res_name,
+      due: x.date_deadline,
+      overdue: typeof x.date_deadline === "string" && x.date_deadline < day,
+      note: stripHtml(x.note, 400),
+    })),
+    calendar: events.map((e) => ({ name: e.name, start_utc: e.start, stop_utc: e.stop, all_day: e.allday, location: e.location || null })),
+    time_off: leaves.map((l) => ({ name: l.name, from_utc: l.date_from, to_utc: l.date_to, state: l.state })),
+    ...(notes.length ? { could_not_read: notes } : {}),
+  };
+}
 
 type SummaryOrder = {
   id: string;
@@ -364,6 +539,8 @@ export async function runTool(
   const db = deps.supabase;
 
   switch (call.name) {
+    case "odoo_person_agenda":
+      return clip(await personAgenda(deps.odoo(), a.name, a.date, a.days));
     case "website_sales_summary":
       return clip(await salesSummary(db, a.from, a.to));
     case "website_low_stock": {

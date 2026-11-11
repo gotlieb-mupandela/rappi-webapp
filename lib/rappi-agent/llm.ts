@@ -50,6 +50,10 @@ export async function chatTurn(opts: {
   messages: ChatMessage[];
   tools: ChatTool[];
   onText: (text: string) => void;
+  /** The model's reasoning as it streams, when the model shares it. */
+  onThinking?: (text: string) => void;
+  /** Which model OpenRouter actually used (matters with fallbacks and openrouter/free). */
+  onModel?: (model: string) => void;
   signal?: AbortSignal;
 }): Promise<AssistantMessage> {
   const { apiKey, models } = llmConfig();
@@ -77,6 +81,7 @@ export async function chatTurn(opts: {
   }
 
   let content = "";
+  let modelSeen = false;
   const calls: ToolCall[] = [];
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -89,16 +94,23 @@ export async function chatTurn(opts: {
     if (!data || data === "[DONE]") return;
     const chunk = JSON.parse(data) as {
       error?: { message?: string };
+      model?: string;
       choices?: Array<{
         delta?: {
           content?: string | null;
+          reasoning?: string | null;
           tool_calls?: Array<{ index: number; id?: string; function?: { name?: string; arguments?: string } }>;
         };
       }>;
     };
     if (chunk.error) throw new Error(`OpenRouter: ${chunk.error.message ?? "stream error"}`);
+    if (chunk.model && !modelSeen) {
+      modelSeen = true;
+      opts.onModel?.(chunk.model);
+    }
     const delta = chunk.choices?.[0]?.delta;
     if (!delta) return;
+    if (delta.reasoning) opts.onThinking?.(delta.reasoning);
     if (delta.content) {
       content += delta.content;
       opts.onText(delta.content);
