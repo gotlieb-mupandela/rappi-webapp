@@ -6,6 +6,7 @@ import { ProductDetail } from "@/components/product-detail";
 import { ProductMoreHeading } from "@/components/product-more-heading";
 import { getProduct, productsByCategory } from "@/lib/products";
 import { offlineCatalog } from "@/lib/offline-catalog";
+import { getCatalogLive } from "@/lib/supabase/catalog";
 import { withFullResProductImages } from "@/lib/media";
 import { toClientProduct } from "@/lib/listing-core";
 import { withCatalogSizes } from "@/lib/sizes";
@@ -24,7 +25,10 @@ export default async function ProductPage({
 }) {
   const { code } = await params;
   const sku = decodeProductCode(code);
-  const found = getProduct(sku, offlineCatalog);
+  // Products added straight to the database are not in the bundled file yet;
+  // fall back to the live catalog (cached ~1 hour) so their pages resolve.
+  const found =
+    getProduct(sku, offlineCatalog) ?? getProduct(sku, await getCatalogLive());
   if (!found || (found.available === false && !isZeroStockVisible(found))) notFound();
   const product = toClientProduct(withFullResProductImages(withCatalogSizes(found)));
   const related = productsByCategory(product.category, offlineCatalog)
