@@ -27,10 +27,10 @@ export default async function ProductPage({
   const sku = decodeProductCode(code);
   // Products added straight to the database are not in the bundled file yet;
   // fall back to the live catalog (cached ~1 hour) so their pages resolve.
-  const found =
-    getProduct(sku, offlineCatalog) ?? getProduct(sku, await getCatalogLive());
+  const baked = getProduct(sku, offlineCatalog);
+  const found = baked ?? getProduct(sku, await getCatalogLive());
   if (!found || (found.available === false && !isZeroStockVisible(found))) notFound();
-  const product = toClientProduct(withFullResProductImages(withCatalogSizes(found)));
+  const product = toClientProduct(withFullResProductImages(withCatalogSizes(found, { live: !baked })));
   const related = productsByCategory(product.category, offlineCatalog)
     .filter((p) => p.code !== product.code)
     .slice(0, 4)

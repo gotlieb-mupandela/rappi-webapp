@@ -106,7 +106,11 @@ function rowsFromSizes(
  * Does not invent apparel/shoe charts. Placeholder `ONE` on clothing/footwear
  * is not treated as a real size.
  */
-export function withCatalogSizes<T extends Product>(product: T): T {
+export function withCatalogSizes<T extends Product>(
+  product: T,
+  /** `live`: the row came from the database, so its recorded sizes beat the bundled size files. */
+  opts: { live?: boolean } = {},
+): T {
   if (product.code === "DPO-TEST") {
     const stock = Math.max(skuStock(product), 1);
     return {
@@ -118,9 +122,10 @@ export function withCatalogSizes<T extends Product>(product: T): T {
     };
   }
 
-  const master = MASTER_BY_CODE.get(product.code);
-  const sheet = SOURCE_BY_CODE.get(product.code);
   const recorded = hasRecordedSizeRun(product);
+  const trustRecorded = Boolean(opts.live) && recorded;
+  const master = trustRecorded ? undefined : MASTER_BY_CODE.get(product.code);
+  const sheet = trustRecorded ? undefined : SOURCE_BY_CODE.get(product.code);
   const overlayQty = master?.qty ?? sheet?.qty;
   const total = skuStock({
     stockQty: overlayQty ?? product.stockQty,
