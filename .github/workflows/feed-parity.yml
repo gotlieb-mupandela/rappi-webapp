@@ -1,0 +1,24 @@
+# Compare the mobile storefront feed with the website listing helpers.
+# Read only. This workflow does not deploy and does not write catalog data.
+name: Feed parity
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Compare the full feed with the website listing
+        run: npm run check:feed-parity
