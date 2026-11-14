@@ -10,7 +10,7 @@ import {
   subcategoryHubGroups,
   type HubFolderTile,
 } from "@/lib/hubs";
-import { asHomeSpan, asHomeTone } from "@/lib/home-tiles";
+import { asHomeImagePosition, asHomeSpan, asHomeTone, type HomeTileImagePosition } from "@/lib/home-tiles";
 import { applyBrandHash } from "@/lib/image-cache";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
 import { eurPerNad } from "@/lib/i18n/config";
@@ -32,7 +32,7 @@ import { jomaTeamsLandingTiles } from "@/lib/joma-nav";
 import { jomaFolderTileImage, jomaLandingTileImage } from "@/lib/joma-tile-images";
 import { isOutletFolderKey, jomaFolderByKey, jomaFolderMetaSnapshot } from "@/lib/joma-tree";
 import { catalogProductFields, filterListing, type ListingItem } from "@/lib/listing-core";
-import { hasUsableProductImage, listingCardCandidates, tileImageUrl } from "@/lib/media";
+import { hasUsableProductImage, listingCardCandidates, tileImageCandidates, tileImageUrl } from "@/lib/media";
 import { CANONICAL_SITE_ORIGIN } from "@/lib/meta/site";
 import { checkoutCountries, type FeedCheckoutCountry } from "@/lib/mobile-feed-countries";
 import { siteMenuCover, siteMenuPictures, siteMenuTileKeys } from "@/lib/mobile-feed-pictures";
@@ -71,6 +71,13 @@ export type FeedAudienceRef = {
   /** Finite integer. Same count audienceTiles() returns. */
   count: number;
   target: string;
+  /**
+   * Same picture the category page Shop by athlete tile uses.
+   * Men and women are the audience covers. Kids is the product-only sample.
+   */
+  image: string | null;
+  /** contain for a full portrait cover, cover when the tile is a product photo. */
+  fit: "cover" | "contain";
 };
 
 export type FeedNode = {
@@ -95,6 +102,11 @@ export type FeedNode = {
   span: 1 | 2 | null;
   /** Home tiles only. dark or light, or null when this node is not a home tile. */
   tone: "dark" | "light" | null;
+  /**
+   * Home tiles only. Same crop as the website bento:
+   * center, top (Sportswear), or center 20% (Running). Null on every other node.
+   */
+  imagePosition: HomeTileImagePosition | null;
   /** Audience nodes only. men, women, or kids. Null on every other kind. */
   slug: string | null;
   /**
@@ -123,6 +135,7 @@ export const FEED_PRODUCT_KEYS = [
   "price",
   "priceLabel",
   "cardImage",
+  "tileImage",
   "images",
   "line",
   "category",
@@ -144,6 +157,11 @@ export type FeedProduct = {
   price: number;
   priceLabel: string;
   cardImage: string | null;
+  /**
+   * Product-only frame. Kids and Woman listings of a shared adult code use this
+   * instead of cardImage. Same file as listingCardCandidates(product, audience)[0].
+   */
+  tileImage: string | null;
   images: string[];
   /**
    * Plain text from productLineLabel. Null when that label is empty.
@@ -520,6 +538,7 @@ export function feedProductCard(product: Product): FeedProduct | null {
     price: assertFiniteNumber(product.price, `price ${product.code}`),
     priceLabel: formatPrice(product.price),
     cardImage: images[0] ?? null,
+    tileImage: productTileImage(product),
     images,
     line: productLine(product),
     category: catalogSlug(fields.category),
@@ -531,6 +550,14 @@ export function feedProductCard(product: Product): FeedProduct | null {
 function productLine(product: Product): string | null {
   const text = plainText(productLineLabel(product.item));
   return text || null;
+}
+
+/** Product-only frame for Kids and Woman tiles. Null when it is the card lead. */
+function productTileImage(product: Product): string | null {
+  const frame = feedImageUrl(tileImageCandidates(product)[0] ?? null);
+  const lead = feedImageUrl(listingCardCandidates(product)[0] ?? null);
+  if (!frame || frame === lead) return null;
+  return frame;
 }
 
 function productImages(product: Product): string[] {
@@ -564,12 +591,16 @@ export function folderProductCounts(catalog: FeedSource[]): Map<string, number> 
 }
 
 function emptyNode(
-  partial: Omit<FeedNodeDraft, "tiles" | "description" | "group" | "span" | "tone" | "slug" | "audiences"> & {
+  partial: Omit<
+    FeedNodeDraft,
+    "tiles" | "description" | "group" | "span" | "tone" | "imagePosition" | "slug" | "audiences"
+  > & {
     tiles?: string[];
     description?: FeedText;
     group?: string | null;
     span?: FeedNode["span"];
     tone?: FeedNode["tone"];
+    imagePosition?: FeedNode["imagePosition"];
     slug?: string | null;
     audiences?: FeedAudienceRef[];
   },
@@ -580,6 +611,7 @@ function emptyNode(
     tiles: partial.tiles ?? [],
     span: partial.span ?? null,
     tone: partial.tone ?? null,
+    imagePosition: partial.imagePosition ?? null,
     slug: partial.slug ?? null,
     audiences: partial.audiences ?? [],
     description: partial.description ?? partial.title,
@@ -642,6 +674,16 @@ function hubTileImage(tile: HubFolderTile): string | null {
   return null;
 }
 
+/** Same picture and fit the category page uses on a Shop by athlete tile. */
+function audienceTilePicture(tile: {
+  cover?: string;
+  sample?: Parameters<typeof tileImageUrl>[0] | null;
+}): { image: string | null; fit: "cover" | "contain" } {
+  if (tile.cover) return { image: tileImage(tile.cover), fit: "contain" };
+  const sample = tile.sample ? tileImageUrl(tile.sample) : "";
+  return { image: sample ? tileImage(sample) : null, fit: "cover" };
+}
+
 function hubAudiences(slug: string, catalog: FeedSource[]): FeedAudienceRef[] {
   const tiles = audienceTiles(catalog, { categorySlug: slug });
   if (tiles.length <= 1) return [];
@@ -653,11 +695,14 @@ function hubAudiences(slug: string, catalog: FeedSource[]): FeedAudienceRef[] {
     if (!target || tile.href !== target) continue;
     const count = assertFiniteInteger(tile.count, `audience ${id}`);
     if (count <= 0) continue;
+    const picture = audienceTilePicture(tile);
     rows.push({
       id,
       label: textPair(audienceName(tile.key, tEn), audienceName(tile.key, tFr), tile.name),
       count,
       target,
+      image: picture.image,
+      fit: picture.fit,
     });
   }
   return rows;
@@ -1001,6 +1046,7 @@ export function buildMobileStorefront(catalog: FeedSource[], version: string): M
     if (!node) continue;
     node.span = asHomeSpan(tile.span);
     node.tone = asHomeTone(tile.tone);
+    node.imagePosition = asHomeImagePosition(tile.imagePosition);
   }
 
   for (const node of nodes.values()) {

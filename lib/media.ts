@@ -1,7 +1,7 @@
 import extraGalleryByCode from "@/data/ai-gallery-urls.json";
 import preTileImages from "@/data/pre-person-tile-images.json";
 import { allowedImageHosts, imageHostAllows } from "@/lib/image-hosts";
-import { metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
+import { CANONICAL_SITE_ORIGIN, metaAbsoluteUrl, metaSiteUrl } from "@/lib/meta/site";
 import type { Product } from "@/lib/types";
 
 const STORAGE_ROOT = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -19,9 +19,41 @@ function isRemoteUrl(url: string | undefined | null) {
   return Boolean(url && /^https?:\/\//i.test(url) && !isAiImage(url));
 }
 
-/** Official Joma catalogue on-model photos hosted in `public/catalog-photos/`. */
+/**
+ * Catalogue on-model photos in `public/catalog-photos/`.
+ * A stored absolute URL on this site (`https://www.rappisportshub.com/catalog-photos/...`)
+ * is the same file as the site path. The path form is what listing cards use.
+ * Query strings such as `?v=` stay on the returned path.
+ */
+export function catalogPhotoPath(url: string | undefined | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed.startsWith("//") || /^http:\/\//i.test(trimmed)) return null;
+  const hash = trimmed.indexOf("#");
+  const withoutHash = hash === -1 ? trimmed : trimmed.slice(0, hash);
+  const queryAt = withoutHash.indexOf("?");
+  const base = queryAt === -1 ? withoutHash : withoutHash.slice(0, queryAt);
+  const search = queryAt === -1 ? "" : withoutHash.slice(queryAt);
+  if (base.startsWith("/catalog-photos/")) return `${base}${search}`;
+  if (!/^https:\/\//i.test(base)) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(base);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:" || parsed.port !== "" || parsed.username || parsed.password) {
+    return null;
+  }
+  if (!parsed.pathname.startsWith("/catalog-photos/")) return null;
+  const siteOrigin = metaSiteUrl().replace(/\/$/, "");
+  if (parsed.origin !== CANONICAL_SITE_ORIGIN && parsed.origin !== siteOrigin) return null;
+  return `${parsed.pathname}${search}`;
+}
+
+/** Official catalogue on-model photo, relative or on the canonical site origin. */
 export function isCatalogPhoto(url: string | undefined | null) {
-  return Boolean(url && url.startsWith("/catalog-photos/"));
+  return Boolean(catalogPhotoPath(url));
 }
 
 function isGalleryUrl(url: string | undefined | null) {
@@ -91,7 +123,9 @@ export function productCardImageCandidates(product: {
 }): string[] {
   const gallery = (product.images ?? []).filter(Boolean);
   const primary = product.imageUrl?.trim() || "";
-  const catalog = [primary, ...gallery].filter(isCatalogPhoto);
+  const catalog = [primary, ...gallery]
+    .map((url) => catalogPhotoPath(url))
+    .filter((url): url is string => Boolean(url));
   const mediums = gallery.filter(isDemandwareMedium);
   const nets = [primary, ...gallery].filter(isJomaNet);
   const rest = [primary, ...gallery].filter(
@@ -271,6 +305,17 @@ export function tileImageUrl(product: {
 }
 
 /**
+ * Kids and Woman listings of a shared adult teamwear code use the product-only
+ * frame. Codes that belong to that audience (5/6xxxxx kids, 9xxxxx woman) keep
+ * the person lead. The mobile app applies this same test to `tileImage`.
+ */
+export function listingUsesProductFrame(code: string, audience?: string | null): boolean {
+  if (audience === "kids" && !/^[56]\d{5}\./.test(code)) return true;
+  if (audience === "women" && !/^9\d{5}\./.test(code)) return true;
+  return false;
+}
+
+/**
  * Card frames for a listing scoped to one audience. A shared teamwear code's
  * person lead is usually an adult man, so Kids listings (non 5/6xxxxx codes)
  * and Woman listings (non 9xxxxx codes) use the earlier product-only frame.
@@ -280,8 +325,7 @@ export function listingCardCandidates(
   audience?: string | null,
 ): string[] {
   const code = product.code ?? "";
-  if (audience === "kids" && !/^[56]\d{5}\./.test(code)) return tileImageCandidates(product);
-  if (audience === "women" && !/^9\d{5}\./.test(code)) return tileImageCandidates(product);
+  if (listingUsesProductFrame(code, audience)) return tileImageCandidates(product);
   const urls = productCardImageCandidates(product);
   const primary = cardImageUrl(product);
   // A relative catalogue photo resolves to the same file. Keep the site path

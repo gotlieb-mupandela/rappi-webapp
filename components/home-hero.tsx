@@ -60,7 +60,7 @@ export function HomeHero({
             size="large"
             fill
             imageFit="cover"
-            imagePosition="object-center"
+            imagePosition={teamwear.imageClassName}
             showLabel
             priority
             className={teamwear.className}
@@ -75,7 +75,7 @@ export function HomeHero({
             size="medium"
             fill
             imageFit="cover"
-            imagePosition="object-top"
+            imagePosition={sportswear.imageClassName}
             className={sportswear.className}
           />
 
@@ -88,7 +88,7 @@ export function HomeHero({
             size="medium"
             fill
             imageFit="cover"
-            imagePosition="object-[center_20%]"
+            imagePosition={running.imageClassName}
             className={running.className}
           />
 
@@ -101,7 +101,7 @@ export function HomeHero({
             size="medium"
             fill
             imageFit="cover"
-            imagePosition="object-center"
+            imagePosition={lifestyle.imageClassName}
             className={lifestyle.className}
           />
 
@@ -114,7 +114,7 @@ export function HomeHero({
             size="medium"
             fill
             imageFit="cover"
-            imagePosition="object-center"
+            imagePosition={footwear.imageClassName}
             className={footwear.className}
           />
 
@@ -129,7 +129,7 @@ export function HomeHero({
             tone={kids.tone}
             labelPosition="center"
             imageFit="cover"
-            imagePosition="object-center"
+            imagePosition={kids.imageClassName}
             className={kids.className}
           />
         </div>

@@ -1,5 +1,10 @@
 import { AUDIENCES, CATEGORIES, TYPE_FOLDERS } from "@/lib/catalog";
-import { homeTileLayout, type HomeTileSpan, type HomeTileTone } from "@/lib/home-tiles";
+import {
+  homeTileLayout,
+  type HomeTileImagePosition,
+  type HomeTileSpan,
+  type HomeTileTone,
+} from "@/lib/home-tiles";
 import { sportSeriesRoot } from "@/lib/hubs";
 import { jomaAccessoriesLandingTiles, jomaTeamsLandingTiles } from "@/lib/joma-nav";
 import {
@@ -108,13 +113,14 @@ export function teamTileId(href: string): string {
 export type HomeFeedTile = FeedTargetTile & {
   span: HomeTileSpan;
   tone: HomeTileTone;
+  imagePosition: HomeTileImagePosition;
 };
 
 function homeFeedTile(
   tile: FeedTargetTile,
 ): HomeFeedTile {
   const layout = homeTileLayout(tile.id.replace(/^home-/, ""));
-  return { ...tile, span: layout.span, tone: layout.tone };
+  return { ...tile, span: layout.span, tone: layout.tone, imagePosition: layout.imagePosition };
 }
 
 /**

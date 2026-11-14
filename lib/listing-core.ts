@@ -14,7 +14,7 @@ import {
 } from "@/lib/catalog";
 import { sortByFolderOrder } from "@/lib/folder-order";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
-import { cardImageUrl, hasUsableProductImage } from "@/lib/media";
+import { cardImageUrl, hasUsableProductImage, tileImageUrl } from "@/lib/media";
 import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
@@ -273,10 +273,12 @@ export function catalogProductFields(product: { category: string; subcategory: s
  */
 export function toClientProduct<T extends Product & { cardImage?: string | null }>(
   product: T,
-): Omit<T, "item" | "sheetCategory" | "cardImage"> & {
+): Omit<T, "item" | "sheetCategory" | "cardImage" | "tileImage"> & {
   line: string;
   assortment: ClientAssortment;
   cardImage: string | null;
+  /** Product-only frame when it differs from cardImage. Null when the card lead is that frame. */
+  tileImage: string | null;
 } {
   const {
     hay: _hay,
@@ -288,6 +290,9 @@ export function toClientProduct<T extends Product & { cardImage?: string | null 
     ...rest
   } = product as T & ListingItem & { line?: string; cardImage?: string | null };
   const fields = catalogProductFields(product);
+  const cardImage = "cardImage" in product ? (existing ?? null) : cardImageUrl(product);
+  const tileRaw = tileImageUrl(product);
+  const tileAbsolute = tileRaw ? cardImageUrl({ imageUrl: tileRaw, images: [tileRaw] }) : null;
   return {
     ...versionProductImages({
       ...rest,
@@ -295,12 +300,14 @@ export function toClientProduct<T extends Product & { cardImage?: string | null 
     }),
     category: fields.category,
     subcategory: fields.subcategory,
-    cardImage: "cardImage" in product ? (existing ?? null) : cardImageUrl(product),
+    cardImage,
+    tileImage: tileAbsolute && tileAbsolute !== cardImage ? tileAbsolute : null,
     assortment: clientAssortment(product),
-  } as Omit<T, "item" | "sheetCategory" | "cardImage"> & {
+  } as Omit<T, "item" | "sheetCategory" | "cardImage" | "tileImage"> & {
     line: string;
     assortment: ClientAssortment;
     cardImage: string | null;
+    tileImage: string | null;
   };
 }
 
