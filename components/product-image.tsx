@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
 import { productImageAlt } from "@/lib/copy";
-import { productImageLoader } from "@/lib/product-image-loader";
+import { productImageLoader, usesProductImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 
 /** One retry per URL, then walk the next fallback. */
@@ -96,7 +96,7 @@ export function ProductImage({
     return <ImagePlate className={fallbackClassName ?? className} />;
   }
 
-  const remote = /^https?:\/\//i.test(current);
+  const remote = usesProductImageLoader(current);
 
   function advance() {
     setLoad((prev) => {

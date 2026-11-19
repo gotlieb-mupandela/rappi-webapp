@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { productImageLoader } from "@/lib/product-image-loader";
+import { productImageLoader, usesProductImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/locale-provider";
 
@@ -116,7 +116,7 @@ export function AudienceLandingGrid({
                         : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
                   }
                   priority={index < 4}
-                  loader={/^https?:\/\//i.test(tile.imageSrc) ? productImageLoader : undefined}
+                  loader={usesProductImageLoader(tile.imageSrc) ? productImageLoader : undefined}
                   className={cn(
                     "transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100",
                     isFootwear

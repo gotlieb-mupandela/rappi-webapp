@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { SpringOptions } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "motion/react";
-import { productImageLoader } from "@/lib/product-image-loader";
+import { productImageLoader, usesProductImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 
 interface TiltedCardProps {
@@ -194,7 +194,7 @@ export default function TiltedCard({
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px"
               quality={75}
               className="object-contain"
-              loader={/^https?:\/\//i.test(activeSrc) ? productImageLoader : undefined}
+              loader={usesProductImageLoader(activeSrc) ? productImageLoader : undefined}
               onError={handleImageError}
             />
           </motion.div>

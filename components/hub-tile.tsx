@@ -7,7 +7,7 @@ import { useT } from "@/components/locale-provider";
 import { productImageAlt } from "@/lib/copy";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import { tileImageCandidates, tileImageUrl } from "@/lib/media";
-import { productImageLoader } from "@/lib/product-image-loader";
+import { productImageLoader, usesProductImageLoader } from "@/lib/product-image-loader";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +44,7 @@ function CoverImage({
       priority={priority}
       fetchPriority={priority ? "high" : undefined}
       className={className}
-      loader={/^https?:\/\//i.test(src) ? productImageLoader : undefined}
+      loader={usesProductImageLoader(src) ? productImageLoader : undefined}
     />
   );
 }
