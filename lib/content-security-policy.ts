@@ -79,8 +79,9 @@ const SCRIPT_FALLBACK_HOSTS =
  * where one cannot be generated per request (e.g. a static header); that
  * variant keeps the looser `'unsafe-inline'` script-src.
  *
- * img-src is only 'self', data:, and the product image hosts (wsrv.nl, the
- * Supabase product-images host, and the two supplier hosts). Checkout assigns
+ * img-src is only 'self', data:, the product image hosts (wsrv.nl, the
+ * Supabase product-images host, and the two supplier hosts), and
+ * www.facebook.com for the Meta Pixel. Checkout assigns
  * window.location to DPO_PAY_URL. `report-uri` points at CSP_REPORT_PATH so
  * violations are collected while the header stays Report-Only.
  */
@@ -100,7 +101,8 @@ export function contentSecurityPolicy(env: ContentSecurityPolicyEnv = {}, nonce?
     "frame-ancestors 'none'",
     scriptSrc,
     "style-src 'self' 'unsafe-inline' https://accounts.google.com https://vercel.live",
-    `img-src 'self' data: ${imageHosts.join(" ")}`,
+    // www.facebook.com: the Meta Pixel reports events as /tr image requests.
+    `img-src 'self' data: ${imageHosts.join(" ")} https://www.facebook.com`,
     "font-src 'self' https://assets.vercel.com",
     `connect-src 'self' ${httpsOrigin(supabaseHost)} wss://${supabaseHost} https://accounts.google.com https://www.facebook.com https://connect.facebook.net ${httpsOrigin(dpoPayHost)} https://vercel.live`,
     `frame-src 'self' https://accounts.google.com ${httpsOrigin(dpoPayHost)} https://vercel.live`,

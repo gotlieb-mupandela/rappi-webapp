@@ -41,7 +41,12 @@ test("CSP_ENFORCE switch picks the header name; default is report-only", () => {
 test("remotePatterns and img-src share the loader and supplier hosts", () => {
   const patterns = nextConfig.images?.remotePatterns ?? [];
   const hosts = patterns.map((pattern) => pattern.hostname);
-  assert.deepEqual(hosts, [...PRODUCT_IMAGE_REMOTE_HOSTS]);
+  // wsrv.nl is the loader's <img> src only; next.config keeps it out of
+  // remotePatterns so /_next/image cannot proxy arbitrary URLs through it.
+  assert.deepEqual(
+    hosts,
+    PRODUCT_IMAGE_REMOTE_HOSTS.filter((host) => host !== PRODUCT_IMAGE_PROXY_HOST),
+  );
 });
 
 test("img-src lists the loader, supplier hosts, and Supabase storage", () => {
@@ -100,6 +105,7 @@ const IMG_SRC_HOSTS = [
   "https://wzmzwerzbyudcvoiiege.supabase.co",
   "https://www.joma-sport.com",
   "https://v1.joma-sport.net",
+  "https://www.facebook.com",
 ] as const;
 
 const IMG_SRC_ALLOWED = new Set<string>(["'self'", "data:", "blob:", ...IMG_SRC_HOSTS]);
