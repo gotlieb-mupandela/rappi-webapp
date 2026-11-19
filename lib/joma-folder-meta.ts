@@ -9,8 +9,13 @@ export type JomaFolderMeta = {
   sub: string | null;
 };
 
-const rows = raw as JomaFolderMeta[];
-const BY_KEY = new Map(rows.map((row) => [row.key, row]));
+// The baked JSON repeats some folders verbatim (179 keys); keep the first of each
+// so sibling lists don't render the same folder twice.
+const BY_KEY = new Map<string, JomaFolderMeta>();
+for (const row of raw as JomaFolderMeta[]) {
+  if (!BY_KEY.has(row.key)) BY_KEY.set(row.key, row);
+}
+const rows = [...BY_KEY.values()];
 const CHILDREN = new Map<string, JomaFolderMeta[]>();
 for (const row of rows) {
   if (!row.parent) continue;

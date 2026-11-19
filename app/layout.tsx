@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Oswald } from "next/font/google";
+import { headers } from "next/headers";
 import Script from "next/script";
 import { MetaPixel } from "@/components/meta-pixel";
 import { Providers } from "@/components/providers";
@@ -56,7 +57,10 @@ const nav = storefrontNav as {
   categoryCounts: Record<string, number>;
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // middleware.ts sets a per-request CSP nonce. Next adds it to this script's
+  // server HTML, so the client props must carry it too or hydration mismatches.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang={htmlLang(DEFAULT_MARKET)}
@@ -68,7 +72,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         className={`${inter.className} flex min-h-full flex-col bg-bg text-ink`}
         suppressHydrationWarning
       >
-        <Script id="rappi-market" strategy="beforeInteractive">
+        <Script id="rappi-market" strategy="beforeInteractive" nonce={nonce}>
           {MARKET_BOOTSTRAP}
         </Script>
         <MetaPixel />
