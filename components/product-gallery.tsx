@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Product } from "@/lib/types";
 import { ProductImage } from "@/components/product-image";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { productImageAlt } from "@/lib/copy";
+import { productImageAlt } from "@/lib/product-copy";
 import { cn } from "@/lib/utils";
 
 export function ProductGallery({ product }: { product: Product }) {

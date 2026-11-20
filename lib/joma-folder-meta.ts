@@ -29,6 +29,21 @@ export function jomaFolderByKey(key: string) {
   return BY_KEY.get(storedFolderKey(key));
 }
 
+/**
+ * Portal label for a folder key, or null when the key is not a Joma folder.
+ * Server pages pass this to PageHeader / Breadcrumbs so the browser does not
+ * need data/joma-folder-meta.json.
+ */
+export function jomaFolderLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return jomaFolderByKey(key)?.label ?? null;
+}
+
+/** Adds `folderLabel` to crumbs that name a folder (`sub`). */
+export function withFolderLabels<T extends { sub?: string }>(crumbs: T[]): (T & { folderLabel?: string | null })[] {
+  return crumbs.map((crumb) => (crumb.sub ? { ...crumb, folderLabel: jomaFolderLabel(crumb.sub) } : crumb));
+}
+
 export function isJomaBrowseFolder(key: string) {
   return BY_KEY.has(storedFolderKey(key));
 }

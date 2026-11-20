@@ -16,9 +16,9 @@ import { AssortmentBadge } from "@/components/assortment-label";
 import { packTitleSuffix, recordedPackContents } from "@/lib/assortment";
 import { StockMatrix } from "@/components/stock-matrix";
 import { useLocale } from "@/components/locale-provider";
-import { productHeading, productImageAlt } from "@/lib/copy";
+import { productHeading, productImageAlt } from "@/lib/product-copy";
 import { buyableSizes, isSoldOut } from "@/lib/product-stock";
-import { listingCardCandidates } from "@/lib/media";
+import { listingCardCandidates } from "@/lib/media-core";
 import { useCart } from "@/lib/stores/cart";
 import { productPath } from "@/lib/utils";
 

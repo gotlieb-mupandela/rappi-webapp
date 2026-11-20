@@ -5,7 +5,6 @@ import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
 import { useT } from "@/components/locale-provider";
 import { audienceBlurb, audienceName, groupName, hubBlurb, hubName, subName } from "@/lib/i18n/labels";
 import type { MessageVars } from "@/lib/i18n/translate";
-import { jomaFolderByKey } from "@/lib/joma-folder-meta";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
@@ -19,6 +18,7 @@ export function PageHeader({
   titleHub,
   titleAudience,
   titleSub,
+  titleSubLabel,
   titleCount,
   description,
   descriptionKey,
@@ -43,6 +43,8 @@ export function PageHeader({
   titleAudience?: string;
   /** When set, overrides hub/audience title with a subcategory / type-folder label. */
   titleSub?: string;
+  /** Joma portal label for titleSub, from jomaFolderLabel() on the server. */
+  titleSubLabel?: string | null;
   /** Appended as `[n]` after the title (Joma listing style). */
   titleCount?: number;
   description?: string;
@@ -70,7 +72,7 @@ export function PageHeader({
           const g = groupName(kind, titleSub, t);
           if (g !== titleSub) return g;
         }
-        return jomaFolderByKey(titleSub)?.label ?? fromSub;
+        return titleSubLabel ?? fromSub;
       })()
     : titleAudience
       ? audienceName(titleAudience, t)

@@ -19,7 +19,7 @@ import {
   recordedPackContents,
   surtidoSizeLabel,
 } from "@/lib/assortment";
-import { productDescription, productHeading } from "@/lib/copy";
+import { productDescription, productHeading, type JomaDesc } from "@/lib/product-copy";
 import { useLocale } from "@/components/locale-provider";
 import { currencySymbol } from "@/lib/i18n/currency";
 import { hubName, subName } from "@/lib/i18n/labels";
@@ -38,7 +38,14 @@ import { trackMeta } from "@/lib/meta/pixel";
 import { useCart } from "@/lib/stores/cart";
 import { cn } from "@/lib/utils";
 
-export function ProductDetail({ product }: { product: Product }) {
+export function ProductDetail({
+  product,
+  jomaCopy = null,
+}: {
+  product: Product;
+  /** Official Joma text for this code, from jomaCopyFor() on the server. */
+  jomaCopy?: JomaDesc | null;
+}) {
   const buyable = buyableSizes(product);
   const visible = pickerSizes(product);
   const [size, setSize] = useState(buyable[0]?.size ?? product.sizes[0]?.size ?? "SKU");
@@ -54,7 +61,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const packView = clientAssortment(product);
   const recordedPack = isRecordedApparelPack(product);
   const packContents = recordedPackContents(product);
-  const details = productDescription(product, { t, market });
+  const details = productDescription(product, { t, market, joma: jomaCopy });
   const showPicker = hasVisibleSizePicker(product);
   const assortmentPicker =
     visible.length > 0 && visible.every((row) => surtidoSizeLabel(product, row.size, t));

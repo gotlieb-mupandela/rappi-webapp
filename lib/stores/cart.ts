@@ -7,7 +7,7 @@ import { trackMeta } from "@/lib/meta/pixel";
 import type { CartLine, CartLineSnapshot, Product } from "@/lib/types";
 import { getAssortment } from "@/lib/assortment";
 import { surtidoSizeText } from "@/lib/assortment";
-import { productHeading } from "@/lib/copy";
+import { productHeading } from "@/lib/product-copy";
 import { sizeDisplayLabel, sizeStock, skuStock } from "@/lib/product-stock";
 
 type CartMessage = {

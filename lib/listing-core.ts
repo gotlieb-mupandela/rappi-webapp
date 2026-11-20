@@ -14,7 +14,7 @@ import {
 } from "@/lib/catalog";
 import { sortByFolderOrder } from "@/lib/folder-order";
 import { isJomaBrowseFolder } from "@/lib/joma-folder-meta";
-import { cardImageUrl, hasUsableProductImage } from "@/lib/media";
+import { cardImageUrl, hasUsableProductImage, preTileImage } from "@/lib/media";
 import {
   LISTING_PAGE_SIZE,
   type ListingFacet,
@@ -277,6 +277,7 @@ export function toClientProduct<T extends Product & { cardImage?: string | null 
   line: string;
   assortment: ClientAssortment;
   cardImage: string | null;
+  tileImage: string | null;
 } {
   const {
     hay: _hay,
@@ -296,11 +297,14 @@ export function toClientProduct<T extends Product & { cardImage?: string | null 
     category: fields.category,
     subcategory: fields.subcategory,
     cardImage: "cardImage" in product ? (existing ?? null) : cardImageUrl(product),
+    // Tile frame for kids / women cards and hub tiles; lib/media-core.ts reads it.
+    tileImage: preTileImage(product.code),
     assortment: clientAssortment(product),
   } as Omit<T, "item" | "sheetCategory" | "cardImage"> & {
     line: string;
     assortment: ClientAssortment;
     cardImage: string | null;
+    tileImage: string | null;
   };
 }
 

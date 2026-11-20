@@ -5,7 +5,6 @@ import { ChevronLeft } from "lucide-react";
 import { useT } from "@/components/locale-provider";
 import { audienceName, groupName, hubName, subName } from "@/lib/i18n/labels";
 import type { MessageVars } from "@/lib/i18n/translate";
-import { jomaFolderByKey } from "@/lib/joma-folder-meta";
 import { cn } from "@/lib/utils";
 
 export type Crumb = {
@@ -16,6 +15,11 @@ export type Crumb = {
   hub?: string;
   audience?: string;
   sub?: string;
+  /**
+   * Joma portal label for `sub`, resolved on the server with withFolderLabels()
+   * (lib/joma-folder-meta.ts). null or missing: `sub` is not a Joma folder.
+   */
+  folderLabel?: string | null;
 };
 
 function crumbLabel(
@@ -27,15 +31,14 @@ function crumbLabel(
   if (item.audience) return audienceName(item.audience, t);
   if (item.sub) {
     // Joma browse folders use the joma-sport.net portal label.
-    const folder = jomaFolderByKey(item.sub);
-    if (folder) return folder.label;
+    if (item.folderLabel != null) return item.folderLabel;
     const fromSub = subName(item.sub, t);
     if (fromSub !== item.sub) return fromSub;
     for (const kind of ["apparel", "footwear", "kids"] as const) {
       const g = groupName(kind, item.sub, t);
       if (g !== item.sub) return g;
     }
-    return jomaFolderByKey(item.sub)?.label ?? fromSub;
+    return fromSub;
   }
   return item.label ?? "";
 }

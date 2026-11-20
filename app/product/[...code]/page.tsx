@@ -7,6 +7,7 @@ import { ProductMoreHeading } from "@/components/product-more-heading";
 import { getProduct, productsByCategory } from "@/lib/products";
 import { offlineCatalog } from "@/lib/offline-catalog";
 import { getCatalogLive } from "@/lib/supabase/catalog";
+import { jomaCopyFor } from "@/lib/copy";
 import { withFullResProductImages } from "@/lib/media";
 import { toClientProduct } from "@/lib/listing-core";
 import { withCatalogSizes } from "@/lib/sizes";
@@ -47,7 +48,7 @@ export default async function ProductPage({
         ]}
       />
       <div className="mt-8">
-        <ProductDetail product={product} />
+        <ProductDetail product={product} jomaCopy={jomaCopyFor(product.code)} />
       </div>
       {related.length ? (
         <section className="mt-16 border-t border-[var(--border)] pt-12">

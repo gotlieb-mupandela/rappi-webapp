@@ -1,3 +1,4 @@
+import { jomaFolderLabel, withFolderLabels } from "@/lib/joma-folder-meta";
 import { notFound } from "next/navigation";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
@@ -371,12 +372,13 @@ export default async function ShopListingPage({
       <PageHeader
         compact
         wide={showFolders}
-        crumbs={crumbs}
+        crumbs={withFolderLabels(crumbs)}
         titleAudience={titleAudienceSlug}
         titleHub={
           !groupKey && !subKey && !titleAudienceSlug ? hubSlug : undefined
         }
         titleSub={subKey || groupKey || undefined}
+        titleSubLabel={jomaFolderLabel(subKey || groupKey)}
         titleCount={titleCount}
       />
       <div

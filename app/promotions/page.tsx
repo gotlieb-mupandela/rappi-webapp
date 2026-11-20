@@ -1,3 +1,4 @@
+import { jomaFolderLabel, withFolderLabels } from "@/lib/joma-folder-meta";
 import { redirect } from "next/navigation";
 import { AudienceLandingGrid } from "@/components/audience-landing";
 import { CatalogBrowser } from "@/components/catalog-browser";
@@ -86,7 +87,7 @@ export default async function PromotionsPage({
     <div>
       <PageHeader
         compact
-        crumbs={[
+        crumbs={withFolderLabels([
           { href: "/", key: "common.home" },
           { href: "/promotions", key: "nav.outlet" },
           ...ancestors.map((key) => ({
@@ -94,8 +95,9 @@ export default async function PromotionsPage({
             sub: key,
           })),
           { sub: folderKey },
-        ]}
+        ])}
         titleSub={folderKey}
+        titleSubLabel={jomaFolderLabel(folderKey)}
         titleCount={tabbedListing ? tabbedCount(tabbedListing.products, tabs, activeTab) : listing.total}
       />
       <div className="page-shell pb-10 pt-1">

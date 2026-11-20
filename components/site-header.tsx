@@ -17,8 +17,7 @@ import {
 } from "@/lib/joma-nav-links";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, useCart } from "@/lib/stores/cart";
-import { CategorySubNav } from "@/components/category-sub-nav";
-import { FolderSubNav } from "@/components/folder-sub-nav";
+import { HeaderSubNavs } from "@/components/header-sub-navs";
 import { Input } from "@/components/ui/input";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
 import { cn } from "@/lib/utils";
@@ -433,8 +432,7 @@ export function SiteHeader({ taxonomy }: { taxonomy: StorefrontTaxonomy }) {
 
         {!open ? (
           <Suspense fallback={null}>
-            <CategorySubNav taxonomy={taxonomy} />
-            <FolderSubNav />
+            <HeaderSubNavs taxonomy={taxonomy} />
           </Suspense>
         ) : null}
       </header>

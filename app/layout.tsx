@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Oswald } from "next/font/google";
 import Script from "next/script";
+import { preconnect } from "react-dom";
 import { MetaPixel } from "@/components/meta-pixel";
 import { Providers } from "@/components/providers";
 import { StorefrontChrome } from "@/components/storefront-chrome";
 import { TAGLINE } from "@/lib/catalog";
 import { DEFAULT_MARKET, MARKET_BOOTSTRAP, htmlLang } from "@/lib/i18n/config";
 import type { StorefrontTaxonomy } from "@/lib/listing-types";
+import { PRODUCT_IMAGE_PROXY_HOST } from "@/lib/product-image-loader";
 import storefrontNav from "@/data/storefront-nav.json";
 import "./globals.css";
 
@@ -57,6 +59,9 @@ const nav = storefrontNav as {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // Product photos load from the wsrv.nl resizer (lib/product-image-loader.ts).
+  // Open that connection while the HTML is still parsing.
+  preconnect(`https://${PRODUCT_IMAGE_PROXY_HOST}`);
   return (
     <html
       lang={htmlLang(DEFAULT_MARKET)}

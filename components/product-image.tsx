@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
-import { productImageAlt } from "@/lib/copy";
+import { productImageAlt } from "@/lib/product-copy";
 import { productImageLoader, usesProductImageLoader } from "@/lib/product-image-loader";
 import { cn } from "@/lib/utils";
 

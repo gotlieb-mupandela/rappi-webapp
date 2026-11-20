@@ -1,3 +1,4 @@
+import { jomaFolderLabel, withFolderLabels } from "@/lib/joma-folder-meta";
 import { TabbedFolderProducts, tabbedCount } from "@/components/tabbed-folder-products";
 import { folderTabs } from "@/lib/folder-tabs";
 import { jomaFolderTileImage } from "@/lib/joma-tile-images";
@@ -68,7 +69,7 @@ export default async function TeamwearPage({
     if (group && isJomaBrowseFolder(group)) {
       const node = jomaFolderByKey(group);
       const ancestors = jomaFolderAncestorKeys(group);
-      const crumbs = [
+      const crumbs = withFolderLabels([
         { href: "/", key: "common.home" as const },
         { href: "/teamwear?view=kits", key: "nav.officialKits" as const },
         ...ancestors.map((key) => ({
@@ -76,7 +77,7 @@ export default async function TeamwearPage({
           sub: key,
         })),
         { sub: group },
-      ];
+      ]);
       if (node?.children?.length) {
         const tiles = node.children.map((child) => {
           const sample = productsInJomaFolder(child.key)[0];
@@ -92,6 +93,7 @@ export default async function TeamwearPage({
               crumbs={crumbs}
               titleKey="nav.officialKits"
               titleSub={group}
+              titleSubLabel={jomaFolderLabel(group)}
             />
             <div className="page-shell pb-10 pt-1 sm:pb-12 sm:pt-3">
               <AudienceLandingGrid tiles={tiles} variant="kits" />
@@ -108,6 +110,7 @@ export default async function TeamwearPage({
             crumbs={crumbs}
             titleKey="nav.officialKits"
             titleSub={group}
+            titleSubLabel={jomaFolderLabel(group)}
             titleCount={tabs.length ? tabbedCount(listing.products, tabs, activeTab) : listing.total}
           />
           <div className="page-shell pb-10 pt-1 sm:pb-12 sm:pt-3">
