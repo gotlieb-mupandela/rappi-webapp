@@ -234,11 +234,11 @@ const feed = buildMobileStorefront(products, version);
 // Version = catalogue hash, pictures digest, tree revision. Still a valid app cache key.
 assert.equal(feed.version, mobileFeedVersion(version, picturesDigest(feed.nodes.map((node) => node.image))));
 assert.equal(feed.version.startsWith(`${version}-`), true);
-assert.equal(feed.version.endsWith(".8"), true);
+assert.equal(feed.version.endsWith(".9"), true);
 assert.match(feed.version, FEED_VERSION_PARAM);
 assert.equal(feed.version.length <= 64, true);
-assert.equal(mobileFeedVersion("abc"), "abc.8");
-assert.equal(mobileFeedVersion("abc", "0011aabb"), "abc-0011aabb.8");
+assert.equal(mobileFeedVersion("abc"), "abc.9");
+assert.equal(mobileFeedVersion("abc", "0011aabb"), "abc-0011aabb.9");
 assert.notEqual(picturesDigest(["https://a/x.jpg"]), picturesDigest(["https://a/y.jpg"]));
 assert.equal(picturesDigest(["https://a/x.jpg", null]), picturesDigest(["https://a/x.jpg", null]));
 throws(() => mobileFeedVersion("bad value"), /not a cache key/);
@@ -254,7 +254,7 @@ assert.equal(matchedVersion.status, 200);
 assert.equal(matchedVersion.cacheControl, STOREFRONT_CACHE);
 assert.equal(matchedVersion.cacheControl.includes("s-maxage=300"), true);
 assert.equal(matchedVersion.body, memoFirst);
-const staleVersion = "zzzzzzzz.8";
+const staleVersion = "zzzzzzzz.9";
 const stale = storefrontFromFeed([staleVersion], memoFirst);
 assert.equal(stale.status, 200);
 assert.equal(stale.cacheControl, "no-store");
@@ -726,11 +726,26 @@ for (const code of ["100807.400", "100947.401", "101114.200", "900682.100", "900
   }
   const card = feedProductCard(product);
   if (card) {
-    for (const image of [card.cardImage, ...card.images]) {
+    for (const image of [card.cardImage, ...card.images, card.tileImage]) {
       if (image) assertAllowedFeedImage(image, code);
     }
   }
 }
+const limeSource = baked.find((row) => row.code === "100807.400");
+assert.ok(limeSource);
+const limeCard = feedProductCard(limeSource);
+assert.ok(limeCard);
+const limeLead = `${CANONICAL_SITE_ORIGIN}/catalog-photos/100807.400.jpg`;
+assert.equal(limeCard.cardImage, limeLead);
+assert.equal(limeCard.images[0], limeLead);
+assert.equal(limeCard.cardImage.includes("joma-sport.net"), false);
+assert.equal(feedImageUrl(listingCardCandidates(limeSource)[0] ?? null), limeLead);
+const limeTile = feedImageUrl(listingCardCandidates(limeSource, "kids")[0] ?? null);
+assert.ok(limeTile);
+assert.notEqual(limeTile, limeLead);
+assert.equal(limeCard.tileImage, limeTile);
+assert.equal(feedImageUrl(listingCardCandidates(limeSource, "women")[0] ?? null), limeTile);
+assert.equal(listingCardCandidates(limeSource)[0], "/catalog-photos/100807.400.jpg");
 assert.equal(relativeEqual + relativeEmpty, relativeCodes.length);
 assert.equal(relativeEmpty, 0);
 assert.equal(relativeEqual, relativeCodes.length);
@@ -874,7 +889,7 @@ const bakedWithFolders = baked.map((product) => ({
 }));
 const bakedFeed = buildMobileStorefront(siteCatalog, catalogVersion(siteCatalog));
 assert.equal(bakedFeed.version.startsWith(`${catalogVersion(siteCatalog)}-`), true);
-assert.equal(bakedFeed.version.endsWith(".8"), true);
+assert.equal(bakedFeed.version.endsWith(".9"), true);
 assert.match(bakedFeed.version, FEED_VERSION_PARAM);
 assertFeedShape(bakedFeed);
 let imageEqual = 0;
@@ -1355,6 +1370,42 @@ assert.equal(bakedNodes.get("home-footwear")?.span, 1);
 assert.equal(bakedNodes.get("home-footwear")?.tone, "dark");
 assert.equal(bakedNodes.get("home-kids")?.span, 2);
 assert.equal(bakedNodes.get("home-kids")?.tone, "light");
+assert.equal(bakedNodes.get("home-teamwear")?.imagePosition, "center");
+assert.equal(bakedNodes.get("home-sportswear")?.imagePosition, "top");
+assert.equal(bakedNodes.get("home-running")?.imagePosition, "center 20%");
+assert.equal(bakedNodes.get("home-lifestyle")?.imagePosition, "center");
+assert.equal(bakedNodes.get("home-footwear")?.imagePosition, "center");
+assert.equal(bakedNodes.get("home-kids")?.imagePosition, "center");
+for (const node of bakedFeed.nodes) {
+  if (node.key.startsWith("home-")) continue;
+  assert.equal(node.imagePosition, null, node.key);
+}
+const sportAthletes = bakedNodes.get("sportswear")?.audiences ?? [];
+const athleteById = new Map(sportAthletes.map((row) => [row.id, row]));
+const athleteMen = athleteById.get("sportswear--men");
+const athleteWomen = athleteById.get("sportswear--women");
+const athleteKids = athleteById.get("sportswear--kids");
+assert.ok(athleteMen?.image?.includes("/brand/audience-men.png"));
+assert.ok(athleteWomen?.image?.includes("/brand/audience-women.png"));
+assert.equal(athleteMen?.fit, "contain");
+assert.equal(athleteWomen?.fit, "contain");
+assert.ok(athleteKids?.image);
+assert.equal(athleteKids?.image?.includes("hub-sportswear"), false);
+assert.notEqual(athleteKids.image, athleteMen?.image);
+assert.notEqual(athleteMen?.image, athleteWomen?.image);
+assert.equal(athleteKids?.fit, "cover");
+const summer = baked.find((row) => row.code === "104616.931");
+assert.ok(summer);
+const summerView = clientAssortment(summer);
+const summerCard = feedProductCard(summer);
+assert.ok(summerCard);
+assert.equal(summerView.label, "Pack of 8 pcs");
+assert.equal(summerCard.packLabel, "Pack of 8 pcs");
+assert.equal(summerCard.label, "Pack of 8 pcs");
+assert.equal(summerCard.isPack, true);
+assert.equal(summerCard.price, summer.price);
+assert.equal(summerCard.price, 731);
+assert.equal(summerCard.priceLabel, formatPrice(731));
 for (const tile of HOME_TILES) {
   assert.equal(tile.span === 1 || tile.span === 2, true, tile.id);
   assert.equal(tile.tone === "dark" || tile.tone === "light", true, tile.id);
@@ -1570,6 +1621,14 @@ function assertFeedShape(feedValue: MobileStorefront) {
     used.add(node.target);
     assert.equal(node.span === null || node.span === 1 || node.span === 2, true, node.key);
     assert.equal(node.tone === null || node.tone === "dark" || node.tone === "light", true, node.key);
+    assert.equal(
+      node.imagePosition === null ||
+        node.imagePosition === "center" ||
+        node.imagePosition === "top" ||
+        node.imagePosition === "center 20%",
+      true,
+      node.key,
+    );
     if (node.kind === "audience") {
       assert.equal(AUDIENCES.some((audience) => audience.slug === node.slug), true, node.key);
     } else {
@@ -1582,6 +1641,8 @@ function assertFeedShape(feedValue: MobileStorefront) {
       assert.equal(Number.isInteger(row.count) && row.count > 0, true, row.id);
       assert.equal(row.label.en.length > 0 && row.label.fr.length > 0, true, row.id);
       assert.equal(/[<>\u0000-\u001f\u007f]/.test(row.label.en + row.label.fr), false, row.id);
+      assert.equal(row.fit === "cover" || row.fit === "contain", true, row.id);
+      if (row.image) assertAllowedFeedImage(row.image, row.id);
     }
     assert.equal(Number.isInteger(node.order), true, node.key);
     assert.equal(typeof node.hidden, "boolean", node.key);

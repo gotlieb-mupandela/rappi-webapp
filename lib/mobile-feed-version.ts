@@ -7,7 +7,7 @@ export const FEED_VERSION_PARAM = /^[A-Za-z0-9._-]{1,64}$/;
  * Bumped when the feed document shape changes.
  * The catalogue hash stays the prefix so a product change still moves the version.
  */
-export const FEED_TREE_REVISION = 8;
+export const FEED_TREE_REVISION = 9;
 
 /**
  * `<catalogue hash>-<pictures digest>.<revision>`.
