@@ -5,7 +5,7 @@
  */
 import http from "node:http";
 import { catalogVersion } from "../lib/catalog-version";
-import { buildMobileStorefront } from "../lib/mobile-feed";
+import { STOREFRONT_CACHE, buildMobileStorefront } from "../lib/mobile-feed";
 import { feedVersionParamStatus } from "../lib/mobile-feed-version";
 import { loadFixtureProducts } from "./feed-fixture";
 
@@ -37,7 +37,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname === "/api/mobile/v1/version") {
     res.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      "Cache-Control": STOREFRONT_CACHE,
     });
     res.end(versionBody);
     return;
@@ -53,7 +53,7 @@ const server = http.createServer((req, res) => {
     }
     res.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400",
+      "Cache-Control": STOREFRONT_CACHE,
     });
     res.end(feedBody);
     return;

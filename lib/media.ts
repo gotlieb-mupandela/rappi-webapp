@@ -19,9 +19,19 @@ function isRemoteUrl(url: string | undefined | null) {
   return Boolean(url && /^https?:\/\//i.test(url) && !isAiImage(url));
 }
 
-/** Official Joma catalogue on-model photos hosted in `public/catalog-photos/`. */
+/**
+ * Official catalogue on-model photos hosted in `public/catalog-photos/`.
+ * Baked rows store these as absolute site URLs, not only as site paths.
+ * The query string is ignored so a `?v=` token does not hide the file.
+ */
 export function isCatalogPhoto(url: string | undefined | null) {
-  return Boolean(url && url.startsWith("/catalog-photos/"));
+  if (!url) return false;
+  if (url.startsWith("/catalog-photos/")) return true;
+  try {
+    return new URL(url).pathname.startsWith("/catalog-photos/");
+  } catch {
+    return false;
+  }
 }
 
 function isGalleryUrl(url: string | undefined | null) {

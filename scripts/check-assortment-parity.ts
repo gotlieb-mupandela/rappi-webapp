@@ -514,8 +514,10 @@ function assertAbsoluteCardImages(products: Product[]) {
     fail("missing 100807.400");
     return;
   }
-  if (productCardImageCandidates(lime)[0] !== photo) {
-    fail(`100807.400 first photo is ${productCardImageCandidates(lime)[0] ?? "blank"}`);
+  const first = productCardImageCandidates(lime)[0] ?? "";
+  const firstPath = first.startsWith("/") ? first.split("?")[0] : new URL(first).pathname;
+  if (firstPath !== photo) {
+    fail(`100807.400 first photo is ${first || "blank"}`);
   }
   const card = toClientProduct(lime).cardImage;
   if (card !== expected) fail(`100807.400 cardImage ${card} !== ${expected}`);
@@ -523,7 +525,9 @@ function assertAbsoluteCardImages(products: Product[]) {
   if (new URL(expected).hostname !== new URL(metaSiteUrl()).hostname) {
     fail("100807.400 cardImage host is not the canonical site origin");
   }
-  if (listingCardCandidates(lime)[0] !== photo) {
+  const listing = listingCardCandidates(lime)[0] ?? "";
+  const listingPath = listing.startsWith("/") ? listing.split("?")[0] : new URL(listing).pathname;
+  if (listingPath !== photo) {
     fail("100807.400 site card no longer uses the catalogue photo path");
   }
 

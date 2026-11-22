@@ -59,8 +59,8 @@ export function HomeHero({
             imageSrc={TEAMWEAR_COVER}
             size="large"
             fill
-            imageFit="cover"
-            imagePosition="object-center"
+            imageFit={teamwear.fit}
+            imagePosition={teamwear.imagePosition}
             showLabel
             priority
             className={teamwear.className}
@@ -74,8 +74,8 @@ export function HomeHero({
             imageSrc={sportswearCover}
             size="medium"
             fill
-            imageFit="cover"
-            imagePosition="object-top"
+            imageFit={sportswear.fit}
+            imagePosition={sportswear.imagePosition}
             className={sportswear.className}
           />
 
@@ -87,8 +87,8 @@ export function HomeHero({
             imageSrc={runningCover}
             size="medium"
             fill
-            imageFit="cover"
-            imagePosition="object-[center_20%]"
+            imageFit={running.fit}
+            imagePosition={running.imagePosition}
             className={running.className}
           />
 
@@ -100,8 +100,8 @@ export function HomeHero({
             imageSrc={lifestyleCover}
             size="medium"
             fill
-            imageFit="cover"
-            imagePosition="object-center"
+            imageFit={lifestyle.fit}
+            imagePosition={lifestyle.imagePosition}
             className={lifestyle.className}
           />
 
@@ -113,8 +113,8 @@ export function HomeHero({
             imageSrc={shoesCover}
             size="medium"
             fill
-            imageFit="cover"
-            imagePosition="object-center"
+            imageFit={footwear.fit}
+            imagePosition={footwear.imagePosition}
             className={footwear.className}
           />
 
@@ -128,8 +128,8 @@ export function HomeHero({
             fill
             tone={kids.tone}
             labelPosition="center"
-            imageFit="cover"
-            imagePosition="object-center"
+            imageFit={kids.fit}
+            imagePosition={kids.imagePosition}
             className={kids.className}
           />
         </div>

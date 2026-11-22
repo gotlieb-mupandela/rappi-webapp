@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
+import { STOREFRONT_CACHE } from "@/lib/mobile-feed";
 import { getMobileCatalogueVersion } from "@/lib/mobile-feed-data";
 import { cacheHeaders, enforceMobileRateLimit, methodNotAllowed } from "@/lib/mobile-feed-http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const CACHE = "public, s-maxage=60, stale-while-revalidate=300";
 
 export function POST() {
   return methodNotAllowed();
@@ -30,5 +29,5 @@ export async function GET(request: Request) {
   const limited = await enforceMobileRateLimit(request, "version");
   if (limited) return limited;
   const version = await getMobileCatalogueVersion();
-  return NextResponse.json({ version }, { headers: cacheHeaders(CACHE) });
+  return NextResponse.json({ version }, { headers: cacheHeaders(STOREFRONT_CACHE) });
 }
