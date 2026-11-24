@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   // Cloudflare Workers deployment of the storefront (OpenNext). Vercel ignores this file.
   "name": "rappi-webapp",
+  "account_id": "07762275a988a9d072f1a484ed506749",
   "main": "cloudflare/worker.ts",
   "compatibility_date": "2026-11-24",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
