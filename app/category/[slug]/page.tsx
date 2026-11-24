@@ -12,7 +12,8 @@ import { toClientProduct, toClientSamples } from "@/lib/listing-core";
 import { productsByCategory } from "@/lib/products";
 import { getCatalog } from "@/lib/supabase/catalog";
 
-export const revalidate = 21600;
+// Rebuilt weekly at most; catalogue changes refresh pages straight away via the "catalog" tag.
+export const revalidate = 604800;
 
 export function generateStaticParams() {
   return [

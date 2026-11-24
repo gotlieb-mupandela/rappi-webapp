@@ -5,7 +5,7 @@ import { cacheHeaders, enforceMobileRateLimit, methodNotAllowed } from "@/lib/mo
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const CACHE = "public, s-maxage=60, stale-while-revalidate=300";
+const CACHE = "public, s-maxage=300, stale-while-revalidate=3600";
 
 export function POST() {
   return methodNotAllowed();

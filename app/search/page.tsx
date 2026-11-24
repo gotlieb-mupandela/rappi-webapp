@@ -4,7 +4,8 @@ import { SearchEmpty } from "@/components/search-empty";
 import { SearchHeader } from "@/components/search-header";
 import { offlineCatalog } from "@/lib/offline-catalog";
 
-export const revalidate = 21600;
+// Rebuilt weekly at most; catalogue changes refresh pages straight away via the "catalog" tag.
+export const revalidate = 604800;
 
 export default async function SearchPage() {
   return (

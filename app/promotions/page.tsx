@@ -11,7 +11,8 @@ import { buildListing, parseListingQuery } from "@/lib/listing-core";
 import { canonicalSlug } from "@/lib/slug-aliases";
 import { getCatalog } from "@/lib/supabase/catalog";
 
-export const revalidate = 21600;
+// Rebuilt weekly at most; catalogue changes refresh pages straight away via the "catalog" tag.
+export const revalidate = 604800;
 
 function firstSearchParam(value: string | string[] | undefined) {
   if (Array.isArray(value)) return value[0];

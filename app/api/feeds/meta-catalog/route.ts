@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "text/tab-separated-values; charset=utf-8",
       "Content-Disposition": `attachment; filename="${metaCatalogFeedFilename()}"`,
-      "Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
 }
