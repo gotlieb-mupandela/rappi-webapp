@@ -12,12 +12,15 @@ function bytesToBase64(bytes: Uint8Array) {
   return Buffer.from(bytes).toString("base64");
 }
 
-export async function sendPdfEmail(input: {
-  to: string;
+export type EmailAttachment = { filename: string; content: Uint8Array };
+
+/** Sends one email through Resend from the shop address, replies going to the contact inbox. */
+export async function sendEmail(input: {
+  to: string | string[];
   subject: string;
   html: string;
-  filename: string;
-  pdf: Uint8Array;
+  text?: string;
+  attachments?: EmailAttachment[];
 }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -34,16 +37,19 @@ export async function sendPdfEmail(input: {
     },
     body: JSON.stringify({
       from,
-      to: [input.to],
+      to: Array.isArray(input.to) ? input.to : [input.to],
       reply_to: contactEmail(),
       subject: input.subject,
       html: input.html,
-      attachments: [
-        {
-          filename: input.filename,
-          content: bytesToBase64(input.pdf),
-        },
-      ],
+      ...(input.text ? { text: input.text } : {}),
+      ...(input.attachments?.length
+        ? {
+            attachments: input.attachments.map((a) => ({
+              filename: a.filename,
+              content: bytesToBase64(a.content),
+            })),
+          }
+        : {}),
     }),
   });
 
@@ -51,4 +57,21 @@ export async function sendPdfEmail(input: {
     const body = await res.text();
     throw new Error(body.slice(0, 400) || `Resend HTTP ${res.status}`);
   }
+}
+
+export async function sendPdfEmail(input: {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  filename: string;
+  pdf: Uint8Array;
+}) {
+  await sendEmail({
+    to: input.to,
+    subject: input.subject,
+    html: input.html,
+    text: input.text,
+    attachments: [{ filename: input.filename, content: input.pdf }],
+  });
 }

@@ -8,6 +8,7 @@ import {
 } from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
+import { notifyOrder } from "@/lib/order-notify";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
@@ -65,6 +66,11 @@ async function withOrder(payment: Payment | null, message: string, extra: Omit<D
         await sendOrderInvoice(orderId);
       } catch (err) {
         console.error("invoice email", err);
+      }
+      try {
+        await notifyOrder(orderId, "staff_new_order");
+      } catch (err) {
+        console.error("staff new order email", err);
       }
     }
   }

@@ -28,7 +28,7 @@ export default async function AdminDashboardPage() {
       .limit(8),
   ]);
 
-  const statusCounts = { reserved: 0, preparing: 0, shipped: 0, cancelled: 0 };
+  const statusCounts = { reserved: 0, preparing: 0, shipped: 0, delivered: 0, cancelled: 0 };
   for (const row of ordersByStatus ?? []) {
     const s = row.status as keyof typeof statusCounts;
     if (s in statusCounts) statusCounts[s] += 1;

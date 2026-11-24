@@ -12,7 +12,7 @@ import { useOrders } from "@/lib/stores/orders";
 import type { Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const FULFILLMENT = ["reserved", "preparing", "shipped"] as const;
+const FULFILLMENT = ["reserved", "preparing", "shipped", "delivered"] as const;
 
 type FulfillmentStatus = (typeof FULFILLMENT)[number];
 
@@ -20,6 +20,7 @@ const STATUS_LABEL = {
   reserved: "account.statusReserved",
   preparing: "account.statusPreparing",
   shipped: "account.statusShipped",
+  delivered: "account.statusDelivered",
   cancelled: "account.statusCancelled",
 } as const;
 
@@ -27,6 +28,7 @@ const CURRENT_MARK = {
   reserved: "bg-[var(--warn)]",
   preparing: "bg-[#3db8ff]",
   shipped: "bg-[var(--ok)]",
+  delivered: "bg-[var(--ok)]",
 } as const;
 
 function isFulfillmentStatus(status: Order["status"]): status is FulfillmentStatus {
@@ -48,7 +50,7 @@ function StatusPill({ status }: { status: Order["status"] }) {
 function FulfillmentTrack({ status }: { status: FulfillmentStatus }) {
   const { t } = useLocale();
   return (
-    <ol aria-label={t("account.status")} className="grid w-full grid-cols-3 gap-2">
+    <ol aria-label={t("account.status")} className="grid w-full grid-cols-4 gap-2">
       {FULFILLMENT.map((step, index) => {
         const current = step === status;
         return (
@@ -63,8 +65,7 @@ function FulfillmentTrack({ status }: { status: FulfillmentStatus }) {
             <span
               className={cn(
                 "mt-1.5 block break-words text-[11px] leading-4",
-                index === 1 && "text-center",
-                index === 2 && "text-right",
+                index === FULFILLMENT.length - 1 && "text-right",
                 current ? "font-semibold text-black" : "text-neutral-500",
               )}
             >
@@ -78,7 +79,7 @@ function FulfillmentTrack({ status }: { status: FulfillmentStatus }) {
 }
 
 function OrderRow({ order }: { order: Order }) {
-  const { t, format } = useLocale();
+  const { t, format, market } = useLocale();
 
   return (
     <li className="min-w-0 px-4 py-4 sm:px-6 sm:py-5">
@@ -129,6 +130,26 @@ function OrderRow({ order }: { order: Order }) {
         <div className="mt-4 w-full max-w-md">
           <FulfillmentTrack status={order.status} />
         </div>
+      ) : null}
+
+      {order.dueAt && (order.status === "reserved" || order.status === "preparing" || order.status === "shipped") ? (
+        <p className="mt-3 text-sm leading-5 text-black">
+          {t(/pickup/i.test(order.shippingMethod) ? "account.readyBy" : "account.expectedBy", {
+            date: new Intl.DateTimeFormat(market === "eu" ? "fr-FR" : "en-GB", {
+              weekday: "short",
+              day: "numeric",
+              month: "short",
+              timeZone: "Africa/Windhoek",
+            }).format(new Date(order.dueAt)),
+          })}
+        </p>
+      ) : null}
+      {order.courier || order.trackingNumber ? (
+        <p className="mt-1 text-sm leading-5 text-neutral-500">
+          {[order.courier, order.trackingNumber ? t("account.trackingNumber", { number: order.trackingNumber }) : ""]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       ) : null}
 
       <p className="mt-3 break-words text-sm leading-5 text-neutral-500">

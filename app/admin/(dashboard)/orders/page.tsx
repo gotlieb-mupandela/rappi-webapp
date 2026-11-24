@@ -8,21 +8,51 @@ export const metadata = { title: "Orders · Admin" };
 
 const STATUSES = ORDER_STATUSES;
 
+function dueInfo(o: { due_at: string | null; status: string }) {
+  if (!o.due_at) return null;
+  const due = new Date(o.due_at);
+  const open = o.status === "reserved" || o.status === "preparing";
+  return {
+    text: new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "short",
+      timeZone: "Africa/Windhoek",
+    }).format(due),
+    late: open && due.getTime() < Date.now(),
+  };
+}
+
+function DueCell({ o }: { o: { due_at: string | null; status: string } }) {
+  const info = dueInfo(o);
+  if (!info) return <span className="text-[var(--muted)]">—</span>;
+  return (
+    <span className={info.late ? "font-semibold text-[var(--danger)]" : "text-[var(--muted)]"}>
+      {info.late ? "Late · " : ""}
+      {info.text}
+    </span>
+  );
+}
+
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; late?: string }>;
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
   let query = supabase
     .from("orders")
-    .select("id, email, full_name, total, discount_code, discount_amount, status, created_at, city, country")
+    .select("id, email, full_name, total, discount_code, discount_amount, status, created_at, city, country, due_at")
     .order("created_at", { ascending: false })
     .limit(100);
 
   if (sp.status && STATUSES.includes(sp.status as (typeof STATUSES)[number])) {
     query = query.eq("status", sp.status as (typeof STATUSES)[number]);
+  }
+
+  const lateOnly = sp.late === "1";
+  if (lateOnly) {
+    query = query.in("status", ["reserved", "preparing"]).lt("due_at", new Date().toISOString());
   }
 
   const { data: orders } = await query;
@@ -40,12 +70,22 @@ export default async function AdminOrdersPage({
         <Link
           href="/admin/orders"
           className={`rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-wider ${
-            !sp.status
+            !sp.status && !lateOnly
               ? "border-[var(--accent)] text-[var(--accent)]"
               : "border-[var(--border)] text-[var(--muted)]"
           }`}
         >
           All
+        </Link>
+        <Link
+          href="/admin/orders?late=1"
+          className={`rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-wider ${
+            lateOnly
+              ? "border-[var(--danger)] text-[var(--danger)]"
+              : "border-[var(--border)] text-[var(--muted)]"
+          }`}
+        >
+          Late
         </Link>
         {STATUSES.map((s) => (
           <Link
@@ -89,7 +129,9 @@ export default async function AdminOrdersPage({
                 </span>
                 <OrderStatusBadge status={o.status} />
               </div>
-              <p className="mt-2 text-xs text-[var(--muted)]">{formatDate(o.created_at)}</p>
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                {formatDate(o.created_at)} · Due <DueCell o={o} />
+              </p>
             </Link>
           ))
         )}
@@ -103,13 +145,14 @@ export default async function AdminOrdersPage({
               <th className="px-4 py-3">Ship to</th>
               <th className="px-4 py-3">Total</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Due</th>
               <th className="px-4 py-3">Date</th>
             </tr>
           </thead>
           <tbody>
             {(orders ?? []).length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-[var(--muted)]">
+                <td colSpan={6} className="px-4 py-12 text-center text-[var(--muted)]">
                   No orders in this queue.
                 </td>
               </tr>
@@ -138,6 +181,9 @@ export default async function AdminOrdersPage({
                   </td>
                   <td className="px-4 py-3">
                     <OrderStatusBadge status={o.status} />
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <DueCell o={o} />
                   </td>
                   <td className="px-4 py-3 text-[var(--muted)]">
                     {formatDate(o.created_at)}
