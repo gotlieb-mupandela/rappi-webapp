@@ -175,9 +175,9 @@ function button(href: string, label: string) {
 </td></tr></table>`;
 }
 
-function orderSummary(ctx: OrderEmailContext) {
+function orderSummary(ctx: OrderEmailContext, title = "Your order") {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px">
-<tr><td colspan="2" style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${MUTED};padding-bottom:4px;border-bottom:1px solid ${RULE}">Your order</td></tr>
+<tr><td colspan="2" style="font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${MUTED};padding-bottom:4px;border-bottom:1px solid ${RULE}">${escapeHtml(title)}</td></tr>
 ${itemRows(ctx.items)}
 </table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px">${totalsRows(ctx.order)}</table>`;
@@ -210,6 +210,60 @@ function heading(text: string) {
 
 function para(html: string) {
   return `<p style="margin:12px 0 0;font-size:15px;line-height:22px;color:${INK}">${html}</p>`;
+}
+
+export type LateOrderRow = {
+  id: string;
+  full_name: string;
+  shipping_method: string;
+  status: string;
+  total: number | string;
+  due_at: string;
+};
+
+/** Morning email to staff: open orders that are past their promise or due today. */
+export function renderLateOrdersDigest(
+  rows: LateOrderRow[],
+  ctx: Pick<OrderEmailContext, "siteUrl" | "logoUrl" | "sellerName" | "contactEmail" | "contactPhone">,
+  now: Date = new Date(),
+): RenderedEmail {
+  const today = emailDate(now.toISOString());
+  const late = rows.filter((r) => new Date(r.due_at).getTime() < now.getTime());
+  const dueToday = rows.filter((r) => new Date(r.due_at).getTime() >= now.getTime());
+  const table = (title: string, list: LateOrderRow[], colour: string) =>
+    list.length
+      ? `<p style="margin:20px 0 6px;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${colour}">${escapeHtml(title)} (${list.length})</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${list
+          .map((r) => {
+            const days = Math.max(0, Math.floor((now.getTime() - new Date(r.due_at).getTime()) / 86_400_000));
+            return `<tr>
+<td style="padding:8px 0;border-bottom:1px solid ${RULE};font-size:13px;color:${INK}">
+<a href="${escapeHtml(`${ctx.siteUrl}/admin/orders/${encodeURIComponent(r.id)}`)}" style="color:${INK};font-weight:bold">${escapeHtml(r.id)}</a>
+<div style="font-size:12px;color:${MUTED};margin-top:2px">${escapeHtml(r.full_name)} &middot; ${escapeHtml(r.shipping_method)} &middot; ${escapeHtml(r.status)}</div>
+</td>
+<td style="padding:8px 0;border-bottom:1px solid ${RULE};font-size:12px;color:${colour};text-align:right;white-space:nowrap;vertical-align:top">
+${escapeHtml(emailDate(r.due_at))}${title.startsWith("Late") ? `<br />${days} ${days === 1 ? "day" : "days"} late` : ""}
+<div style="color:${INK};margin-top:2px">${emailMoney(r.total)}</div>
+</td>
+</tr>`;
+          })
+          .join("")}</table>`
+      : "";
+  const subject = `Orders to chase today: ${late.length} late, ${dueToday.length} due today`;
+  const body = [
+    heading("Orders to chase today"),
+    para(`${escapeHtml(today)}: <strong>${late.length}</strong> ${late.length === 1 ? "order is" : "orders are"} past the delivery date promised to the customer and <strong>${dueToday.length}</strong> ${dueToday.length === 1 ? "is" : "are"} due today.`),
+    table("Late", late, "#c62828"),
+    table("Due today", dueToday, "#b26a00"),
+    button(`${ctx.siteUrl}/admin/orders`, "Open orders in Admin"),
+  ].join("");
+  const text = [
+    `Orders to chase today (${today})`,
+    ...late.map((r) => `LATE ${r.id} - ${r.full_name} - ${r.shipping_method} - due ${emailDate(r.due_at)}`),
+    ...dueToday.map((r) => `DUE TODAY ${r.id} - ${r.full_name} - ${r.shipping_method}`),
+    `${ctx.siteUrl}/admin/orders`,
+  ].join("\n");
+  return { subject, html: layout(ctx as OrderEmailContext, body, `${late.length} late, ${dueToday.length} due today.`), text };
 }
 
 export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): RenderedEmail {
@@ -339,7 +393,7 @@ export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): 
           ["Phone", order.phone ?? ""],
           ["Address", [order.address, order.city, order.country].filter(Boolean).join(", ")],
         ])}</table>`,
-        orderSummary(ctx),
+        orderSummary(ctx, "Items ordered"),
         button(adminUrl, "Open in Admin"),
       ].join("");
       return {
