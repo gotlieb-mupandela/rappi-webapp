@@ -3,6 +3,7 @@ import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
+import { PDF_PHOTO_COLUMN, PDF_PHOTO_SIZE, drawItemPhoto, embedItemPhotos } from "@/lib/pdf-item-photos";
 import { contactEmail } from "@/lib/site-contact";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -168,10 +169,16 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     doc.embedFont(StandardFonts.HelveticaBold),
     embedBrandLogo(doc),
   ]);
+  const photos = await embedItemPhotos(
+    doc,
+    items.map((item) => item.code),
+  );
+  const photoColumn = photos.size ? PDF_PHOTO_COLUMN : 0;
 
   const cols = {
-    code: MARGIN,
-    name: MARGIN + 78,
+    photo: MARGIN,
+    code: MARGIN + photoColumn,
+    name: MARGIN + photoColumn + 78,
     size: PAGE_WIDTH - MARGIN - 178,
     qty: PAGE_WIDTH - MARGIN - 128,
     unit: PAGE_WIDTH - MARGIN - 88,
@@ -263,9 +270,11 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
 
   for (const item of items) {
     const nameLines = wrap(item.name, regular, 9, nameWidth);
-    const rowHeight = Math.max(16, nameLines.length * 11 + 6);
+    const photo = photos.get(item.code);
+    const rowHeight = Math.max(16, nameLines.length * 11 + 6, photoColumn ? PDF_PHOTO_SIZE + 8 : 0);
     ensureSpace(rowHeight);
     const current = page!;
+    if (photo) drawItemPhoto(current, photo, cols.photo, y + 9);
     current.drawText(pdfSafe(item.code), { x: cols.code, y, size: 8, font: regular, color: INK });
     current.drawText(pdfSafe(item.size), { x: cols.size, y, size: 9, font: regular, color: INK });
     drawRight(current, String(item.qty), regular, 9, cols.qty + 18, y);
