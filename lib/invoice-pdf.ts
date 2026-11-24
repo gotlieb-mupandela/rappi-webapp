@@ -82,6 +82,9 @@ export async function loadInvoiceData(orderId: string): Promise<InvoiceData | nu
 
 function pdfSafe(value: string) {
   return value
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "?");
@@ -157,7 +160,7 @@ function drawBrandHeader(page: PDFPage, logo: PDFImage | null, bold: PDFFont) {
       height,
     });
   }
-  drawRight(page, "INVOICE", bold, 18, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 42, INK);
+  drawRight(page, "RECEIPT / TAX INVOICE", bold, 16, PAGE_WIDTH - MARGIN, PAGE_HEIGHT - 42, INK);
 }
 
 export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
@@ -224,7 +227,12 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
       y -= 12;
     }
     page.drawText(pdfSafe(`Shipping: ${order.shipping_method}`), { x: MARGIN, y, size: 9, font: regular, color: MUTED });
-    y -= 18;
+    y -= 12;
+    if (order.due_at) {
+      page.drawText(pdfSafe(`Expected by: ${formatInvoiceDate(order.due_at)}`), { x: MARGIN, y, size: 9, font: regular, color: MUTED });
+      y -= 12;
+    }
+    y -= 6;
 
     if (pageNo === 1) {
       page.drawText("Bill to", { x: MARGIN, y, size: 9, font: bold, color: MUTED });
@@ -328,7 +336,7 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   totalsPage.drawText("Total NAD", { x: totalsX, y, size: 12, font: bold, color: INK });
   drawRight(totalsPage, formatInvoiceMoney(Number(order.total)), bold, 12, PAGE_WIDTH - MARGIN, y);
   y -= 28;
-  totalsPage.drawText("Paid in full.", { x: MARGIN, y, size: 9, font: regular, color: MUTED });
+  totalsPage.drawText("Paid in full. Thank you for your order.", { x: MARGIN, y, size: 9, font: regular, color: MUTED });
   totalsPage.drawText(`Page ${pageNo}`, {
     x: MARGIN,
     y: 28,

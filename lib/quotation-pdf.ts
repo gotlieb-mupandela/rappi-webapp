@@ -48,6 +48,9 @@ export function quotationValidUntil(iso: string) {
 
 function pdfSafe(value: string) {
   return value
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
     .replace(/\u00b7/g, " - ")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
