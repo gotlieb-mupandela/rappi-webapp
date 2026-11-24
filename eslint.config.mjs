@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     "android/**",
     "ios/**",
     "mobile/**",
+    // Cloudflare build output.
+    ".open-next/**",
+    ".wrangler/**",
   ]),
 ]);
 

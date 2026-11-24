@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Cloudflare Workers deployment of the storefront (OpenNext). Vercel ignores this file.
+  "name": "rappi-webapp",
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2026-11-24",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+  "services": [
+    // Self reference used by OpenNext for cache revalidation; must match "name".
+    { "binding": "WORKER_SELF_REFERENCE", "service": "rappi-webapp" }
+  ],
+  "kv_namespaces": [
+    // Saved pages / data cache (OpenNext incremental cache).
+    { "binding": "NEXT_INC_CACHE_KV", "id": "654c1acd374b475ea091a4fa071ab2af" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "NEXT_TAG_CACHE_D1",
+      "database_name": "rappi-webapp-tag-cache",
+      "database_id": "f1ddaa42-5cae-454e-8ea1-cf7891da538d"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DOQueueHandler"] }],
+  "triggers": {
+    // Same schedules as vercel.json; handled in cloudflare/worker.ts.
+    "crons": ["0 3 * * *", "0 5 * * *"]
+  }
+}
