@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { metaSiteUrl } from "@/lib/meta/site";
 
 /**
  * Filter, sort and search links are rendered on demand for every combination,
@@ -24,5 +25,6 @@ export default function robots(): MetadataRoute.Robots {
         "/*?*gender=",
       ],
     },
+    sitemap: `${metaSiteUrl()}/sitemap.xml`,
   };
 }
