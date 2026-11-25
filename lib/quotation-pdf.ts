@@ -3,6 +3,7 @@ import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import { formatInvoiceDate, formatInvoiceMoney, invoiceSeller } from "@/lib/invoice-pdf";
 import { PDF_PHOTO_COLUMN, PDF_PHOTO_SIZE, drawItemPhoto, embedItemPhotos } from "@/lib/pdf-item-photos";
+import { VERIFY_BOX_HEIGHT, drawVerifyBox } from "@/lib/pdf-verify-box";
 
 export const QUOTATION_VALID_DAYS = 14;
 
@@ -268,7 +269,7 @@ export async function buildQuotationPdf(data: QuotationPdfData): Promise<Uint8Ar
   }
 
   const noteLines = notes.flatMap((note) => wrap(note, regular, 9, PAGE_WIDTH - MARGIN * 2));
-  ensureSpace(52 + noteLines.length * 12);
+  ensureSpace(52 + noteLines.length * 12 + VERIFY_BOX_HEIGHT + 16);
   const totalsPage = page!;
   totalsPage.drawLine({
     start: { x: MARGIN, y },
@@ -284,6 +285,8 @@ export async function buildQuotationPdf(data: QuotationPdfData): Promise<Uint8Ar
     totalsPage.drawText(line, { x: MARGIN, y, size: 9, font: regular, color: MUTED });
     y -= 12;
   }
+  y -= 4;
+  drawVerifyBox(totalsPage, { id: data.id, x: MARGIN, top: y, width: PAGE_WIDTH - MARGIN * 2, regular, bold });
   stampPageNumber();
 
   return doc.save();
