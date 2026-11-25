@@ -9,5 +9,10 @@
       "path": "/api/cron/order-watchdog",
       "schedule": "0 5 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "claude/**": false
+    }
+  }
 }

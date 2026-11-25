@@ -6,7 +6,7 @@
     "dev": "next dev --hostname 127.0.0.1 --port 43123",
     "brand-versions": "node scripts/brand-versions.mjs",
     "prebuild": "node scripts/check-pack-labels.mjs",
-    "build": "node scripts/brand-versions.mjs && next build",
+    "build": "node scripts/brand-versions.mjs && next build --webpack",
     "start": "next start --hostname 127.0.0.1 --port 43123",
     "lint": "eslint",
     "odoo:sync": "npx tsx --require ./scripts/server-only-register.cjs scripts/sync-products-to-odoo.ts",
