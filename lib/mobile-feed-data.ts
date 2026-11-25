@@ -18,7 +18,8 @@ import { getCatalogLive } from "@/lib/supabase/catalog";
 export const getMobileCatalogueVersion = unstable_cache(
   async () => (await readMobileStorefront()).version,
   ["mobile-v1-version", String(FEED_TREE_REVISION)],
-  { revalidate: 60, tags: [CATALOG_CACHE_TAG] },
+  // Each refresh rebuilds the whole feed; catalogue changes drop the tag immediately.
+  { revalidate: 3600, tags: [CATALOG_CACHE_TAG] },
 );
 
 export async function readMobileStorefront() {

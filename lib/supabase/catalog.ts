@@ -81,7 +81,10 @@ async function fetchLiveSnapshot(): Promise<LiveSnapshot | null> {
 const getCachedLiveSnapshot = unstable_cache(
   async () => fetchLiveSnapshot(),
   ["storefront-overlay-v1"],
-  { revalidate: 3600, tags: [CATALOG_CACHE_TAG] },
+  // Pages rebuild as often as their shortest data timer, so this sets how often
+  // every catalogue page is regenerated. Real changes (stock sync, admin and agent
+  // edits, paid orders) drop the tag at once; the timer is only a daily safety net.
+  { revalidate: 86400, tags: [CATALOG_CACHE_TAG] },
 );
 
 function parseOverlaySizes(packed: string, order: string[]): Product["sizes"] {

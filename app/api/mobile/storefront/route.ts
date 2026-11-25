@@ -5,9 +5,9 @@ import { canonicalSlug } from "@/lib/slug-aliases";
 import { getCatalogLive } from "@/lib/supabase/catalog";
 
 export const runtime = "nodejs";
-export const revalidate = 300;
+export const revalidate = 3600;
 
-const CACHE = "public, s-maxage=300, stale-while-revalidate=86400";
+const CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 function withCanonicalKeys(tiles: Record<string, string>) {
   return Object.fromEntries(Object.entries(tiles).map(([key, url]) => [canonicalSlug(key), url]));

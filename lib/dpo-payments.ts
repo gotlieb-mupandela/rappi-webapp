@@ -8,6 +8,8 @@ import {
 } from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
+import { notifyOrder } from "@/lib/order-notify";
+import { revalidateCatalog } from "@/lib/admin/revalidate-catalog";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
@@ -55,16 +57,30 @@ function paidMessage(result: string | null, explanation: string | null) {
 async function withOrder(payment: Payment | null, message: string, extra: Omit<DpoFulfillResult, "message" | "payment" | "orderId">): Promise<DpoFulfillResult> {
   let orderId = payment?.order_id ?? null;
   if (payment && extra.ok && extra.status === "paid") {
+    const newOrder = !payment.order_id;
     try {
       orderId = (await createOrderFromPayment(payment)) ?? orderId;
     } catch {
       orderId = payment.order_id;
+    }
+    if (newOrder && orderId) {
+      // The sale reduced stock: refresh the cached catalogue so sold-out sizes show.
+      try {
+        revalidateCatalog();
+      } catch (err) {
+        console.error("catalog refresh after order", err);
+      }
     }
     if (orderId) {
       try {
         await sendOrderInvoice(orderId);
       } catch (err) {
         console.error("invoice email", err);
+      }
+      try {
+        await notifyOrder(orderId, "staff_new_order");
+      } catch (err) {
+        console.error("staff new order email", err);
       }
     }
   }

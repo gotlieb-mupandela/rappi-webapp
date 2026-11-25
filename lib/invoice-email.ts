@@ -1,13 +1,8 @@
-import { escapeHtml } from "@/lib/html-escape";
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  buildInvoicePdf,
-  formatInvoiceMoney,
-  invoiceFilename,
-  invoiceSeller,
-  loadInvoiceData,
-} from "@/lib/invoice-pdf";
-import { brandLogoUrl, sendPdfEmail } from "@/lib/resend-pdf";
+import { buildInvoicePdf, invoiceFilename, loadInvoiceData } from "@/lib/invoice-pdf";
+import { renderOrderEmail } from "@/lib/order-emails";
+import { orderEmailBase, recordNotification } from "@/lib/order-notify";
+import { sendPdfEmail } from "@/lib/resend-pdf";
 
 export type SendInvoiceResult =
   | { sent: true }
@@ -74,24 +69,24 @@ export async function sendOrderInvoice(
     }
 
     const pdf = await buildInvoicePdf(data);
-    const seller = invoiceSeller();
+    const email = renderOrderEmail("paid", {
+      ...orderEmailBase(),
+      order: data.order,
+      items: data.items,
+    });
     await sendPdfEmail({
       to,
-      subject: `Invoice ${data.order.id} - ${seller.legalName}`,
-      html: [
-        `<div style="font-family:Arial,sans-serif;color:#111">`,
-        `<div style="background:#ffffff;border-bottom:3px solid #5eff38;padding:16px 20px">`,
-        `<img src="${escapeHtml(brandLogoUrl())}" alt="${escapeHtml(seller.legalName)}" width="160" style="display:block;height:auto" />`,
-        `</div>`,
-        `<p>Hi ${escapeHtml(data.order.full_name)},</p>`,
-        `<p>Thank you for your order <strong>${escapeHtml(data.order.id)}</strong>. Your invoice is attached.</p>`,
-        `<p>Total: <strong>${formatInvoiceMoney(Number(data.order.total))}</strong></p>`,
-        `<p>${escapeHtml(seller.legalName)}</p>`,
-        `</div>`,
-      ].join(""),
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
       filename: invoiceFilename(data.order.id),
       pdf,
     });
+    try {
+      await recordNotification(data.order.id, "paid", to);
+    } catch {
+      // The log is informational only.
+    }
     return { sent: true };
   } catch (err) {
     const message = errorMessage(err);

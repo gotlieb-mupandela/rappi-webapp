@@ -95,7 +95,11 @@ export type Order = {
   discountRate?: number;
   discountAmount?: number;
   total: number;
-  status: "reserved" | "preparing" | "shipped" | "cancelled";
+  status: "reserved" | "preparing" | "shipped" | "delivered" | "cancelled";
+  /** Delivery date promised to the customer (end of that day, Windhoek). */
+  dueAt?: string;
+  courier?: string;
+  trackingNumber?: string;
   remote?: boolean;
 };
 

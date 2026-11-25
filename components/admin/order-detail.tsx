@@ -19,6 +19,33 @@ type OrderItem = Database["public"]["Tables"]["order_items"]["Row"] & {
   } | null;
 };
 type Status = Database["public"]["Enums"]["order_status"];
+type Notification = Pick<
+  Database["public"]["Tables"]["order_notifications"]["Row"],
+  "id" | "kind" | "recipient" | "sent_at" | "error" | "created_at"
+>;
+
+const NOTIFICATION_LABEL: Record<string, string> = {
+  paid: "Payment received + receipt",
+  preparing: "Preparing",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  staff_new_order: "Staff: new order alert",
+};
+
+function dueLabel(order: Order) {
+  if (!order.due_at) return null;
+  const due = new Date(order.due_at);
+  const open = order.status === "reserved" || order.status === "preparing";
+  const late = open && due.getTime() < Date.now();
+  const text = new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Africa/Windhoek",
+  }).format(due);
+  return { text, late };
+}
 
 const STEPS: Status[] = [...ORDER_STATUSES];
 
@@ -30,16 +57,25 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [emailing, setEmailing] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [shipping, setShipping] = useState(false);
+  const [courier, setCourier] = useState("");
+  const [tracking, setTracking] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
     void (async () => {
-      const [{ data: o }, { data: lines }] = await Promise.all([
+      const [{ data: o }, { data: lines }, { data: sent }] = await Promise.all([
         supabase.from("orders").select("*").eq("id", orderId).single(),
         supabase
           .from("order_items")
           .select("*, products(id, item, image_url)")
           .eq("order_id", orderId),
+        supabase
+          .from("order_notifications")
+          .select("id, kind, recipient, sent_at, error, created_at")
+          .eq("order_id", orderId)
+          .order("created_at", { ascending: true }),
       ]);
       if (!o) {
         toast.error("Order not found");
@@ -49,27 +85,56 @@ export function OrderDetail({ orderId }: { orderId: string }) {
       setOrder(o);
       setNotes(o.notes ?? "");
       setItems(lines ?? []);
+      setNotifications(sent ?? []);
+      setCourier(o.courier ?? "");
+      setTracking(o.tracking_number ?? "");
       setLoading(false);
     })();
   }, [orderId, router]);
 
-  async function setStatus(status: Status) {
-    if (!order) return;
-    setSaving(true);
+  async function reloadNotifications() {
     const supabase = createClient();
-    const { data, error } = await supabase.rpc("set_order_status", {
-      p_order_id: order.id,
-      p_status: status,
-    });
-    if (error) {
-      toast.error(error.message);
+    const { data } = await supabase
+      .from("order_notifications")
+      .select("id, kind, recipient, sent_at, error, created_at")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: true });
+    setNotifications(data ?? []);
+  }
+
+  async function setStatus(status: Status, extra?: { courier?: string; tracking?: string }) {
+    if (!order) return;
+    if (status === order.status && !extra) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${encodeURIComponent(order.id)}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, ...extra }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        order?: Order;
+        email?: { sent: boolean; skipped?: string; error?: string };
+      };
+      if (!res.ok || !body.order) {
+        toast.error(body.error || "Could not update the order.");
+        return;
+      }
+      setOrder(body.order);
+      setShipping(false);
+      const email = body.email;
+      if (email?.sent) toast.success(`Status → ${status}. Customer emailed.`);
+      else if (email?.error) toast.error(`Status → ${status}, but the email failed: ${email.error}`);
+      else if (email?.skipped === "already_sent") toast.success(`Status → ${status}. Email was already sent before.`);
+      else toast.success(`Status → ${status}`);
+      await reloadNotifications();
+      router.refresh();
+    } catch {
+      toast.error("Could not update the order.");
+    } finally {
       setSaving(false);
-      return;
     }
-    setOrder(data as Order);
-    toast.success(`Status → ${status}`);
-    setSaving(false);
-    router.refresh();
   }
 
   async function saveNotes() {
@@ -110,6 +175,8 @@ export function OrderDetail({ orderId }: { orderId: string }) {
     return <p className="text-[var(--muted)]">Loading…</p>;
   }
 
+  const due = dueLabel(order);
+
   return (
     <div>
       <Link
@@ -135,7 +202,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             size="sm"
             variant="outline"
             disabled={saving}
-            onClick={() => void setStatus(s)}
+            onClick={() => (s === "shipped" ? setShipping(true) : void setStatus(s))}
             className={`uppercase tracking-wider ${
               order.status === s
                 ? `border-current ${orderStatusClass(s)}`
@@ -158,6 +225,48 @@ export function OrderDetail({ orderId }: { orderId: string }) {
         </Button>
       </div>
 
+      {shipping ? (
+        <form
+          className="mt-4 grid gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void setStatus("shipped", { courier, tracking });
+          }}
+        >
+          <label className="text-xs uppercase tracking-wider text-[var(--muted)]">
+            Courier (optional)
+            <input
+              value={courier}
+              onChange={(e) => setCourier(e.target.value)}
+              maxLength={80}
+              placeholder="e.g. Nampost Courier"
+              className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm normal-case tracking-normal text-[var(--text)]"
+            />
+          </label>
+          <label className="text-xs uppercase tracking-wider text-[var(--muted)]">
+            Tracking number (optional)
+            <input
+              value={tracking}
+              onChange={(e) => setTracking(e.target.value)}
+              maxLength={80}
+              className="mt-1 block w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm normal-case tracking-normal text-[var(--text)]"
+            />
+          </label>
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" disabled={saving}>
+              {saving ? "Saving…" : "Mark shipped & email"}
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setShipping(false)}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      ) : null}
+
+      <p className="mt-4 text-xs text-[var(--muted)]">
+        Changing the status emails the customer once per status (Preparing, Shipped, Delivered, Cancelled).
+      </p>
+
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider">Ship to</h2>
@@ -177,6 +286,17 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             ) : null}
           </p>
           <p className="mt-3 text-sm text-[var(--muted)]">{order.shipping_method}</p>
+          {due ? (
+            <p className={`mt-1 text-sm font-semibold ${due.late ? "text-[var(--danger)]" : ""}`}>
+              {due.late ? "LATE: was due " : "Due by "}
+              {due.text}
+            </p>
+          ) : null}
+          {order.courier || order.tracking_number ? (
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {[order.courier, order.tracking_number].filter(Boolean).join(" · ")}
+            </p>
+          ) : null}
         </section>
         <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider">Totals</h2>
@@ -248,6 +368,27 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             );
           })}
         </ul>
+      </section>
+
+      <section className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+        <h2 className="text-sm font-bold uppercase tracking-wider">Emails sent</h2>
+        {notifications.length === 0 ? (
+          <p className="mt-3 text-sm text-[var(--muted)]">No emails logged for this order yet.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-[var(--border)] text-sm">
+            {notifications.map((n) => (
+              <li key={n.id} className="flex flex-wrap justify-between gap-2 py-2">
+                <span>
+                  <span className="font-semibold">{NOTIFICATION_LABEL[n.kind] ?? n.kind}</span>
+                  <span className="block text-xs text-[var(--muted)]">{n.recipient}</span>
+                </span>
+                <span className={`text-xs ${n.error ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>
+                  {n.sent_at ? `Sent ${formatDate(n.sent_at)}` : n.error ? `Failed: ${n.error}` : "Sending…"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">

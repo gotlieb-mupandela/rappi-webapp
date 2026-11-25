@@ -30,3 +30,14 @@ test("other local images stay on the default loader", () => {
     "/brand/hub-shoes.png",
   );
 });
+
+test("site loader sends local raster images through wsrv from the production origin", async () => {
+  const { default: siteImageLoader } = await import("@/lib/site-image-loader");
+  const url = new URL(siteImageLoader({ src: "/brand/hub-shoes.png", width: 640, quality: 75 }));
+  assert.equal(url.hostname, "wsrv.nl");
+  assert.equal(url.searchParams.get("url"), "https://www.rappisportshub.com/brand/hub-shoes.png");
+  assert.equal(siteImageLoader({ src: "/brand/logo.svg", width: 200 }), "/brand/logo.svg");
+  assert.equal(siteImageLoader({ src: "data:image/png;base64,AA", width: 10 }), "data:image/png;base64,AA");
+  const remote = "https://wzmzwerzbyudcvoiiege.supabase.co/storage/v1/object/public/product-images/a.jpg";
+  assert.equal(new URL(siteImageLoader({ src: remote, width: 320 })).searchParams.get("url"), remote);
+});

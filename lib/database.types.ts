@@ -151,6 +151,36 @@ export type Database = {
         }
         Relationships: []
       }
+      order_notifications: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          order_id: string
+          recipient: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          order_id: string
+          recipient?: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          order_id?: string
+          recipient?: string
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           code: string
@@ -204,10 +234,12 @@ export type Database = {
           address: string
           city: string
           country: string
+          courier: string | null
           created_at: string
           discount_amount: number
           discount_code: string | null
           discount_rate: number
+          due_at: string | null
           email: string
           full_name: string
           id: string
@@ -221,6 +253,7 @@ export type Database = {
           stock_short: boolean
           subtotal: number
           total: number
+          tracking_number: string | null
           updated_at: string
           user_id: string | null
           vat_amount: number
@@ -230,10 +263,12 @@ export type Database = {
           address: string
           city: string
           country: string
+          courier?: string | null
           created_at?: string
           discount_amount?: number
           discount_code?: string | null
           discount_rate?: number
+          due_at?: string | null
           email: string
           full_name: string
           id: string
@@ -247,6 +282,7 @@ export type Database = {
           stock_short?: boolean
           subtotal: number
           total: number
+          tracking_number?: string | null
           updated_at?: string
           user_id?: string | null
           vat_amount?: number
@@ -256,10 +292,12 @@ export type Database = {
           address?: string
           city?: string
           country?: string
+          courier?: string | null
           created_at?: string
           discount_amount?: number
           discount_code?: string | null
           discount_rate?: number
+          due_at?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -273,6 +311,7 @@ export type Database = {
           stock_short?: boolean
           subtotal?: number
           total?: number
+          tracking_number?: string | null
           updated_at?: string
           user_id?: string | null
           vat_amount?: number
@@ -587,18 +626,21 @@ export type Database = {
         Row: {
           cost: number
           id: string
+          max_days: number | null
           name: string
           sort_order: number
         }
         Insert: {
           cost?: number
           id: string
+          max_days?: number | null
           name: string
           sort_order?: number
         }
         Update: {
           cost?: number
           id?: string
+          max_days?: number | null
           name?: string
           sort_order?: number
         }
@@ -845,14 +887,18 @@ export type Database = {
       promote_admin: { Args: { p_email: string }; Returns: undefined }
       set_order_status: {
         Args: {
+          p_courier?: string
           p_order_id: string
           p_status: Database["public"]["Enums"]["order_status"]
+          p_tracking?: string
         }
         Returns: {
           address: string
           city: string
           country: string
+          courier: string | null
           created_at: string
+          due_at: string | null
           email: string
           full_name: string
           id: string
@@ -862,6 +908,7 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
           total: number
+          tracking_number: string | null
           updated_at: string
           user_id: string | null
         }
@@ -870,7 +917,7 @@ export type Database = {
     Enums: {
       app_role: "customer" | "admin"
       gender: "men" | "women" | "kids" | "unisex"
-      order_status: "reserved" | "preparing" | "shipped" | "cancelled"
+      order_status: "reserved" | "preparing" | "shipped" | "delivered" | "cancelled"
       product_badge: "new" | "offer"
       push_platform: "web" | "ios" | "android"
     }
@@ -985,7 +1032,7 @@ export const Constants = {
     Enums: {
       app_role: ["customer", "admin"],
       gender: ["men", "women", "kids", "unisex"],
-      order_status: ["reserved", "preparing", "shipped", "cancelled"],
+      order_status: ["reserved", "preparing", "shipped", "delivered", "cancelled"],
       product_badge: ["new", "offer"],
       push_platform: ["web", "ios", "android"],
     },

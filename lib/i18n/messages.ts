@@ -460,6 +460,9 @@ export const en = {
     statusShipped: "Shipped",
     statusCancelled: "Cancelled",
     statusDelivered: "Delivered",
+    expectedBy: "Expected by {date}",
+    readyBy: "Ready by {date}",
+    trackingNumber: "Tracking {number}",
     downloadInvoice: "Download invoice",
   },
   login: {
@@ -1705,6 +1708,9 @@ export const fr: Messages = {
     statusShipped: "Expédié",
     statusCancelled: "Annulé",
     statusDelivered: "Livré",
+    expectedBy: "Livraison prévue le {date}",
+    readyBy: "Prête le {date}",
+    trackingNumber: "Suivi {number}",
     downloadInvoice: "Télécharger la facture",
   },
   login: {

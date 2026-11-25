@@ -18,7 +18,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
   return NextResponse.json(toClientProduct(product), {
     headers: {
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
     },
   });
 }

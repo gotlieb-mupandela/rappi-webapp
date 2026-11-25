@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
   // Dev binds to 0.0.0.0; browsers hit 127.0.0.1 / localhost — allow HMR + assets.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
+    // All images are resized by wsrv (lib/site-image-loader.ts), not Vercel Image
+    // Optimization, which counts every transformation against the plan quota.
+    loader: "custom",
+    loaderFile: "./lib/site-image-loader.ts",
     // Display optimized photos inline (Next 15+ default is attachment).
     contentDispositionType: "inline",
     // Cache optimized product thumbs for a day (remote Joma files are multi‑MB originals).

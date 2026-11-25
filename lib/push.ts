@@ -10,12 +10,14 @@ const STATUS_COPY: Record<"en" | "fr", Record<OrderStatus, string>> = {
     reserved: "reserved",
     preparing: "being prepared",
     shipped: "shipped",
+    delivered: "delivered",
     cancelled: "cancelled",
   },
   fr: {
     reserved: "réservée",
     preparing: "en préparation",
     shipped: "expédiée",
+    delivered: "livrée",
     cancelled: "annulée",
   },
 };
