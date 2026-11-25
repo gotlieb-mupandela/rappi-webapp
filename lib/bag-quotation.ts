@@ -79,7 +79,7 @@ export function quoteTokensMatch(storedHash: string, token: string) {
   return timingSafeEqual(actual, expected);
 }
 
-function readItems(value: Json): QuotationPdfItem[] | null {
+export function readQuotationItems(value: Json): QuotationPdfItem[] | null {
   if (!Array.isArray(value) || !value.length) return null;
   const items: QuotationPdfItem[] = [];
   for (const raw of value) {
@@ -103,7 +103,7 @@ function readItems(value: Json): QuotationPdfItem[] | null {
 }
 
 function pdfData(row: StoredQuote, email: string | null): QuotationPdfData | null {
-  const items = readItems(row.items);
+  const items = readQuotationItems(row.items);
   const subtotal = Number(row.subtotal);
   if (!items || !Number.isFinite(subtotal) || subtotal <= 0) return null;
   return {

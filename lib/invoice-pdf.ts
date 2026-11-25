@@ -4,6 +4,7 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFP
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
 import { PDF_PHOTO_COLUMN, PDF_PHOTO_SIZE, drawItemPhoto, embedItemPhotos } from "@/lib/pdf-item-photos";
+import { VERIFY_BOX_HEIGHT, drawVerifyBox } from "@/lib/pdf-verify-box";
 import { contactEmail } from "@/lib/site-contact";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -296,7 +297,7 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     y -= rowHeight;
   }
 
-  ensureSpace(130);
+  ensureSpace(130 + VERIFY_BOX_HEIGHT + 20);
   const totalsPage = page!;
   totalsPage.drawLine({
     start: { x: MARGIN, y },
@@ -337,6 +338,8 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   drawRight(totalsPage, formatInvoiceMoney(Number(order.total)), bold, 12, PAGE_WIDTH - MARGIN, y);
   y -= 28;
   totalsPage.drawText("Paid in full. Thank you for your order.", { x: MARGIN, y, size: 9, font: regular, color: MUTED });
+  y -= 16;
+  drawVerifyBox(totalsPage, { id: order.id, x: MARGIN, top: y, width: PAGE_WIDTH - MARGIN * 2, regular, bold });
   totalsPage.drawText(`Page ${pageNo}`, {
     x: MARGIN,
     y: 28,
