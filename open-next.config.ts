@@ -17,10 +17,10 @@ const cloudflareConfig = defineCloudflareConfig({
 
 const config = {
   ...cloudflareConfig,
-  // Webpack shares the large data/*.json catalogue modules between routes;
-  // Turbopack inlines a copy into every route chunk, which takes the Worker far
+  // `npm run build` uses webpack (see package.json): Turbopack inlines the
+  // data/*.json catalogue into every route chunk, which takes the Worker far
   // past Cloudflare's script size limit.
-  buildCommand: "node scripts/brand-versions.mjs && npx next build --webpack",
+  buildCommand: "npm run build",
 };
 
 export default config;
