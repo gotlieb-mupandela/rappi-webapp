@@ -42,37 +42,46 @@ export function BlackFridayStrip() {
 export function BlackFridayBanner() {
   const live = useLive();
   if (!live) return null;
+  // Tiles shown: 4 on phones, tablets and small laptops, 5 from 1280px, 6 from 1536px.
+  const tileVisibility = (i: number) => (i === 4 ? "hidden xl:flex" : i === 5 ? "hidden 2xl:flex" : "flex");
   return (
     <Link
       href={BLACK_FRIDAY_PATH}
-      className="relative mb-2 flex flex-none flex-col gap-3.5 overflow-hidden rounded-2xl bg-[#0c110b] bg-[radial-gradient(600px_300px_at_80%_0%,rgba(94,255,56,.28),transparent_60%)] p-[18px] text-white sm:mb-3 lg:flex-row lg:items-center lg:gap-7 lg:px-8 lg:py-5"
+      className="mb-2 flex flex-none flex-col gap-4 overflow-hidden rounded-2xl bg-[#0c110b] bg-[radial-gradient(600px_300px_at_80%_0%,rgba(94,255,56,.28),transparent_60%)] p-[18px] text-white sm:mb-3 sm:p-6 lg:flex-row lg:items-center lg:gap-6 lg:px-7 lg:py-4 xl:gap-8 xl:px-8"
     >
-      <span className="absolute right-5 top-3.5 hidden text-[11px] font-bold uppercase tracking-[0.15em] text-[#5eff38] lg:block">
-        {BLACK_FRIDAY_DATES}
-      </span>
-      <div className="lg:flex-none">
-        <h2 className="font-[family-name:var(--font-oswald)] text-[40px] font-bold uppercase leading-[0.9] lg:text-[56px]">
+      <div className="min-w-0 lg:flex-none">
+        <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#5eff38]">{BLACK_FRIDAY_DATES}</p>
+        <h2 className="mt-1 whitespace-nowrap font-[family-name:var(--font-oswald)] text-[40px] font-bold uppercase leading-[0.95] xl:text-[52px]">
           Black <span className="text-[#5eff38]">Friday</span>
         </h2>
-        <p className="mt-2 text-sm text-white/80 lg:max-w-[22rem] lg:text-base">
-          20 summer deals · free gifts · 10% off · 3 tanks for N$400
-        </p>
+        <p className="mt-1.5 whitespace-nowrap text-sm text-white/80">20 summer deals · free gifts · 10% off</p>
       </div>
-      <div className="flex flex-1 justify-between gap-1.5 lg:justify-center lg:gap-2.5">
+      <div className="grid grid-cols-4 gap-2 pb-2 sm:max-w-[26rem] lg:flex lg:max-w-none lg:flex-1 lg:justify-center lg:gap-2.5">
         {BANNER_DEALS.map((d, i) => (
           <div
             key={d.code}
-            className={`relative flex h-[72px] w-[72px] items-center justify-center rounded-[10px] bg-white lg:h-[100px] lg:w-[100px] lg:rounded-[14px] ${i > 3 ? "hidden lg:flex" : ""}`}
+            className={`relative aspect-square items-center justify-center rounded-xl bg-white lg:h-20 lg:w-20 lg:flex-none xl:h-[88px] xl:w-[88px] 2xl:h-24 2xl:w-24 ${tileVisibility(i)}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={dealImage(d.code)} alt="" className="max-h-[84%] max-w-[84%] object-contain" />
-            <span className={`absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-1.5 py-1 text-[9px] font-extrabold uppercase leading-none lg:text-[10px] ${LIME}`}>
+            <img
+              src={dealImage(d.code)}
+              alt=""
+              width={96}
+              height={96}
+              fetchPriority="high"
+              className="h-[80%] w-[80%] object-contain"
+            />
+            <span
+              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-1.5 py-1 text-[9px] font-extrabold uppercase leading-none ${LIME}`}
+            >
               {d.tag}
             </span>
           </div>
         ))}
       </div>
-      <span className={`rounded-full px-6 py-3.5 text-center text-sm font-extrabold uppercase tracking-[0.05em] lg:flex-none lg:py-4 ${LIME}`}>
+      <span
+        className={`whitespace-nowrap rounded-full px-6 py-3.5 text-center text-sm font-extrabold uppercase tracking-[0.05em] sm:self-start lg:flex-none lg:self-auto ${LIME}`}
+      >
         Shop the 20 deals →
       </span>
     </Link>
