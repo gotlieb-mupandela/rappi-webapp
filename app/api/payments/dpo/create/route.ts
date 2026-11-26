@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { blackFridayOrderNote } from "@/lib/black-friday";
-import { checkoutPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
+import { checkoutPaymentQuote, resolveCheckoutCountry, type CheckoutQuote } from "@/lib/checkout-quote";
 import { discountRouteError } from "@/lib/discount";
 import { resolveActiveDiscount } from "@/lib/discount-lookup";
 import {
@@ -9,7 +9,7 @@ import {
   parseShippingMethod,
   resolveCheckoutLines,
 } from "@/lib/dpo-cart";
-import type { DpoPaymentPayload } from "@/lib/dpo-payload";
+import { dealLines, type DpoPaymentPayload } from "@/lib/dpo-payload";
 import {
   createToken,
   dpoPaymentUrl,
@@ -17,8 +17,8 @@ import {
   requestSiteUrl,
   splitName,
 } from "@/lib/dpo";
-import { getProductByCode } from "@/lib/offline-catalog";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { roundMoney } from "@/lib/vat";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRequestClient } from "@/lib/supabase/request";
 
@@ -122,10 +122,8 @@ export async function POST(req: Request) {
     shippingCost: quote.shipping,
     vatRate: quote.vat.rate,
     vatAmount: quote.vat.amount,
-    discountCode: quote.discount?.code ?? "",
-    discountRate: quote.discount?.rate ?? 0,
-    discountAmount: quote.discount?.amount ?? 0,
-    notes: withDealNote(String(body.notes ?? "").trim(), lines),
+    ...storedDiscount(quote),
+    notes: [String(body.notes ?? "").trim(), blackFridayOrderNote(dealLines(lines))].filter(Boolean).join("\n\n"),
     lines,
   };
 
@@ -199,12 +197,18 @@ export async function POST(req: Request) {
   });
 }
 
-function withDealNote(notes: string, lines: { code: string; name: string; qty: number; price: number }[]) {
-  const deal = blackFridayOrderNote(
-    lines.flatMap((l) => {
-      const p = getProductByCode(l.code);
-      return p ? [{ ...l, name: p.name, category: p.category, subcategory: p.subcategory }] : [];
-    }),
-  );
-  return [notes, deal].filter(Boolean).join("\n\n");
+/**
+ * The order keeps one discount: the customer's code when they used one (so
+ * code usage counts stay right), otherwise BLACKFRIDAY. The amount covers both.
+ */
+function storedDiscount(quote: CheckoutQuote) {
+  const deals = quote.blackFriday?.discountTotal ?? 0;
+  const amount = roundMoney(deals + (quote.discount?.amount ?? 0));
+  if (amount <= 0) return { discountCode: "", discountRate: 0, discountAmount: 0 };
+  if (quote.discount) return { discountCode: quote.discount.code, discountRate: quote.discount.rate, discountAmount: amount };
+  return {
+    discountCode: "BLACKFRIDAY",
+    discountRate: Math.min(100, roundMoney((deals / quote.subtotal) * 100)),
+    discountAmount: amount,
+  };
 }

@@ -1,6 +1,7 @@
+import { blackFridayOffer, type BlackFridayOffer } from "@/lib/black-friday";
 import { mergePricedLines } from "@/lib/checkout-lines";
 import type { DiscountRate } from "@/lib/discount";
-import type { DpoCartLine } from "@/lib/dpo-payload";
+import { dealLines, type DpoCartLine } from "@/lib/dpo-payload";
 import { dpoCurrency } from "@/lib/dpo-currency";
 import { shippingCostById } from "@/lib/shipping";
 import { defaultVatCountry, quoteVat, resolveVatCountry, roundMoney } from "@/lib/vat";
@@ -23,7 +24,10 @@ export type CheckoutQuote = {
   items: CheckoutQuoteItem[];
   subtotal: number;
   shipping: number;
+  /** Customer's discount code, applied after the Black Friday discount. */
   discount: CheckoutDiscount | null;
+  /** Black Friday gifts and money off. Null when nothing applies. */
+  blackFriday: BlackFridayOffer | null;
   vat: {
     rate: number;
     amount: number;
@@ -90,21 +94,25 @@ export function checkoutPaymentQuote(
   country: string,
   currency = dpoCurrency(),
   discount: DiscountRate | null = null,
+  now = Date.now(),
 ): CheckoutQuote {
   const merged = mergePricedLines(lines);
   const subtotal = merchandiseSubtotal(merged);
   const shipping = shippingCostById(shippingMethod);
-  const applied = merchandiseDiscount(subtotal, discount);
+  const offer = blackFridayOffer(dealLines(merged), now);
+  const blackFriday = offer.gifts.length || offer.discountTotal > 0 ? offer : null;
+  const afterDeals = roundMoney(subtotal - offer.discountTotal);
+  const applied = merchandiseDiscount(afterDeals, discount);
+  const off = offer.discountTotal + (applied?.amount ?? 0);
   // No-discount quotes keep the previous taxable base so cent totals stay put.
-  const taxable = applied
-    ? roundMoney(subtotal - applied.amount + shipping)
-    : subtotal + shipping;
+  const taxable = off > 0 ? roundMoney(subtotal - off + shipping) : subtotal + shipping;
   const vat = quoteVat(country, taxable);
   return {
     items: quoteItems(merged),
     subtotal: roundMoney(subtotal),
     shipping,
     discount: applied,
+    blackFriday,
     vat: { rate: vat.rate, amount: vat.amount },
     total: vat.total,
     currency,

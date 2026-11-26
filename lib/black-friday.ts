@@ -1,9 +1,10 @@
 export const BLACK_FRIDAY_PATH = "/black-friday";
+export const BLACK_FRIDAY_STARTS_AT = Date.parse("2026-11-26T00:00:00+02:00");
 export const BLACK_FRIDAY_ENDS_AT = Date.parse("2026-12-16T00:00:00+02:00");
 export const BLACK_FRIDAY_DATES = "Fri 27 Nov – 15 Dec";
 
 export function isBlackFridayLive(now = Date.now()) {
-  return now < BLACK_FRIDAY_ENDS_AT;
+  return now >= BLACK_FRIDAY_STARTS_AT && now < BLACK_FRIDAY_ENDS_AT;
 }
 
 export type DealGroup = "shoes" | "swim" | "clothing" | "kids" | "teams";
@@ -105,61 +106,125 @@ export function productDeal(p: Classifiable): { title: string; detail: string; g
   return null;
 }
 
-type OrderLine = Classifiable & { qty: number };
+export type OfferLine = Classifiable & { qty: number };
 
-const money = (n: number) => `N$${Math.round(n).toLocaleString("en-US")}`;
+export type BlackFridayGift = {
+  /** Catalogue code of the gift item, used for photos on PDFs. */
+  code: string;
+  name: string;
+  qty: number;
+  image: string;
+  /** Paid item that earned the gift; empty for order-level gifts. */
+  forCode?: string;
+  reason: string;
+};
+
+export type BlackFridayDiscount = { label: string; amount: number };
+
+export type BlackFridayOffer = {
+  gifts: BlackFridayGift[];
+  discounts: BlackFridayDiscount[];
+  /** Money off the merchandise subtotal, rounded to cents. */
+  discountTotal: number;
+};
+
+const EMPTY_OFFER: BlackFridayOffer = { gifts: [], discounts: [], discountTotal: 0 };
+
+const GIFT = {
+  wristband: { code: "400300.P03", name: "Wristband" },
+  racket: { code: "400300.P03", name: "Wristband or overgrip (your choice)" },
+  bootBag: { code: "400001.100", name: "Boot bag" },
+  runCap: { code: "400089.100", name: "Cap" },
+  summerCap: { code: "400089.200", name: "Cap" },
+  ankleSocks: { code: "400028.P01", name: "Ankle socks (1 pair)" },
+  kidsSocks: { code: "400028.P01", name: "Socks (1 pair)" },
+  sportSocks: { code: "400392.200", name: "Sports socks (1 pair)" },
+  bibs: { code: "101686.010", name: "Set of 10 training bibs" },
+  towel: { code: "400922.353", name: "Towel" },
+  swimCap: { code: "401021.728", name: "Swim cap", image: "swimcap-single" },
+} as const;
+
+const cents = (n: number) => Math.round(n * 100) / 100;
+const money = (n: number) => `N$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
 /**
- * Plain-text note for staff listing the Black Friday gifts to pack and the
- * discounts the order qualifies for. Empty when nothing applies.
+ * Black Friday gifts and discounts for a set of priced lines. Used by the
+ * cart, checkout, the payment amount, the staff note and both PDFs, so every
+ * screen and document agrees with what DPO charges.
  */
-export function blackFridayOrderNote(lines: OrderLine[], now = Date.now()) {
-  if (!isBlackFridayLive(now) || !lines.length) return "";
-  const gifts = new Map<string, number>();
-  const add = (gift: string, n: number) => gifts.set(gift, (gifts.get(gift) ?? 0) + n);
+export function blackFridayOffer(lines: OfferLine[], now = Date.now()): BlackFridayOffer {
+  if (!isBlackFridayLive(now) || !lines.length) return EMPTY_OFFER;
+  const gifts: BlackFridayGift[] = [];
+  const give = (
+    g: { code: string; name: string; image?: string },
+    qty: number,
+    reason: string,
+    forCode?: string,
+  ) => {
+    const prev = gifts.find((x) => x.code === g.code && x.name === g.name && x.forCode === forCode);
+    if (prev) prev.qty += qty;
+    else gifts.push({ code: g.code, name: g.name, qty, image: dealImage(g.image ?? g.code), forCode, reason });
+  };
   const sum = (test: (p: Classifiable) => boolean) =>
     lines.filter(test).reduce((s, l) => s + l.price * l.qty, 0);
   const count = (test: (p: Classifiable) => boolean) =>
     lines.filter(test).reduce((s, l) => s + l.qty, 0);
 
   for (const l of lines) {
-    if (isRacketShoe(l) && l.price >= 790) add("Wristband or overgrip (customer's choice)", l.qty);
-    else if (isRacketShoe(l) && l.price >= 430) add("Wristband", l.qty);
-    else if (isBoot(l) && l.price >= 530) add("Boot bag", l.qty);
-    else if (isRunningShoe(l) && l.price >= 790) add("Cap", l.qty);
-    else if (isRunningWear(l) && l.price >= 240) add("Ankle socks (pair)", l.qty);
-    else if (isKidsShoe(l) && l.price >= 260) add("Socks (pair)", l.qty);
-    else if (isTrailShoe(l)) add("Sports socks (pair)", l.qty);
-    else if (isSneaker(l) && l.price >= 240) add("Ankle socks (pair)", l.qty);
-    else if (isVolleyballShoe(l) && l.price >= 430) add("Wristband", l.qty);
+    if (isRacketShoe(l) && l.price >= 790) give(GIFT.racket, l.qty, "With padel / tennis shoes", l.code);
+    else if (isRacketShoe(l) && l.price >= 430) give(GIFT.wristband, l.qty, "With padel / tennis shoes", l.code);
+    else if (isBoot(l) && l.price >= 530) give(GIFT.bootBag, l.qty, "With football boots", l.code);
+    else if (isRunningShoe(l) && l.price >= 790) give(GIFT.runCap, l.qty, "With running shoes", l.code);
+    else if (isRunningWear(l) && l.price >= 240) give(GIFT.ankleSocks, l.qty, "With running wear", l.code);
+    else if (isKidsShoe(l) && l.price >= 260) give(GIFT.kidsSocks, l.qty, "With kids' shoes", l.code);
+    else if (isTrailShoe(l)) give(GIFT.sportSocks, l.qty, "With trail / hiking shoes", l.code);
+    else if (isSneaker(l) && l.price >= 240) give(GIFT.ankleSocks, l.qty, "With sneakers", l.code);
+    else if (isVolleyballShoe(l) && l.price >= 430) give(GIFT.wristband, l.qty, "With volleyball shoes", l.code);
   }
-  if (sum(isTeamKit) > 5500) add("Set of 10 training bibs", 1);
+  if (sum(isTeamKit) > 5500) give(GIFT.bibs, 1, "Team kit order over N$5,500");
   const swim = sum(isSwimwear);
-  if (swim >= 1300) add("Towel", 1);
-  else if (swim >= 900) add("Swim cap", 1);
-  if (sum(isSummerGear) >= 800) add("Cap (summer gear N$800+)", 1);
+  if (swim >= 1300) give(GIFT.towel, 1, "Swimwear over N$1,300");
+  else if (swim >= 900) give(GIFT.swimCap, 1, "Swimwear over N$900");
+  if (sum(isSummerGear) >= 800) give(GIFT.summerCap, 1, "Summer gear over N$800");
 
-  const discounts: string[] = [];
-  const tenPct = (label: string, amount: number) => discounts.push(`${label}: 10% = ${money(amount * 0.1)}`);
-  // Each item gets at most one 10%: combo deals only add the items not already discounted.
+  const discounts: BlackFridayDiscount[] = [];
+  const off = (label: string, amount: number) => {
+    const value = cents(amount);
+    if (value > 0) discounts.push({ label, amount: value });
+  };
+  // Each item gets at most one deal: combo deals only discount items not already discounted.
   const swim2 = count(isSwimwear) >= 2;
-  if (swim2) tenPct("Buy 2 swimwear", swim);
+  if (swim2) off("Buy 2 swimwear, 10% off", swim * 0.1);
   const kit = (p: Classifiable) => (isTop(p) || isShorts(p)) && !isRecordTank(p);
   const kit2 = count(kit) >= 2;
-  if (kit2) tenPct("Buy 2 tees/tanks/shorts", sum(kit));
+  if (kit2) off("Buy 2 tees, tanks or shorts, 10% off", sum(kit) * 0.1);
   const tanks = lines.filter(isRecordTank);
   const tankQty = tanks.reduce((s, l) => s + l.qty, 0);
   if (tankQty >= 3) {
-    const unit = tanks[0].price;
+    const unit = Math.min(...tanks.map((l) => l.price));
     const sets = Math.floor(tankQty / 3);
-    discounts.push(`3 Record II tanks for N$400 x${sets}: save ${money(sets * (unit * 3 - 400))}`);
+    off(`3 Record II tank tops for N$400${sets > 1 ? ` x${sets}` : ""}`, sets * Math.max(0, unit * 3 - 400));
   }
-  if (count(isSkirt) && count(isTop)) tenPct("Skirt + top", sum(isSkirt) + (kit2 ? 0 : sum(isTop)));
-  if (count(isSlide) && swim) tenPct("Slides + swimwear", sum(isSlide) + (swim2 ? 0 : swim));
+  if (count(isSkirt) && count(isTop)) off("Skirt + top, 10% off", (sum(isSkirt) + (kit2 ? 0 : sum(isTop))) * 0.1);
+  if (count(isSlide) && swim) off("Slides + swimwear, 10% off", (sum(isSlide) + (swim2 ? 0 : swim)) * 0.1);
 
-  if (!gifts.size && !discounts.length) return "";
+  const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
+  const discountTotal = Math.min(cents(subtotal), cents(discounts.reduce((s, d) => s + d.amount, 0)));
+  return { gifts, discounts, discountTotal };
+}
+
+/** Plain-text note for staff listing the gifts to pack and the discount given. */
+export function blackFridayOrderNote(lines: OfferLine[], now = Date.now()) {
+  const offer = blackFridayOffer(lines, now);
+  if (!offer.gifts.length && !offer.discounts.length) return "";
   const out = ["BLACK FRIDAY"];
-  if (gifts.size) out.push(`Gifts to pack: ${[...gifts].map(([g, n]) => `${n} x ${g}`).join("; ")}`);
-  if (discounts.length) out.push(`Discount owed: ${discounts.join("; ")}`);
+  if (offer.gifts.length)
+    out.push(
+      `Free gifts to pack: ${offer.gifts.map((g) => `${g.qty} x ${g.name}${g.forCode ? ` (with ${g.forCode})` : ""}`).join("; ")}`,
+    );
+  if (offer.discounts.length)
+    out.push(
+      `Discount already taken off at checkout: ${offer.discounts.map((d) => `${d.label} -${money(d.amount)}`).join("; ")}`,
+    );
   return out.join("\n");
 }

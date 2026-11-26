@@ -142,6 +142,7 @@ function priceLine(product: Product, size: string, qty: number): DpoCartLine {
     size: sizeRow.size,
     qty,
     price,
+    deal: { name: product.name, category: product.category, subcategory: product.subcategory },
   };
 }
 

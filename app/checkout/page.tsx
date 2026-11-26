@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type Reac
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { AssortmentBadge } from "@/components/assortment-label";
+import { BlackFridayDiscountRows, BlackFridayGiftRows, cartOffer } from "@/components/black-friday-cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,8 +26,9 @@ import { trackMeta } from "@/lib/meta/pixel";
 import { displayName } from "@/lib/auth/session";
 import { useAuth } from "@/lib/stores/auth";
 import { cartCount, cartLineAsProduct, useCart } from "@/lib/stores/cart";
+import type { BlackFridayOffer } from "@/lib/black-friday";
 import type { Product } from "@/lib/types";
-import { defaultVatCountry, formatVatRate, quoteVat, VAT_COUNTRIES } from "@/lib/vat";
+import { defaultVatCountry, formatVatRate, quoteVat, roundMoney, VAT_COUNTRIES } from "@/lib/vat";
 
 type ShippingRow = { id: string; name: string; cost: number };
 
@@ -36,6 +38,7 @@ type CheckoutQuoteView = {
   vat: { rate: number; amount: number };
   total: number;
   discount: { code: string; rate: number; amount: number } | null;
+  blackFriday: BlackFridayOffer | null;
 };
 
 const FALLBACK_SHIPPING: ShippingRow[] = shippingMethodsSnapshot();
@@ -133,13 +136,21 @@ export default function CheckoutPage() {
 
   const subtotal = rows.reduce((s, r) => s + r.price * r.qty, 0);
   const shipping = shippingOptions.find((s) => s.id === method) ?? shippingOptions[0];
-  const vat = quoteVat(country, subtotal + (shipping?.cost ?? 0));
+  const offer = useMemo(() => cartOffer(lines), [lines]);
+  // Same taxable base as checkoutPaymentQuote on the server, so the shown total is what DPO charges.
+  const vat = quoteVat(
+    country,
+    offer.discountTotal > 0
+      ? roundMoney(subtotal - offer.discountTotal + (shipping?.cost ?? 0))
+      : subtotal + (shipping?.cost ?? 0),
+  );
   const total = vat.total;
   const pricedSubtotal = quoted?.subtotal ?? subtotal;
   const pricedShipping = quoted?.shipping ?? shipping?.cost ?? 0;
   const pricedVat = quoted?.vat ?? vat;
   const pricedTotal = quoted?.total ?? total;
   const pricedDiscount = quoted?.discount ?? null;
+  const pricedOffer = quoted ? (quoted.blackFriday ?? cartOffer([])) : offer;
   const approx = approxCharge(pricedTotal, market, t);
 
   const loadDiscountQuote = useCallback(
@@ -177,6 +188,7 @@ export default function CheckoutPage() {
           vat: data.vat,
           total: data.total,
           discount: data.discount,
+          blackFriday: data.blackFriday ?? null,
         };
       } catch {
         toast.error(t("checkout.failed"));
@@ -432,6 +444,16 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
+            {offer.gifts.length ? (
+              <div className="mt-2 border-t border-[var(--border)] pt-1 text-sm">
+                <BlackFridayGiftRows offer={offer} compact />
+              </div>
+            ) : null}
+            {offer.discounts.length ? (
+              <div className="mt-4 space-y-1 text-sm">
+                <BlackFridayDiscountRows offer={offer} format={formatPrice} />
+              </div>
+            ) : null}
             <p className="mt-4 flex justify-between text-sm text-[var(--muted)]">
               <span>{t("checkout.vat", { rate: formatVatRate(vat.rate) })}</span>
               <span>{vat.amount ? formatPrice(vat.amount) : t("common.free")}</span>
@@ -629,11 +651,17 @@ export default function CheckoutPage() {
                 </li>
               ))}
             </ul>
+            {pricedOffer.gifts.length ? (
+              <div className="mt-2 border-t border-[var(--border)] pt-1">
+                <BlackFridayGiftRows offer={pricedOffer} compact />
+              </div>
+            ) : null}
             <div className="mt-4 space-y-1 text-sm">
             <p className="flex justify-between text-[var(--muted)]">
               <span>{t("checkout.merchandise")}</span>
               <span>{formatPrice(pricedSubtotal)}</span>
             </p>
+            <BlackFridayDiscountRows offer={pricedOffer} format={formatPrice} />
             {pricedDiscount ? (
               <p className="flex justify-between text-[var(--muted)]">
                 <span>
