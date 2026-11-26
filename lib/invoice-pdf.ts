@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import type { BlackFridayOffer } from "@/lib/black-friday";
+import { documentOffer } from "@/lib/black-friday-documents";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
@@ -25,6 +27,7 @@ const MUTED = rgb(0.35, 0.35, 0.35);
 const RULE = rgb(0.82, 0.82, 0.82);
 const HEADER_BG = rgb(1, 1, 1);
 const LIME = rgb(0.37, 1, 0.22);
+const FREE_GREEN = rgb(0.18, 0.54, 0.07);
 const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
 const LOGO_NATIVE_WIDTH = 1416;
 const LOGO_NATIVE_HEIGHT = 895;
@@ -173,10 +176,14 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     doc.embedFont(StandardFonts.HelveticaBold),
     embedBrandLogo(doc),
   ]);
-  const photos = await embedItemPhotos(
-    doc,
-    items.map((item) => item.code),
+  const offer = documentOffer(
+    items.map((item) => ({ code: item.code, qty: item.qty, unitPrice: Number(item.unit_price) })),
+    order.created_at,
   );
+  const photos = await embedItemPhotos(doc, [
+    ...items.map((item) => item.code),
+    ...offer.gifts.map((gift) => gift.code),
+  ]);
   const photoColumn = photos.size ? PDF_PHOTO_COLUMN : 0;
 
   const cols = {
@@ -297,7 +304,28 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     y -= rowHeight;
   }
 
-  ensureSpace(130 + VERIFY_BOX_HEIGHT + 20);
+  for (const gift of offer.gifts) {
+    const label = `FREE GIFT: ${gift.name}${gift.forCode ? ` (Black Friday, with ${gift.forCode})` : ` (Black Friday, ${gift.reason})`}`;
+    const nameLines = wrap(label, bold, 9, nameWidth);
+    const photo = photos.get(gift.code);
+    const rowHeight = Math.max(16, nameLines.length * 11 + 6, photoColumn ? PDF_PHOTO_SIZE + 8 : 0);
+    ensureSpace(rowHeight);
+    const current = page!;
+    if (photo) drawItemPhoto(current, photo, cols.photo, y + 9);
+    current.drawText(pdfSafe(gift.code), { x: cols.code, y, size: 8, font: regular, color: INK });
+    drawRight(current, String(gift.qty), regular, 9, cols.qty + 18, y);
+    drawRight(current, "FREE", bold, 9, cols.unit + 36, y, FREE_GREEN);
+    drawRight(current, "FREE", bold, 9, cols.amount, y, FREE_GREEN);
+    let nameY = y;
+    for (const line of nameLines) {
+      current.drawText(line, { x: cols.name, y: nameY, size: 9, font: bold, color: FREE_GREEN });
+      nameY -= 11;
+    }
+    y -= rowHeight;
+  }
+
+  const discountRows = invoiceDiscountRows(order, offer);
+  ensureSpace(130 + discountRows.length * 16 + VERIFY_BOX_HEIGHT + 20);
   const totalsPage = page!;
   totalsPage.drawLine({
     start: { x: MARGIN, y },
@@ -306,24 +334,14 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
     color: RULE,
   });
   y -= 20;
-  const totalsX = PAGE_WIDTH - MARGIN - 160;
+  const totalsX = PAGE_WIDTH - MARGIN - (discountRows.some((row) => row.deal) ? 300 : 160);
   totalsPage.drawText("Merchandise", { x: totalsX, y, size: 10, font: regular, color: MUTED });
   drawRight(totalsPage, formatInvoiceMoney(Number(order.subtotal)), regular, 10, PAGE_WIDTH - MARGIN, y);
   y -= 16;
-  const discountAmount = Number(order.discount_amount) || 0;
-  if (discountAmount > 0) {
-    const discountLabel = order.discount_code
-      ? `Discount ${pdfSafe(order.discount_code).slice(0, 18)}`
-      : "Discount";
-    totalsPage.drawText(discountLabel, { x: totalsX, y, size: 10, font: regular, color: MUTED });
-    drawRight(
-      totalsPage,
-      `-${formatInvoiceMoney(discountAmount)}`,
-      regular,
-      10,
-      PAGE_WIDTH - MARGIN,
-      y,
-    );
+  for (const row of discountRows) {
+    const color = row.deal ? FREE_GREEN : MUTED;
+    totalsPage.drawText(pdfSafe(row.label), { x: totalsX, y, size: row.deal ? 9 : 10, font: regular, color });
+    drawRight(totalsPage, `-${formatInvoiceMoney(row.amount)}`, regular, 10, PAGE_WIDTH - MARGIN, y, color);
     y -= 16;
   }
   totalsPage.drawText("Shipping", { x: totalsX, y, size: 10, font: regular, color: MUTED });
@@ -349,4 +367,27 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   });
 
   return doc.save();
+}
+
+const cents = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Discount lines for the totals. The order stores one combined amount, so the
+ * Black Friday part is split out only when it fits inside what was charged.
+ */
+function invoiceDiscountRows(order: OrderRow, offer: BlackFridayOffer) {
+  const stored = cents(Number(order.discount_amount) || 0);
+  if (stored <= 0) return [];
+  const code = (order.discount_code || "").trim();
+  const deals = offer.discountTotal;
+  const rows: { label: string; amount: number; deal: boolean }[] = [];
+  if (deals > 0 && deals <= stored + 0.005) {
+    for (const d of offer.discounts) rows.push({ label: `Black Friday: ${d.label}`, amount: d.amount, deal: true });
+    const rest = cents(stored - deals);
+    if (rest > 0 && code && code !== "BLACKFRIDAY") rows.push({ label: `Discount ${code.slice(0, 18)}`, amount: rest, deal: false });
+    else if (rest > 0) rows.push({ label: "Other discount", amount: rest, deal: false });
+    return rows;
+  }
+  if (code === "BLACKFRIDAY") return [{ label: "Black Friday discount", amount: stored, deal: true }];
+  return [{ label: code ? `Discount ${code.slice(0, 18)}` : "Discount", amount: stored, deal: false }];
 }

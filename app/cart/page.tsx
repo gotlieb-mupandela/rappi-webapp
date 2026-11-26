@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BagQuotationDialog } from "@/components/bag-quotation-dialog";
+import { BlackFridayDiscountRows, BlackFridayGiftRows, cartOffer } from "@/components/black-friday-cart";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { AssortmentBadge } from "@/components/assortment-label";
 import { ProductImage } from "@/components/product-image";
@@ -34,6 +35,7 @@ export default function CartPage() {
   );
 
   const subtotal = rows.reduce((s, r) => s + r.lineTotal, 0);
+  const offer = useMemo(() => cartOffer(lines), [lines]);
   const [quoteOpen, setQuoteOpen] = useState(false);
 
   return (
@@ -143,13 +145,35 @@ export default function CartPage() {
               </div>
             </div>
           ))}
+          {offer.gifts.length || offer.discounts.length ? (
+            <section aria-label="Your Black Friday deals" className="space-y-3 pt-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider">Your Black Friday deals</h2>
+              <BlackFridayGiftRows offer={offer} />
+              {offer.discounts.length ? (
+                <div className="space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm">
+                  <BlackFridayDiscountRows offer={offer} format={format} />
+                  <p className="pt-1 text-xs text-[var(--muted)]">Taken off automatically. You pay the lower price at checkout.</p>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
           <div className="sticky bottom-0 z-20 flex flex-col gap-3 rounded-xl border border-[var(--border-strong)] bg-white/95 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-soft)] backdrop-blur-xl sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-5">
             <p className="text-sm uppercase tracking-wider text-[var(--muted)]">
               {t.plural("count.units", count)}
             </p>
-            <p className="text-xl font-semibold">
-              {t("cart.subtotal", { amount: format(subtotal) })}
-            </p>
+            <div>
+              {offer.discountTotal > 0 ? (
+                <p className="mb-0.5 flex flex-wrap items-baseline gap-x-2 text-sm">
+                  <span className="text-[var(--muted)] line-through">{format(subtotal)}</span>
+                  <span className="font-semibold text-[#2f8a12]">
+                    Black Friday savings -{format(offer.discountTotal)}
+                  </span>
+                </p>
+              ) : null}
+              <p className="text-xl font-semibold">
+                {t("cart.subtotal", { amount: format(subtotal - offer.discountTotal) })}
+              </p>
+            </div>
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Button
                 type="button"

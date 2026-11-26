@@ -4,7 +4,16 @@ export type DpoCartLine = {
   size: string;
   qty: number;
   price: number;
+  /** Catalogue fields that decide Black Friday deals. Set when lines are priced on the server. */
+  deal?: { name: string; category: string; subcategory: string };
 };
+
+/** Lines that carry catalogue fields, in the shape the Black Friday offer reads. */
+export function dealLines(lines: DpoCartLine[]) {
+  return lines.flatMap((l) =>
+    l.deal ? [{ code: l.code, qty: l.qty, price: l.price, ...l.deal }] : [],
+  );
+}
 
 export type DpoPaymentPayload = {
   userId: string;

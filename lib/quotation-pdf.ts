@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
+import { documentOffer } from "@/lib/black-friday-documents";
 import { formatInvoiceDate, formatInvoiceMoney, invoiceSeller } from "@/lib/invoice-pdf";
 import { PDF_PHOTO_COLUMN, PDF_PHOTO_SIZE, drawItemPhoto, embedItemPhotos } from "@/lib/pdf-item-photos";
 import { VERIFY_BOX_HEIGHT, drawVerifyBox } from "@/lib/pdf-verify-box";
@@ -33,6 +34,7 @@ const MUTED = rgb(0.35, 0.35, 0.35);
 const RULE = rgb(0.82, 0.82, 0.82);
 const HEADER_BG = rgb(1, 1, 1);
 const LIME = rgb(0.37, 1, 0.22);
+const FREE_GREEN = rgb(0.18, 0.54, 0.07);
 const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
 const LOGO_NATIVE_WIDTH = 1416;
 const LOGO_NATIVE_HEIGHT = 895;
@@ -139,10 +141,14 @@ export async function buildQuotationPdf(data: QuotationPdfData): Promise<Uint8Ar
     doc.embedFont(StandardFonts.HelveticaBold),
     embedBrandLogo(doc),
   ]);
-  const photos = await embedItemPhotos(
-    doc,
-    data.items.map((item) => item.code),
+  const offer = documentOffer(
+    data.items.map((item) => ({ code: item.code, qty: item.qty, unitPrice: item.unitPrice })),
+    data.createdAt,
   );
+  const photos = await embedItemPhotos(doc, [
+    ...data.items.map((item) => item.code),
+    ...offer.gifts.map((gift) => gift.code),
+  ]);
   const photoColumn = photos.size ? PDF_PHOTO_COLUMN : 0;
 
   const cols = {
@@ -268,8 +274,29 @@ export async function buildQuotationPdf(data: QuotationPdfData): Promise<Uint8Ar
     y -= rowHeight;
   }
 
+  for (const gift of offer.gifts) {
+    const label = `FREE GIFT: ${gift.name}${gift.forCode ? ` (Black Friday, with ${gift.forCode})` : ` (Black Friday, ${gift.reason})`}`;
+    const nameLines = wrap(label, bold, 9, nameWidth);
+    const photo = photos.get(gift.code);
+    const rowHeight = Math.max(16, nameLines.length * 11 + 6, photoColumn ? PDF_PHOTO_SIZE + 8 : 0);
+    ensureSpace(rowHeight);
+    const current = page!;
+    if (photo) drawItemPhoto(current, photo, cols.photo, y + 9);
+    current.drawText(pdfSafe(gift.code), { x: cols.code, y, size: 8, font: regular, color: INK });
+    drawRight(current, String(gift.qty), regular, 9, cols.qty + 18, y);
+    drawRight(current, "FREE", bold, 9, cols.unit + 36, y, FREE_GREEN);
+    drawRight(current, "FREE", bold, 9, cols.amount, y, FREE_GREEN);
+    let nameY = y;
+    for (const line of nameLines) {
+      current.drawText(line, { x: cols.name, y: nameY, size: 9, font: bold, color: FREE_GREEN });
+      nameY -= 11;
+    }
+    y -= rowHeight;
+  }
+
   const noteLines = notes.flatMap((note) => wrap(note, regular, 9, PAGE_WIDTH - MARGIN * 2));
-  ensureSpace(52 + noteLines.length * 12 + VERIFY_BOX_HEIGHT + 16);
+  const dealRows = offer.discounts.length ? offer.discounts.length * 16 + 22 : 0;
+  ensureSpace(52 + dealRows + noteLines.length * 12 + VERIFY_BOX_HEIGHT + 16);
   const totalsPage = page!;
   totalsPage.drawLine({
     start: { x: MARGIN, y },
@@ -278,8 +305,23 @@ export async function buildQuotationPdf(data: QuotationPdfData): Promise<Uint8Ar
     color: RULE,
   });
   y -= 22;
-  totalsPage.drawText("Subtotal", { x: PAGE_WIDTH - MARGIN - 160, y, size: 12, font: bold, color: INK });
-  drawRight(totalsPage, formatInvoiceMoney(data.subtotal), bold, 12, PAGE_WIDTH - MARGIN, y);
+  const totalsX = PAGE_WIDTH - MARGIN - (offer.discounts.length ? 300 : 160);
+  if (offer.discounts.length) {
+    totalsPage.drawText("Subtotal", { x: totalsX, y, size: 10, font: regular, color: MUTED });
+    drawRight(totalsPage, formatInvoiceMoney(data.subtotal), regular, 10, PAGE_WIDTH - MARGIN, y);
+    y -= 16;
+    for (const deal of offer.discounts) {
+      totalsPage.drawText(pdfSafe(`Black Friday: ${deal.label}`), { x: totalsX, y, size: 9, font: regular, color: FREE_GREEN });
+      drawRight(totalsPage, `-${formatInvoiceMoney(deal.amount)}`, regular, 10, PAGE_WIDTH - MARGIN, y, FREE_GREEN);
+      y -= 16;
+    }
+    y -= 6;
+    totalsPage.drawText("Total after deals", { x: totalsX, y, size: 12, font: bold, color: INK });
+    drawRight(totalsPage, formatInvoiceMoney(data.subtotal - offer.discountTotal), bold, 12, PAGE_WIDTH - MARGIN, y);
+  } else {
+    totalsPage.drawText("Subtotal", { x: totalsX, y, size: 12, font: bold, color: INK });
+    drawRight(totalsPage, formatInvoiceMoney(data.subtotal), bold, 12, PAGE_WIDTH - MARGIN, y);
+  }
   y -= 22;
   for (const line of noteLines) {
     totalsPage.drawText(line, { x: MARGIN, y, size: 9, font: regular, color: MUTED });
