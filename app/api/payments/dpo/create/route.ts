@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { blackFridayOrderNote } from "@/lib/black-friday";
 import { checkoutPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
 import { discountRouteError } from "@/lib/discount";
 import { resolveActiveDiscount } from "@/lib/discount-lookup";
@@ -16,6 +17,7 @@ import {
   requestSiteUrl,
   splitName,
 } from "@/lib/dpo";
+import { getProductByCode } from "@/lib/offline-catalog";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRequestClient } from "@/lib/supabase/request";
@@ -123,7 +125,7 @@ export async function POST(req: Request) {
     discountCode: quote.discount?.code ?? "",
     discountRate: quote.discount?.rate ?? 0,
     discountAmount: quote.discount?.amount ?? 0,
-    notes: String(body.notes ?? "").trim(),
+    notes: withDealNote(String(body.notes ?? "").trim(), lines),
     lines,
   };
 
@@ -195,4 +197,14 @@ export async function POST(req: Request) {
     total: quote.total,
     currency: quote.currency,
   });
+}
+
+function withDealNote(notes: string, lines: { code: string; name: string; qty: number; price: number }[]) {
+  const deal = blackFridayOrderNote(
+    lines.flatMap((l) => {
+      const p = getProductByCode(l.code);
+      return p ? [{ ...l, name: p.name, category: p.category, subcategory: p.subcategory }] : [];
+    }),
+  );
+  return [notes, deal].filter(Boolean).join("\n\n");
 }
