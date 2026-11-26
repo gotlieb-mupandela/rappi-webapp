@@ -9,6 +9,7 @@ export const revalidate = 86400;
 
 const STATIC_PAGES: { path: string; priority: number }[] = [
   { path: "/", priority: 1 },
+  { path: "/black-friday", priority: 0.9 },
   { path: "/promotions", priority: 0.8 },
   { path: "/teamwear", priority: 0.8 },
   { path: "/catalog", priority: 0.6 },

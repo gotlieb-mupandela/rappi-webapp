@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { BlackFridayStrip } from "@/components/black-friday";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { useT } from "@/components/locale-provider";
@@ -46,6 +47,7 @@ export function StorefrontChrome({
       <a href="#main" className="skip-link">
         {t("skip")}
       </a>
+      <BlackFridayStrip />
       <Suspense fallback={null}>
         <SiteHeader taxonomy={taxonomy} />
       </Suspense>

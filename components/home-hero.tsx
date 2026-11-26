@@ -1,5 +1,6 @@
 "use client";
 
+import { BlackFridayBanner } from "@/components/black-friday";
 import { HubTile } from "@/components/hub-tile";
 import { useT } from "@/components/locale-provider";
 import { homeTileLayout } from "@/lib/home-tiles";
@@ -45,6 +46,7 @@ export function HomeHero({
     <section className="bg-white">
       <div className="page-shell py-3 sm:py-4 lg:flex lg:h-[calc(100dvh-var(--header-h)-env(safe-area-inset-top))] lg:flex-col lg:py-5">
         <h1 className="sr-only">{t("home.title")}</h1>
+        <BlackFridayBanner />
         {/*
           Joma-style 2×4 bento:
           [ teamwear 2 ] [ sport 1 ] [ run 1 ]

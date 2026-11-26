@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { shareContent } from "@/lib/native";
 import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { BlackFridayProductDeal } from "@/components/black-friday";
 import { MobileBuyBar } from "@/components/mobile-buy-bar";
 import { ProductGallery } from "@/components/product-gallery";
 import { QtyStepper } from "@/components/qty-stepper";
@@ -145,6 +146,7 @@ export function ProductDetail({ product }: { product: Product }) {
             <AssortmentHint product={product} />
           </div>
           <p className="mt-2 text-sm text-[var(--muted)]">{stockLabel(product, t)}</p>
+          <BlackFridayProductDeal product={product} />
           {assortment?.isAssortment ? (
             <p className="mt-1 text-[12px] text-[var(--muted-2)]">
               {recordedPack && packView.pairCount && packView.pairCount > 1
