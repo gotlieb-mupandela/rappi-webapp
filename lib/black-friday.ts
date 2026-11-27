@@ -7,7 +7,7 @@ export function isBlackFridayLive(now = Date.now()) {
   return now >= BLACK_FRIDAY_STARTS_AT && now < BLACK_FRIDAY_ENDS_AT;
 }
 
-export type DealGroup = "shoes" | "swim" | "clothing" | "kids" | "teams";
+export type DealGroup = "shoes" | "swim" | "clothing" | "kids" | "teams" | "equipment";
 export type DealKind = "gift" | "discount";
 
 export type BlackFridayDeal = {
@@ -38,7 +38,7 @@ export const BLACK_FRIDAY_DEALS: BlackFridayDeal[] = [
   { code: "104142.100", title: "Shark swim boxer", label: "Save 10%", offer: "Buy 2 swimwear items", kind: "discount", group: "swim" },
   { code: "401984.104", title: "Sport sunglasses", label: "Free gift", offer: "Free cap when you spend N$800 on summer gear", kind: "gift", gift: "400089.200", group: "clothing" },
   { code: "902448.745", title: "Hydro swimsuit", label: "Free gift", offer: "Free towel on swimwear over N$1,300", kind: "gift", gift: "400922.353", group: "swim" },
-  { code: "104145.100", title: "Splash swim shorts", label: "Free gift", offer: "Free swim cap on swimwear over N$900", kind: "gift", gift: "swimcap-single", group: "swim" },
+  { code: "104145.100", title: "Splash swim shorts", label: "Free gift", offer: "Free cap on swimwear over N$900", kind: "gift", gift: "400089.200", group: "swim" },
   { code: "902268.600", title: "Shark III swimsuit", label: "Save 10%", offer: "Buy 2 swimwear items", kind: "discount", group: "swim" },
   { code: "103245.700", title: "Olimpiada T-shirt", label: "Save 10%", offer: "Buy 2 tees, tanks or shorts", kind: "discount", group: "clothing" },
   { code: "102222.725", title: "Record II tank top", label: "3 for N$400", offer: "Any 3 Record II tank tops, mix colours and sizes", kind: "discount", group: "clothing" },
@@ -79,6 +79,21 @@ const isTop = (p: Classifiable) => /\/(tees|tops|tees-kids)$/.test(key(p)) || is
 const isShorts = (p: Classifiable) => /\/shorts$/.test(key(p)) && !isSwimwear(p);
 const isSkirt = (p: Classifiable) => /\/skirts$/.test(key(p));
 const isCap = (p: Classifiable) => /\/caps$/.test(key(p)) && p.category !== "swimming";
+const isPickleballPaddle = (p: Classifiable) => key(p) === "balls-bags/rackets" && /PICKLEBALL/i.test(p.name ?? "");
+const isPadelRacket = (p: Classifiable) => key(p) === "padel/rackets";
+const isGkGloves = (p: Classifiable) => /\/gk-gloves$/.test(key(p));
+const isBall = (p: Classifiable) => /\/balls$/.test(key(p));
+const isSportsBag = (p: Classifiable) => /^(balls-bags|padel)\/bags$/.test(key(p));
+const isTracksuit = (p: Classifiable) => /\/tracksuits$/.test(key(p));
+const isJacket = (p: Classifiable) => /\/jackets$/.test(key(p));
+const isHoodie = (p: Classifiable) => /\/hoodies$/.test(key(p));
+const isPants = (p: Classifiable) => /\/pants$/.test(key(p));
+const isCourtShoe = (p: Classifiable) => /\/(basketball|handball|hockey)-shoes$/.test(key(p));
+const isTrainingShoe = (p: Classifiable) => /\/training-shoes$/.test(key(p));
+const isPolo = (p: Classifiable) => /\/polos$/.test(key(p));
+const isLegging = (p: Classifiable) => /\/(leggings|tights)$/.test(key(p));
+/** Everyday clothing for "buy 2, save 10%". Record II tanks have their own 3-for-N$400 deal. */
+const isKit = (p: Classifiable) => (isTop(p) || isShorts(p) || isPolo(p) || isLegging(p)) && !isRecordTank(p);
 const isSummerGear = (p: Classifiable) =>
   isSwimwear(p) || isSlide(p) || isSunglasses(p) || isCap(p) || isTop(p) || isShorts(p) || isSkirt(p);
 
@@ -95,13 +110,24 @@ export function productDeal(p: Classifiable): { title: string; detail: string; g
   if (isTrailShoe(p)) return { title: "Free sports socks with these shoes", detail: "One pair per pair of shoes", gift: "400392.200" };
   if (isSneaker(p) && p.price >= 240) return { title: "Free ankle socks with these shoes", detail: "One pair per pair of shoes", gift: "400028.P01" };
   if (isVolleyballShoe(p) && p.price >= 430) return { title: "Free wristband with these shoes", detail: "One wristband per pair", gift: "400300.P03" };
+  if (isCourtShoe(p) && p.price >= 430) return { title: "Free wristband with these shoes", detail: "One wristband per pair", gift: "400300.P03" };
+  if (isTrainingShoe(p) && p.price >= 530) return { title: "Free gym sack with these shoes", detail: "One sack per pair", gift: "400379.040" };
+  if (isPadelRacket(p) && p.price >= 1310) return { title: "Free padel training set", detail: "Training shirt + shorts with this racket", gift: "103124.021" };
+  if (isPickleballPaddle(p) && p.price >= 430) return { title: "Free wristband with this paddle", detail: "One wristband per paddle", gift: "400300.P03" };
+  if (isGkGloves(p) && p.price >= 260) return { title: "Free ankle socks with these gloves", detail: "One pair per pair of gloves", gift: "400028.P01" };
+  if (isBall(p) && p.price >= 260) return { title: "Free ankle socks with this ball", detail: "One pair per ball", gift: "400028.P01" };
+  if (isSportsBag(p) && p.price >= 430) return { title: "Free wristband with this bag", detail: "One wristband per bag", gift: "400300.P03" };
+  if (isJacket(p) && p.price >= 790) return { title: "Free cap with this jacket", detail: "One cap per jacket", gift: "400089.100" };
+  if (isTracksuit(p) && p.price >= 530) return { title: "Free gym sack with this tracksuit", detail: "One sack per tracksuit", gift: "400379.040" };
+  if (isHoodie(p) && p.price >= 260) return { title: "Free ankle socks with this hoodie", detail: "One pair per hoodie", gift: "400028.P01" };
+  if (isPants(p) && p.price >= 260) return { title: "Free ankle socks with these pants", detail: "One pair per pair of pants", gift: "400028.P01" };
   if (isTeamKit(p)) return { title: "10 free training bibs", detail: "On team kit orders over N$5,500", gift: "101686.010" };
   if (isSwimwear(p))
-    return { title: "Swimwear deals", detail: "Buy 2, save 10% · free swim cap over N$900 · free towel over N$1,300", gift: "400922.353" };
+    return { title: "Swimwear deals", detail: "Buy 2, save 10% · free cap over N$900 · free towel over N$1,300", gift: "400922.353" };
   if (isSlide(p)) return { title: "Slides + swimwear, save 10%", detail: "Buy pool slides with any swimwear" };
   if (isRecordTank(p)) return { title: "Any 3 Record II tank tops for N$400", detail: "Mix colours and sizes" };
   if (isSkirt(p)) return { title: "Skirt + tank top or tee, save 10%", detail: "Buy them together in one order" };
-  if (isTop(p) || isShorts(p)) return { title: "Buy 2, save 10%", detail: "On T-shirts, tank tops and shorts" };
+  if (isKit(p)) return { title: "Buy 2, save 10%", detail: "On tees, tank tops, shorts, polos and leggings" };
   if (isSunglasses(p)) return { title: "Free cap when you spend N$800", detail: "On summer gear in one order", gift: "400089.200" };
   return null;
 }
@@ -141,7 +167,8 @@ const GIFT = {
   sportSocks: { code: "400392.200", name: "Sports socks (1 pair)" },
   bibs: { code: "101686.010", name: "Set of 10 training bibs" },
   towel: { code: "400922.353", name: "Towel" },
-  swimCap: { code: "401021.728", name: "Swim cap", image: "swimcap-single" },
+  gymSack: { code: "400379.040", name: "Gym sack" },
+  trainingSet: { code: "103124.021", name: "Padel training set (shirt + shorts)" },
 } as const;
 
 const cents = (n: number) => Math.round(n * 100) / 100;
@@ -180,12 +207,24 @@ export function blackFridayOffer(lines: OfferLine[], now = Date.now()): BlackFri
     else if (isTrailShoe(l)) give(GIFT.sportSocks, l.qty, "With trail / hiking shoes", l.code);
     else if (isSneaker(l) && l.price >= 240) give(GIFT.ankleSocks, l.qty, "With sneakers", l.code);
     else if (isVolleyballShoe(l) && l.price >= 430) give(GIFT.wristband, l.qty, "With volleyball shoes", l.code);
+    else if (isCourtShoe(l) && l.price >= 430) give(GIFT.wristband, l.qty, "With court shoes", l.code);
+    else if (isTrainingShoe(l) && l.price >= 530) give(GIFT.gymSack, l.qty, "With training shoes", l.code);
+    else if (isPadelRacket(l) && l.price >= 1310) give(GIFT.trainingSet, l.qty, "With a padel racket", l.code);
+    else if (isPickleballPaddle(l) && l.price >= 430) give(GIFT.wristband, l.qty, "With a pickleball paddle", l.code);
+    else if (isGkGloves(l) && l.price >= 260) give(GIFT.ankleSocks, l.qty, "With goalkeeper gloves", l.code);
+    else if (isBall(l) && l.price >= 260) give(GIFT.ankleSocks, l.qty, "With a ball", l.code);
+    else if (isSportsBag(l) && l.price >= 430) give(GIFT.wristband, l.qty, "With a sports bag", l.code);
+    else if (isJacket(l) && l.price >= 790) give(GIFT.runCap, l.qty, "With a jacket", l.code);
+    else if (isTracksuit(l) && l.price >= 530) give(GIFT.gymSack, l.qty, "With a tracksuit", l.code);
+    else if (isHoodie(l) && l.price >= 260) give(GIFT.ankleSocks, l.qty, "With a hoodie", l.code);
+    else if (isPants(l) && l.price >= 260) give(GIFT.ankleSocks, l.qty, "With pants", l.code);
   }
   if (sum(isTeamKit) > 5500) give(GIFT.bibs, 1, "Team kit order over N$5,500");
   const swim = sum(isSwimwear);
+  // One summer gift per order: swimwear gifts take priority over the N$800 summer-gear cap.
   if (swim >= 1300) give(GIFT.towel, 1, "Swimwear over N$1,300");
-  else if (swim >= 900) give(GIFT.swimCap, 1, "Swimwear over N$900");
-  if (sum(isSummerGear) >= 800) give(GIFT.summerCap, 1, "Summer gear over N$800");
+  else if (swim >= 900) give(GIFT.summerCap, 1, "Swimwear over N$900");
+  else if (sum(isSummerGear) >= 800) give(GIFT.summerCap, 1, "Summer gear over N$800");
 
   const discounts: BlackFridayDiscount[] = [];
   const off = (label: string, amount: number) => {
@@ -195,9 +234,8 @@ export function blackFridayOffer(lines: OfferLine[], now = Date.now()): BlackFri
   // Each item gets at most one deal: combo deals only discount items not already discounted.
   const swim2 = count(isSwimwear) >= 2;
   if (swim2) off("Buy 2 swimwear, 10% off", swim * 0.1);
-  const kit = (p: Classifiable) => (isTop(p) || isShorts(p)) && !isRecordTank(p);
-  const kit2 = count(kit) >= 2;
-  if (kit2) off("Buy 2 tees, tanks or shorts, 10% off", sum(kit) * 0.1);
+  const kit2 = count(isKit) >= 2;
+  if (kit2) off("Buy 2 tees, shorts, polos or leggings, 10% off", sum(isKit) * 0.1);
   const tanks = lines.filter(isRecordTank);
   const tankQty = tanks.reduce((s, l) => s + l.qty, 0);
   if (tankQty >= 3) {

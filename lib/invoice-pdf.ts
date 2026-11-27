@@ -381,6 +381,8 @@ function invoiceDiscountRows(order: OrderRow, offer: BlackFridayOffer) {
   const code = (order.discount_code || "").trim();
   const deals = offer.discountTotal;
   const rows: { label: string; amount: number; deal: boolean }[] = [];
+  // A customer's own code only appears when it beat the Black Friday deals (they never stack).
+  if (code && code !== "BLACKFRIDAY") return [{ label: `Discount ${code.slice(0, 18)}`, amount: stored, deal: false }];
   if (deals > 0 && deals <= stored + 0.005) {
     for (const d of offer.discounts) rows.push({ label: `Black Friday: ${d.label}`, amount: d.amount, deal: true });
     const rest = cents(stored - deals);

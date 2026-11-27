@@ -670,7 +670,11 @@ export default function CheckoutPage() {
                     rate: formatVatRate(pricedDiscount.rate),
                   })}
                 </span>
-                <span>-{formatPrice(pricedDiscount.amount)}</span>
+                <span>
+                  {pricedDiscount.amount > 0
+                    ? `-${formatPrice(pricedDiscount.amount)}`
+                    : "Black Friday saves you more"}
+                </span>
               </p>
             ) : null}
             <p className="flex justify-between text-[var(--muted)]">

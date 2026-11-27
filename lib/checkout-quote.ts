@@ -100,10 +100,16 @@ export function checkoutPaymentQuote(
   const subtotal = merchandiseSubtotal(merged);
   const shipping = shippingCostById(shippingMethod);
   const offer = blackFridayOffer(dealLines(merged), now);
-  const blackFriday = offer.gifts.length || offer.discountTotal > 0 ? offer : null;
-  const afterDeals = roundMoney(subtotal - offer.discountTotal);
-  const applied = merchandiseDiscount(afterDeals, discount);
-  const off = offer.discountTotal + (applied?.amount ?? 0);
+  // A discount code never stacks with Black Friday money-off deals: the bigger
+  // saving wins, so stacked deals can never push an order below cost. Gifts stay.
+  let deals = offer;
+  let applied = merchandiseDiscount(subtotal, discount);
+  if (applied && offer.discountTotal > 0) {
+    if (applied.amount > offer.discountTotal) deals = { ...offer, discounts: [], discountTotal: 0 };
+    else applied = { ...applied, amount: 0 };
+  }
+  const blackFriday = deals.gifts.length || deals.discountTotal > 0 ? deals : null;
+  const off = deals.discountTotal + (applied?.amount ?? 0);
   // No-discount quotes keep the previous taxable base so cent totals stay put.
   const taxable = off > 0 ? roundMoney(subtotal - off + shipping) : subtotal + shipping;
   const vat = quoteVat(country, taxable);
