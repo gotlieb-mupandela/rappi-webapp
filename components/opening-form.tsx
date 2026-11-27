@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useMoney } from "@/components/locale-provider";
+import { OPENING_SIGNED_UP_KEY } from "@/components/opening-popup";
 import { ProductImage } from "@/components/product-image";
 import {
   BUYS_FOR,
@@ -182,6 +183,11 @@ export function OpeningForm() {
       if (!res.ok) {
         setError(data.error ?? "Could not save your answers. Please try again.");
         return;
+      }
+      try {
+        localStorage.setItem(OPENING_SIGNED_UP_KEY, "1");
+      } catch {
+        // Storage blocked: the pop-up may show again, nothing else breaks.
       }
       if (data.code) router.push(`/c/${data.code}?new=1`);
       else setDone("existing");
