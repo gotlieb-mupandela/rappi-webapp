@@ -180,8 +180,16 @@ export async function sendOpeningEmail(leadId: string, kind: OpeningEmailKind, o
   if (!opts.resend) {
     const { error: claimError } = await admin.from("opening_emails").insert({ lead_id: leadId, kind });
     if (claimError) {
-      if (claimError.code === "23505") return "already" as const;
-      throw new Error(claimError.message);
+      if (claimError.code !== "23505") throw new Error(claimError.message);
+      // Claimed before: skip if it went out, otherwise this is a retry of a failed send.
+      const { data: prev, error: prevError } = await admin
+        .from("opening_emails")
+        .select("sent_at")
+        .eq("lead_id", leadId)
+        .eq("kind", kind)
+        .single();
+      if (prevError) throw new Error(prevError.message);
+      if (prev.sent_at) return "already" as const;
     }
   }
 
@@ -211,10 +219,38 @@ export async function sendOpeningEmail(leadId: string, kind: OpeningEmailKind, o
   }
 }
 
-/** Daily: sends the reminder due today to everyone who hasn't had it, up to the per-run cap. */
+/** Coupon emails that failed (Resend limit or outage) and are at least 10 minutes old. */
+export async function retryFailedCouponEmails(limit: number, now = new Date()) {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("opening_emails")
+    .select("lead_id")
+    .eq("kind", "coupon")
+    .is("sent_at", null)
+    .lt("created_at", new Date(now.getTime() - 10 * 60_000).toISOString())
+    .order("created_at")
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  let sent = 0;
+  for (const row of data ?? []) {
+    try {
+      if ((await sendOpeningEmail(row.lead_id, "coupon")) === "sent") sent++;
+    } catch (err) {
+      console.error("opening coupon retry", err instanceof Error ? err.message : err);
+    }
+  }
+  return { retried: data?.length ?? 0, sent };
+}
+
+/**
+ * Daily: first re-sends coupon emails that failed, then the reminder due today
+ * to everyone who hasn't had it, all within the per-run cap.
+ */
 export async function sendOpeningReminders(now = new Date()) {
+  const retry = await retryFailedCouponEmails(REMINDERS_PER_RUN, now);
+  const budget = REMINDERS_PER_RUN - retry.retried;
   const due = dueReminder(now);
-  if (!due) return { kind: null, sent: 0, remaining: 0 };
+  if (!due || budget <= 0) return { couponRetries: retry, kind: due?.kind ?? null, sent: 0, remaining: 0 };
   const admin = createAdminClient();
   const [{ data: leads, error }, { data: done, error: doneError }] = await Promise.all([
     admin
@@ -237,12 +273,12 @@ export async function sendOpeningReminders(now = new Date()) {
     return !(due.unusedOnly && c.redeemed_at);
   });
   let sent = 0;
-  for (const l of todo.slice(0, REMINDERS_PER_RUN)) {
+  for (const l of todo.slice(0, budget)) {
     try {
       if ((await sendOpeningEmail(l.id, due.kind)) === "sent") sent++;
     } catch (err) {
       console.error("opening reminder", due.kind, err instanceof Error ? err.message : err);
     }
   }
-  return { kind: due.kind, sent, remaining: Math.max(0, todo.length - REMINDERS_PER_RUN) };
+  return { couponRetries: retry, kind: due.kind, sent, remaining: Math.max(0, todo.length - budget) };
 }

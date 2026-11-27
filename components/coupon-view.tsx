@@ -37,7 +37,8 @@ export function CouponView(props: {
 
         {props.isNew && !props.staff ? (
           <p className="mb-4 rounded-xl bg-[#f4ffef] px-4 py-3 text-sm font-semibold text-[#2f6a12]">
-            Done! Your coupon is below and on its way to your email.
+            Done! Your coupon is below and on its way to your email. If you can&apos;t find it, check your
+            Promotions or Spam folder.
           </p>
         ) : null}
 
@@ -80,6 +81,7 @@ export function CouponView(props: {
             <a href={`/c/${props.code}/pdf`} className="flex min-h-12 items-center justify-center rounded-2xl border border-neutral-300 bg-white text-sm font-bold">
               Download PDF
             </a>
+            <ResendEmail code={props.code} />
           </div>
         ) : null}
 
@@ -244,6 +246,41 @@ function StaffLogin({ code }: { code: string }) {
       <button type="button" disabled={busy || !staff || !pin} onClick={login} className="mt-3 h-12 w-full rounded-xl bg-neutral-900 text-sm font-bold uppercase tracking-wider text-white disabled:opacity-50">
         {busy ? "Checking…" : "Open staff view"}
       </button>
+    </div>
+  );
+}
+
+function ResendEmail({ code }: { code: string }) {
+  const [state, setState] = useState<{ busy: boolean; message: string; ok: boolean }>({ busy: false, message: "", ok: false });
+  async function send() {
+    setState({ busy: true, message: "", ok: false });
+    const res = await fetch("/api/opening/resend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    }).catch(() => null);
+    const data = (res ? await res.json().catch(() => ({})) : {}) as { to?: string; error?: string };
+    setState(
+      res?.ok
+        ? { busy: false, ok: true, message: `Sent to ${data.to}. Check your inbox, and the Promotions or Spam folder.` }
+        : { busy: false, ok: false, message: data.error ?? "No connection. Please try again." },
+    );
+  }
+  return (
+    <div className="col-span-2">
+      <button
+        type="button"
+        disabled={state.busy}
+        onClick={send}
+        className="min-h-12 w-full rounded-2xl border border-neutral-300 bg-white text-sm font-bold disabled:opacity-60"
+      >
+        {state.busy ? "Sending…" : "Email my coupon again"}
+      </button>
+      {state.message ? (
+        <p role="status" className={`mt-2 px-1 text-sm ${state.ok ? "text-[#2f6a12]" : "text-red-700"}`}>
+          {state.message}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -37,10 +37,17 @@ export async function POST(req: Request) {
     if (created) {
       const admin = createAdminClient();
       const { data: coupon } = await admin.from("opening_coupons").select("lead_id").eq("code", code).single();
-      try {
-        if (coupon) await sendOpeningEmail(coupon.lead_id, "coupon");
-      } catch (err) {
-        console.error("opening coupon email", err instanceof Error ? err.message : err);
+      if (coupon) {
+        // One quick retry; if it still fails, the daily job and the "Email my coupon again" button pick it up.
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            await sendOpeningEmail(coupon.lead_id, "coupon");
+            break;
+          } catch (err) {
+            console.error(`opening coupon email (attempt ${attempt})`, err instanceof Error ? err.message : err);
+            if (attempt === 1) await new Promise((ok) => setTimeout(ok, 2000));
+          }
+        }
       }
       return NextResponse.json({ ok: true, code });
     }
