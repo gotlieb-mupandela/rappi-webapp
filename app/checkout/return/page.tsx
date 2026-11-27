@@ -60,7 +60,7 @@ export default async function CheckoutReturnPage({
         trusted: trustForCheckoutCaller(user),
       });
       paid = result.ok && result.status === "paid";
-      heading = paid ? "Payment received" : "Payment not complete";
+      heading = paid ? "Payment approved" : "Payment not complete";
       body = result.message;
       ref = result.payment?.company_ref ?? companyRef;
       orderId = result.orderId;
@@ -99,6 +99,11 @@ export default async function CheckoutReturnPage({
         {heading}
       </h1>
       <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{body}</p>
+      {paid && (
+        <p className="mt-3 max-w-xl rounded-lg bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--muted)]">
+          {t("checkout.clearingNote")}
+        </p>
+      )}
       {(ref || amount || orderId) && (
         <section className="mt-8 max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 text-sm">
           {orderId && (

@@ -376,6 +376,7 @@ export default function CheckoutPage() {
               </li>
             ))}
           </ul>
+          <p className="mt-3 text-xs leading-relaxed text-[var(--muted)]">{t("checkout.clearingNote")}</p>
         </section>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild className="h-11">
@@ -563,6 +564,12 @@ export default function CheckoutPage() {
                 </label>
               ))}
             </div>
+            <p className="mt-3 rounded-lg bg-[var(--surface-2)] px-3 py-2 text-xs leading-relaxed text-[var(--muted)]">
+              {t("checkout.clearingNote")}{" "}
+              <Link href="/terms" className="underline">
+                {t("footer.terms")}
+              </Link>
+            </p>
           </section>
           <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
             <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.discountCode")}</h2>
