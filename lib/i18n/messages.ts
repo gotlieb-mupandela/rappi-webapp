@@ -351,6 +351,8 @@ export const en = {
       "This bag is the DPO sandbox product. The amount due is in Namibian dollars (N$). Any euro figure is approximate. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     address: "Shipping address",
     method: "Shipping method",
+    clearingNote:
+      "Please note: card payments take about 3 business days to reach our bank through DPO. We pack and send your order, or have it ready at the Hub, once the money has arrived. Delivery times count from then.",
     fullName: "Full name",
     email: "Email",
     phone: "Cell phone",
@@ -1599,6 +1601,8 @@ export const fr: Messages = {
       "Ce panier contient uniquement le produit sandbox DPO. Le montant dû est en dollars namibiens (N$). Tout montant en euros est approximatif. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     address: "Adresse de livraison",
     method: "Mode de livraison",
+    clearingNote:
+      "À noter : les paiements par carte mettent environ 3 jours ouvrables pour arriver sur notre compte via DPO. Nous préparons et expédions votre commande, ou la tenons prête au Hub, dès réception des fonds. Les délais de livraison comptent à partir de ce moment.",
     fullName: "Nom complet",
     email: "E-mail",
     phone: "Téléphone portable",

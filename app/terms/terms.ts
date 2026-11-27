@@ -4,7 +4,7 @@ export type TermsClause = {
   items: string[];
 };
 
-export const TERMS_VERSION = "6 October 2026";
+export const TERMS_VERSION = "27 November 2026";
 
 export const TERMS_COMPANY =
   "RAPPI Investments CC (Reg. No. CC/2025/02866), trading as RAPPI Sports Hub";
@@ -18,6 +18,7 @@ export const TERMS_SUMMARY = {
   keyTerms: [
     "Prices include VAT and are subject to change.",
     "Ownership of goods remains with the Company until payment is received in full.",
+    "Online card payments take about 3 business days to reach the Company's bank. Dispatch and collection start only once the funds have cleared.",
     "Risk passes on delivery or collection.",
     "Deposits on special and personalized orders are not refundable once the order is placed.",
     "Goods must be inspected on collection and visible damage reported within 48 hours.",
@@ -76,6 +77,9 @@ export const TERMS_CLAUSES: TermsClause[] = [
       "Unless a credit account or layby has been agreed in writing, payment is due in full before Goods are released.",
       "The Company accepts cash, debit and credit card, EFT and mobile payment. Cheques are not accepted.",
       "Payment by electronic transfer is regarded as received only once the funds reflect as cleared in the Company's bank account. Proof of payment is not proof of clearance.",
+      "Online payments on www.rappisportshub.com are processed by the Company's payment service provider, DPO Pay. A successful payment confirmation or receipt shows that the payment was approved; it does not mean that the funds have reached the Company. The payment service provider settles the funds into the bank account of RAPPI Investments CC, which ordinarily takes about 3 business days and may take longer over weekends, public holidays or where the provider or a bank delays settlement.",
+      "An online order is processed, packed, dispatched or made available for collection at the Hub only once the payment has cleared in the Company's bank account. This applies to all delivery methods, including Hub pickup and Express delivery.",
+      "The Company is not liable for any delay, loss or inconvenience caused by the time the payment service provider or a bank takes to settle or clear a payment, and such a delay does not entitle the Customer to claim damages or compensation. Where a payment is reversed, declined or charged back after approval, the Company may cancel the order, or recover the Goods or their value from the Customer.",
       "The Customer may not withhold or set off any amount against a sum due to the Company for any reason.",
       "A card payment may be refunded only to the same card. The Company does not refund card payments in cash.",
     ],
@@ -131,7 +135,8 @@ export const TERMS_CLAUSES: TermsClause[] = [
     number: 11,
     title: "Delivery and collection",
     items: [
-      "Delivery periods are estimates. Time is not of the essence unless agreed in writing.",
+      "Delivery and collection periods are estimates. Time is not of the essence unless agreed in writing.",
+      "For online orders, the delivery or collection period shown at checkout (for example Standard 5–8 business days or Express 2–3 business days) is counted from the business day on which payment clears in the Company's bank account, and not from the date the order is placed. The expected date shown on the order confirmation includes about 3 business days for payment clearing.",
       "Where the Company arranges delivery, delivery charges are quoted separately and are payable in advance.",
       "The Company may deliver in instalments and invoice each instalment separately.",
       "Where the Customer or the Customer's agent signs for the Goods at the delivery address, delivery is regarded as complete and valid.",

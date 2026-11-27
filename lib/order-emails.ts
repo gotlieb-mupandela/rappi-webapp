@@ -274,15 +274,18 @@ export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): 
 
   switch (kind) {
     case "paid": {
-      const subject = `Payment received – order ${order.id} is being prepared`;
+      const subject = `Payment approved – order ${order.id}`;
       const body = [
-        heading("Payment received, thank you!"),
+        heading("Payment approved, thank you!"),
         para(
-          `Hi ${name}, we've received your payment of <strong>${emailMoney(order.total)}</strong>. Your order is now being prepared${
-            due ? ` and should ${isPickup(order) ? "be ready" : "reach you"} by <strong>${escapeHtml(due)}</strong>` : ""
-          }.`,
+          `Hi ${name}, your payment of <strong>${emailMoney(order.total)}</strong> was approved by DPO Pay and your order is confirmed.`,
         ),
-        para("Your receipt is attached. We'll email you again when your order ships."),
+        para(
+          `Card payments take about <strong>3 business days</strong> to reach our bank. As soon as the money arrives, we ${
+            isPickup(order) ? "get your order ready at the Hub" : "pack and send your order"
+          } and email you${due ? `. ${isPickup(order) ? "Expected ready" : "Expected delivery"}: <strong>${escapeHtml(due)}</strong>` : ""}.`,
+        ),
+        para("Your receipt is attached. Delivery times count from the day your payment clears (see our Terms, clause 5)."),
         progress(0),
         deliveryFacts(ctx),
         orderSummary(ctx),
@@ -290,10 +293,10 @@ export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): 
       ].join("");
       return {
         subject,
-        html: layout(ctx, body, `We received ${emailMoney(order.total)}. Expected by ${due}.`),
-        text: `Hi ${firstName(order.full_name)},\n\nWe've received your payment of ${emailMoney(order.total)} for order ${order.id}. Your order is being prepared${
-          due ? ` and should arrive by ${due}` : ""
-        }. Your receipt is attached.\n\n${textItems(ctx)}\n\nTotal paid: ${emailMoney(order.total)}\n\nView your order: ${ordersUrl}\n\n${ctx.sellerName}`,
+        html: layout(ctx, body, `Payment of ${emailMoney(order.total)} approved. Expected by ${due}.`),
+        text: `Hi ${firstName(order.full_name)},\n\nYour payment of ${emailMoney(order.total)} for order ${order.id} was approved by DPO Pay. Card payments take about 3 business days to reach our bank; as soon as the money arrives we ${
+          isPickup(order) ? "get your order ready at the Hub" : "pack and send your order"
+        }${due ? ` (expected by ${due})` : ""}. Your receipt is attached.\n\n${textItems(ctx)}\n\nTotal paid: ${emailMoney(order.total)}\n\nView your order: ${ordersUrl}\n\n${ctx.sellerName}`,
       };
     }
     case "preparing": {
