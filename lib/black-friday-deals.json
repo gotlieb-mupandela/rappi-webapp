@@ -1,0 +1,901 @@
+[
+ {
+  "code": "PSTROW2617",
+  "title": "Stroke Men padel shoes",
+  "label": "Free gift",
+  "offer": "Free wristband or overgrip",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes",
+  "cutout": true
+ },
+ {
+  "code": "ECUW2511FG",
+  "title": "Evolution Top boots",
+  "label": "Free gift",
+  "offer": "Free boot bag",
+  "kind": "gift",
+  "gift": "400001.100",
+  "group": "shoes",
+  "cutout": true
+ },
+ {
+  "code": "RR200W2672",
+  "title": "R.2000 running shoes",
+  "label": "Free gift",
+  "offer": "Free sun cap",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "shoes",
+  "cutout": true
+ },
+ {
+  "code": "101353.100",
+  "title": "Trail running shorts",
+  "label": "Free gift",
+  "offer": "Free ankle socks with running wear",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing",
+  "cutout": true
+ },
+ {
+  "code": "WSCHOW2602V",
+  "title": "W.School Jr kids' shoes",
+  "label": "Free gift",
+  "offer": "Free socks",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "kids",
+  "cutout": true
+ },
+ {
+  "code": "TKTR9S2601",
+  "title": "TR-9 trail shoes",
+  "label": "Free gift",
+  "offer": "Free sports socks",
+  "kind": "gift",
+  "gift": "400392.200",
+  "group": "shoes",
+  "cutout": true
+ },
+ {
+  "code": "C500LW2302V",
+  "title": "500 Lady sneakers",
+  "label": "Free gift",
+  "offer": "Free ankle socks with running wear",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "shoes",
+  "cutout": true
+ },
+ {
+  "code": "103124.021",
+  "title": "Phoenix III team kit",
+  "label": "Free gift",
+  "offer": "10 free bibs on team orders over N$5,500",
+  "kind": "gift",
+  "gift": "101686.010",
+  "group": "teams",
+  "cutout": true
+ },
+ {
+  "code": "105135.601",
+  "title": "Heroic T-shirt",
+  "label": "Save 10%",
+  "offer": "Buy 2 tees, shorts, polos or leggings, save 10%",
+  "kind": "discount",
+  "group": "clothing",
+  "cutout": true
+ },
+ {
+  "code": "104142.100",
+  "title": "Shark swim boxer",
+  "label": "Save 10%",
+  "offer": "Buy 2 swimwear items",
+  "kind": "discount",
+  "group": "swim",
+  "cutout": true
+ },
+ {
+  "code": "401984.104",
+  "title": "Sport sunglasses",
+  "label": "Free gift",
+  "offer": "Free cap when you spend N$800 on summer gear",
+  "kind": "gift",
+  "gift": "400089.200",
+  "group": "clothing",
+  "cutout": true
+ },
+ {
+  "code": "902448.745",
+  "title": "Hydro swimsuit",
+  "label": "Free gift",
+  "offer": "Free towel on swimwear over N$1,300",
+  "kind": "gift",
+  "gift": "400922.353",
+  "group": "swim",
+  "cutout": true
+ },
+ {
+  "code": "104145.100",
+  "title": "Splash swim shorts",
+  "label": "Free gift",
+  "offer": "Free cap on swimwear over N$900",
+  "kind": "gift",
+  "gift": "400089.200",
+  "group": "swim",
+  "cutout": true
+ },
+ {
+  "code": "902268.600",
+  "title": "Shark III swimsuit",
+  "label": "Save 10%",
+  "offer": "Buy 2 swimwear items",
+  "kind": "discount",
+  "group": "swim",
+  "cutout": true
+ },
+ {
+  "code": "103245.700",
+  "title": "Olimpiada T-shirt",
+  "label": "Save 10%",
+  "offer": "Buy 2 tees, shorts, polos or leggings, save 10%",
+  "kind": "discount",
+  "group": "clothing",
+  "cutout": true
+ },
+ {
+  "code": "102222.725",
+  "title": "Record II tank top",
+  "label": "3 for N$400",
+  "offer": "Any 3 Record II tank tops, mix colours and sizes",
+  "kind": "discount",
+  "group": "clothing",
+  "cutout": true
+ },
+ {
+  "code": "VBLOKW2601",
+  "title": "Block Low volleyball shoes",
+  "label": "Free gift",
+  "offer": "Free wristband",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes",
+  "cutout": true
+ },
+ {
+  "code": "902073.200",
+  "title": "Torneo skirt",
+  "label": "Save 10%",
+  "offer": "Skirt with a tank top or tee",
+  "kind": "discount",
+  "group": "clothing",
+  "cutout": true
+ },
+ {
+  "code": "SCOSTS2503",
+  "title": "S.Costa pool slides",
+  "label": "Save 10%",
+  "offer": "Slides with any swimwear",
+  "kind": "discount",
+  "group": "swim",
+  "cutout": true
+ },
+ {
+  "code": "T842501D5101",
+  "title": "Brentford FC padel racket",
+  "label": "Free gift",
+  "offer": "Free padel training set",
+  "kind": "gift",
+  "gift": "103124.021",
+  "group": "equipment"
+ },
+ {
+  "code": "101739.600",
+  "title": "Short-Sleeve Shirt Desert Red",
+  "label": "Save 10%",
+  "offer": "Buy 2 tees, shorts, polos or leggings, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "100165.300",
+  "title": "Long Nilo Pants Navy",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these pants",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "100285.100",
+  "title": "Faraon Sweatshirt Half Zip Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this hoodie",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "103732.021",
+  "title": "Set Danubio III Fluorescent Green Black",
+  "label": "Free gift",
+  "offer": "10 free training bibs on team orders over N$5,500",
+  "kind": "gift",
+  "gift": "101686.010",
+  "group": "teams"
+ },
+ {
+  "code": "WACADW2692V",
+  "title": "W.Academy Jr 2692 White",
+  "label": "Free gift",
+  "offer": "Free socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "kids"
+ },
+ {
+  "code": "900759.100",
+  "title": "Open II Skirt Black",
+  "label": "Save 10%",
+  "offer": "Skirt + tank top or tee, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "105312.331",
+  "title": "Anorak Cervino II Dark Navy",
+  "label": "Free gift",
+  "offer": "Free cap with this jacket",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "clothing"
+ },
+ {
+  "code": "105068.304",
+  "title": "Bermuda Toledo II Dark Navy Green",
+  "label": "Free gift",
+  "offer": "Free ankle socks with running wear",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "103733.336",
+  "title": "Tracksuit Danubio III Navy Red",
+  "label": "Free gift",
+  "offer": "Free gym sack with this tracksuit",
+  "kind": "gift",
+  "gift": "400379.040",
+  "group": "clothing"
+ },
+ {
+  "code": "104141.100",
+  "title": "Swim Brief Shark Black",
+  "label": "Save 10%",
+  "offer": "Buy 2 swimwear, save 10%",
+  "kind": "discount",
+  "group": "swim"
+ },
+ {
+  "code": "401364.119",
+  "title": "Goalkeeper Gloves Premier Black Coral Fluoresc",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these gloves",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "TOPW2621IN",
+  "title": "Top Flex 2621 Black Indoor",
+  "label": "Free gift",
+  "offer": "Free boot bag with these boots",
+  "kind": "gift",
+  "gift": "400001.100",
+  "group": "shoes"
+ },
+ {
+  "code": "TELCLW2501AC",
+  "title": "Electric Lady 2501 Black",
+  "label": "Free gift",
+  "offer": "Free wristband with these shoes",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "CDOVEW2626",
+  "title": "Dover Men 2626 Camel",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "shoes"
+ },
+ {
+  "code": "RR120S2409",
+  "title": "R.R1200 Skypes 3-6-9 Mm 2409 Fluorescent Yello",
+  "label": "Free gift",
+  "offer": "Free cap with these shoes",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "shoes"
+ },
+ {
+  "code": "PICW2593",
+  "title": "Picklet 2593 Marine Royal Pink Pro Tour",
+  "label": "Free gift",
+  "offer": "Free wristband or overgrip",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "SPLAYS2691",
+  "title": "S.Playa Men 2691 Black Red Green",
+  "label": "Save 10%",
+  "offer": "Slides + swimwear, save 10%",
+  "kind": "discount",
+  "group": "swim"
+ },
+ {
+  "code": "400751.907",
+  "title": "Ball High Performance Yellow Royal",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this ball",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "401694.100",
+  "title": "Sport Bag Travel Black",
+  "label": "Free gift",
+  "offer": "Free wristband with this bag",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ },
+ {
+  "code": "CRTHUW2602",
+  "title": "Thunder 2602 White",
+  "label": "Free gift",
+  "offer": "Free gym sack with these shoes",
+  "kind": "gift",
+  "gift": "400379.040",
+  "group": "shoes"
+ },
+ {
+  "code": "TKTR6W2625",
+  "title": "Tr-6 Men 2625 Beige",
+  "label": "Free gift",
+  "offer": "Free sports socks with these shoes",
+  "kind": "gift",
+  "gift": "400392.200",
+  "group": "shoes"
+ },
+ {
+  "code": "401980.106",
+  "title": "Pickleball Paddle Pro Series Black Red",
+  "label": "Free gift",
+  "offer": "Free wristband with this paddle",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ },
+ {
+  "code": "104494.151",
+  "title": "T-Shirt Short Sleeve Combi Premium Anthracite ",
+  "label": "Save 10%",
+  "offer": "Buy 2 tees, shorts, polos or leggings, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "103741.100",
+  "title": "Long Pants Olimpiada Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these pants",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "100947.703",
+  "title": "1/2 Zip Sweatshirt Winner Royal-Navy",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this hoodie",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "102741.601",
+  "title": "Set Phoenix Red Black",
+  "label": "Free gift",
+  "offer": "10 free training bibs on team orders over N$5,500",
+  "kind": "gift",
+  "gift": "101686.010",
+  "group": "teams"
+ },
+ {
+  "code": "WHARW2543V",
+  "title": "W.Harvard Jr 2543 White Navy",
+  "label": "Free gift",
+  "offer": "Free socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "kids"
+ },
+ {
+  "code": "900812.100",
+  "title": "Skirt Katy II Black",
+  "label": "Save 10%",
+  "offer": "Skirt + tank top or tee, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "105314.100",
+  "title": "Softshell Cervino II Black",
+  "label": "Free gift",
+  "offer": "Free cap with this jacket",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "clothing"
+ },
+ {
+  "code": "104034.100",
+  "title": "Shorts R-Nature Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with running wear",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "103083.672",
+  "title": "Tracksuit Championship Vii Burgundy White",
+  "label": "Free gift",
+  "offer": "Free gym sack with this tracksuit",
+  "kind": "gift",
+  "gift": "400379.040",
+  "group": "clothing"
+ },
+ {
+  "code": "104399.100",
+  "title": "Shark Iv Swim Brief Black",
+  "label": "Save 10%",
+  "offer": "Buy 2 swimwear, save 10%",
+  "kind": "discount",
+  "group": "swim"
+ },
+ {
+  "code": "401181.108",
+  "title": "Goalkeeper Gloves Area 360 Black Orange",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these gloves",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "TOLCS2608AG",
+  "title": "Toledo Cup 2608 Orange Artificial Grass",
+  "label": "Free gift",
+  "offer": "Free boot bag with these boots",
+  "kind": "gift",
+  "gift": "400001.100",
+  "group": "shoes"
+ },
+ {
+  "code": "V62SW2609",
+  "title": "V6.2 2609 Fluorescent Yellow",
+  "label": "Free gift",
+  "offer": "Free wristband with these shoes",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "CCALCW2502",
+  "title": "C.Calcio 28 Men 2502 White",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "shoes"
+ },
+ {
+  "code": "RR120W2606",
+  "title": "R.R1200 Spikes 2606 Red",
+  "label": "Free gift",
+  "offer": "Free cap with these shoes",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "shoes"
+ },
+ {
+  "code": "TROLLW2602AC",
+  "title": "Roland Lady 2602 White",
+  "label": "Free gift",
+  "offer": "Free wristband or overgrip",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "400742.201",
+  "title": "Ball J-Match White Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this ball",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "401855.100",
+  "title": "Sport Bag Tennis Black",
+  "label": "Free gift",
+  "offer": "Free wristband with this bag",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ },
+ {
+  "code": "TKSIEW2621",
+  "title": "Sierra Men 2621 Black",
+  "label": "Free gift",
+  "offer": "Free sports socks with these shoes",
+  "kind": "gift",
+  "gift": "400392.200",
+  "group": "shoes"
+ },
+ {
+  "code": "401968.216",
+  "title": "Pickleball Paddle Lite Series White Blue",
+  "label": "Free gift",
+  "offer": "Free wristband with this paddle",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ },
+ {
+  "code": "104263.700",
+  "title": "Short-Sleeve Shirt Championship Viii Royal",
+  "label": "Save 10%",
+  "offer": "Buy 2 tees, shorts, polos or leggings, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "104496.100",
+  "title": "Long Pants Combi Premium Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these pants",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "105166.703",
+  "title": "Championship 20 Sweatshirt Royal Dark Navy",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this hoodie",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "104285.102",
+  "title": "Set Lider Black White",
+  "label": "Free gift",
+  "offer": "10 free training bibs on team orders over N$5,500",
+  "kind": "gift",
+  "gift": "101686.010",
+  "group": "teams"
+ },
+ {
+  "code": "WPLAYW2529VO",
+  "title": "W.Play Jr 2529 White Pink",
+  "label": "Free gift",
+  "offer": "Free socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "kids"
+ },
+ {
+  "code": "901839.624",
+  "title": "Skirt Explorer Red",
+  "label": "Save 10%",
+  "offer": "Skirt + tank top or tee, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "101697.100",
+  "title": "Anorak Islandia III Black",
+  "label": "Free gift",
+  "offer": "Free cap with this jacket",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "clothing"
+ },
+ {
+  "code": "103165.100",
+  "title": "Short Trail Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with running wear",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "103615.603",
+  "title": "Tracksuit Toledo Red Navy",
+  "label": "Free gift",
+  "offer": "Free gym sack with this tracksuit",
+  "kind": "gift",
+  "gift": "400379.040",
+  "group": "clothing"
+ },
+ {
+  "code": "104146.745",
+  "title": "Swim Brief Hydro Blue",
+  "label": "Save 10%",
+  "offer": "Buy 2 swimwear, save 10%",
+  "kind": "discount",
+  "group": "swim"
+ },
+ {
+  "code": "401362.013",
+  "title": "Goalkeeper Gloves Area 24 Turquoise Fluorescen",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these gloves",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "PSTRIW2511SG",
+  "title": "Striker Premium Men 2511 Fluorescent Yellow So",
+  "label": "Free gift",
+  "offer": "Free boot bag with these boots",
+  "kind": "gift",
+  "gift": "400001.100",
+  "group": "shoes"
+ },
+ {
+  "code": "BKLITW2512",
+  "title": "Lithium Men 2512 Gray",
+  "label": "Free gift",
+  "offer": "Free wristband with these shoes",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "RRT50LW2620",
+  "title": "Rt50 Lady 2620 Burgundy",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "shoes"
+ },
+ {
+  "code": "RR150W2608",
+  "title": "Rr 1500 2608 Orange",
+  "label": "Free gift",
+  "offer": "Free cap with these shoes",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "shoes"
+ },
+ {
+  "code": "TACLW2601AC",
+  "title": "Ace Lady 2601 Black",
+  "label": "Free gift",
+  "offer": "Free wristband or overgrip",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "401735.208",
+  "title": "Ball J-Pro Rugby White Orange",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this ball",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "401905.709",
+  "title": "Paddle Bag Master White Blue",
+  "label": "Free gift",
+  "offer": "Free wristband with this bag",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ },
+ {
+  "code": "TKTUNW2601",
+  "title": "Tundra Men 2601 Black",
+  "label": "Free gift",
+  "offer": "Free sports socks with these shoes",
+  "kind": "gift",
+  "gift": "400392.200",
+  "group": "shoes"
+ },
+ {
+  "code": "401763.116",
+  "title": "Pickleball Racket Aguila 1.0 Black Turquoise",
+  "label": "Free gift",
+  "offer": "Free wristband with this paddle",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ },
+ {
+  "code": "100053.600",
+  "title": "Nobel Shorts Red",
+  "label": "Save 10%",
+  "offer": "Buy 2 tees, shorts, polos or leggings, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "100540.100",
+  "title": "Long Pants Elba Black",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these pants",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "103708.700",
+  "title": "Sweatshirt Olimpiada Royal",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this hoodie",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "105196.024",
+  "title": "Zamora Xi Set Fluor Green Green",
+  "label": "Free gift",
+  "offer": "10 free training bibs on team orders over N$5,500",
+  "kind": "gift",
+  "gift": "101686.010",
+  "group": "teams"
+ },
+ {
+  "code": "JVELAS2513V",
+  "title": "Vela Jr 2513 White Pink Barefoot",
+  "label": "Free gift",
+  "offer": "Free socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "kids"
+ },
+ {
+  "code": "902879.324",
+  "title": "Skirt Elite Club Navy",
+  "label": "Save 10%",
+  "offer": "Skirt + tank top or tee, save 10%",
+  "kind": "discount",
+  "group": "clothing"
+ },
+ {
+  "code": "105313.331",
+  "title": "Rain Jacket Cervino II Dark Navy",
+  "label": "Free gift",
+  "offer": "Free cap with this jacket",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "clothing"
+ },
+ {
+  "code": "105332.450",
+  "title": "Short-Sleeve Shirt Combi Pro Green",
+  "label": "Free gift",
+  "offer": "Free ankle socks with running wear",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "clothing"
+ },
+ {
+  "code": "105067.109",
+  "title": "Tracksuit Toledo II Black Yellow",
+  "label": "Free gift",
+  "offer": "Free gym sack with this tracksuit",
+  "kind": "gift",
+  "gift": "400379.040",
+  "group": "clothing"
+ },
+ {
+  "code": "902445.100",
+  "title": "Swimsuit Splash Black",
+  "label": "Save 10%",
+  "offer": "Buy 2 swimwear, save 10%",
+  "kind": "discount",
+  "group": "swim"
+ },
+ {
+  "code": "401711.117",
+  "title": "Area 19 Goalkeeper Gloves Black Fluorescent Gr",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these gloves",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "SCUW2505SG",
+  "title": "Striker Top 2505 Navy Soft Ground",
+  "label": "Free gift",
+  "offer": "Free boot bag with these boots",
+  "kind": "gift",
+  "gift": "400001.100",
+  "group": "shoes"
+ },
+ {
+  "code": "BNATUW2602",
+  "title": "Naturka Men 2602 White",
+  "label": "Free gift",
+  "offer": "Free wristband with these shoes",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "CSTALS2612",
+  "title": "Stadium Lady 2612 White Grey",
+  "label": "Free gift",
+  "offer": "Free ankle socks with these shoes",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "shoes"
+ },
+ {
+  "code": "RR100S2602",
+  "title": "R-1000 2602 White Royal",
+  "label": "Free gift",
+  "offer": "Free cap with these shoes",
+  "kind": "gift",
+  "gift": "400089.100",
+  "group": "shoes"
+ },
+ {
+  "code": "TROLW2522G",
+  "title": "Roland Men 2522 White Grass",
+  "label": "Free gift",
+  "offer": "Free wristband or overgrip",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "shoes"
+ },
+ {
+  "code": "401733.883",
+  "title": "Ball J-Pro Volley Coral Fluor Dark Navy",
+  "label": "Free gift",
+  "offer": "Free ankle socks with this ball",
+  "kind": "gift",
+  "gift": "400028.P01",
+  "group": "equipment"
+ },
+ {
+  "code": "401926.100",
+  "title": "Paddle Bag Black",
+  "label": "Free gift",
+  "offer": "Free wristband with this bag",
+  "kind": "gift",
+  "gift": "400300.P03",
+  "group": "equipment"
+ }
+]

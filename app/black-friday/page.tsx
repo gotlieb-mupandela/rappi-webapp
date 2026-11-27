@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { BlackFridayDeals, type DealCard } from "@/components/black-friday-deals";
-import { BLACK_FRIDAY_DATES, BLACK_FRIDAY_DEALS, isBlackFridayLive } from "@/lib/black-friday";
+import { BLACK_FRIDAY_DATES, isBlackFridayLive, type BlackFridayDeal } from "@/lib/black-friday";
+import ALL_DEALS from "@/lib/black-friday-deals.json";
+import { toClientProduct } from "@/lib/listing-core";
 import { getCatalog } from "@/lib/supabase/catalog";
 
 export const revalidate = 3600;
@@ -8,17 +10,24 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Black Friday deals",
   description:
-    "20 summer deals at RAPPI Sports Hub: free gifts on padel, running and football shoes, 10% off swimwear and summer kit, 3 tank tops for N$400.",
+    "100 Black Friday deals at RAPPI Sports Hub: free gifts on shoes, boots, rackets, gloves, jackets and tracksuits, 10% off swimwear and everyday kit, 3 tank tops for N$400.",
   alternates: { canonical: "/black-friday" },
 };
 
 export default async function BlackFridayPage() {
   const catalog = await getCatalog();
   const byCode = new Map(catalog.map((p) => [p.code, p]));
-  const deals: DealCard[] = BLACK_FRIDAY_DEALS.flatMap((d) => {
+  const deals: DealCard[] = (ALL_DEALS as (BlackFridayDeal & { cutout?: boolean })[]).flatMap((d) => {
     const p = byCode.get(d.code);
     if (!p || p.available === false) return [];
-    return [{ ...d, price: p.price, inStock: (p.stockQty ?? p.totalQty ?? 0) > 0 }];
+    return [
+      {
+        ...d,
+        price: p.price,
+        inStock: (p.stockQty ?? p.totalQty ?? 0) > 0,
+        product: d.cutout ? undefined : toClientProduct(p),
+      },
+    ];
   });
   const live = isBlackFridayLive();
 
@@ -33,8 +42,8 @@ export default async function BlackFridayPage() {
             Black Friday <span className="text-[#5eff38]">deals</span>
           </h1>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-white/80 sm:text-[17px]">
-            20 summer deals across padel, running, football, swimwear and summer kit. Free gifts on shoes and
-            swimwear, 10% off when you buy 2.
+            100 deals across shoes, boots, padel, swimwear, equipment and everyday kit. Free gifts on shoes,
+            boots, rackets, gloves, jackets and tracksuits, 10% off when you buy 2.
           </p>
           <ol className="mt-5 flex flex-col gap-2 text-sm text-white/85 sm:flex-row sm:flex-wrap sm:gap-3">
             {[

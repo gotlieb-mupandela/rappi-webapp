@@ -3,16 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useMoney } from "@/components/locale-provider";
+import { ProductImage } from "@/components/product-image";
 import { dealImage, type BlackFridayDeal, type DealGroup } from "@/lib/black-friday";
+import type { Product } from "@/lib/types";
 import { productPath } from "@/lib/utils";
 
-export type DealCard = BlackFridayDeal & { price: number; inStock: boolean };
+/** `product` is set for deals without a cut-out photo; its catalogue photo is shown instead. */
+export type DealCard = BlackFridayDeal & { price: number; inStock: boolean; product?: Product };
 
 const FILTERS: { id: DealGroup | "all"; label: string }[] = [
   { id: "all", label: "All" },
   { id: "shoes", label: "Shoes" },
   { id: "swim", label: "Swimwear" },
   { id: "clothing", label: "Clothing" },
+  { id: "equipment", label: "Equipment" },
   { id: "kids", label: "Kids" },
   { id: "teams", label: "Teams" },
 ];
@@ -52,13 +56,27 @@ export function BlackFridayDeals({ deals }: { deals: DealCard[] }) {
               className="flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white text-neutral-900 transition hover:border-neutral-400"
             >
               <span className="relative flex aspect-square items-center justify-center bg-[#f2f2f2]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={dealImage(d.code)}
-                  alt={d.title}
-                  loading="lazy"
-                  className="max-h-[78%] max-w-[78%] object-contain mix-blend-multiply"
-                />
+                {d.product ? (
+                  <ProductImage
+                    product={d.product}
+                    src={d.product.imageUrl}
+                    sources={d.product.images}
+                    alt={d.title}
+                    className="h-[78%] w-[78%] object-contain mix-blend-multiply"
+                    fallbackClassName="h-[78%] w-[78%]"
+                    sizes="(max-width: 1024px) 50vw, 25vw"
+                    width={480}
+                    height={480}
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={dealImage(d.code)}
+                    alt={d.title}
+                    loading="lazy"
+                    className="max-h-[78%] max-w-[78%] object-contain mix-blend-multiply"
+                  />
+                )}
                 <span className="absolute left-2 top-2 rounded-lg bg-[#5eff38] px-2 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#0c110b] sm:left-3 sm:top-3 sm:text-xs">
                   {d.label}
                 </span>

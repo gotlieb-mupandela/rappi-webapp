@@ -205,7 +205,8 @@ function storedDiscount(quote: CheckoutQuote) {
   const deals = quote.blackFriday?.discountTotal ?? 0;
   const amount = roundMoney(deals + (quote.discount?.amount ?? 0));
   if (amount <= 0) return { discountCode: "", discountRate: 0, discountAmount: 0 };
-  if (quote.discount) return { discountCode: quote.discount.code, discountRate: quote.discount.rate, discountAmount: amount };
+  if (quote.discount && quote.discount.amount > 0)
+    return { discountCode: quote.discount.code, discountRate: quote.discount.rate, discountAmount: amount };
   return {
     discountCode: "BLACKFRIDAY",
     discountRate: Math.min(100, roundMoney((deals / quote.subtotal) * 100)),
