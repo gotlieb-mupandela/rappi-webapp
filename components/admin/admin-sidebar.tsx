@@ -14,6 +14,7 @@ import {
   Truck,
   Users,
   ClipboardList,
+  Store,
   X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -29,6 +30,7 @@ const NAV = [
   { href: "/admin/content", label: "Content", icon: Settings2 },
   { href: "/admin/shipping", label: "Shipping", icon: Truck },
   { href: "/admin/discounts", label: "Discounts", icon: Percent },
+  { href: "/admin/opening", label: "Opening leads", icon: Store },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

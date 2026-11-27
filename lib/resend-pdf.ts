@@ -21,6 +21,7 @@ export async function sendEmail(input: {
   html: string;
   text?: string;
   attachments?: EmailAttachment[];
+  headers?: Record<string, string>;
 }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -42,6 +43,7 @@ export async function sendEmail(input: {
       subject: input.subject,
       html: input.html,
       ...(input.text ? { text: input.text } : {}),
+      ...(input.headers ? { headers: input.headers } : {}),
       ...(input.attachments?.length
         ? {
             attachments: input.attachments.map((a) => ({

@@ -8,6 +8,7 @@ import {
 } from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
 import { sendOrderInvoice } from "@/lib/invoice-email";
+import { COUPON_CODE, redeemCoupon } from "@/lib/opening";
 import { notifyOrder } from "@/lib/order-notify";
 import { revalidateCatalog } from "@/lib/admin/revalidate-catalog";
 import { sendMetaPurchaseCapi } from "@/lib/meta/capi";
@@ -69,6 +70,16 @@ async function withOrder(payment: Payment | null, message: string, extra: Omit<D
         revalidateCatalog();
       } catch (err) {
         console.error("catalog refresh after order", err);
+      }
+    }
+    if (newOrder && orderId) {
+      const code = String((payment.payload as { discountCode?: unknown } | null)?.discountCode ?? "");
+      if (COUPON_CODE.test(code)) {
+        try {
+          await redeemCoupon(code, "online", "online", orderId);
+        } catch (err) {
+          console.error("opening coupon redeem", err);
+        }
       }
     }
     if (orderId) {

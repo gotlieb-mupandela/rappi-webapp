@@ -181,6 +181,161 @@ export type Database = {
         }
         Relationships: []
       }
+      opening_coupons: {
+        Row: {
+          code: string
+          created_at: string
+          lead_id: string
+          order_id: string | null
+          rate: number
+          redeemed_at: string | null
+          redeemed_by: string | null
+          redeemed_channel: string | null
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          lead_id: string
+          order_id?: string | null
+          rate?: number
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          redeemed_channel?: string | null
+          valid_from?: string
+          valid_until?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          lead_id?: string
+          order_id?: string | null
+          rate?: number
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          redeemed_channel?: string | null
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opening_coupons_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: true
+            referencedRelation: "opening_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opening_coupons_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opening_emails: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          lead_id: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          lead_id: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          lead_id?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opening_emails_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "opening_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opening_leads: {
+        Row: {
+          buys_for: string[]
+          created_at: string
+          draws: string[]
+          email: string
+          id: string
+          marketing_consent: boolean
+          name: string
+          notes: string | null
+          org_name: string | null
+          org_role: string | null
+          org_size: string | null
+          privacy_consent: boolean
+          spend: string | null
+          sports: string[]
+          town: string
+          unsubscribed_at: string | null
+          wants: string[]
+          whatsapp: string
+          wish_code: string | null
+        }
+        Insert: {
+          buys_for?: string[]
+          created_at?: string
+          draws?: string[]
+          email: string
+          id?: string
+          marketing_consent?: boolean
+          name: string
+          notes?: string | null
+          org_name?: string | null
+          org_role?: string | null
+          org_size?: string | null
+          privacy_consent?: boolean
+          spend?: string | null
+          sports?: string[]
+          town: string
+          unsubscribed_at?: string | null
+          wants?: string[]
+          whatsapp: string
+          wish_code?: string | null
+        }
+        Update: {
+          buys_for?: string[]
+          created_at?: string
+          draws?: string[]
+          email?: string
+          id?: string
+          marketing_consent?: boolean
+          name?: string
+          notes?: string | null
+          org_name?: string | null
+          org_role?: string | null
+          org_size?: string | null
+          privacy_consent?: boolean
+          spend?: string | null
+          sports?: string[]
+          town?: string
+          unsubscribed_at?: string | null
+          wants?: string[]
+          whatsapp?: string
+          wish_code?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           code: string

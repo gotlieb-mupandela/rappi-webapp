@@ -24,7 +24,9 @@ const LIME = "bg-[#5eff38] text-[#0c110b]";
 export function BlackFridayStrip() {
   const pathname = usePathname();
   const live = useLive();
-  if (!live || pathname === BLACK_FRIDAY_PATH || pathname?.startsWith("/checkout")) return null;
+  if (pathname?.startsWith("/checkout")) return null;
+  if (!live) return <OpeningStrip hidden={pathname === "/opening" || pathname?.startsWith("/c/")} />;
+  if (pathname === BLACK_FRIDAY_PATH) return null;
   return (
     <div className="flex h-9 items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0c110b] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white sm:gap-3.5 sm:text-[13px]">
       <span className="text-[#5eff38]">Black Friday</span>
@@ -34,6 +36,24 @@ export function BlackFridayStrip() {
       <span className="hidden sm:inline">100 deals: free gifts &amp; 10% off</span>
       <Link href={BLACK_FRIDAY_PATH} className={`rounded-full px-3 py-1.5 font-extrabold ${LIME}`}>
         Shop the deals →
+      </Link>
+    </div>
+  );
+}
+
+const OPENING_PROMO_ENDS_AT = Date.parse("2027-02-01T00:00:00+02:00");
+const noSubscribeOpening = () => () => {};
+
+/** After Black Friday, the same strip invites people to the store opening questionnaire. */
+function OpeningStrip({ hidden }: { hidden: boolean }) {
+  const on = useSyncExternalStore(noSubscribeOpening, () => Date.now() < OPENING_PROMO_ENDS_AT, () => false);
+  if (hidden || !on) return null;
+  return (
+    <div className="flex h-9 items-center justify-center gap-2 overflow-hidden whitespace-nowrap bg-[#0c110b] px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-white sm:gap-3.5 sm:text-[13px]">
+      <span className="text-[#5eff38]">New store · 5 Jan</span>
+      <span className="hidden sm:inline">Walvis Bay opening</span>
+      <Link href="/opening" className={`rounded-full px-3 py-1.5 font-extrabold ${LIME}`}>
+        Get 5% off →
       </Link>
     </div>
   );

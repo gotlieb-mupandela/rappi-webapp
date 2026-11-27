@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { sendOpeningReminders } from "@/lib/opening-emails";
 import { sendLateOrdersDigest } from "@/lib/order-notify";
 
 /**
@@ -9,7 +10,7 @@ import { sendLateOrdersDigest } from "@/lib/order-notify";
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 120;
 
 function authorized(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -24,12 +25,20 @@ async function run(req: Request) {
   if (!authorized(req)) {
     return NextResponse.json({ error: "Not authorized." }, { status: 401 });
   }
+  // Store-opening reminder emails ride on this daily job (the plan allows only two cron jobs).
+  let opening: Awaited<ReturnType<typeof sendOpeningReminders>> | { error: string };
+  try {
+    opening = await sendOpeningReminders();
+  } catch (err) {
+    console.error("opening reminders", err);
+    opening = { error: "Opening reminders failed." };
+  }
   try {
     const result = await sendLateOrdersDigest();
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({ ok: true, ...result, opening });
   } catch (err) {
     console.error("order watchdog", err);
-    return NextResponse.json({ error: "Watchdog failed." }, { status: 500 });
+    return NextResponse.json({ error: "Watchdog failed.", opening }, { status: 500 });
   }
 }
 
