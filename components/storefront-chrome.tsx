@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { BlackFridayStrip } from "@/components/black-friday";
+import { OpeningPopup } from "@/components/opening-popup";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { useT } from "@/components/locale-provider";
@@ -55,6 +56,7 @@ export function StorefrontChrome({
         {children}
       </main>
       {hideFooter ? null : <SiteFooter categoryCounts={categoryCounts} />}
+      <OpeningPopup />
     </>
   );
 }
