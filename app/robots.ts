@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
         "/account/",
         "/search",
         "/verify/",
+        "/c/",
         "/*?*size=",
         "/*?*max=",
         "/*?*q=",
