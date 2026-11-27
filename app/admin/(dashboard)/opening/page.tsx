@@ -59,6 +59,7 @@ export default function AdminOpeningPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [onlyOrgs, setOnlyOrgs] = useState(false);
+  const [emailState, setEmailState] = useState<Map<string, "sent" | "failed" | "sending">>(new Map());
 
   useEffect(() => {
     const supabase = createClient();
@@ -70,6 +71,13 @@ export default function AdminOpeningPage() {
         if (error) toast.error(error.message);
         setLeads((data ?? []) as unknown as Lead[]);
         setLoading(false);
+      });
+    supabase
+      .from("opening_emails")
+      .select("lead_id, sent_at, error")
+      .eq("kind", "coupon")
+      .then(({ data }) => {
+        setEmailState(new Map((data ?? []).map((e) => [e.lead_id, e.sent_at ? "sent" : e.error ? "failed" : "sending"])));
       });
   }, []);
 
@@ -163,12 +171,12 @@ export default function AdminOpeningPage() {
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wider text-[var(--muted)]">
               <tr>
-                {["Signed up", "Name", "Contact", "Town", "School / club", "Coupon"].map((h) => <th key={h} className="px-4 py-2 font-semibold">{h}</th>)}
+                {["Signed up", "Name", "Contact", "Town", "School / club", "Coupon", "Coupon email"].map((h) => <th key={h} className="px-4 py-2 font-semibold">{h}</th>)}
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {loading ? (
-                <tr><td className="px-4 py-6 text-[var(--muted)]" colSpan={6}>Loading…</td></tr>
+                <tr><td className="px-4 py-6 text-[var(--muted)]" colSpan={7}>Loading…</td></tr>
               ) : shown.length ? shown.map((l) => (
                 <tr key={l.id} className="align-top">
                   <td className="px-4 py-3 whitespace-nowrap">{day(l.created_at)}</td>
@@ -187,9 +195,18 @@ export default function AdminOpeningPage() {
                       {l.opening_coupons?.redeemed_at ? `Used ${day(l.opening_coupons.redeemed_at)} (${l.opening_coupons.redeemed_channel})` : "Not used"}
                     </span>
                   </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {emailState.get(l.id) === "sent" ? (
+                      <span className="font-semibold text-[#2f9a12]">Sent</span>
+                    ) : emailState.get(l.id) === "failed" ? (
+                      <span className="font-semibold text-red-700" title="Retried automatically each morning">Failed, retrying</span>
+                    ) : (
+                      <span className="text-[var(--muted)]">Waiting</span>
+                    )}
+                  </td>
                 </tr>
               )) : (
-                <tr><td className="px-4 py-6 text-[var(--muted)]" colSpan={6}>No sign-ups yet.</td></tr>
+                <tr><td className="px-4 py-6 text-[var(--muted)]" colSpan={7}>No sign-ups yet.</td></tr>
               )}
             </tbody>
           </table>
