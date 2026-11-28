@@ -194,6 +194,15 @@ export function OrderDetail({ orderId }: { orderId: string }) {
         {order.invoice_last_error ? `: ${order.invoice_last_error}` : ""}
       </p>
 
+      {order.status === "layby" ? (
+        <p className="mt-4 rounded-lg bg-[#fff7e0] p-3 text-sm text-[#0c110b]">
+          <strong>Layby, not fully paid.</strong> Don&apos;t pack or send. Manage payments and cancellation in{" "}
+          <Link href="/admin/laybys" className="underline">
+            Admin → Laybys
+          </Link>
+          . It becomes a normal order once paid in full.
+        </p>
+      ) : null}
       <div className="mt-6 flex flex-wrap gap-2">
         {STEPS.map((s) => (
           <Button
@@ -201,7 +210,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             type="button"
             size="sm"
             variant="outline"
-            disabled={saving}
+            disabled={saving || order.status === "layby"}
             onClick={() => (s === "shipped" ? setShipping(true) : void setStatus(s))}
             className={`uppercase tracking-wider ${
               order.status === s

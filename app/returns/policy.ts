@@ -6,7 +6,7 @@ export type ReturnsClause = {
   after?: string[];
 };
 
-export const RETURNS_VERSION = "28 November 2026";
+export const RETURNS_VERSION = "29 November 2026";
 
 export const RETURNS_COMPANY =
   "RAPPI Investments CC (Reg. No. CC/2025/02866), trading as RAPPI Sports Hub";
@@ -115,7 +115,7 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
     number: 8,
     title: "Layby",
     body: [
-      "Layby terms are agreed in writing when the layby is opened. If a layby is cancelled by the customer, the goods return to stock and payments made are refunded less an administration fee of 30% of the purchase price. If instalments are not maintained for 3 consecutive months, we will contact you before cancelling. Layby terms are set out in full on the layby agreement you sign.",
+      "Layby terms are agreed when the layby is opened: by signing in store, or by ticking the acceptance box at checkout online (we email you a copy). If a layby is cancelled, the goods return to stock and payments made are refunded, by the method you paid with, less an administration fee of 30% of the purchase price (never more than you have paid). If no payment is made for 3 consecutive months, or the balance is not paid within 3 months, we will email you a written notice before cancelling. Goods bought on layby can be returned or exchanged under this policy once the layby is paid in full and you have received them. Full layby terms: Terms and Conditions, clause 7.",
     ],
   },
   {

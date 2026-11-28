@@ -43,6 +43,8 @@ export default async function CheckoutReturnPage({
   let paid = false;
   let ref: string | null = companyRef;
   let orderId: string | null = null;
+  let laybyId: string | null = null;
+  let laybyKind: "deposit" | "instalment" | null = null;
   let amount: string | null = null;
   let purchaseEventId: string | null = null;
   let purchaseValue = 0;
@@ -64,6 +66,15 @@ export default async function CheckoutReturnPage({
       body = result.message;
       ref = result.payment?.company_ref ?? companyRef;
       orderId = result.orderId;
+      laybyId = result.laybyId ?? null;
+      if (laybyId) {
+        const info = (result.payment?.payload as { layby?: { kind?: string } } | null)?.layby;
+        laybyKind = info?.kind === "instalment" ? "instalment" : "deposit";
+        if (paid) {
+          heading = laybyKind === "deposit" ? t("layby.returnTitle") : t("layby.returnPaidTitle");
+          body = laybyKind === "deposit" ? t("layby.returnBody") : t("layby.returnPaidBody");
+        }
+      }
       if (result.payment) {
         amount = formatPrice(Number(result.payment.amount));
         purchaseEventId = result.payment.id;
@@ -85,7 +96,7 @@ export default async function CheckoutReturnPage({
           { label: "Return" },
         ]}
       />
-      <ClearCartOnPaid paid={paid} />
+      <ClearCartOnPaid paid={paid && laybyKind !== "instalment"} />
       <MetaPurchase
         paid={paid}
         eventId={purchaseEventId}
@@ -99,11 +110,19 @@ export default async function CheckoutReturnPage({
         {heading}
       </h1>
       <p className="mt-3 max-w-xl text-sm text-[var(--muted)]">{body}</p>
-      {paid && (
+      {paid && !laybyId && (
         <p className="mt-3 max-w-xl rounded-lg bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--muted)]">
           {t("checkout.clearingNote")}
         </p>
       )}
+      {paid && laybyId ? (
+        <Link
+          href={`/account/laybys/${laybyId}`}
+          className="mt-4 inline-flex h-11 items-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold uppercase tracking-[0.08em] text-[#0c110b]"
+        >
+          {t("layby.viewLayby")}
+        </Link>
+      ) : null}
       {(ref || amount || orderId) && (
         <section className="mt-8 max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 text-sm">
           {orderId && (

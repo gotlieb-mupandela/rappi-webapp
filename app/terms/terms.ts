@@ -4,7 +4,7 @@ export type TermsClause = {
   items: string[];
 };
 
-export const TERMS_VERSION = "28 November 2026";
+export const TERMS_VERSION = "29 November 2026";
 
 export const TERMS_COMPANY =
   "RAPPI Investments CC (Reg. No. CC/2025/02866), trading as RAPPI Sports Hub";
@@ -99,9 +99,11 @@ export const TERMS_CLAUSES: TermsClause[] = [
     number: 7,
     title: "Layby",
     items: [
-      "A layby is opened on payment of a deposit of 20% and is subject to a separate written layby agreement signed by the Customer.",
-      "Goods held on layby remain the property of the Company and are released only on payment in full.",
-      "The layby period is 3 months. Where the Customer cancels, or fails to maintain payments for 3 consecutive months after written notice, the Company may cancel the layby, return the Goods to stock and refund amounts paid less an administration fee of 30% of the purchase price, provided that the fee shall not exceed the amount paid.",
+      "A layby is opened in store or on www.rappisportshub.com on payment of a deposit of 20% of the order total (including any delivery charge) and is subject to a layby agreement. Online, the layby agreement is accepted by ticking the acceptance box at checkout, which has the same effect as signing it, and a copy is emailed to the Customer.",
+      "Online layby is available on orders of N$500 or more of Goods, paid in Namibian dollars. Promotions, free gifts, discount codes and coupons do not apply to Goods bought on layby.",
+      "The balance may be paid in any amounts of at least N$100 (or the balance, if less), online by card or in store, and must be paid in full within 3 months of the date the layby is opened. The Company sends reminders, but the Customer remains responsible for paying on time.",
+      "Goods held on layby are reserved for the Customer, remain the property of the Company and are released, dispatched or made available for collection only once the layby is paid in full and the final payment has cleared in the Company's bank account. The delivery or collection period runs from that date.",
+      "The layby period is 3 months. Where the Customer cancels, or fails to make a payment for 3 consecutive months, or does not pay the balance by the end of the layby period, the Company may, after written notice to the Customer by email, cancel the layby, return the Goods to stock and refund amounts paid less an administration fee of 30% of the purchase price, provided that the fee shall not exceed the amount paid. Refunds are paid by the method used to pay.",
       "Layby prices are fixed at the date the layby is opened and are not affected by subsequent price changes or promotions.",
     ],
   },

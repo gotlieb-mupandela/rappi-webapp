@@ -15,6 +15,7 @@ import {
   Users,
   ClipboardList,
   Store,
+  Wallet,
   X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -25,6 +26,7 @@ const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/laybys", label: "Laybys", icon: Wallet },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/quotes", label: "Quotes", icon: ClipboardList },
   { href: "/admin/content", label: "Content", icon: Settings2 },

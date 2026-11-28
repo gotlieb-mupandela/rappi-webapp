@@ -27,6 +27,7 @@ type Verified = {
 };
 
 const ORDER_STATUS_TEXT: Record<string, string> = {
+  layby: "On layby (not fully paid)",
   reserved: "Order received",
   preparing: "Being prepared",
   shipped: "Shipped",
