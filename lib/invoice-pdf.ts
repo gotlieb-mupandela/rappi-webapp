@@ -86,6 +86,7 @@ export async function loadInvoiceData(orderId: string): Promise<InvoiceData | nu
 
 function pdfSafe(value: string) {
   return value
+    .replace(/\s*[\u00b7\u2022]\s*/g, " - ")
     .replace(/[\u2010-\u2015\u2212]/g, "-")
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201c\u201d]/g, '"')
@@ -285,7 +286,7 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   ensureSpace(220);
 
   for (const item of items) {
-    const nameLines = wrap(item.name, regular, 9, nameWidth);
+    const nameLines = wrap(item.name.replace(/\s*[\u00b7\u2022]\s*[\w.-]+$/, (m) => (m.replace(/^[\s\u00b7\u2022]+/, "") === item.code ? "" : m)), regular, 9, nameWidth);
     const photo = photos.get(item.code);
     const rowHeight = Math.max(16, nameLines.length * 11 + 6, photoColumn ? PDF_PHOTO_SIZE + 8 : 0);
     ensureSpace(rowHeight);

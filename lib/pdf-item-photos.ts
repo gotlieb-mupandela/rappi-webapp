@@ -105,3 +105,24 @@ export function drawItemPhoto(page: PDFPage, photo: PDFImage, x: number, top: nu
     height,
   });
 }
+
+/**
+ * Public thumbnail URL (white-backed JPEG) of each item code's storefront photo, for emails.
+ * Codes without a usable photo are left out.
+ */
+export async function itemPhotoUrls(codes: string[], width = 120) {
+  const urls = new Map<string, string>();
+  const unique = [...new Set(codes.map((code) => code.trim()).filter(Boolean))].slice(0, MAX_PHOTOS);
+  if (!unique.length) return urls;
+  try {
+    const products = await getFreshCheckoutProducts(unique);
+    for (const code of unique) {
+      const product = products.get(code);
+      const src = photoSource(product?.imageUrl) ?? photoSource(product?.images?.[0]);
+      if (src) urls.set(code, thumbnailUrl(src).replace(`w=${FETCH_WIDTH}&h=${FETCH_WIDTH}`, `w=${width}&h=${width}`));
+    }
+  } catch (err) {
+    console.error("email item photos: catalog lookup failed", err);
+  }
+  return urls;
+}

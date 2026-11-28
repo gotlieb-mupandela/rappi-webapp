@@ -1,7 +1,9 @@
 import "server-only";
 
 import { about } from "@/lib/about";
-import { invoiceSeller } from "@/lib/invoice-pdf";
+import { documentOffer } from "@/lib/black-friday-documents";
+import { buildInvoicePdf, invoiceFilename, invoiceSeller, loadInvoiceData } from "@/lib/invoice-pdf";
+import { itemPhotoUrls } from "@/lib/pdf-item-photos";
 import { metaSiteUrl } from "@/lib/meta/site";
 import {
   renderLateOrdersDigest,
@@ -10,7 +12,7 @@ import {
   type OrderEmailContext,
   type OrderEmailKind,
 } from "@/lib/order-emails";
-import { brandLogoUrl, sendEmail } from "@/lib/resend-pdf";
+import { brandLogoUrl, sendEmail, type EmailAttachment } from "@/lib/resend-pdf";
 import { contactEmail } from "@/lib/site-contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -112,8 +114,14 @@ export async function notifyOrder(orderId: string, kind: Exclude<OrderEmailKind,
 
   const admin = createAdminClient();
   try {
+    const attachments: EmailAttachment[] = [];
+    if (staff) {
+      const extra = await staffSaleExtras(orderId, ctx);
+      ctx.staff = extra.staff;
+      if (extra.pdf) attachments.push({ filename: invoiceFilename(orderId), content: extra.pdf });
+    }
     const email = renderOrderEmail(kind, ctx);
-    await sendEmail({ to, subject: email.subject, html: email.html, text: email.text });
+    await sendEmail({ to, subject: email.subject, html: email.html, text: email.text, attachments });
     await admin
       .from("order_notifications")
       .update({ sent_at: new Date().toISOString(), error: null })
@@ -166,4 +174,37 @@ export async function sendLateOrdersDigest(now = new Date()) {
   const email = renderLateOrdersDigest(rows, orderEmailBase(), now);
   await sendEmail({ to, subject: email.subject, html: email.html, text: email.text });
   return { sent: true as const, count: rows.length };
+}
+
+/**
+ * Photos, Black Friday gifts and the invoice PDF for the staff "new sale" email.
+ * Each part is optional: the email still goes out if a photo or the PDF fails.
+ */
+export async function staffSaleExtras(orderId: string, ctx: OrderEmailContext) {
+  const offer = documentOffer(
+    ctx.items.map((item) => ({ code: item.code, qty: item.qty, unitPrice: Number(item.unit_price) })),
+    ctx.order.created_at,
+  );
+  const [photos, invoice] = await Promise.all([
+    itemPhotoUrls([...ctx.items.map((i) => i.code), ...offer.gifts.map((g) => g.code)]).catch(() => new Map<string, string>()),
+    (async () => {
+      try {
+        const data = await loadInvoiceData(orderId);
+        return data ? { pdf: await buildInvoicePdf(data), paymentRef: data.paymentRef } : null;
+      } catch (err) {
+        console.error("staff sale invoice", orderId, err);
+        return null;
+      }
+    })(),
+  ]);
+  return {
+    pdf: invoice?.pdf ?? null,
+    staff: {
+      photos: Object.fromEntries(photos),
+      gifts: offer.gifts.map((g) => ({ code: g.code, name: g.name, qty: g.qty, forCode: g.forCode, reason: g.reason })),
+      discounts: offer.discounts.map((d) => ({ label: d.label, amount: d.amount })),
+      paymentRef: invoice?.paymentRef ?? null,
+      invoiceAttached: Boolean(invoice?.pdf),
+    },
+  };
 }

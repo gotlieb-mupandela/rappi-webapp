@@ -25,6 +25,7 @@ export function couponFilename(code: string) {
 
 function pdfSafe(value: string) {
   return value
+    .replace(/\s*[\u00b7\u2022]\s*/g, " - ")
     .replace(/[‐-―−]/g, "-")
     .replace(/[‘’]/g, "'")
     .normalize("NFKD")
