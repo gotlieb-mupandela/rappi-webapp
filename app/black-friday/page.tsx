@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Black Friday deals",
   description:
-    "100 Black Friday deals at RAPPI Sports Hub: free gifts on shoes, boots, rackets, gloves, jackets and tracksuits, 10% off swimwear and everyday kit, 3 tank tops for N$400.",
+    "200 Black Friday deals at RAPPI Sports Hub: free gifts on shoes, boots, rackets, gloves, jackets and tracksuits, 10% off swimwear and everyday kit, 3 tank tops for N$400.",
   alternates: { canonical: "/black-friday" },
 };
 
@@ -42,7 +42,7 @@ export default async function BlackFridayPage() {
             Black Friday <span className="text-[#5eff38]">deals</span>
           </h1>
           <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-white/80 sm:text-[17px]">
-            100 deals across shoes, boots, padel, swimwear, equipment and everyday kit. Free gifts on shoes,
+            200 deals across shoes, boots, padel, swimwear, equipment and everyday kit. Free gifts on shoes,
             boots, rackets, gloves, jackets and tracksuits, 10% off when you buy 2.
           </p>
           <ol className="mt-5 flex flex-col gap-2 text-sm text-white/85 sm:flex-row sm:flex-wrap sm:gap-3">
