@@ -17,6 +17,7 @@ const FULFILLMENT = ["reserved", "preparing", "shipped", "delivered"] as const;
 type FulfillmentStatus = (typeof FULFILLMENT)[number];
 
 const STATUS_LABEL = {
+  layby: "account.statusLayby",
   reserved: "account.statusReserved",
   preparing: "account.statusPreparing",
   shipped: "account.statusShipped",

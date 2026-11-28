@@ -11,7 +11,9 @@ import { getProductByCode } from "@/lib/offline-catalog";
 export function documentOffer(
   items: { code: string; qty: number; unitPrice: number }[],
   madeAt: string,
+  promotions = true,
 ): BlackFridayOffer {
+  if (!promotions) return { gifts: [], discounts: [], discountTotal: 0 };
   const lines = items.flatMap((item) => {
     const product = getProductByCode(item.code);
     if (!product) return [];
@@ -27,4 +29,9 @@ export function documentOffer(
     ];
   });
   return blackFridayOffer(lines, Date.parse(madeAt));
+}
+
+/** Layby orders are sold at normal prices: no Black Friday gifts or discounts (Terms clause 7). */
+export function isLaybyOrderNotes(notes: string | null | undefined) {
+  return /\bLAYBY LB-[A-Z0-9]+/.test(notes ?? "");
 }

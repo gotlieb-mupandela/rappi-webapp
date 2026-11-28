@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { blackFridayOrderNote } from "@/lib/black-friday";
-import { checkoutPaymentQuote, resolveCheckoutCountry, type CheckoutQuote } from "@/lib/checkout-quote";
+import { checkoutPaymentQuote, laybyPaymentQuote, resolveCheckoutCountry, type CheckoutQuote } from "@/lib/checkout-quote";
+import { laybyEligible, laybyPlan, LAYBY } from "@/lib/layby";
 import { discountRouteError } from "@/lib/discount";
 import { resolveActiveDiscount } from "@/lib/discount-lookup";
 import {
@@ -37,6 +38,9 @@ export async function POST(req: Request) {
     shippingMethod?: string;
     discountCode?: unknown;
     lines?: unknown;
+    /** Open a layby: pay the 20% deposit today. */
+    layby?: unknown;
+    acceptLayby?: unknown;
   };
   try {
     body = await req.json();
@@ -81,15 +85,22 @@ export async function POST(req: Request) {
   }
   const country = vatCountry.name;
 
+  const layby = body.layby === true;
+  if (layby && body.acceptLayby !== true) {
+    return NextResponse.json({ error: "Please accept the layby agreement to continue." }, { status: 400 });
+  }
+
   let lines;
   let quote;
   try {
     const [discount, pricedLines] = await Promise.all([
-      resolveActiveDiscount(body.discountCode),
+      layby ? Promise.resolve(null) : resolveActiveDiscount(body.discountCode),
       resolveCheckoutLines(body.lines),
     ]);
     lines = pricedLines;
-    quote = checkoutPaymentQuote(lines, shippingMethod, country, undefined, discount);
+    quote = layby
+      ? laybyPaymentQuote(lines, shippingMethod, country)
+      : checkoutPaymentQuote(lines, shippingMethod, country, undefined, discount);
   } catch (err) {
     const discountError = discountRouteError(err);
     if (discountError) {
@@ -101,7 +112,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not price the cart." }, { status: 400 });
   }
 
-  const amount = quote.total;
+  if (layby && !laybyEligible({ merchandise: quote.subtotal, currency: quote.currency })) {
+    return NextResponse.json(
+      { error: `Layby is available on orders of N$${LAYBY.MIN_ORDER} or more, paid in Namibian dollars.` },
+      { status: 400 },
+    );
+  }
+  const plan = layby ? laybyPlan(quote.total) : null;
+  const amount = plan ? plan.deposit : quote.total;
   if (!Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ error: "Cart total must be greater than zero." }, { status: 400 });
   }
@@ -109,7 +127,7 @@ export async function POST(req: Request) {
   const companyRef = `RSH-${crypto.randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
   const { firstName, lastName } = splitName(name);
   const currency = quote.currency;
-  const description = cartDescription(lines, companyRef);
+  const description = plan ? `Layby deposit (20%) ${companyRef}` : cartDescription(lines, companyRef);
   const payload: DpoPaymentPayload = {
     userId: user.id,
     email,
@@ -122,9 +140,20 @@ export async function POST(req: Request) {
     shippingCost: quote.shipping,
     vatRate: quote.vat.rate,
     vatAmount: quote.vat.amount,
-    ...storedDiscount(quote),
-    notes: [String(body.notes ?? "").trim(), blackFridayOrderNote(dealLines(lines))].filter(Boolean).join("\n\n"),
+    ...(plan ? {} : storedDiscount(quote)),
+    notes: [String(body.notes ?? "").trim(), plan ? "" : blackFridayOrderNote(dealLines(lines))].filter(Boolean).join("\n\n"),
     lines,
+    ...(plan
+      ? {
+          layby: {
+            kind: "deposit" as const,
+            total: quote.total,
+            deposit: plan.deposit,
+            acceptedAt: new Date().toISOString(),
+            ip: (req.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || undefined,
+          },
+        }
+      : {}),
   };
 
   let created;
@@ -194,6 +223,7 @@ export async function POST(req: Request) {
     vat: quote.vat,
     total: quote.total,
     currency: quote.currency,
+    ...(plan ? { layby: { deposit: plan.deposit, balance: plan.balance, finalDue: plan.finalDue.toISOString() } } : {}),
   });
 }
 

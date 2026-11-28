@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { id: "account", href: "/account", label: "account.title" },
   { id: "orders", href: "/account/orders", label: "account.orders" },
+  { id: "laybys", href: "/account/laybys", label: "layby.navLink" },
 ] as const;
 
 export type AccountSection = (typeof NAV)[number]["id"];

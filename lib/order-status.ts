@@ -15,5 +15,6 @@ export function isOrderStatus(value: string): value is OrderStatus {
 }
 
 export function orderStatusClass(status: string) {
+  if (status === "layby") return "bg-[rgba(94,255,56,0.18)] text-[#2f7a12]";
   return isOrderStatus(status) ? STATUS_CLASS[status] : "bg-[var(--hover)] text-[var(--muted)]";
 }

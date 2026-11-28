@@ -49,6 +49,8 @@ export async function sendEmail(input: {
             attachments: input.attachments.map((a) => ({
               filename: a.filename,
               content: bytesToBase64(a.content),
+              // Explicit type so mail apps (Gmail on Android) download it as a PDF.
+              content_type: a.filename.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/octet-stream",
             })),
           }
         : {}),

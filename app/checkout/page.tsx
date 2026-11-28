@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { CheckoutLaybyChoice, type LaybyPlanView } from "@/components/checkout-layby";
 import { AssortmentBadge } from "@/components/assortment-label";
 import { BlackFridayDiscountRows, BlackFridayGiftRows, cartOffer } from "@/components/black-friday-cart";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,9 @@ export default function CheckoutPage() {
   const [discountCode, setDiscountCode] = useState("");
   const [quoted, setQuoted] = useState<CheckoutQuoteView | null>(null);
   const [checkingCode, setCheckingCode] = useState(false);
+  const [payMode, setPayMode] = useState<"full" | "layby">("full");
+  const [laybyAccepted, setLaybyAccepted] = useState(false);
+  const [laybyPlan, setLaybyPlan] = useState<LaybyPlanView | null>(null);
   const checkoutTracked = useRef(false);
 
   useEffect(() => {
@@ -271,10 +275,15 @@ export default function CheckoutPage() {
       toast.error(t("checkout.completeDetails"));
       return;
     }
+    const layby = payMode === "layby" && laybyPlan !== null;
+    if (layby && !laybyAccepted) {
+      toast.error(t("layby.mustAccept"));
+      return;
+    }
     setSubmitting(true);
     try {
       let discountForPayment = "";
-      if (discountCode.trim()) {
+      if (!layby && discountCode.trim()) {
         const next = await loadDiscountQuote(discountCode.trim());
         if (!next?.discount) return;
         appliedQuoteKey.current = `${next.discount.code}|${quoteKey}`;
@@ -298,7 +307,9 @@ export default function CheckoutPage() {
             country,
             notes,
             shippingMethod: shipping.id,
-            discountCode: discountForPayment || undefined,
+            discountCode: layby ? undefined : discountForPayment || undefined,
+            layby: layby || undefined,
+            acceptLayby: layby ? laybyAccepted : undefined,
             lines: paying.map((line) => ({
               code: line.code,
               size: line.size,
@@ -571,7 +582,20 @@ export default function CheckoutPage() {
               </Link>
             </p>
           </section>
-          <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+          <CheckoutLaybyChoice
+            lines={lines.map((line) => ({ code: line.code, size: line.size, qty: line.qty }))}
+            method={method}
+            country={country}
+            merchandise={subtotal}
+            mode={payMode}
+            onMode={setPayMode}
+            accepted={laybyAccepted}
+            onAccepted={setLaybyAccepted}
+            onPlan={setLaybyPlan}
+          />
+          <section
+            className={`rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5${payMode === "layby" && laybyPlan ? " hidden" : ""}`}
+          >
             <h2 className="text-sm font-bold uppercase tracking-wider">{t("checkout.discountCode")}</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">{t("checkout.discountHint")}</p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -698,6 +722,19 @@ export default function CheckoutPage() {
               approx={approx}
               rowClassName="pt-2"
             />
+            {payMode === "layby" && laybyPlan ? (
+              <div className="mt-3 rounded-lg border border-[var(--accent)] p-3 text-[13px]">
+                <p className="flex justify-between font-semibold">
+                  <span>{t("layby.total")}</span>
+                  <span>{formatPrice(laybyPlan.total)}</span>
+                </p>
+                <p className="mt-1 flex justify-between font-bold text-[var(--accent)]">
+                  <span>{t("layby.today")}</span>
+                  <span>{formatPrice(laybyPlan.deposit)}</span>
+                </p>
+                <p className="mt-1 text-xs text-[var(--muted)]">{t("layby.point3")}</p>
+              </div>
+            ) : null}
           </div>
           <Button
             type="submit"
@@ -705,7 +742,11 @@ export default function CheckoutPage() {
             className="mt-6 hidden w-full md:inline-flex"
             disabled={submitting || !user || checkingCode}
           >
-            {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
+            {submitting
+              ? t("checkout.payingDpo")
+              : payMode === "layby" && laybyPlan
+                ? t("layby.payDeposit", { amount: formatPrice(laybyPlan.deposit) })
+                : t("checkout.payDpo")}
           </Button>
           <p className="mt-3 hidden text-center text-xs text-[var(--muted-2)] md:block">
             {market === "eu" ? t("checkout.totalsEur") : t("checkout.totalsNad")}
@@ -741,7 +782,11 @@ export default function CheckoutPage() {
             className="min-w-0 flex-1"
             disabled={submitting || !user || checkingCode}
           >
-            {submitting ? t("checkout.payingDpo") : t("checkout.payDpo")}
+            {submitting
+              ? t("checkout.payingDpo")
+              : payMode === "layby" && laybyPlan
+                ? t("layby.payDeposit", { amount: formatPrice(laybyPlan.deposit) })
+                : t("checkout.payDpo")}
           </Button>
         </div>
       </div>

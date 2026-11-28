@@ -32,7 +32,21 @@ export type DpoPaymentPayload = {
   discountAmount?: number;
   notes: string;
   lines: DpoCartLine[];
+  /** Set on layby payments: the deposit that opens a layby, or a later instalment. */
+  layby?: LaybyPaymentInfo;
 };
+
+export type LaybyPaymentInfo =
+  | { kind: "deposit"; total: number; deposit: number; acceptedAt: string; ip?: string }
+  | { kind: "instalment"; laybyId: string };
+
+export function laybyInfo(payload: unknown): LaybyPaymentInfo | null {
+  if (!payload || typeof payload !== "object") return null;
+  const l = (payload as { layby?: unknown }).layby as LaybyPaymentInfo | undefined;
+  if (!l || typeof l !== "object") return null;
+  if (l.kind === "deposit" || (l.kind === "instalment" && typeof l.laybyId === "string")) return l;
+  return null;
+}
 
 export function isDpoPaymentPayload(value: unknown): value is DpoPaymentPayload {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;

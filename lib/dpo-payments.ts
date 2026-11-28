@@ -7,6 +7,7 @@ import {
   type DpoPaymentTrust,
 } from "@/lib/dpo-payment-access";
 import { createOrderFromPayment } from "@/lib/dpo-orders";
+import { fulfillLaybyPayment, paymentLaybyInfo } from "@/lib/layby-server";
 import { sendOrderInvoice } from "@/lib/invoice-email";
 import { COUPON_CODE, redeemCoupon } from "@/lib/opening";
 import { notifyOrder } from "@/lib/order-notify";
@@ -23,6 +24,8 @@ export type DpoFulfillResult = {
   message: string;
   payment: Payment | null;
   orderId: string | null;
+  /** Set when the payment was a layby deposit or instalment. */
+  laybyId?: string | null;
 };
 
 function amountsMatch(expected: number, actual: string | null) {
@@ -57,6 +60,20 @@ function paidMessage(result: string | null, explanation: string | null) {
 
 async function withOrder(payment: Payment | null, message: string, extra: Omit<DpoFulfillResult, "message" | "payment" | "orderId">): Promise<DpoFulfillResult> {
   let orderId = payment?.order_id ?? null;
+  const layby = paymentLaybyInfo(payment);
+  if (payment && layby) {
+    // Layby deposit opens the layby (stock reserved); an instalment adds to it. When fully paid,
+    // the usual invoice and staff sale email go out from fulfillLaybyPayment.
+    if (extra.ok && extra.status === "paid") {
+      try {
+        const r = await fulfillLaybyPayment(payment, layby);
+        return { ...extra, message, payment, orderId: r.orderId, laybyId: r.laybyId };
+      } catch (err) {
+        console.error("layby fulfil", payment.id, err);
+      }
+    }
+    return { ...extra, message, payment, orderId, laybyId: layby.kind === "instalment" ? layby.laybyId : null };
+  }
   if (payment && extra.ok && extra.status === "paid") {
     const newOrder = !payment.order_id;
     try {

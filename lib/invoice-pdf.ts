@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { BlackFridayOffer } from "@/lib/black-friday";
-import { documentOffer } from "@/lib/black-friday-documents";
+import { documentOffer, isLaybyOrderNotes } from "@/lib/black-friday-documents";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/database.types";
@@ -28,7 +28,7 @@ const RULE = rgb(0.82, 0.82, 0.82);
 const HEADER_BG = rgb(1, 1, 1);
 const LIME = rgb(0.37, 1, 0.22);
 const FREE_GREEN = rgb(0.18, 0.54, 0.07);
-const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
+const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-pdf.png");
 const LOGO_NATIVE_WIDTH = 1416;
 const LOGO_NATIVE_HEIGHT = 895;
 
@@ -180,6 +180,7 @@ export async function buildInvoicePdf(data: InvoiceData): Promise<Uint8Array> {
   const offer = documentOffer(
     items.map((item) => ({ code: item.code, qty: item.qty, unitPrice: Number(item.unit_price) })),
     order.created_at,
+    !isLaybyOrderNotes(order.notes),
   );
   const photos = await embedItemPhotos(doc, [
     ...items.map((item) => item.code),

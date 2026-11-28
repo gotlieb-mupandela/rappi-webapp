@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { sendLaybyReminders } from "@/lib/layby-server";
 import { sendOpeningReminders } from "@/lib/opening-emails";
 import { sendLateOrdersDigest } from "@/lib/order-notify";
 
@@ -33,12 +34,20 @@ async function run(req: Request) {
     console.error("opening reminders", err);
     opening = { error: "Opening reminders failed." };
   }
+  // Layby reminders (7 days before each monthly date) and written notices after the final date.
+  let layby: Awaited<ReturnType<typeof sendLaybyReminders>> | { error: string };
+  try {
+    layby = await sendLaybyReminders();
+  } catch (err) {
+    console.error("layby reminders", err);
+    layby = { error: "Layby reminders failed." };
+  }
   try {
     const result = await sendLateOrdersDigest();
-    return NextResponse.json({ ok: true, ...result, opening });
+    return NextResponse.json({ ok: true, ...result, opening, layby });
   } catch (err) {
     console.error("order watchdog", err);
-    return NextResponse.json({ error: "Watchdog failed.", opening }, { status: 500 });
+    return NextResponse.json({ error: "Watchdog failed.", opening, layby }, { status: 500 });
   }
 }
 
