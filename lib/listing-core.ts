@@ -23,6 +23,7 @@ import {
   type ListingQuery,
   type ListingResult,
 } from "@/lib/listing-types";
+import { smartSearch, type SearchNote } from "@/lib/search-engine";
 import { versionProductImages } from "@/lib/image-cache";
 import { productLineLabel } from "@/lib/joma-item";
 import type { Product } from "@/lib/types";
@@ -81,8 +82,15 @@ export function searchListing(
     list = list.filter((p) => listingInHub(p, category));
   }
   if (!q) return list;
-  return list.filter((p) => listingHay(p).includes(q));
+  return searchListingWithNote(list, q, catalog).items;
 }
+
+/** Smart search (typos, synonyms, closest matches) over an already scoped list. */
+export function searchListingWithNote(list: ListingItem[], query: string, catalog: ListingItem[] = list) {
+  return smartSearch(list, query, listingHay, catalog);
+}
+
+export type { SearchNote };
 
 function productHasImage(p: ListingItem) {
   if (typeof p.hasImage === "boolean") return p.hasImage;
@@ -111,7 +119,13 @@ export function filterListing(
 
   let list: ListingItem[];
   if (q) {
-    list = searchListing(catalog, q, scopedCat);
+    let scoped = catalog.filter(
+      (p) => (p as { available?: boolean }).available !== false && hasUsableProductImage(p as Product),
+    );
+    if (scopedCat && scopedCat !== "all") scoped = scoped.filter((p) => listingInHub(p, scopedCat));
+    const found = searchListingWithNote(scoped, q, catalog);
+    list = found.items;
+    if (opts?.meta) opts.meta.searchNote = found.note;
   } else if (jomaGroup) {
     list = catalog.filter((p) => productHasImage(p) && listingInFolder(p, jomaGroup));
     // Women's footwear folders (wf-*) show the portal's Footwear > WOMAN list as is,
@@ -317,14 +331,17 @@ export function buildListing(
   opts?: ListingFilterOpts,
 ): ListingResult {
   const audience = query.audience && query.audience !== "all" ? query.audience : "";
+  const meta: { searchNote?: SearchNote | null } = {};
+  const withMeta = { ...opts, meta };
   const beforeAudience = audience
-    ? filterListing(catalog, { ...query, audience: undefined }, opts)
+    ? filterListing(catalog, { ...query, audience: undefined }, withMeta)
     : null;
   const groupKey = query.group && query.group !== "all" ? query.group : "";
   const filtered = beforeAudience
     ? beforeAudience.filter((p) => matchesAudienceInFolder(p, audience, groupKey))
-    : filterListing(catalog, query, opts);
+    : filterListing(catalog, query, withMeta);
   const result = paginateListing(filtered, query, opts?.pageSize ?? LISTING_PAGE_SIZE);
   if (beforeAudience) result.facets.audiences = facetAudiences(beforeAudience);
+  if (meta.searchNote) result.searchNote = meta.searchNote;
   return result;
 }
