@@ -6,7 +6,7 @@ export type ReturnsClause = {
   after?: string[];
 };
 
-export const RETURNS_VERSION = "6 October 2026";
+export const RETURNS_VERSION = "28 November 2026";
 
 export const RETURNS_COMPANY =
   "RAPPI Investments CC (Reg. No. CC/2025/02866), trading as RAPPI Sports Hub";
@@ -22,6 +22,8 @@ export const RETURNS_SUMMARY = {
   items: [
     "Keep your till slip. We cannot assist without proof of purchase.",
     "Changed your mind? Exchange or credit note within 14 days, unused and tagged.",
+    "Bought online? Same 14 days from delivery or collection. Message us first; you pay the return courier unless the item is faulty or wrong.",
+    "Free gifts go back with the item they came with.",
     "Faulty item? Bring it in. We will assess it and repair, replace or refund.",
     "We cannot take back underwear, swimwear, mouthguards, opened consumables, personalised or printed kit, special orders, gift cards, or clearance items sold as seen.",
     "Refunds are paid by the same method you paid with. Card purchases are not refunded in cash.",
@@ -34,6 +36,7 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
     title: "Proof of purchase",
     body: [
       "We can only process a return, exchange or refund against the original RAPPI Sports Hub till slip or tax invoice. Please keep it. Without proof of purchase we cannot verify the item, the price or the date, and we are not able to assist.",
+      "For online orders, the order confirmation and tax invoice we email you are your proof of purchase. You can also find them under Account, Orders on rappisportshub.com.",
     ],
   },
   {
@@ -145,6 +148,30 @@ export const RETURNS_CLAUSES: ReturnsClause[] = [
   },
   {
     number: 13,
+    title: "Online orders",
+    body: [
+      "This clause applies to orders placed on rappisportshub.com. Everything else in this policy also applies, with these differences:",
+    ],
+    items: [
+      "Change of mind: the 14 days in clause 2 run from the day you receive or collect the order. Message us on WhatsApp (081 814 1646) or email sales@rappisportshub.com with your order number before you send anything back, and we will confirm how to return it.",
+      "You can bring the item to our store in Walvis Bay, or send it back by courier. For change-of-mind returns you arrange and pay for the return courier, and the item stays at your risk until we receive it. Change-of-mind returns are settled by exchange or credit note, which you can use in store or online.",
+      "Faulty item, or we sent the wrong item or size: tell us within 48 hours of delivery for visible damage or a wrong item, and as soon as you notice a fault. We arrange and pay for the return and the replacement delivery, and deal with the fault under clause 3.",
+      "Delivery charges are refunded only if the item was faulty or we sent the wrong item.",
+      "Approved refunds for online card payments are made back to the same card through our payment provider, DPO Pay. Your bank may take several working days to show the money.",
+    ],
+  },
+  {
+    number: 14,
+    title: "Free gifts, discounts and coupons",
+    items: [
+      "A free gift (for example a Black Friday gift) belongs with the item that earned it. If you return that item, return the gift too, unused and with its tags. If you keep the gift, its normal selling price is deducted from your refund or credit.",
+      "Free gifts cannot be exchanged for cash or for other items. A faulty gift is replaced with the same gift, or one of equal value if it is out of stock.",
+      "Discounted items are refunded or credited at the price you actually paid. If you return part of a multi-buy (for example buy 2, save 10%), the discount is worked out again on what you keep.",
+      "A store opening coupon that was used on an order is not reissued if the order is returned or refunded.",
+    ],
+  },
+  {
+    number: 15,
     title: "If you are not satisfied",
     body: [
       "Speak to the manager on duty first. Most matters are resolved on the spot. If you are still not satisfied, put your complaint in writing to sales@rappisportshub.com and we will respond within 7 working days. This does not affect any legal rights you may have.",

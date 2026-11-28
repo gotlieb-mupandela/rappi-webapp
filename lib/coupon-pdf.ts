@@ -124,7 +124,7 @@ export async function buildCouponPdf(coupon: Pick<OpeningCoupon, "code">, lead: 
   page.drawText(pdfSafe(`${STORE_LINE} - WhatsApp ${STORE_WHATSAPP}`), { x: M, y, size: 9.5, font: bold, color: INK });
   y -= 18;
   for (const line of wrap(
-    "Personal and single-use: one order, one time. Not exchangeable for cash. Does not combine with other discount codes; Black Friday deals give the bigger saving instead.",
+    "Personal and single-use: one order, one time. Not exchangeable for cash. Does not combine with other discount codes; Black Friday deals give the bigger saving instead. Full terms: rappisportshub.com/terms, clause 18.",
     regular,
     7.5,
     W - 2 * M,

@@ -173,7 +173,7 @@ function layout(ctx: OrderEmailContext, body: string, preheader: string) {
 <tr><td style="padding:24px">${body}</td></tr>
 <tr><td style="padding:16px 24px;background:#fafafa;border-top:1px solid ${RULE};font-size:12px;line-height:18px;color:${MUTED}">
 Questions? Reply to this email, write to <a href="mailto:${escapeHtml(ctx.contactEmail)}" style="color:${INK}">${escapeHtml(ctx.contactEmail)}</a> or call ${escapeHtml(ctx.contactPhone)}.<br />
-${escapeHtml(ctx.sellerName)} &middot; Windhoek, Namibia &middot; <a href="${escapeHtml(ctx.siteUrl)}" style="color:${INK}">${escapeHtml(ctx.siteUrl.replace(/^https?:\/\//, ""))}</a>
+${escapeHtml(ctx.sellerName)} &middot; Walvis Bay, Namibia &middot; <a href="${escapeHtml(ctx.siteUrl)}" style="color:${INK}">${escapeHtml(ctx.siteUrl.replace(/^https?:\/\//, ""))}</a>
 </td></tr>
 </table>
 </td></tr></table>
@@ -197,7 +197,7 @@ ${itemRows(ctx.items)}
 function deliveryFacts(ctx: OrderEmailContext, extra: Array<[string, string]> = []) {
   const { order } = ctx;
   const where = isPickup(order)
-    ? "Collect at our Windhoek hub"
+    ? "Collect at our Hub in Walvis Bay"
     : [order.address, order.city, order.country].filter(Boolean).join(", ");
   const facts: Array<[string, string]> = [
     ["Order", order.id],
@@ -340,7 +340,7 @@ export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): 
         heading(pickup ? "Ready for pickup" : "Your order is on its way"),
         para(
           pickup
-            ? `Hi ${name}, order <strong>${escapeHtml(order.id)}</strong> is packed and ready to collect at our Windhoek hub.`
+            ? `Hi ${name}, order <strong>${escapeHtml(order.id)}</strong> is packed and ready to collect at our Hub in Walvis Bay.`
             : `Hi ${name}, order <strong>${escapeHtml(order.id)}</strong> has left our hub${
                 due ? ` and should reach you by <strong>${escapeHtml(due)}</strong>` : ""
               }.`,
@@ -356,7 +356,7 @@ export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): 
         subject,
         html: layout(ctx, body, pickup ? `Order ${order.id} is ready to collect.` : `Order ${order.id} has shipped.`),
         text: `Hi ${firstName(order.full_name)},\n\n${
-          pickup ? `Order ${order.id} is ready to collect at our Windhoek hub.` : `Order ${order.id} is on its way${due ? ` and should reach you by ${due}` : ""}.`
+          pickup ? `Order ${order.id} is ready to collect at our Hub in Walvis Bay.` : `Order ${order.id} is on its way${due ? ` and should reach you by ${due}` : ""}.`
         }\n${trackText ? `\n${trackText}\n` : ""}\nTrack it: ${ordersUrl}\n\n${ctx.sellerName}`,
       };
     }

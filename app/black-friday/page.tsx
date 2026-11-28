@@ -64,8 +64,12 @@ export default async function BlackFridayPage() {
         <BlackFridayDeals deals={deals} />
         <p className="pb-10 text-[13px] leading-relaxed text-neutral-500">
           Valid until 15 December 2026 or while stocks last. Gifts apply across the whole range, not only the
-          items shown: one gift per pair or per order as stated. Questions about sizes or stock? WhatsApp 081 814
-          1646.
+          items shown: one gift per pair or per order as stated. A discount code is not added to a Black Friday money-off deal: you
+          get the bigger saving, and gifts still apply. Full rules in our{" "}
+          <a href="/terms#clause-18" className="underline">
+            Terms, clause 18
+          </a>
+          . Questions about sizes or stock? WhatsApp 081 814 1646.
         </p>
       </div>
     </div>

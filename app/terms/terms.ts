@@ -4,13 +4,13 @@ export type TermsClause = {
   items: string[];
 };
 
-export const TERMS_VERSION = "27 November 2026";
+export const TERMS_VERSION = "28 November 2026";
 
 export const TERMS_COMPANY =
   "RAPPI Investments CC (Reg. No. CC/2025/02866), trading as RAPPI Sports Hub";
 
 export const TERMS_ADDRESS =
-  "Erf 1203, Unit 2, De Waterman, Mandume Ndemafayo Circle, Meersig, Walvis Bay";
+  "Erf 1203, Unit 2, De Waterkant, Mandume Ndemafayo Circle, Meersig, Walvis Bay";
 
 export const TERMS_SUMMARY = {
   heading: "Trading terms",
@@ -21,6 +21,7 @@ export const TERMS_SUMMARY = {
     "Online card payments take about 3 business days to reach the Company's bank. Dispatch and collection start only once the funds have cleared.",
     "Risk passes on delivery or collection.",
     "Deposits on special and personalized orders are not refundable once the order is placed.",
+    "Promotions, free gifts and coupons apply only on their stated dates, while stocks last, and are not exchangeable for cash.",
     "Goods must be inspected on collection and visible damage reported within 48 hours.",
     "Overdue amounts attract interest and collection costs.",
     "No variation of these terms is binding unless in writing and signed by an authorized representative.",
@@ -100,7 +101,7 @@ export const TERMS_CLAUSES: TermsClause[] = [
     items: [
       "A layby is opened on payment of a deposit of 20% and is subject to a separate written layby agreement signed by the Customer.",
       "Goods held on layby remain the property of the Company and are released only on payment in full.",
-      "The layby period is 3 months. Where the Customer cancels, or fails to maintain payments for 2 consecutive months after written notice, the Company may cancel the layby, return the Goods to stock and refund amounts paid less an administration fee of 10% of the purchase price.",
+      "The layby period is 3 months. Where the Customer cancels, or fails to maintain payments for 3 consecutive months after written notice, the Company may cancel the layby, return the Goods to stock and refund amounts paid less an administration fee of 30% of the purchase price, provided that the fee shall not exceed the amount paid.",
       "Layby prices are fixed at the date the layby is opened and are not affected by subsequent price changes or promotions.",
     ],
   },
@@ -138,6 +139,7 @@ export const TERMS_CLAUSES: TermsClause[] = [
       "Delivery and collection periods are estimates. Time is not of the essence unless agreed in writing.",
       "For online orders, the delivery or collection period shown at checkout (for example Standard 5–8 business days or Express 2–3 business days) is counted from the business day on which payment clears in the Company's bank account, and not from the date the order is placed. The expected date shown on the order confirmation includes about 3 business days for payment clearing.",
       "Where the Company arranges delivery, delivery charges are quoted separately and are payable in advance.",
+      "Hub pickup orders are collected from the Company's premises in Walvis Bay during business hours, once the Company has notified the Customer that the order is ready. The Customer or the Customer's agent must present the order number, and the Company may ask for identification before releasing the Goods.",
       "The Company may deliver in instalments and invoice each instalment separately.",
       "Where the Customer or the Customer's agent signs for the Goods at the delivery address, delivery is regarded as complete and valid.",
     ],
@@ -202,6 +204,11 @@ export const TERMS_CLAUSES: TermsClause[] = [
     items: [
       "Gift cards and vouchers are valid for 12 months from date of issue, are not exchangeable for cash, and are not replaced if lost, stolen or damaged.",
       "Promotional offers are valid for the stated period, while stocks last, and may not be combined with another offer unless expressly stated.",
+      "Free gifts (for example Black Friday gifts) are given with the qualifying item described in the offer, one gift per qualifying item unless stated otherwise. A gift has no cash value and cannot be exchanged for cash or another item. Where a gift is out of stock, the Company may substitute a gift of equal or greater value or, at the Customer's choice, cancel the order for a full refund.",
+      "Where an order qualifies for both a discount code (including the store opening coupon) and a promotional money-off discount, such as a Black Friday multi-buy discount, the two are not added together: only the one that gives the Customer the greater saving applies. Free gifts earned under a promotion still apply. Discounts are calculated on the price of the merchandise and do not apply to delivery charges.",
+      "The Black Friday promotion runs from 26 November 2026 to 15 December 2026 (both dates inclusive) on www.rappisportshub.com, or until stocks of the qualifying items or gifts run out, whichever comes first.",
+      "The store opening coupon gives 5% off one purchase, in store or online, from 5 January 2027 to 31 January 2027 (both dates inclusive). It is personal, may be used once only, and is limited to one coupon per person, email address and WhatsApp number. It has no cash value, is not replaced if a purchase is returned, and is not added to another money-off discount, as set out above. The Company may cancel coupons obtained with false details or more than once by the same person.",
+      "If a qualifying item is returned, the gift that came with it must be returned unused with it, or the gift's normal selling price is deducted from the refund or credit. Returns of discounted items are refunded or credited at the price actually paid, and a multi-buy discount is recalculated on the items kept.",
       "Competitions are subject to their own published rules. The Company's decision on any competition is final and no correspondence is entered into.",
     ],
   },
