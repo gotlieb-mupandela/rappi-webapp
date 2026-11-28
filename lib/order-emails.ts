@@ -51,6 +51,17 @@ export type OrderEmailContext = {
   sellerName: string;
   contactEmail: string;
   contactPhone: string;
+  /** Extra detail for the staff "new sale" email. */
+  staff?: StaffSaleExtras;
+};
+
+export type StaffSaleExtras = {
+  /** Item code -> public photo URL. */
+  photos: Record<string, string>;
+  gifts: Array<{ code: string; name: string; qty: number; forCode?: string; reason: string }>;
+  discounts: Array<{ label: string; amount: number }>;
+  paymentRef?: string | null;
+  invoiceAttached: boolean;
 };
 
 export type RenderedEmail = { subject: string; html: string; text: string };
@@ -94,7 +105,7 @@ function itemRows(items: OrderEmailItem[]) {
       const line = Number(item.unit_price) * item.qty;
       return `<tr>
 <td style="padding:10px 0;border-bottom:1px solid ${RULE};font-size:14px;color:${INK}">
-<div style="font-weight:bold">${escapeHtml(item.name)}</div>
+<div style="font-weight:bold">${escapeHtml(itemTitle(item.name, item.code))}</div>
 <div style="font-size:12px;color:${MUTED};margin-top:2px">${escapeHtml(item.code)}${
         item.size ? ` &middot; Size ${escapeHtml(item.size)}` : ""
       } &middot; Qty ${item.qty}</div>
@@ -381,29 +392,147 @@ export function renderOrderEmail(kind: OrderEmailKind, ctx: OrderEmailContext): 
         text: `Hi ${firstName(order.full_name)},\n\nOrder ${order.id} has been cancelled. If you paid for it, we'll refund ${emailMoney(order.total)} to your original payment method.\n\n${ctx.sellerName}`,
       };
     }
-    case "staff_new_order": {
-      const adminUrl = `${ctx.siteUrl}/admin/orders/${encodeURIComponent(order.id)}`;
-      const pieces = ctx.items.reduce((sum, i) => sum + i.qty, 0);
-      const subject = `New order ${order.id} – ${emailMoney(order.total)} – ${order.shipping_method}`;
-      const body = [
-        heading(`New order ${order.id}`),
-        para(`${escapeHtml(order.full_name)} paid <strong>${emailMoney(order.total)}</strong> for ${pieces} ${pieces === 1 ? "piece" : "pieces"}.`),
-        `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:16px;background:#fafafa;border:1px solid ${RULE};border-radius:10px;padding:12px 14px;width:100%">${factRows([
-          ["Delivery", order.shipping_method],
-          ["Due by", emailDate(order.due_at)],
-          ["Customer", order.full_name],
-          ["Email", order.email],
-          ["Phone", order.phone ?? ""],
-          ["Address", [order.address, order.city, order.country].filter(Boolean).join(", ")],
-        ])}</table>`,
-        orderSummary(ctx, "Items ordered"),
-        button(adminUrl, "Open in Admin"),
-      ].join("");
-      return {
-        subject,
-        html: layout(ctx, body, `${order.full_name} paid ${emailMoney(order.total)}.`),
-        text: `New order ${order.id}\n${order.full_name} paid ${emailMoney(order.total)}.\nDelivery: ${order.shipping_method}, due by ${emailDate(order.due_at)}\n\n${textItems(ctx)}\n\nOpen in Admin: ${adminUrl}`,
-      };
-    }
+    case "staff_new_order":
+      return renderStaffSale(ctx);
+
   }
+}
+
+/** "NAME · CODE" -> "NAME" when the code is shown separately. */
+function itemTitle(name: string, code: string) {
+  const m = name.match(/^(.*?)\s*[\u00b7\u2022]\s*([\w.-]+)$/);
+  return m && m[2] === code ? m[1] : name;
+}
+
+function digits(phone: string | null | undefined) {
+  let d = String(phone ?? "").replace(/\D/g, "");
+  if (d.startsWith("0")) d = `264${d.slice(1)}`;
+  return d;
+}
+
+function photoCell(url: string | undefined, size = 56) {
+  return url
+    ? `<img src="${escapeHtml(url)}" width="${size}" height="${size}" alt="" style="display:block;width:${size}px;height:${size}px;border-radius:8px;border:1px solid ${RULE};background:#fff;object-fit:contain" />`
+    : `<div style="width:${size}px;height:${size}px;border-radius:8px;background:#f1f1f1"></div>`;
+}
+
+function pill(text: string, bg: string, color = INK) {
+  return `<span style="display:inline-block;background:${bg};color:${color};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:bold;letter-spacing:.5px;text-transform:uppercase">${escapeHtml(text)}</span>`;
+}
+
+function sectionTitle(text: string) {
+  return `<div style="margin-top:26px;font-size:12px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:${MUTED};padding-bottom:6px;border-bottom:2px solid ${INK}">${escapeHtml(text)}</div>`;
+}
+
+/** Email to the shop when the website makes a sale: what to pack, who to, and the money. */
+function renderStaffSale(ctx: OrderEmailContext): RenderedEmail {
+  const { order, items } = ctx;
+  const x: StaffSaleExtras = ctx.staff ?? { photos: {}, gifts: [], discounts: [], invoiceAttached: false };
+  const adminUrl = `${ctx.siteUrl}/admin/orders/${encodeURIComponent(order.id)}`;
+  const pieces = items.reduce((sum, i) => sum + i.qty, 0);
+  const pickup = isPickup(order);
+  const due = emailDate(order.due_at);
+  const phone = digits(order.phone);
+  const subject = `💰 New sale ${emailMoney(order.total)} – ${order.full_name} – order ${order.id}`;
+
+  const hero = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${INK};border-radius:14px">
+<tr><td style="padding:20px 22px">
+<div>${pill("New website sale", LIME)}</div>
+<div style="margin-top:12px;font-size:36px;line-height:40px;font-weight:bold;color:#ffffff">${emailMoney(order.total)}</div>
+<div style="margin-top:6px;font-size:14px;line-height:20px;color:#cfcfcf">${escapeHtml(order.full_name)} bought ${pieces} ${pieces === 1 ? "piece" : "pieces"} &middot; ${escapeHtml(order.shipping_method)}</div>
+<div style="margin-top:4px;font-size:13px;color:#9a9a9a">Order ${escapeHtml(order.id)} &middot; ${escapeHtml(emailDate(order.created_at))}${x.paymentRef ? ` &middot; DPO ref ${escapeHtml(x.paymentRef)}` : ""}</div>
+</td></tr></table>`;
+
+  const warning = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background:#fff7e0;border:1px solid #f2d27a;border-radius:10px">
+<tr><td style="padding:12px 14px;font-size:14px;line-height:20px;color:${INK}">
+<strong>Wait for the money before you ${pickup ? "hand it over" : "send it"}.</strong> DPO takes about 3 business days to pay this into the RAPPI Investments bank account. Pack it now, but only ${pickup ? "release it at the Hub" : "dispatch"} once the funds show in the bank (Terms clause 5.5).${due ? ` Customer was promised: <strong>${escapeHtml(due)}</strong>.` : ""}
+</td></tr></table>`;
+
+  const itemRowsHtml = items
+    .map((i) => {
+      const line = Number(i.unit_price) * i.qty;
+      return `<tr>
+<td width="64" style="padding:10px 10px 10px 0;border-bottom:1px solid ${RULE};vertical-align:top">${photoCell(x.photos[i.code])}</td>
+<td style="padding:10px 0;border-bottom:1px solid ${RULE};vertical-align:top;font-size:14px;line-height:19px;color:${INK}">
+<div style="font-weight:bold">${escapeHtml(itemTitle(i.name, i.code))}</div>
+<div style="font-size:12px;color:${MUTED};margin-top:3px">${escapeHtml(i.code)}${i.size ? ` &middot; Size <strong style="color:${INK}">${escapeHtml(i.size)}</strong>` : ""}</div>
+</td>
+<td style="padding:10px 0 10px 8px;border-bottom:1px solid ${RULE};vertical-align:top;text-align:right;white-space:nowrap;font-size:14px;color:${INK}"><strong style="font-size:16px">&times;${i.qty}</strong><div style="font-size:12px;color:${MUTED};margin-top:3px">${emailMoney(line)}</div></td>
+</tr>`;
+    })
+    .join("");
+  const giftRowsHtml = x.gifts
+    .map(
+      (g) => `<tr>
+<td width="64" style="padding:10px 10px 10px 0;border-bottom:1px solid ${RULE};vertical-align:top">${photoCell(x.photos[g.code])}</td>
+<td style="padding:10px 0;border-bottom:1px solid ${RULE};vertical-align:top;font-size:14px;line-height:19px;color:${INK}">
+<div>${pill("Free gift", LIME)} <strong>${escapeHtml(g.name)}</strong></div>
+<div style="font-size:12px;color:${MUTED};margin-top:3px">${escapeHtml(g.code)} &middot; Black Friday${g.forCode ? `, with ${escapeHtml(g.forCode)}` : `, ${escapeHtml(g.reason)}`}</div>
+</td>
+<td style="padding:10px 0 10px 8px;border-bottom:1px solid ${RULE};vertical-align:top;text-align:right;white-space:nowrap;font-size:14px;color:${INK}"><strong style="font-size:16px">&times;${g.qty}</strong><div style="font-size:12px;color:#2f9a12;margin-top:3px;font-weight:bold">FREE</div></td>
+</tr>`,
+    )
+    .join("");
+  const packList = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemRowsHtml}${giftRowsHtml}</table>`;
+
+  const discountNote = x.discounts.length
+    ? `<div style="margin-top:8px;font-size:12px;color:${MUTED}">Black Friday discounts already taken off: ${x.discounts
+        .map((d) => `${escapeHtml(d.label)} (-${emailMoney(d.amount)})`)
+        .join(", ")}</div>`
+    : "";
+
+  const contactBtn = (href: string, label: string, bg: string, color: string) =>
+    `<td style="padding:0 8px 8px 0"><a href="${escapeHtml(href)}" style="display:inline-block;background:${bg};color:${color};border:1px solid ${bg === "#ffffff" ? "#cfcfcf" : bg};border-radius:999px;padding:9px 16px;font-size:13px;font-weight:bold;text-decoration:none">${escapeHtml(label)}</a></td>`;
+  const customer = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;background:#fafafa;border:1px solid ${RULE};border-radius:10px">
+<tr><td style="padding:12px 14px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${factRows([
+    ["Name", order.full_name],
+    ["Email", order.email],
+    ["Phone", order.phone ?? ""],
+    [pickup ? "Pickup" : "Deliver to", pickup ? "Collect at the Hub" : [order.address, order.city, order.country].filter(Boolean).join(", ")],
+    ["Delivery", order.shipping_method],
+    [pickup ? "Ready by" : "Due by", due],
+  ])}</table>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:10px"><tr>
+${phone ? contactBtn(`https://wa.me/${phone}`, "WhatsApp", "#25d366", "#ffffff") + contactBtn(`tel:+${phone}`, "Call", "#ffffff", INK) : ""}
+${contactBtn(`mailto:${order.email}?subject=${encodeURIComponent(`Your RAPPI order ${order.id}`)}`, "Email", "#ffffff", INK)}
+</tr></table>
+</td></tr></table>`;
+
+  const steps = [
+    `Check the payment of <strong>${emailMoney(order.total)}</strong> has reached the bank${x.paymentRef ? ` (DPO ref ${escapeHtml(x.paymentRef)})` : ""}.`,
+    `Pack ${pieces} ${pieces === 1 ? "piece" : "pieces"}${x.gifts.length ? ` <strong>plus ${x.gifts.reduce((a, g) => a + g.qty, 0)} free gift${x.gifts.reduce((a, g) => a + g.qty, 0) === 1 ? "" : "s"}</strong>` : ""} and put the printed invoice in the parcel.`,
+    `In Admin, set the order to <strong>Preparing</strong>; the customer gets an email.`,
+    pickup
+      ? `When it's ready, set it to <strong>Delivered</strong> once collected.`
+      : `When it leaves, set it to <strong>Shipped</strong> and add the courier and tracking number.`,
+  ];
+  const checklist = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px">${steps
+    .map(
+      (t, n) => `<tr><td width="30" style="vertical-align:top;padding:6px 0"><div style="width:22px;height:22px;border-radius:50%;background:${LIME};color:${INK};font-size:12px;font-weight:bold;text-align:center;line-height:22px">${n + 1}</div></td><td style="padding:6px 0;font-size:14px;line-height:20px;color:${INK}">${t}</td></tr>`,
+    )
+    .join("")}</table>`;
+
+  const body = [
+    hero,
+    warning,
+    sectionTitle(`Pack this (${pieces + x.gifts.reduce((a, g) => a + g.qty, 0)} items)`),
+    packList,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px">${totalsRows(order)}</table>`,
+    discountNote,
+    sectionTitle("Customer"),
+    customer,
+    sectionTitle("Next steps"),
+    checklist,
+    button(adminUrl, "Open order in Admin"),
+    x.invoiceAttached
+      ? `<p style="margin:8px 0 0;font-size:12px;color:${MUTED}">📎 The customer's tax invoice is attached (PDF). The customer got the same invoice by email.</p>`
+      : "",
+  ].join("");
+
+  const giftText = x.gifts.map((g) => `- FREE ${g.name} (${g.code}) x${g.qty}`).join("\n");
+  return {
+    subject,
+    html: layout(ctx, body, `${order.full_name} paid ${emailMoney(order.total)} for ${pieces} ${pieces === 1 ? "piece" : "pieces"}. Wait for the funds to clear before dispatch.`),
+    text: `NEW WEBSITE SALE ${emailMoney(order.total)}\nOrder ${order.id}${x.paymentRef ? ` (DPO ref ${x.paymentRef})` : ""}\n\nWait for the money: DPO takes about 3 business days to pay into the bank. Pack now, ${pickup ? "release at the Hub" : "dispatch"} once the funds show.\n\nPACK:\n${textItems(ctx)}${giftText ? `\n${giftText}` : ""}\n\nCUSTOMER: ${order.full_name}, ${order.email}, ${order.phone ?? ""}\n${pickup ? "Pickup at the Hub" : [order.address, order.city, order.country].filter(Boolean).join(", ")}\nDelivery: ${order.shipping_method}, due by ${due}\n\nOpen in Admin: ${adminUrl}`,
+  };
 }
