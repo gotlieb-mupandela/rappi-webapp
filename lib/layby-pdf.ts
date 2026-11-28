@@ -12,7 +12,7 @@ const INK = rgb(0.1, 0.1, 0.1);
 const MUTED = rgb(0.38, 0.38, 0.38);
 const RULE = rgb(0.84, 0.84, 0.84);
 const LIME = rgb(0.37, 1, 0.22);
-const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
+const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-pdf.png");
 
 export type LaybyDocData = {
   layby: {

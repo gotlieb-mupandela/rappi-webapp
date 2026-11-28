@@ -17,7 +17,7 @@ const LIME = rgb(0.37, 1, 0.22);
 const WHITE = rgb(1, 1, 1);
 const MUTED = rgb(0.35, 0.35, 0.35);
 const SOFT = rgb(0.96, 0.97, 0.95);
-const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
+const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-pdf.png");
 
 export function couponFilename(code: string) {
   return `rappi-opening-coupon-${code}.pdf`;

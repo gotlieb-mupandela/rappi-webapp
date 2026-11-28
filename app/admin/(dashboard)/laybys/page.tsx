@@ -93,7 +93,7 @@ export default function AdminLaybysPage() {
         {cards.map(([label, value]) => (
           <div key={label} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
             <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{label}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+            <p className="mt-1 break-words text-xl font-semibold tabular-nums xl:text-2xl">{value}</p>
           </div>
         ))}
       </div>

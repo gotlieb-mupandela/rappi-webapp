@@ -35,7 +35,7 @@ const RULE = rgb(0.82, 0.82, 0.82);
 const HEADER_BG = rgb(1, 1, 1);
 const LIME = rgb(0.37, 1, 0.22);
 const FREE_GREEN = rgb(0.18, 0.54, 0.07);
-const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-dark.png");
+const LOGO_FILE = path.join(process.cwd(), "public", "brand", "logo-pdf.png");
 const LOGO_NATIVE_WIDTH = 1416;
 const LOGO_NATIVE_HEIGHT = 895;
 
