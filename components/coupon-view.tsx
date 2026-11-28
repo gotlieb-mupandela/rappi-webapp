@@ -177,7 +177,13 @@ function StaffPanel(props: Parameters<typeof CouponView>[0]) {
       <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-neutral-500">Staff: {props.staff}</p>
       <div className={`rounded-3xl px-5 py-6 text-center text-white ${s.tone}`}>
         <p className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/25 text-4xl font-extrabold">
-          {props.status === "valid" ? "✓" : props.status === "not_active" ? "!" : "✕"}
+          {props.status === "valid" ? (
+            <svg viewBox="0 0 24 24" aria-hidden className="h-9 w-9"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          ) : props.status === "not_active" ? (
+            <svg viewBox="0 0 24 24" aria-hidden className="h-9 w-9"><path d="M12 6v8M12 18v.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden className="h-9 w-9"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>
+          )}
         </p>
         <p className="mt-3 font-[family-name:var(--font-oswald)] text-4xl font-bold uppercase leading-none">{s.staff}</p>
         <p className="mt-2 text-[15px] opacity-95">

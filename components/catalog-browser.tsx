@@ -159,8 +159,21 @@ export function CatalogBrowser({
     );
   }
 
+  const note = listing.searchNote;
   return (
-    <CatalogFilters
+    <>
+      {note ? (
+        <p className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm" role="status">
+          {note.corrected && !note.closest ? (
+            <>
+              Showing results for <strong>{note.corrected}</strong>
+            </>
+          ) : (
+            note.message
+          )}
+        </p>
+      ) : null}
+      <CatalogFilters
       listing={listing}
       query={query}
       audienceSlug={audienceSlug}
@@ -186,6 +199,7 @@ export function CatalogBrowser({
       emptyBody={emptyBodyKey ? t(emptyBodyKey) : emptyBody}
       emptyQuiet={emptyQuiet}
       onNavigate={onNavigate}
-    />
+      />
+    </>
   );
 }

@@ -199,7 +199,7 @@ export async function sendLaybyOpened(laybyId: string) {
       button(admin, "Open layby in Admin"),
     ].join("");
     return {
-      subject: `🧾 New layby ${laybyId} – ${emailMoney(d.layby.paid)} deposit on ${emailMoney(d.layby.total)} – ${d.layby.name}`,
+      subject: `New layby ${laybyId} – ${emailMoney(d.layby.paid)} deposit on ${emailMoney(d.layby.total)} – ${d.layby.name}`,
       html: layout(ctx, body, `Deposit ${emailMoney(d.layby.paid)}. Reserve the stock; don't send yet.`),
       text: `New layby ${laybyId}\n${d.layby.name} paid a deposit of ${emailMoney(d.layby.paid)} on ${emailMoney(d.layby.total)}. Do not send until fully paid.\n\nAdmin: ${admin}`,
       pdf: await buildLaybyPdf(d),
@@ -216,7 +216,7 @@ export async function sendLaybyPaymentReceipt(laybyId: string, paymentKey: strin
   const done = laybyBalance(d.layby) <= 0;
   await sendOnce(laybyId, `payment:${paymentKey}`, [d.layby.email], async () => {
     const body = [
-      heading(done ? "Layby paid in full! 🎉" : "Layby payment received"),
+      heading(done ? "Layby paid in full" : "Layby payment received"),
       para(
         done
           ? `Hi ${escapeHtml(firstName(d.layby.name))}, your last payment of <strong>${emailMoney(amount)}</strong> is in and layby <strong>${escapeHtml(laybyId)}</strong> is <strong>fully paid</strong>. Your invoice follows in a separate email. We pack and send your order (or have it ready at the Hub) once this payment has cleared, usually about 3 business days.`

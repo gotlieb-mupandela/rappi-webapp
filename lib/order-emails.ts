@@ -433,7 +433,7 @@ function renderStaffSale(ctx: OrderEmailContext): RenderedEmail {
   const pickup = isPickup(order);
   const due = emailDate(order.due_at);
   const phone = digits(order.phone);
-  const subject = `💰 New sale ${emailMoney(order.total)} – ${order.full_name} – order ${order.id}`;
+  const subject = `New sale ${emailMoney(order.total)} – ${order.full_name} – order ${order.id}`;
 
   const hero = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${INK};border-radius:14px">
 <tr><td style="padding:20px 22px">
@@ -525,7 +525,7 @@ ${contactBtn(`mailto:${order.email}?subject=${encodeURIComponent(`Your RAPPI ord
     checklist,
     button(adminUrl, "Open order in Admin"),
     x.invoiceAttached
-      ? `<p style="margin:8px 0 0;font-size:12px;color:${MUTED}">📎 The customer's tax invoice is attached (PDF). The customer got the same invoice by email.</p>`
+      ? `<p style="margin:8px 0 0;font-size:12px;color:${MUTED}">The customer's tax invoice is attached (PDF). The customer got the same invoice by email.</p>`
       : "",
   ].join("");
 

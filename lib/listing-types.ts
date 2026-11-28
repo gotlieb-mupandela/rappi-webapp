@@ -1,3 +1,4 @@
+import type { SearchNote } from "@/lib/search-engine";
 import type { ListingAudience } from "@/lib/audience";
 import type { Product } from "@/lib/types";
 
@@ -18,6 +19,8 @@ export type ListingFilterOpts = {
   requireQuery?: boolean;
   pageSize?: number;
   badges?: Array<NonNullable<Product["badge"]>>;
+  /** Filled by search: a "did you mean" / "closest matches" note. */
+  meta?: { searchNote?: SearchNote | null };
 };
 
 export type ListingQuery = {
@@ -46,6 +49,8 @@ export type ListingResult = {
     subs: ListingFacet[];
     sizes: string[];
   };
+  /** Present when the search corrected a word or fell back to the closest products. */
+  searchNote?: SearchNote;
 };
 
 export type TaxonomySub = { slug: string; name: string; count: number };
