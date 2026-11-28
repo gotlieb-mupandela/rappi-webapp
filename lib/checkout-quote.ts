@@ -95,11 +95,15 @@ export function checkoutPaymentQuote(
   currency = dpoCurrency(),
   discount: DiscountRate | null = null,
   now = Date.now(),
+  promotions = true,
 ): CheckoutQuote {
   const merged = mergePricedLines(lines);
   const subtotal = merchandiseSubtotal(merged);
   const shipping = shippingCostById(shippingMethod);
-  const offer = blackFridayOffer(dealLines(merged), now);
+  // Layby uses normal prices: no Black Friday gifts or money-off (Terms clause 7).
+  const offer = promotions
+    ? blackFridayOffer(dealLines(merged), now)
+    : { gifts: [], discounts: [], discountTotal: 0 };
   // A discount code never stacks with Black Friday money-off deals: the bigger
   // saving wins, so stacked deals can never push an order below cost. Gifts stay.
   let deals = offer;
@@ -123,6 +127,11 @@ export function checkoutPaymentQuote(
     total: vat.total,
     currency,
   };
+}
+
+/** Layby quote: normal prices, no discount code, no Black Friday deals. */
+export function laybyPaymentQuote(lines: DpoCartLine[], shippingMethod: string, country: string) {
+  return checkoutPaymentQuote(lines, shippingMethod, country, dpoCurrency(), null, Date.now(), false);
 }
 
 /**

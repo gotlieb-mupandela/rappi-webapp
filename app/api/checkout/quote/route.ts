@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { enforceCheckoutRateLimit, pricedCartError } from "@/lib/checkout-http";
 import { parseShippingMethod } from "@/lib/checkout-lines";
-import { checkoutPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
+import { checkoutPaymentQuote, laybyPaymentQuote, resolveCheckoutCountry } from "@/lib/checkout-quote";
+import { laybyEligible, laybyPlan } from "@/lib/layby";
 import { discountRouteError } from "@/lib/discount";
 import { resolveActiveDiscount } from "@/lib/discount-lookup";
 import { resolveCheckoutLines } from "@/lib/dpo-cart";
@@ -44,7 +45,21 @@ export async function POST(req: Request) {
       resolveCheckoutLines(record.lines),
     ]);
     const quote = checkoutPaymentQuote(lines, shippingMethod, vatCountry.name, undefined, discount);
-    return NextResponse.json(quote, { headers: { "Cache-Control": "no-store" } });
+    // Layby option: normal prices (no promotions), 20% today, the rest within 3 months.
+    const lq = laybyPaymentQuote(lines, shippingMethod, vatCountry.name);
+    const plan = laybyPlan(lq.total);
+    const layby = {
+      eligible: laybyEligible({ merchandise: lq.subtotal, currency: lq.currency }),
+      subtotal: lq.subtotal,
+      shipping: lq.shipping,
+      vat: lq.vat,
+      total: lq.total,
+      deposit: plan.deposit,
+      balance: plan.balance,
+      monthly: plan.monthly,
+      finalDue: plan.finalDue.toISOString(),
+    };
+    return NextResponse.json({ ...quote, layby }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     const discountError = discountRouteError(err);
     if (discountError) {

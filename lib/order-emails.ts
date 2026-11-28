@@ -66,10 +66,10 @@ export type StaffSaleExtras = {
 
 export type RenderedEmail = { subject: string; html: string; text: string };
 
-const INK = "#111111";
-const MUTED = "#5a5a5a";
-const RULE = "#e3e3e3";
-const LIME = "#5eff38";
+export const INK = "#111111";
+export const MUTED = "#5a5a5a";
+export const RULE = "#e3e3e3";
+export const LIME = "#5eff38";
 
 export function emailMoney(value: number | string | null | undefined) {
   const n = new Intl.NumberFormat("en-NA", {
@@ -91,7 +91,7 @@ export function emailDate(iso: string | null | undefined) {
   }).format(new Date(iso));
 }
 
-function firstName(full: string) {
+export function firstName(full: string) {
   return full.trim().split(/\s+/)[0] || "there";
 }
 
@@ -99,7 +99,7 @@ function isPickup(order: OrderEmailOrder) {
   return /pickup/i.test(order.shipping_method);
 }
 
-function itemRows(items: OrderEmailItem[]) {
+export function itemRows(items: OrderEmailItem[]) {
   return items
     .map((item) => {
       const line = Number(item.unit_price) * item.qty;
@@ -137,7 +137,7 @@ function totalsRows(order: OrderEmailOrder) {
     .join("");
 }
 
-function factRows(facts: Array<[string, string]>) {
+export function factRows(facts: Array<[string, string]>) {
   return facts
     .filter(([, value]) => value)
     .map(
@@ -162,7 +162,7 @@ function progress(step: 0 | 1 | 2 | 3) {
     .join("")}</tr></table>`;
 }
 
-function layout(ctx: OrderEmailContext, body: string, preheader: string) {
+export function layout(ctx: OrderEmailContext, body: string, preheader: string) {
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(ctx.sellerName)}</title></head>
 <body style="margin:0;padding:0;background:#f4f4f4">
@@ -180,7 +180,7 @@ ${escapeHtml(ctx.sellerName)} &middot; Walvis Bay, Namibia &middot; <a href="${e
 </body></html>`;
 }
 
-function button(href: string, label: string) {
+export function button(href: string, label: string) {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 4px"><tr><td style="background:${INK};border-radius:999px">
 <a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 22px;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none">${escapeHtml(label)}</a>
 </td></tr></table>`;
@@ -215,11 +215,11 @@ function textItems(ctx: OrderEmailContext) {
     .join("\n");
 }
 
-function heading(text: string) {
+export function heading(text: string) {
   return `<h1 style="margin:0;font-size:22px;line-height:28px;color:${INK}">${escapeHtml(text)}</h1>`;
 }
 
-function para(html: string) {
+export function para(html: string) {
   return `<p style="margin:12px 0 0;font-size:15px;line-height:22px;color:${INK}">${html}</p>`;
 }
 
@@ -416,11 +416,11 @@ function photoCell(url: string | undefined, size = 56) {
     : `<div style="width:${size}px;height:${size}px;border-radius:8px;background:#f1f1f1"></div>`;
 }
 
-function pill(text: string, bg: string, color = INK) {
+export function pill(text: string, bg: string, color = INK) {
   return `<span style="display:inline-block;background:${bg};color:${color};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:bold;letter-spacing:.5px;text-transform:uppercase">${escapeHtml(text)}</span>`;
 }
 
-function sectionTitle(text: string) {
+export function sectionTitle(text: string) {
   return `<div style="margin-top:26px;font-size:12px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:${MUTED};padding-bottom:6px;border-bottom:2px solid ${INK}">${escapeHtml(text)}</div>`;
 }
 

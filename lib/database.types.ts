@@ -181,6 +181,175 @@ export type Database = {
         }
         Relationships: []
       }
+      layby_notifications: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          layby_id: string
+          recipient: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          layby_id: string
+          recipient?: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          layby_id?: string
+          recipient?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layby_notifications_layby_id_fkey"
+            columns: ["layby_id"]
+            isOneToOne: false
+            referencedRelation: "laybys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      layby_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          layby_id: string
+          method: string
+          payment_id: string | null
+          recorded_by: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          kind?: string
+          layby_id: string
+          method: string
+          payment_id?: string | null
+          recorded_by?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          layby_id?: string
+          method?: string
+          payment_id?: string | null
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layby_payments_layby_id_fkey"
+            columns: ["layby_id"]
+            isOneToOne: false
+            referencedRelation: "laybys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layby_payments_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      laybys: {
+        Row: {
+          accepted_at: string | null
+          accepted_ip: string | null
+          cancel_fee: number | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          email: string
+          final_due_at: string
+          id: string
+          last_payment_at: string | null
+          name: string
+          opened_at: string
+          order_id: string
+          paid: number
+          phone: string | null
+          refund_amount: number | null
+          refund_done_at: string | null
+          refund_done_by: string | null
+          status: string
+          total: number
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_ip?: string | null
+          cancel_fee?: number | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          email: string
+          final_due_at: string
+          id: string
+          last_payment_at?: string | null
+          name: string
+          opened_at?: string
+          order_id: string
+          paid?: number
+          phone?: string | null
+          refund_amount?: number | null
+          refund_done_at?: string | null
+          refund_done_by?: string | null
+          status?: string
+          total: number
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_ip?: string | null
+          cancel_fee?: number | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          email?: string
+          final_due_at?: string
+          id?: string
+          last_payment_at?: string | null
+          name?: string
+          opened_at?: string
+          order_id?: string
+          paid?: number
+          phone?: string | null
+          refund_amount?: number | null
+          refund_done_at?: string | null
+          refund_done_by?: string | null
+          status?: string
+          total?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "laybys_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opening_coupons: {
         Row: {
           code: string
@@ -970,6 +1139,39 @@ export type Database = {
     Functions: {
       _sync_upsert_products: { Args: { rows: Json }; Returns: number }
       _sync_upsert_sizes: { Args: { rows: Json }; Returns: number }
+      apply_layby_payment: {
+        Args: { p_payment_id: string }
+        Returns: {
+          accepted_at: string | null
+          accepted_ip: string | null
+          cancel_fee: number | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          email: string
+          final_due_at: string
+          id: string
+          last_payment_at: string | null
+          name: string
+          opened_at: string
+          order_id: string
+          paid: number
+          phone: string | null
+          refund_amount: number | null
+          refund_done_at: string | null
+          refund_done_by: string | null
+          status: string
+          total: number
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "laybys"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       apply_order_stock: { Args: { p_order_id: string }; Returns: boolean }
       apply_repo_stock_batch: {
         Args: { p_products?: Json; p_sizes?: Json }
@@ -1040,6 +1242,80 @@ export type Database = {
         Returns: Json
       }
       promote_admin: { Args: { p_email: string }; Returns: undefined }
+      cancel_layby: {
+        Args: { p_by: string; p_layby_id: string; p_reason: string }
+        Returns: {
+          accepted_at: string | null
+          accepted_ip: string | null
+          cancel_fee: number | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          email: string
+          final_due_at: string
+          id: string
+          last_payment_at: string | null
+          name: string
+          opened_at: string
+          order_id: string
+          paid: number
+          phone: string | null
+          refund_amount: number | null
+          refund_done_at: string | null
+          refund_done_by: string | null
+          status: string
+          total: number
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "laybys"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      layby_add_payment: {
+        Args: {
+          p_amount: number
+          p_kind?: string
+          p_layby_id: string
+          p_method: string
+          p_payment_id?: string
+          p_recorded_by?: string
+        }
+        Returns: {
+          accepted_at: string | null
+          accepted_ip: string | null
+          cancel_fee: number | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          email: string
+          final_due_at: string
+          id: string
+          last_payment_at: string | null
+          name: string
+          opened_at: string
+          order_id: string
+          paid: number
+          phone: string | null
+          refund_amount: number | null
+          refund_done_at: string | null
+          refund_done_by: string | null
+          status: string
+          total: number
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "laybys"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      open_layby_from_payment: { Args: { p_payment_id: string }; Returns: string }
       set_order_status: {
         Args: {
           p_courier?: string
@@ -1072,7 +1348,7 @@ export type Database = {
     Enums: {
       app_role: "customer" | "admin"
       gender: "men" | "women" | "kids" | "unisex"
-      order_status: "reserved" | "preparing" | "shipped" | "delivered" | "cancelled"
+      order_status: "layby" | "reserved" | "preparing" | "shipped" | "delivered" | "cancelled"
       product_badge: "new" | "offer"
       push_platform: "web" | "ios" | "android"
     }
@@ -1187,7 +1463,7 @@ export const Constants = {
     Enums: {
       app_role: ["customer", "admin"],
       gender: ["men", "women", "kids", "unisex"],
-      order_status: ["reserved", "preparing", "shipped", "delivered", "cancelled"],
+      order_status: ["layby", "reserved", "preparing", "shipped", "delivered", "cancelled"],
       product_badge: ["new", "offer"],
       push_platform: ["web", "ios", "android"],
     },

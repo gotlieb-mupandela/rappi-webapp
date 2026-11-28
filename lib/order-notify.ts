@@ -1,7 +1,7 @@
 import "server-only";
 
 import { about } from "@/lib/about";
-import { documentOffer } from "@/lib/black-friday-documents";
+import { documentOffer, isLaybyOrderNotes } from "@/lib/black-friday-documents";
 import { buildInvoicePdf, invoiceFilename, invoiceSeller, loadInvoiceData } from "@/lib/invoice-pdf";
 import { itemPhotoUrls } from "@/lib/pdf-item-photos";
 import { metaSiteUrl } from "@/lib/meta/site";
@@ -181,9 +181,12 @@ export async function sendLateOrdersDigest(now = new Date()) {
  * Each part is optional: the email still goes out if a photo or the PDF fails.
  */
 export async function staffSaleExtras(orderId: string, ctx: OrderEmailContext) {
+  const admin = createAdminClient();
+  const { data: noteRow } = await admin.from("orders").select("notes").eq("id", orderId).maybeSingle();
   const offer = documentOffer(
     ctx.items.map((item) => ({ code: item.code, qty: item.qty, unitPrice: Number(item.unit_price) })),
     ctx.order.created_at,
+    !isLaybyOrderNotes(noteRow?.notes),
   );
   const [photos, invoice] = await Promise.all([
     itemPhotoUrls([...ctx.items.map((i) => i.code), ...offer.gifts.map((g) => g.code)]).catch(() => new Map<string, string>()),
