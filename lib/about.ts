@@ -10,7 +10,7 @@ export const about = {
     tradingName: "Rappi Sports Hub",
     legalName: "Rappi Investments CC",
     companyNumber: "CC/2025/02866",
-    city: "Windhoek",
+    city: "Walvis Bay",
     country: "Namibia",
     email: "sales@rappisportshub.com",
     phoneDisplay: "+264 81 814 1646",

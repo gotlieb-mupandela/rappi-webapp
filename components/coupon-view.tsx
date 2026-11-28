@@ -114,7 +114,10 @@ export function CouponView(props: {
           <p className="mt-0.5 text-neutral-500">Opening {OPENING_DAY_LABEL} · WhatsApp {STORE_WHATSAPP}</p>
         </section>
         <p className="mt-3 px-1 text-xs text-neutral-500">
-          Personal and single-use. Not exchangeable for cash. Does not combine with other discount codes.
+          Personal and single-use. Not exchangeable for cash. Does not combine with other discount codes.{" "}
+          <a href="/terms#clause-18" className="underline">
+            Terms, clause 18
+          </a>
         </p>
         {!props.staff ? <StaffLogin code={props.code} /> : null}
       </div>

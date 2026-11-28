@@ -23,12 +23,12 @@ const en: Policy = {
   intro:
     "How RAPPI Sports Hub collects, uses and protects your personal data on rappisportshub.com and in the RAPPI Sports Hub app.",
   updatedLabel: "Last updated",
-  updated: "27 November 2026",
+  updated: "28 November 2026",
   sections: [
     {
       heading: "Who we are",
       body: [
-        "RAPPI Sports Hub is an independent sportswear and equipment store based in Windhoek, Namibia. We operate the website rappisportshub.com and the RAPPI Sports Hub mobile app, and we are responsible for the personal data described here.",
+        "RAPPI Sports Hub is an independent sportswear and equipment store run by RAPPI Investments CC (CC/2025/02866), based in Walvis Bay, Namibia. We operate the website rappisportshub.com and the RAPPI Sports Hub mobile app, and we are responsible for the personal data described here.",
       ],
     },
     {
@@ -67,7 +67,8 @@ const en: Policy = {
         "Supabase: account sign-in and our database (accounts, orders, quotes, push tokens).",
         "Vercel: hosts the website and the server the app talks to.",
         "DPO Pay (3G Direct Pay): processes card payments.",
-        "Resend: delivers invoice emails.",
+        "Resend: delivers our emails (order confirmations and invoices, order updates, quotations, your opening coupon and reminders).",
+        "Google (Gmail): when you place an order, our staff receive an email with your name, contact details, delivery address and the items ordered, so we can pack and deliver it.",
         "Google: only if you choose to sign in with Google.",
         "Expo and Apple/Google push services: deliver app notifications. Web browsers' push services deliver website notifications.",
         "Meta: receives website shopping events through the Meta Pixel, and, after a purchase, a hashed (scrambled) copy of your email and first name with the order value so we can measure ads. The app does not send data to Meta.",
@@ -138,12 +139,12 @@ const fr: Policy = {
   intro:
     "Comment RAPPI Sports Hub collecte, utilise et protège vos données personnelles sur rappisportshub.com et dans l'application RAPPI Sports Hub.",
   updatedLabel: "Dernière mise à jour",
-  updated: "6 octobre 2026",
+  updated: "28 novembre 2026",
   sections: [
     {
       heading: "Qui sommes-nous",
       body: [
-        "RAPPI Sports Hub est une boutique indépendante de vêtements et d'équipements de sport basée à Windhoek, en Namibie. Nous exploitons le site rappisportshub.com et l'application mobile RAPPI Sports Hub, et sommes responsables des données personnelles décrites ici.",
+        "RAPPI Sports Hub est une boutique indépendante de vêtements et d'équipements de sport exploitée par RAPPI Investments CC (CC/2025/02866), basée à Walvis Bay, en Namibie. Nous exploitons le site rappisportshub.com et l'application mobile RAPPI Sports Hub, et sommes responsables des données personnelles décrites ici.",
       ],
     },
     {
@@ -180,7 +181,8 @@ const fr: Policy = {
         "Supabase : connexion aux comptes et base de données (comptes, commandes, devis, jetons push).",
         "Vercel : héberge le site et le serveur utilisé par l'application.",
         "DPO Pay (3G Direct Pay) : traite les paiements par carte.",
-        "Resend : envoie les factures par e-mail.",
+        "Resend : envoie nos e-mails (confirmations de commande et factures, suivi de commande, devis, votre coupon d'ouverture et les rappels).",
+        "Google (Gmail) : lorsque vous passez commande, notre équipe reçoit un e-mail avec votre nom, vos coordonnées, votre adresse de livraison et les articles commandés, afin de préparer et livrer la commande.",
         "Google : uniquement si vous choisissez de vous connecter avec Google.",
         "Expo et les services push d'Apple/Google : envoient les notifications de l'application. Les services push des navigateurs envoient celles du site.",
         "Meta : reçoit les événements d'achat du site via le pixel Meta et, après un achat, une version hachée (brouillée) de votre e-mail et de votre prénom avec le montant de la commande, pour mesurer nos publicités. L'application n'envoie aucune donnée à Meta.",

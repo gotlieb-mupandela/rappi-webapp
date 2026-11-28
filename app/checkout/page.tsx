@@ -710,6 +710,17 @@ export default function CheckoutPage() {
           <p className="mt-3 hidden text-center text-xs text-[var(--muted-2)] md:block">
             {market === "eu" ? t("checkout.totalsEur") : t("checkout.totalsNad")}
           </p>
+          <p className="mt-3 text-center text-xs leading-relaxed text-[var(--muted)]">
+            {t("checkout.agreeBefore")}{" "}
+            <Link href="/terms" className="underline">
+              {t("footer.terms")}
+            </Link>{" "}
+            {t("checkout.agreeAnd")}{" "}
+            <Link href="/returns" className="underline">
+              {t("checkout.returnsPolicy")}
+            </Link>
+            {t("checkout.agreeAfter")}
+          </p>
         </aside>
       </form>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--header-bg-scrolled)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">

@@ -162,7 +162,7 @@ export const en = {
     crumb: "About",
     title: "About us",
     eyebrow: "Rappi Sports Hub",
-    intro: "Sportswear, footwear and equipment in Windhoek, Namibia, priced in Namibian Dollars.",
+    intro: "Sportswear, footwear and equipment from Walvis Bay, Namibia, priced in Namibian Dollars.",
     whoTitle: "Who we are",
     whoBody:
       "{name} is run by {legal} (company number {number}), based in {city}, {country}. The store sells sportswear, footwear and equipment priced in Namibian Dollars, for athletes, teams, schools and clubs, including team kits, official kits, and pack and assortment orders.",
@@ -351,6 +351,10 @@ export const en = {
       "This bag is the DPO sandbox product. The amount due is in Namibian dollars (N$). Any euro figure is approximate. Pay with a DPO test card (expiry 01/26). Do not use a live card.",
     address: "Shipping address",
     method: "Shipping method",
+    agreeBefore: "By paying, you agree to our",
+    agreeAnd: "and",
+    returnsPolicy: "Returns policy",
+    agreeAfter: ", including that we pack and send your order once your payment has cleared (about 3 business days).",
     clearingNote:
       "Please note: card payments take about 3 business days to reach our bank through DPO. We pack and send your order, or have it ready at the Hub, once the money has arrived. Delivery times count from then.",
     fullName: "Full name",
@@ -1412,7 +1416,7 @@ export const fr: Messages = {
     crumb: "À propos",
     title: "À propos",
     eyebrow: "Rappi Sports Hub",
-    intro: "Vêtements de sport, chaussures et équipement à Windhoek, en Namibie, au prix en dollars namibiens.",
+    intro: "Vêtements de sport, chaussures et équipement depuis Walvis Bay, en Namibie, au prix en dollars namibiens.",
     whoTitle: "Qui nous sommes",
     whoBody:
       "{name} est exploité par {legal} (numéro d’entreprise {number}), à {city}, {country}. La boutique vend des vêtements de sport, des chaussures et de l’équipement, au prix en dollars namibiens, pour les athlètes, les équipes, les écoles et les clubs, y compris des tenues d’équipe, des kits officiels, et des commandes en pack et en assortiment.",
@@ -1601,6 +1605,10 @@ export const fr: Messages = {
       "Ce panier contient uniquement le produit sandbox DPO. Le montant dû est en dollars namibiens (N$). Tout montant en euros est approximatif. Payez avec une carte de test DPO (expiration 01/26). N’utilisez pas de vraie carte.",
     address: "Adresse de livraison",
     method: "Mode de livraison",
+    agreeBefore: "En payant, vous acceptez nos",
+    agreeAnd: "et notre",
+    returnsPolicy: "politique de retours",
+    agreeAfter: ", y compris l'expédition de votre commande une fois le paiement encaissé (environ 3 jours ouvrables).",
     clearingNote:
       "À noter : les paiements par carte mettent environ 3 jours ouvrables pour arriver sur notre compte via DPO. Nous préparons et expédions votre commande, ou la tenons prête au Hub, dès réception des fonds. Les délais de livraison comptent à partir de ce moment.",
     fullName: "Nom complet",
