@@ -33,7 +33,7 @@ export function BlackFridayStrip() {
       <span className="hidden sm:inline" aria-hidden>
         ·
       </span>
-      <span className="hidden sm:inline">100 deals: free gifts &amp; 10% off</span>
+      <span className="hidden sm:inline">200 deals: free gifts &amp; 10% off</span>
       <Link href={BLACK_FRIDAY_PATH} className={`rounded-full px-3 py-1.5 font-extrabold ${LIME}`}>
         Shop the deals →
       </Link>
@@ -74,7 +74,7 @@ export function BlackFridayBanner() {
         <h2 className="mt-1 whitespace-nowrap font-[family-name:var(--font-oswald)] text-[40px] font-bold uppercase leading-[0.95] xl:text-[52px]">
           Black <span className="text-[#5eff38]">Friday</span>
         </h2>
-        <p className="mt-1.5 whitespace-nowrap text-sm text-white/80">100 deals · free gifts · 10% off</p>
+        <p className="mt-1.5 whitespace-nowrap text-sm text-white/80">200 deals · free gifts · 10% off</p>
       </div>
       <div className="grid grid-cols-4 gap-2 pb-2 sm:max-w-[26rem] lg:flex lg:max-w-none lg:flex-1 lg:justify-center lg:gap-2.5">
         {BANNER_DEALS.map((d, i) => (
@@ -102,7 +102,7 @@ export function BlackFridayBanner() {
       <span
         className={`whitespace-nowrap rounded-full px-6 py-3.5 text-center text-sm font-extrabold uppercase tracking-[0.05em] sm:self-start lg:flex-none lg:self-auto ${LIME}`}
       >
-        Shop all 100 deals →
+        Shop all 200 deals →
       </span>
     </Link>
   );
